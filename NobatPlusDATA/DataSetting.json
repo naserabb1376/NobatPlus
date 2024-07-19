@@ -1,0 +1,8 @@
+{
+  "settings": {
+    "ConnectionString": "Data Source =.;Initial Catalog=NobatPlusDb;Integrated Security=True;MultipleActiveResultSets=True;TrustServerCertificate=True;",
+    //"ConnectionString": "Server=SQLLow02.centraldnserver.com;Initial Catalog=hedfiur_com_HedfiurDb;User ID=hedfiur_com_user1;Password=99u%1u9sC;MultipleActiveResultSets=True;TrustServerCertificate=True;",
+    "PayGateWay": "ZarinPal", // ParbadVirtual
+    "EnableVerifyCode": "False"
+  }
+}
