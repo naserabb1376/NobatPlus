@@ -1,0 +1,21 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using Domains;
+
+namespace NobatPlusDATA.Domain
+{
+    public class ServiceManagement : BaseEntity
+    {
+        public string ServiceParentID { get; set; }
+        public string ServiceName { get; set; }
+        public TimeSpan Duration { get; set; }
+        public decimal Price { get; set; }
+
+        public ICollection<BookingService> BookingServices { get; set; }
+        public ICollection<StylistService> StylistServices { get; set; }
+        public ICollection<ServiceDiscount> ServiceDiscounts { get; set; }
+    }
+}
