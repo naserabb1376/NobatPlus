@@ -128,6 +128,19 @@ namespace NobatPlusDATA.DataLayer
                 .WithMany(s => s.Bookings)
                 .HasForeignKey(cd => cd.StylistID)
                 .OnDelete(DeleteBehavior.NoAction);
+            // مدیریت رفتار حذف
+            modelBuilder.Entity<BookingService>()
+                .HasOne(bs => bs.Booking)
+                .WithMany(b => b.BookingServices)
+                .HasForeignKey(bs => bs.BookingID)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            modelBuilder.Entity<StylistService>()
+                .HasOne(ss => ss.Stylist)
+                .WithMany(s => s.StylistServices)
+                .HasForeignKey(ss => ss.StylistID)
+                .OnDelete(DeleteBehavior.NoAction);
+
             modelBuilder.Entity<Review>()
                 .HasOne(cd => cd.Customer)
                 .WithMany(s => s.Reviews)

@@ -10,7 +10,7 @@ namespace NobatPlusDATA.Domain
     public class PaymentHistory : BaseEntity
     {
         public int BookingID { get; set; }
-        public decimal Amount { get; set; }
+        public long Amount { get; set; }
         public DateTime PaymentDate { get; set; }
         public string PaymentMethod { get; set; }
 

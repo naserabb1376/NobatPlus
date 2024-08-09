@@ -12,8 +12,8 @@ using NobatPlusDATA.DataLayer;
 namespace NobatPlusDATA.Migrations
 {
     [DbContext(typeof(NobatPlusContext))]
-    [Migration("20240807124100_initials")]
-    partial class initials
+    [Migration("20240808210255_firstmigration")]
+    partial class firstmigration
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -443,8 +443,8 @@ namespace NobatPlusDATA.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ID"));
 
-                    b.Property<decimal>("Amount")
-                        .HasColumnType("decimal(18,2)");
+                    b.Property<long>("Amount")
+                        .HasColumnType("bigint");
 
                     b.Property<int>("BookingID")
                         .HasColumnType("int");
@@ -480,8 +480,8 @@ namespace NobatPlusDATA.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ID"));
 
-                    b.Property<decimal>("Amount")
-                        .HasColumnType("decimal(18,2)");
+                    b.Property<long>("Amount")
+                        .HasColumnType("bigint");
 
                     b.Property<int>("BookingID")
                         .HasColumnType("int");
@@ -699,8 +699,8 @@ namespace NobatPlusDATA.Migrations
                     b.Property<TimeSpan>("Duration")
                         .HasColumnType("time");
 
-                    b.Property<decimal>("Price")
-                        .HasColumnType("decimal(18,2)");
+                    b.Property<long>("Price")
+                        .HasColumnType("bigint");
 
                     b.Property<string>("ServiceName")
                         .IsRequired()
@@ -809,7 +809,7 @@ namespace NobatPlusDATA.Migrations
                     b.HasOne("NobatPlusDATA.Domain.Booking", "Booking")
                         .WithMany("BookingServices")
                         .HasForeignKey("BookingID")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.HasOne("NobatPlusDATA.Domain.ServiceManagement", "ServiceManagement")
@@ -1045,7 +1045,7 @@ namespace NobatPlusDATA.Migrations
                     b.HasOne("NobatPlusDATA.Domain.Stylist", "Stylist")
                         .WithMany("StylistServices")
                         .HasForeignKey("StylistID")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.Navigation("ServiceManagement");
