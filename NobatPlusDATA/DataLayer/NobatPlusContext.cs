@@ -1,10 +1,11 @@
 ﻿using Domain;
 using Microsoft.EntityFrameworkCore;
 using NobatPlusDATA.Domain;
+using NobatPlusDATA.Tools;
 
 namespace NobatPlusDATA.DataLayer
 {
-    internal class NobatPlusContext : DbContext
+    public class NobatPlusContext : DbContext
     {
         public DbSet<Person> Persons { get; set; }
         public DbSet<Address> Addresses { get; set; }
@@ -21,7 +22,6 @@ namespace NobatPlusDATA.DataLayer
         public DbSet<ServiceManagement> ServiceManagements { get; set; }
         public DbSet<BookingService> BookingServices { get; set; }
         public DbSet<StylistService> StylistServices { get; set; }
-
         public DbSet<Review> Reviews { get; set; }
         public DbSet<JobType> JobTypes { get; set; }
         public DbSet<Discount> Discounts { get; set; }
@@ -31,7 +31,9 @@ namespace NobatPlusDATA.DataLayer
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
-            optionsBuilder.UseSqlServer("Data Source =.; Initial Catalog = NobatPlus;Integrated Security=False;TrustServerCertificate=True;Trusted_Connection=True;");
+            var configHelper = new ConfigurationHelper();
+            string _connectionString = configHelper.GetConnectionString("publicdb");
+            optionsBuilder.UseSqlServer(_connectionString);
         }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
