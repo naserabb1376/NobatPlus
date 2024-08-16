@@ -9,7 +9,7 @@ namespace NobatPlusDATA.Domain
 {
     public class Admin : BaseEntity
     {
-        public int PersonID { get; set; }
+        public long PersonID { get; set; }
         public string Role { get; set; }
 
         public Person Person { get; set; }

@@ -9,7 +9,7 @@ namespace NobatPlusDATA.Domain
 {
     public class ServiceManagement : BaseEntity
     {
-        public string ServiceParentID { get; set; }
+        public long ServiceParentID { get; set; }
         public string ServiceName { get; set; }
         public TimeSpan Duration { get; set; }
         public long Price { get; set; }

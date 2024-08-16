@@ -8,10 +8,10 @@ namespace NobatPlusDATA.Domain
 {
     public class StylistService
     {
-        public int StylistID { get; set; }
+        public long StylistID { get; set; }
         public Stylist Stylist { get; set; }
 
-        public int ServiceManagementID { get; set; }
+        public long ServiceManagementID { get; set; }
         public ServiceManagement ServiceManagement { get; set; }
     }
 }

@@ -1,4 +1,5 @@
 ﻿using Domain;
+using Domains;
 using Microsoft.EntityFrameworkCore;
 using NobatPlusDATA.Domain;
 using NobatPlusDATA.Tools;
@@ -28,6 +29,7 @@ namespace NobatPlusDATA.DataLayer
         public DbSet<DiscountAssignment> DiscountAssignments { get; set; }
         public DbSet<ServiceDiscount> ServiceDiscounts { get; set; }
         public DbSet<CustomerDiscount> CustomerDiscounts { get; set; }
+        public DbSet<Log> Logs { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {

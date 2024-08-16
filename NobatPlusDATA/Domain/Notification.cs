@@ -9,7 +9,7 @@ namespace NobatPlusDATA.Domain
 {
     public class Notification : BaseEntity
     {
-        public int PersonID { get; set; }
+        public long PersonID { get; set; }
         public string Message { get; set; }
         public DateTime SentDate { get; set; }
 

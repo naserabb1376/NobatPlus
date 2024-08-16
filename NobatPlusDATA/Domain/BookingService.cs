@@ -8,10 +8,10 @@ namespace NobatPlusDATA.Domain
 {
     public class BookingService
     {
-        public int BookingID { get; set; }
+        public long BookingID { get; set; }
         public Booking Booking { get; set; }
 
-        public int ServiceManagementID { get; set; }
+        public long ServiceManagementID { get; set; }
         public ServiceManagement ServiceManagement { get; set; }
     }
 }

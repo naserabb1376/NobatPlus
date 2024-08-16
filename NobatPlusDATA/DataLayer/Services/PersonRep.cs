@@ -34,27 +34,27 @@ namespace NobatPlusDATA.DataLayer.Services
             _context.Entry(person).State = EntityState.Detached;
         }
 
-        public bool ExistPerson(int personId)
+        public bool ExistPerson(long personId)
         {
             return _context.Persons.Any(x => x.ID == personId);
         }
 
-        public List<Person> GetAllPersons(int pageIndex = 1, int pagesize = 20, string searchText = "")
+        public List<Person> GetAllPersons(int pageIndex = 1, int pageSize = 20, string searchText = "")
         {
-            return _context.Persons.Where(x => 
+            return _context.Persons.Where(x =>
             (!string.IsNullOrEmpty(x.FirstName.ToString()) && x.FirstName.ToString().Contains(searchText))
            || (!string.IsNullOrEmpty(x.LastName.ToString()) && x.LastName.ToString().Contains(searchText))
            || (!string.IsNullOrEmpty(x.NaCode.ToString()) && x.NaCode.ToString().Contains(searchText))
            || (!string.IsNullOrEmpty(x.PhoneNumber.ToString()) && x.PhoneNumber.ToString().Contains(searchText))
            || (!string.IsNullOrEmpty(x.Email.ToString()) && x.Email.ToString().Contains(searchText))
            || (!string.IsNullOrEmpty(x.Description.ToString()) && x.Description.ToString().Contains(searchText))
-           || (!string.IsNullOrEmpty(x.DateOfBirth.ToString()) && x.DateOfBirth.ToString().Contains(searchText))
-           || (!string.IsNullOrEmpty(x.CreateDate.ToString()) && x.CreateDate.ToString().Contains(searchText))
-           || (!string.IsNullOrEmpty(x.UpdateDate.ToString()) && x.UpdateDate.ToString().Contains(searchText))
-            ).OrderByDescending(x=> x.CreateDate).ToList().ToPaging(pageIndex,pagesize);
+           || (!string.IsNullOrEmpty(x.DateOfBirth.ToString()) && x.DateOfBirth.Value.ToString("yyyy/MM/dd HH:mm").Contains(searchText))
+           || (!string.IsNullOrEmpty(x.CreateDate.ToString()) && x.CreateDate.Value.ToString("yyyy/MM/dd HH:mm").Contains(searchText))
+           || (!string.IsNullOrEmpty(x.UpdateDate.ToString()) && x.UpdateDate.Value.ToString("yyyy/MM/dd HH:mm").Contains(searchText))
+            ).OrderByDescending(x => x.CreateDate).ToPaging(pageIndex,pageSize).ToList();
         }
 
-        public Person GetPersonById(int personId)
+        public Person GetPersonById(long personId)
         {
             return _context.Persons.Find(personId);
         }
@@ -66,7 +66,7 @@ namespace NobatPlusDATA.DataLayer.Services
             _context.Entry(person).State = EntityState.Detached;
         }
 
-        public void RemovePerson(int personId)
+        public void RemovePerson(long personId)
         {
             var person = GetPersonById(personId);
             RemovePerson(person);

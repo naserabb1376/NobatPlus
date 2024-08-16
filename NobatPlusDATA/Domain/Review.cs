@@ -9,8 +9,8 @@ namespace NobatPlusDATA.Domain
 {
     public class Review : BaseEntity
     {
-        public int BookingID { get; set; }
-        public int CustomerID { get; set; }
+        public long BookingID { get; set; }
+        public long CustomerID { get; set; }
         public int Rating { get; set; }
         public string Comments { get; set; }
         public string Status { get; set; }
