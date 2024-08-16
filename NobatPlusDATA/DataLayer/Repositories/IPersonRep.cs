@@ -9,12 +9,12 @@ namespace NobatPlusDATA.DataLayer.Repositories
 {
     public interface IPersonRep
     {
-        public List<Person> GetAllPersons(int pageIndex = 1,int pagesize = 20, string searchText ="");
-        public Person GetPersonById(int personId);
+        public List<Person> GetAllPersons(int pageIndex = 1,int pageSize = 20, string searchText ="");
+        public Person GetPersonById(long personId);
         public void AddPerson(Person person);
         public void EditPerson(Person person);
         public void RemovePerson(Person person);
-        public void RemovePerson(int personId);
-        public bool ExistPerson(int personId);
+        public void RemovePerson(long personId);
+        public bool ExistPerson(long personId);
     }
 }

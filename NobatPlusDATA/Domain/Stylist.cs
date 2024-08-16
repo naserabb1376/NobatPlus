@@ -9,11 +9,11 @@ namespace NobatPlusDATA.Domain
 {
     public class Stylist : BaseEntity
     {
-        public int StylistParentID { get; set; }
-        public int PersonID { get; set; }
+        public long StylistParentID { get; set; }
+        public long PersonID { get; set; }
         public string? Specialty { get; set; }
         public int YearsOfExperience { get; set; }
-        public int JobTypeID { get; set; }
+        public long JobTypeID { get; set; }
         public JobType JobType { get; set; }
         public Person Person { get; set; }
         public ICollection<Booking> Bookings { get; set; }

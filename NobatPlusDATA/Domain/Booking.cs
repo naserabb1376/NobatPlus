@@ -9,8 +9,8 @@ namespace NobatPlusDATA.Domain
 {
     public class Booking : BaseEntity
     {
-        public int StylistID { get; set; }
-        public int CustomerID { get; set; }
+        public long StylistID { get; set; }
+        public long CustomerID { get; set; }
         public DateTime BookingDate { get; set; }
         public TimeSpan BookingTime { get; set; }
         public string Status { get; set; }

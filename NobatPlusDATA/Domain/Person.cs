@@ -15,7 +15,7 @@ namespace NobatPlusDATA.Domain
         public string Email { get; set; }
         public string PhoneNumber { get; set; }
         public Address Address { get; set; }
-        public int AddressID { get; set; }
+        public long AddressID { get; set; }
         public string? NaCode { get; set; }
         public DateTime? DateOfBirth { get; set; }
 

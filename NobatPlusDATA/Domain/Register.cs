@@ -9,7 +9,7 @@ namespace NobatPlusDATA.Domain
 {
     public class Register : BaseEntity
     {
-        public int PersonID { get; set; }
+        public long PersonID { get; set; }
         public DateTime RegistrationDate { get; set; }
 
         public Person Person { get; set; }

@@ -9,10 +9,10 @@ namespace NobatPlusDATA.Domain
 {
     public class ServiceDiscount : BaseEntity
     {
-        public int DiscountId { get; set; }
-        public int ServiceManagementId { get; set; }
-        public int? AdminId { get; set; }
-        public int? StylistId { get; set; }
+        public long DiscountId { get; set; }
+        public long ServiceManagementId { get; set; }
+        public long? AdminId { get; set; }
+        public long? StylistId { get; set; }
 
         public Discount Discount { get; set; }
         public ServiceManagement ServiceManagement { get; set; }

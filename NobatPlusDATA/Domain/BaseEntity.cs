@@ -6,7 +6,7 @@ namespace Domains
     {
         [Key]
         [Display(Name = "آیدی")]
-        public int ID { get; set; }
+        public long ID { get; set; }
 
         [Display(Name = "تاریخ ساخت")]
         public DateTime? CreateDate { get; set; }
