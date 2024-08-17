@@ -10,13 +10,13 @@ namespace NobatPlusDATA.DataLayer.Repositories
 {
     public interface IAddressRep
     {
-        public List<Address> GetAllAddresses(int pageIndex = 1,int pageSize = 20, string searchText ="");
-        public Address GetAddressById(long addressId);
-        public Address GetAddressByPersonId(long personId);
-        public void AddAddress(Address address);
-        public void EditAddress(Address address);
-        public void RemoveAddress(Address address);
-        public void RemoveAddress(long addressId);
-        public bool ExistAddress(long addressId);
+        public Task<List<Address>> GetAllAddressesAsync(int pageIndex = 1, int pageSize = 20, string searchText = "");
+        public Task<Address> GetAddressByIdAsync(long addressId);
+        public Task<Address> GetAddressByPersonIdAsync(long personId);
+        public Task AddAddressAsync(Address address);
+        public Task EditAddressAsync(Address address);
+        public Task RemoveAddressAsync(Address address);
+        public Task RemoveAddressAsync(long addressId);
+        public Task<bool> ExistAddressAsync(long addressId);
     }
 }

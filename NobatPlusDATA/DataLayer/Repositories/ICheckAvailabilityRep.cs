@@ -9,12 +9,12 @@ namespace NobatPlusDATA.DataLayer.Repositories
 {
     public interface ICheckAvailabilityRep
     {
-        public List<CheckAvailability> GetAllCheckAvailabilities(long stylistId = -1,int pageIndex = 1,int pageSize = 20, string searchText ="");
-        public CheckAvailability GetCheckAvailabilityById(long CheckAvailabilityId);
-        public void AddCheckAvailability(CheckAvailability CheckAvailability);
-        public void EditCheckAvailability(CheckAvailability CheckAvailability);
-        public void RemoveCheckAvailability(CheckAvailability CheckAvailability);
-        public void RemoveCheckAvailability(long CheckAvailabilityId);
-        public bool ExistCheckAvailability(long CheckAvailabilityId);
+        public Task<List<CheckAvailability>> GetAllCheckAvailabilitiesAsync(long stylistId = -1, int pageIndex = 1, int pageSize = 20, string searchText = "");
+        public Task<CheckAvailability> GetCheckAvailabilityByIdAsync(long CheckAvailabilityId);
+        public Task AddCheckAvailabilityAsync(CheckAvailability CheckAvailability);
+        public Task EditCheckAvailabilityAsync(CheckAvailability CheckAvailability);
+        public Task RemoveCheckAvailabilityAsync(CheckAvailability CheckAvailability);
+        public Task RemoveCheckAvailabilityAsync(long CheckAvailabilityId);
+        public Task<bool> ExistCheckAvailabilityAsync(long CheckAvailabilityId);
     }
 }

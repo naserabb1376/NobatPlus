@@ -21,81 +21,98 @@ namespace NobatPlusDATA.DataLayer.Services
             _context = DbTools.GetDbContext();
         }
 
-        public void AddNotification(Notification Notification)
+        public async Task AddNotificationAsync(Notification Notification)
         {
             _context.Notifications.Add(Notification);
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
             _context.Entry(Notification).State = EntityState.Detached;
         }
 
-        public void EditNotification(Notification Notification)
+        public async Task EditNotificationAsync(Notification Notification)
         {
             _context.Notifications.Update(Notification);
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
             _context.Entry(Notification).State = EntityState.Detached;
         }
 
-        public bool ExistNotification(long NotificationId)
+        public async Task<bool> ExistNotificationAsync(long NotificationId)
         {
-            return _context.Notifications.Any(x => x.ID == NotificationId);
+            return await _context.Notifications
+                .AsNoTracking()
+                .AnyAsync(x => x.ID == NotificationId);
         }
 
-        public List<Notification> GetAllNotifications(long personId = 0, int pageIndex= 1, int pageSize = 20, string searchText= "")
+        public async Task<List<Notification>> GetAllNotificationsAsync(long personId = 0, int pageIndex = 1, int pageSize = 20, string searchText = "")
         {
             if (personId == 0)
             {
-            return _context.Notifications.Include(x => x.Person).Where(x =>
-             (!string.IsNullOrEmpty(x.Person.FirstName.ToString()) && x.Person.FirstName.ToString().Contains(searchText))
-            || (!string.IsNullOrEmpty(x.Person.LastName.ToString()) && x.Person.LastName.ToString().Contains(searchText))
-            || (!string.IsNullOrEmpty(x.Person.NaCode.ToString()) && x.Person.NaCode.ToString().Contains(searchText))
-            || (!string.IsNullOrEmpty(x.Person.PhoneNumber.ToString()) && x.Person.PhoneNumber.ToString().Contains(searchText))
-            || (!string.IsNullOrEmpty(x.Person.Email.ToString()) && x.Person.Email.ToString().Contains(searchText))
-            || (!string.IsNullOrEmpty(x.Person.Description.ToString()) && x.Person.Description.ToString().Contains(searchText))
-            || (!string.IsNullOrEmpty(x.Person.DateOfBirth.ToString()) && x.Person.DateOfBirth.Value.ToString("yyyy/MM/dd HH:mm").Contains(searchText))
-            || (!string.IsNullOrEmpty(x.Message.ToString()) && x.Message.ToString().Contains(searchText))
-            || (!string.IsNullOrEmpty(x.Description.ToString()) && x.Description.ToString().Contains(searchText))
-            || (!string.IsNullOrEmpty(x.SentDate.ToString()) && x.SentDate.ToString("yyyy/MM/dd HH:mm").Contains(searchText))
-            || (!string.IsNullOrEmpty(x.CreateDate.ToString()) && x.CreateDate.Value.ToString("yyyy/MM/dd HH:mm").Contains(searchText))
-            || (!string.IsNullOrEmpty(x.UpdateDate.ToString()) && x.UpdateDate.Value.ToString("yyyy/MM/dd HH:mm").Contains(searchText))
-             ).OrderByDescending(x=> x.CreateDate).ToPaging(pageIndex, pageSize).ToList();
+                return await _context.Notifications
+                    .AsNoTracking()
+                    .Include(x => x.Person)
+                    .Where(x =>
+                        (!string.IsNullOrEmpty(x.Person.FirstName) && x.Person.FirstName.Contains(searchText)) ||
+                        (!string.IsNullOrEmpty(x.Person.LastName) && x.Person.LastName.Contains(searchText)) ||
+                        (!string.IsNullOrEmpty(x.Person.NaCode) && x.Person.NaCode.Contains(searchText)) ||
+                        (!string.IsNullOrEmpty(x.Person.PhoneNumber) && x.Person.PhoneNumber.Contains(searchText)) ||
+                        (!string.IsNullOrEmpty(x.Person.Email) && x.Person.Email.Contains(searchText)) ||
+                        (!string.IsNullOrEmpty(x.Person.Description) && x.Person.Description.Contains(searchText)) ||
+                        (x.Person.DateOfBirth.HasValue && x.Person.DateOfBirth.Value.ToString("yyyy/MM/dd HH:mm").Contains(searchText)) ||
+                        (!string.IsNullOrEmpty(x.Message) && x.Message.Contains(searchText)) ||
+                        (!string.IsNullOrEmpty(x.Description) && x.Description.Contains(searchText)) ||
+                        (!string.IsNullOrEmpty(x.SentDate.ToString()) && x.SentDate.ToString("yyyy/MM/dd HH:mm").Contains(searchText)) ||
+                        (x.CreateDate.HasValue && x.CreateDate.Value.ToString("yyyy/MM/dd HH:mm").Contains(searchText)) ||
+                        (x.UpdateDate.HasValue && x.UpdateDate.Value.ToString("yyyy/MM/dd HH:mm").Contains(searchText))
+                    )
+                    .OrderByDescending(x => x.CreateDate)
+                    .ToPaging(pageIndex, pageSize)
+                    .ToListAsync();
             }
             else
             {
-                return _context.Notifications.Include(x => x.Person).Where(x =>
-                (x.PersonID == personId) &&
-             ((!string.IsNullOrEmpty(x.Person.FirstName.ToString()) && x.Person.FirstName.ToString().Contains(searchText))
-            || (!string.IsNullOrEmpty(x.Person.LastName.ToString()) && x.Person.LastName.ToString().Contains(searchText))
-            || (!string.IsNullOrEmpty(x.Person.NaCode.ToString()) && x.Person.NaCode.ToString().Contains(searchText))
-            || (!string.IsNullOrEmpty(x.Person.PhoneNumber.ToString()) && x.Person.PhoneNumber.ToString().Contains(searchText))
-            || (!string.IsNullOrEmpty(x.Person.Email.ToString()) && x.Person.Email.ToString().Contains(searchText))
-            || (!string.IsNullOrEmpty(x.Person.Description.ToString()) && x.Person.Description.ToString().Contains(searchText))
-            || (!string.IsNullOrEmpty(x.Person.DateOfBirth.ToString()) && x.Person.DateOfBirth.Value.ToString("yyyy/MM/dd HH:mm").Contains(searchText))
-            || (!string.IsNullOrEmpty(x.Message.ToString()) && x.Message.ToString().Contains(searchText))
-            || (!string.IsNullOrEmpty(x.Description.ToString()) && x.Description.ToString().Contains(searchText))
-            || (!string.IsNullOrEmpty(x.SentDate.ToString()) && x.SentDate.ToString("yyyy/MM/dd HH:mm").Contains(searchText))
-            || (!string.IsNullOrEmpty(x.CreateDate.ToString()) && x.CreateDate.Value.ToString("yyyy/MM/dd HH:mm").Contains(searchText))
-            || (!string.IsNullOrEmpty(x.UpdateDate.ToString()) && x.UpdateDate.Value.ToString("yyyy/MM/dd HH:mm").Contains(searchText))
-             )).OrderByDescending(x => x.CreateDate).ToPaging(pageIndex, pageSize).ToList();
+                return await _context.Notifications
+                    .AsNoTracking()
+                    .Include(x => x.Person)
+                    .Where(x =>
+                        x.PersonID == personId &&
+                        (
+                            (!string.IsNullOrEmpty(x.Person.FirstName) && x.Person.FirstName.Contains(searchText)) ||
+                            (!string.IsNullOrEmpty(x.Person.LastName) && x.Person.LastName.Contains(searchText)) ||
+                            (!string.IsNullOrEmpty(x.Person.NaCode) && x.Person.NaCode.Contains(searchText)) ||
+                            (!string.IsNullOrEmpty(x.Person.PhoneNumber) && x.Person.PhoneNumber.Contains(searchText)) ||
+                            (!string.IsNullOrEmpty(x.Person.Email) && x.Person.Email.Contains(searchText)) ||
+                            (!string.IsNullOrEmpty(x.Person.Description) && x.Person.Description.Contains(searchText)) ||
+                            (x.Person.DateOfBirth.HasValue && x.Person.DateOfBirth.Value.ToString("yyyy/MM/dd HH:mm").Contains(searchText)) ||
+                            (!string.IsNullOrEmpty(x.Message) && x.Message.Contains(searchText)) ||
+                            (!string.IsNullOrEmpty(x.Description) && x.Description.Contains(searchText)) ||
+                            (!string.IsNullOrEmpty(x.SentDate.ToString()) && x.SentDate.ToString("yyyy/MM/dd HH:mm").Contains(searchText)) ||
+                            (x.CreateDate.HasValue && x.CreateDate.Value.ToString("yyyy/MM/dd HH:mm").Contains(searchText)) ||
+                            (x.UpdateDate.HasValue && x.UpdateDate.Value.ToString("yyyy/MM/dd HH:mm").Contains(searchText))
+                        )
+                    )
+                    .OrderByDescending(x => x.CreateDate)
+                    .ToPaging(pageIndex, pageSize)
+                    .ToListAsync();
             }
-            
         }
 
-        public Notification GetNotificationById(long NotificationId)
+        public async Task<Notification> GetNotificationByIdAsync(long NotificationId)
         {
-            return _context.Notifications.Find(NotificationId);
+            return await _context.Notifications
+                .AsNoTracking()
+                .SingleOrDefaultAsync(x => x.ID == NotificationId);
         }
 
-        public void RemoveNotification(Notification Notification)
+        public async Task RemoveNotificationAsync(Notification Notification)
         {
             _context.Notifications.Remove(Notification);
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
             _context.Entry(Notification).State = EntityState.Detached;
         }
 
-        public void RemoveNotification(long NotificationId)
+        public async Task RemoveNotificationAsync(long NotificationId)
         {
-            var Notification = GetNotificationById(NotificationId);
-            RemoveNotification(Notification);
+            var Notification = await GetNotificationByIdAsync(NotificationId);
+            await RemoveNotificationAsync(Notification);
         }
     }
 }

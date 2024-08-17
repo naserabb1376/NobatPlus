@@ -9,13 +9,13 @@ namespace NobatPlusDATA.DataLayer.Repositories
 {
     public interface IRegisterRep
     {
-        public List<Register> GetAllRegisters(int pageIndex = 1,int pageSize = 20, string searchText ="");
-        public Register GetRegisterById(long RegisterId);
-        public Register GetRegisterByPersonId(long PersonId);
-        public void AddRegister(Register Register);
-        public void EditRegister(Register Register);
-        public void RemoveRegister(Register Register);
-        public void RemoveRegister(long RegisterId);
-        public bool ExistRegister(long RegisterId);
+        public Task<List<Register>> GetAllRegistersAsync(int pageIndex = 1, int pageSize = 20, string searchText = "");
+        public Task<Register> GetRegisterByIdAsync(long RegisterId);
+        public Task<Register> GetRegisterByPersonIdAsync(long PersonId);
+        public Task AddRegisterAsync(Register Register);
+        public Task EditRegisterAsync(Register Register);
+        public Task RemoveRegisterAsync(Register Register);
+        public Task RemoveRegisterAsync(long RegisterId);
+        public Task<bool> ExistRegisterAsync(long RegisterId);
     }
 }

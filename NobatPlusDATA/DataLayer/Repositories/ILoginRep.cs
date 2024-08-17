@@ -9,12 +9,12 @@ namespace NobatPlusDATA.DataLayer.Repositories
 {
     public interface ILoginRep
     {
-        public List<Login> GetAllLogins(long personId = 0,int pageIndex = 1,int pageSize = 20, string searchText ="");
-        public Login GetLoginById(long LoginId);
-        public void AddLogin(Login Login);
-        public void EditLogin(Login Login);
-        public void RemoveLogin(Login Login);
-        public void RemoveLogin(long LoginId);
-        public bool ExistLogin(long LoginId);
+        public Task<List<Login>> GetAllLoginsAsync(long personId = 0, int pageIndex = 1, int pageSize = 20, string searchText = "");
+        public Task<Login> GetLoginByIdAsync(long LoginId);
+        public Task AddLoginAsync(Login Login);
+        public Task EditLoginAsync(Login Login);
+        public Task RemoveLoginAsync(Login Login);
+        public Task RemoveLoginAsync(long LoginId);
+        public Task<bool> ExistLoginAsync(long LoginId);
     }
 }

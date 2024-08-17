@@ -21,75 +21,91 @@ namespace NobatPlusDATA.DataLayer.Services
             _context = DbTools.GetDbContext();
         }
 
-        public void AddCustomer(Customer Customer)
+        public async Task AddCustomerAsync(Customer Customer)
         {
             _context.Customers.Add(Customer);
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
             _context.Entry(Customer).State = EntityState.Detached;
         }
 
-        public void EditCustomer(Customer Customer)
+        public async Task EditCustomerAsync(Customer Customer)
         {
             _context.Customers.Update(Customer);
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
             _context.Entry(Customer).State = EntityState.Detached;
         }
 
-        public bool ExistCustomer(long CustomerId)
+        public async Task<bool> ExistCustomerAsync(long CustomerId)
         {
-            return _context.Customers.Any(x => x.ID == CustomerId);
+            return await _context.Customers
+                .AsNoTracking()
+                .AnyAsync(x => x.ID == CustomerId);
         }
 
-        public List<Customer> GetAllCustomers(int pageIndex= 1, int pageSize = 20, string searchText= "")
+        public async Task<List<Customer>> GetAllCustomersAsync(int pageIndex = 1, int pageSize = 20, string searchText = "")
         {
-            return _context.Customers.Include(x => x.Person).Where(x =>
-             (!string.IsNullOrEmpty(x.Person.FirstName.ToString()) && x.Person.FirstName.ToString().Contains(searchText))
-            || (!string.IsNullOrEmpty(x.Person.LastName.ToString()) && x.Person.LastName.ToString().Contains(searchText))
-            || (!string.IsNullOrEmpty(x.Person.NaCode.ToString()) && x.Person.NaCode.ToString().Contains(searchText))
-            || (!string.IsNullOrEmpty(x.Person.PhoneNumber.ToString()) && x.Person.PhoneNumber.ToString().Contains(searchText))
-            || (!string.IsNullOrEmpty(x.Person.Email.ToString()) && x.Person.Email.ToString().Contains(searchText))
-            || (!string.IsNullOrEmpty(x.Person.Description.ToString()) && x.Person.Description.ToString().Contains(searchText))
-            || (!string.IsNullOrEmpty(x.Person.DateOfBirth.ToString()) && x.Person.DateOfBirth.Value.ToString("yyyy/MM/dd HH:mm").Contains(searchText))
-            || (!string.IsNullOrEmpty(x.Description.ToString()) && x.Description.ToString().Contains(searchText))
-            || (!string.IsNullOrEmpty(x.CreateDate.ToString()) && x.CreateDate.Value.ToString("yyyy/MM/dd HH:mm").Contains(searchText))
-            || (!string.IsNullOrEmpty(x.UpdateDate.ToString()) && x.UpdateDate.Value.ToString("yyyy/MM/dd HH:mm").Contains(searchText))
-             ).OrderByDescending(x=> x.CreateDate).ToPaging(pageIndex, pageSize).ToList();
+            return await _context.Customers
+                .AsNoTracking()
+                .Include(x => x.Person)
+                .Where(x =>
+                    (!string.IsNullOrEmpty(x.Person.FirstName) && x.Person.FirstName.Contains(searchText)) ||
+                    (!string.IsNullOrEmpty(x.Person.LastName) && x.Person.LastName.Contains(searchText)) ||
+                    (!string.IsNullOrEmpty(x.Person.NaCode) && x.Person.NaCode.Contains(searchText)) ||
+                    (!string.IsNullOrEmpty(x.Person.PhoneNumber) && x.Person.PhoneNumber.Contains(searchText)) ||
+                    (!string.IsNullOrEmpty(x.Person.Email) && x.Person.Email.Contains(searchText)) ||
+                    (!string.IsNullOrEmpty(x.Person.Description) && x.Person.Description.Contains(searchText)) ||
+                    (x.Person.DateOfBirth.HasValue && x.Person.DateOfBirth.Value.ToString("yyyy/MM/dd HH:mm").Contains(searchText)) ||
+                    (!string.IsNullOrEmpty(x.Description) && x.Description.Contains(searchText)) ||
+                    (x.CreateDate.HasValue && x.CreateDate.Value.ToString("yyyy/MM/dd HH:mm").Contains(searchText)) ||
+                    (x.UpdateDate.HasValue && x.UpdateDate.Value.ToString("yyyy/MM/dd HH:mm").Contains(searchText))
+                )
+                .OrderByDescending(x => x.CreateDate)
+                .ToPaging(pageIndex, pageSize)
+                .ToListAsync();
         }
 
-        public List<Customer> GetCustomersOfDiscount(long DiscountId, int pageIndex = 1, int pageSize = 20, string searchText = "")
+        public async Task<List<Customer>> GetCustomersOfDiscountAsync(long DiscountId, int pageIndex = 1, int pageSize = 20, string searchText = "")
         {
-            return _context.CustomerDiscounts
-            .Where(bs => bs.DiscountId == DiscountId)
-            .Select(bs => bs.Customer).Include(x => x.Person).Where(x =>
-            (!string.IsNullOrEmpty(x.Person.FirstName.ToString()) && x.Person.FirstName.ToString().Contains(searchText))
-           || (!string.IsNullOrEmpty(x.Person.LastName.ToString()) && x.Person.LastName.ToString().Contains(searchText))
-           || (!string.IsNullOrEmpty(x.Person.NaCode.ToString()) && x.Person.NaCode.ToString().Contains(searchText))
-           || (!string.IsNullOrEmpty(x.Person.PhoneNumber.ToString()) && x.Person.PhoneNumber.ToString().Contains(searchText))
-           || (!string.IsNullOrEmpty(x.Person.Email.ToString()) && x.Person.Email.ToString().Contains(searchText))
-           || (!string.IsNullOrEmpty(x.Person.Description.ToString()) && x.Person.Description.ToString().Contains(searchText))
-           || (!string.IsNullOrEmpty(x.Person.DateOfBirth.ToString()) && x.Person.DateOfBirth.Value.ToString("yyyy/MM/dd HH:mm").Contains(searchText))
-           || (!string.IsNullOrEmpty(x.Description.ToString()) && x.Description.ToString().Contains(searchText))
-           || (!string.IsNullOrEmpty(x.CreateDate.ToString()) && x.CreateDate.Value.ToString("yyyy/MM/dd HH:mm").Contains(searchText))
-           || (!string.IsNullOrEmpty(x.UpdateDate.ToString()) && x.UpdateDate.Value.ToString("yyyy/MM/dd HH:mm").Contains(searchText))
-            ).OrderByDescending(x => x.CreateDate).ToPaging(pageIndex, pageSize).ToList();
+            return await _context.CustomerDiscounts
+                .AsNoTracking()
+                .Where(bs => bs.DiscountId == DiscountId)
+                .Select(bs => bs.Customer)
+                .Include(x => x.Person)
+                .Where(x =>
+                    (!string.IsNullOrEmpty(x.Person.FirstName) && x.Person.FirstName.Contains(searchText)) ||
+                    (!string.IsNullOrEmpty(x.Person.LastName) && x.Person.LastName.Contains(searchText)) ||
+                    (!string.IsNullOrEmpty(x.Person.NaCode) && x.Person.NaCode.Contains(searchText)) ||
+                    (!string.IsNullOrEmpty(x.Person.PhoneNumber) && x.Person.PhoneNumber.Contains(searchText)) ||
+                    (!string.IsNullOrEmpty(x.Person.Email) && x.Person.Email.Contains(searchText)) ||
+                    (!string.IsNullOrEmpty(x.Person.Description) && x.Person.Description.Contains(searchText)) ||
+                    (x.Person.DateOfBirth.HasValue && x.Person.DateOfBirth.Value.ToString("yyyy/MM/dd HH:mm").Contains(searchText)) ||
+                    (!string.IsNullOrEmpty(x.Description) && x.Description.Contains(searchText)) ||
+                    (x.CreateDate.HasValue && x.CreateDate.Value.ToString("yyyy/MM/dd HH:mm").Contains(searchText)) ||
+                    (x.UpdateDate.HasValue && x.UpdateDate.Value.ToString("yyyy/MM/dd HH:mm").Contains(searchText))
+                )
+                .OrderByDescending(x => x.CreateDate)
+                .ToPaging(pageIndex, pageSize)
+                .ToListAsync();
         }
 
-        public Customer GetCustomerById(long CustomerId)
+        public async Task<Customer> GetCustomerByIdAsync(long CustomerId)
         {
-            return _context.Customers.Find(CustomerId);
+            return await _context.Customers
+                .AsNoTracking()
+                .SingleOrDefaultAsync(x=> x.ID == CustomerId);
         }
 
-        public void RemoveCustomer(Customer Customer)
+        public async Task RemoveCustomerAsync(Customer Customer)
         {
             _context.Customers.Remove(Customer);
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
             _context.Entry(Customer).State = EntityState.Detached;
         }
 
-        public void RemoveCustomer(long CustomerId)
+        public async Task RemoveCustomerAsync(long CustomerId)
         {
-            var Customer = GetCustomerById(CustomerId);
-            RemoveCustomer(Customer);
+            var Customer = await GetCustomerByIdAsync(CustomerId);
+            await RemoveCustomerAsync(Customer);
         }
     }
 }

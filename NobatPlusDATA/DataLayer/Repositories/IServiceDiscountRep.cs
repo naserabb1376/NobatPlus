@@ -9,12 +9,12 @@ namespace NobatPlusDATA.DataLayer.Repositories
 {
     public interface IServiceDiscountRep
     {
-        public List<ServiceDiscount> GetAllServiceDiscounts(long DiscountId, long ServiceManagementId, long AdminId = 0 , long StylistId = 0,int pageIndex = 1,int pageSize = 20, string searchText ="");
-        public ServiceDiscount GetServiceDiscountById(long ServiceDiscountId);
-        public void AddServiceDiscount(ServiceDiscount ServiceDiscount);
-        public void EditServiceDiscount(ServiceDiscount ServiceDiscount);
-        public void RemoveServiceDiscount(ServiceDiscount ServiceDiscount);
-        public void RemoveServiceDiscount(long ServiceDiscountId);
-        public bool ExistServiceDiscount(long ServiceDiscountId);
+        public Task<List<ServiceDiscount>> GetAllServiceDiscountsAsync(long DiscountId, long ServiceManagementId, long AdminId = 0, long StylistId = 0, int pageIndex = 1, int pageSize = 20, string searchText = "");
+        public Task<ServiceDiscount> GetServiceDiscountByIdAsync(long ServiceDiscountId);
+        public Task AddServiceDiscountAsync(ServiceDiscount ServiceDiscount);
+        public Task EditServiceDiscountAsync(ServiceDiscount ServiceDiscount);
+        public Task RemoveServiceDiscountAsync(ServiceDiscount ServiceDiscount);
+        public Task RemoveServiceDiscountAsync(long ServiceDiscountId);
+        public Task<bool> ExistServiceDiscountAsync(long ServiceDiscountId);
     }
 }

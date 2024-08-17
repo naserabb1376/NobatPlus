@@ -9,13 +9,13 @@ namespace NobatPlusDATA.DataLayer.Repositories
 {
     public interface IBookingRep
     {
-        public List<Booking> GetAllBookings(int cancelState = 0,int pageIndex = 1,int pageSize = 20, string searchText ="");
-        public List<Booking> GetBookingsOfService(int ServiceManagementId,int cancelState = 0,int pageIndex = 1,int pageSize = 20, string searchText ="");
-        public Booking GetBookingById(long BookingId);
-        public void AddBooking(Booking Booking);
-        public void EditBooking(Booking Booking);
-        public void RemoveBooking(Booking Booking);
-        public void RemoveBooking(long BookingId);
-        public bool ExistBooking(long BookingId);
+        public Task<List<Booking>> GetAllBookingsAsync(int cancelState = 0, int pageIndex = 1, int pageSize = 20, string searchText = "");
+        public Task<List<Booking>> GetBookingsOfServiceAsync(int ServiceManagementId, int cancelState = 0, int pageIndex = 1, int pageSize = 20, string searchText = "");
+        public Task<Booking> GetBookingByIdAsync(long BookingId);
+        public Task AddBookingAsync(Booking Booking);
+        public Task EditBookingAsync(Booking Booking);
+        public Task RemoveBookingAsync(Booking Booking);
+        public Task RemoveBookingAsync(long BookingId);
+        public Task<bool> ExistBookingAsync(long BookingId);
     }
 }

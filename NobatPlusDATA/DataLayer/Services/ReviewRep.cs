@@ -21,102 +21,83 @@ namespace NobatPlusDATA.DataLayer.Services
             _context = DbTools.GetDbContext();
         }
 
-        public void AddReview(Review Review)
+        public async Task AddReviewAsync(Review Review)
         {
             _context.Reviews.Add(Review);
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
             _context.Entry(Review).State = EntityState.Detached;
         }
 
-        public void EditReview(Review Review)
+        public async Task EditReviewAsync(Review Review)
         {
             _context.Reviews.Update(Review);
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
             _context.Entry(Review).State = EntityState.Detached;
         }
 
-        public bool ExistReview(long ReviewId)
+        public async Task<bool> ExistReviewAsync(long ReviewId)
         {
-            return _context.Reviews.Any(x => x.ID == ReviewId);
+            return await _context.Reviews
+                .AsNoTracking()
+                .AnyAsync(x => x.ID == ReviewId);
         }
 
-        public List<Review> GetAllReviews(long BookingId = 0,long CustomerId = 0 ,int pageIndex= 1, int pageSize = 20, string searchText= "")
+        public async Task<List<Review>> GetAllReviewsAsync(long BookingId = 0, long CustomerId = 0, int pageIndex = 1, int pageSize = 20, string searchText = "")
         {
+            IQueryable<Review> query = _context.Reviews
+                .AsNoTracking()
+                .Include(x => x.Booking).ThenInclude(x => x.Stylist)
+                .Include(x => x.Customer).ThenInclude(x => x.Person);
+
             if (BookingId > 0)
             {
-            return _context.Reviews.Include(x=> x.Booking).ThenInclude(x=> x.Stylist).Include(x=> x.Customer).ThenInclude(x => x.Person).Where(x =>
-             (x.BookingID == BookingId) &&
-             ((!string.IsNullOrEmpty(x.Customer.Person.FirstName.ToString()) && x.Customer.Person.FirstName.ToString().Contains(searchText))
-            || (!string.IsNullOrEmpty(x.Customer.Person.LastName.ToString()) && x.Customer.Person.LastName.ToString().Contains(searchText))
-            || (!string.IsNullOrEmpty(x.ReviewDate.ToString()) && x.ReviewDate.ToString("yyyy/MM/dd HH:mm").Contains(searchText))
-            || (!string.IsNullOrEmpty(x.Comments.ToString()) && x.Comments.ToString().Contains(searchText))
-            || (!string.IsNullOrEmpty(x.Description.ToString()) && x.Description.ToString().Contains(searchText))
-            || (!string.IsNullOrEmpty(x.LikeCount.ToString()) && x.LikeCount.ToString().Contains(searchText))
-            || (!string.IsNullOrEmpty(x.DislikeCount.ToString()) && x.DislikeCount.ToString().Contains(searchText))
-            || (!string.IsNullOrEmpty(x.Rating.ToString()) && x.Rating.ToString().Contains(searchText))
-            || (!string.IsNullOrEmpty(x.Booking.BookingDate.ToString()) && x.Booking.BookingDate.ToString("yyyy/MM/dd HH:mm").Contains(searchText))
-            || (!string.IsNullOrEmpty(x.Booking.BookingTime.ToString()) && x.Booking.BookingTime.ToString("HH:mm").Contains(searchText))
-            || (!string.IsNullOrEmpty(x.Booking.Status.ToString()) && x.Booking.Status.ToString().Contains(searchText))
-            || (!string.IsNullOrEmpty(x.CreateDate.ToString()) && x.CreateDate.Value.ToString("yyyy/MM/dd HH:mm").Contains(searchText))
-            || (!string.IsNullOrEmpty(x.UpdateDate.ToString()) && x.UpdateDate.Value.ToString("yyyy/MM/dd HH:mm").Contains(searchText))
-             )).OrderByDescending(x=> x.CreateDate).ToPaging(pageIndex, pageSize).ToList();
+                query = query.Where(x => x.BookingID == BookingId);
+            }
+            else if (CustomerId > 0)
+            {
+                query = query.Where(x => x.CustomerID == CustomerId);
             }
 
-            if (CustomerId > 0)
-            {
-                return _context.Reviews.Include(x => x.Booking).ThenInclude(x => x.Stylist).Include(x => x.Customer).ThenInclude(x => x.Person).Where(x =>
-                (x.CustomerID == CustomerId) &&
-                 ((!string.IsNullOrEmpty(x.Customer.Person.FirstName.ToString()) && x.Customer.Person.FirstName.ToString().Contains(searchText))
-                || (!string.IsNullOrEmpty(x.Customer.Person.LastName.ToString()) && x.Customer.Person.LastName.ToString().Contains(searchText))
-                || (!string.IsNullOrEmpty(x.ReviewDate.ToString()) && x.ReviewDate.ToString("yyyy/MM/dd HH:mm").Contains(searchText))
-                || (!string.IsNullOrEmpty(x.Comments.ToString()) && x.Comments.ToString().Contains(searchText))
-                || (!string.IsNullOrEmpty(x.Description.ToString()) && x.Description.ToString().Contains(searchText))
-                || (!string.IsNullOrEmpty(x.LikeCount.ToString()) && x.LikeCount.ToString().Contains(searchText))
-                || (!string.IsNullOrEmpty(x.DislikeCount.ToString()) && x.DislikeCount.ToString().Contains(searchText))
-                || (!string.IsNullOrEmpty(x.Rating.ToString()) && x.Rating.ToString().Contains(searchText))
-                || (!string.IsNullOrEmpty(x.Booking.BookingDate.ToString()) && x.Booking.BookingDate.ToString("yyyy/MM/dd HH:mm").Contains(searchText))
-                || (!string.IsNullOrEmpty(x.Booking.BookingTime.ToString()) && x.Booking.BookingTime.ToString("HH:mm").Contains(searchText))
-                || (!string.IsNullOrEmpty(x.Booking.Status.ToString()) && x.Booking.Status.ToString().Contains(searchText))
-                || (!string.IsNullOrEmpty(x.CreateDate.ToString()) && x.CreateDate.Value.ToString("yyyy/MM/dd HH:mm").Contains(searchText))
-                || (!string.IsNullOrEmpty(x.UpdateDate.ToString()) && x.UpdateDate.Value.ToString("yyyy/MM/dd HH:mm").Contains(searchText))
-                 )).OrderByDescending(x => x.CreateDate).ToPaging(pageIndex, pageSize).ToList();
-            }
-            else
-            {
-                return _context.Reviews.Include(x => x.Booking).ThenInclude(x => x.Stylist).Include(x => x.Customer).ThenInclude(x => x.Person).Where(x =>
-                (!string.IsNullOrEmpty(x.Customer.Person.FirstName.ToString()) && x.Customer.Person.FirstName.ToString().Contains(searchText))
-               || (!string.IsNullOrEmpty(x.Customer.Person.LastName.ToString()) && x.Customer.Person.LastName.ToString().Contains(searchText))
-               || (!string.IsNullOrEmpty(x.ReviewDate.ToString()) && x.ReviewDate.ToString("yyyy/MM/dd HH:mm").Contains(searchText))
-               || (!string.IsNullOrEmpty(x.Comments.ToString()) && x.Comments.ToString().Contains(searchText))
-               || (!string.IsNullOrEmpty(x.Description.ToString()) && x.Description.ToString().Contains(searchText))
-               || (!string.IsNullOrEmpty(x.LikeCount.ToString()) && x.LikeCount.ToString().Contains(searchText))
-               || (!string.IsNullOrEmpty(x.DislikeCount.ToString()) && x.DislikeCount.ToString().Contains(searchText))
-               || (!string.IsNullOrEmpty(x.Rating.ToString()) && x.Rating.ToString().Contains(searchText))
-               || (!string.IsNullOrEmpty(x.Booking.BookingDate.ToString()) && x.Booking.BookingDate.ToString("yyyy/MM/dd HH:mm").Contains(searchText))
-               || (!string.IsNullOrEmpty(x.Booking.BookingTime.ToString()) && x.Booking.BookingTime.ToString("HH:mm").Contains(searchText))
-               || (!string.IsNullOrEmpty(x.Booking.Status.ToString()) && x.Booking.Status.ToString().Contains(searchText))
-               || (!string.IsNullOrEmpty(x.CreateDate.ToString()) && x.CreateDate.Value.ToString("yyyy/MM/dd HH:mm").Contains(searchText))
-               || (!string.IsNullOrEmpty(x.UpdateDate.ToString()) && x.UpdateDate.Value.ToString("yyyy/MM/dd HH:mm").Contains(searchText))
-                ).OrderByDescending(x => x.CreateDate).ToPaging(pageIndex, pageSize).ToList();
-            }
+            query = query.Where(x =>
+                (!string.IsNullOrEmpty(x.Customer.Person.FirstName) && x.Customer.Person.FirstName.Contains(searchText)) ||
+                (!string.IsNullOrEmpty(x.Customer.Person.LastName) && x.Customer.Person.LastName.Contains(searchText)) ||
+                (!string.IsNullOrEmpty(x.ReviewDate.ToString()) && x.ReviewDate.ToString("yyyy/MM/dd HH:mm").Contains(searchText)) ||
+                (!string.IsNullOrEmpty(x.Comments) && x.Comments.Contains(searchText)) ||
+                (!string.IsNullOrEmpty(x.Description) && x.Description.Contains(searchText)) ||
+                (!string.IsNullOrEmpty(x.LikeCount.ToString()) && x.LikeCount.ToString().Contains(searchText)) ||
+                (!string.IsNullOrEmpty(x.DislikeCount.ToString()) && x.DislikeCount.ToString().Contains(searchText)) ||
+                (!string.IsNullOrEmpty(x.Rating.ToString()) && x.Rating.ToString().Contains(searchText)) ||
+                (!string.IsNullOrEmpty(x.Booking.BookingDate.ToString()) && x.Booking.BookingDate.ToString("yyyy/MM/dd HH:mm").Contains(searchText)) ||
+                (!string.IsNullOrEmpty(x.Booking.BookingTime.ToString()) && x.Booking.BookingTime.ToString("HH:mm").Contains(searchText)) ||
+                (!string.IsNullOrEmpty(x.Booking.Status.ToString()) && x.Booking.Status.ToString().Contains(searchText)) ||
+                (!string.IsNullOrEmpty(x.CreateDate.ToString()) && x.CreateDate.Value.ToString("yyyy/MM/dd HH:mm").Contains(searchText)) ||
+                (!string.IsNullOrEmpty(x.UpdateDate.ToString()) && x.UpdateDate.Value.ToString("yyyy/MM/dd HH:mm").Contains(searchText))
+            );
+
+            return await query
+                .OrderByDescending(x => x.CreateDate)
+                .ToPaging(pageIndex, pageSize)
+                .ToListAsync();
         }
 
-        public Review GetReviewById(long ReviewId)
+        public async Task<Review> GetReviewByIdAsync(long ReviewId)
         {
-            return _context.Reviews.Find(ReviewId);
+            return await _context.Reviews
+                .AsNoTracking()
+                .SingleOrDefaultAsync(x => x.ID == ReviewId);
         }
 
-        public void RemoveReview(Review Review)
+        public async Task RemoveReviewAsync(Review Review)
         {
             _context.Reviews.Remove(Review);
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
             _context.Entry(Review).State = EntityState.Detached;
         }
 
-        public void RemoveReview(long ReviewId)
+        public async Task RemoveReviewAsync(long ReviewId)
         {
-            var Review = GetReviewById(ReviewId);
-            RemoveReview(Review);
+            var Review = await GetReviewByIdAsync(ReviewId);
+            await RemoveReviewAsync(Review);
         }
     }
 }

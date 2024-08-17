@@ -21,62 +21,70 @@ namespace NobatPlusDATA.DataLayer.Services
             _context = DbTools.GetDbContext();
         }
 
-        public void AddAddress(Address Address)
+        public async Task AddAddressAsync(Address address)
         {
-            _context.Addresses.Add(Address);
-            _context.SaveChanges();
-            _context.Entry(Address).State = EntityState.Detached;
+            await _context.Addresses.AddAsync(address);
+            await _context.SaveChangesAsync();
+            _context.Entry(address).State = EntityState.Detached;
         }
 
-        public void EditAddress(Address Address)
+        public async Task EditAddressAsync(Address address)
         {
-            _context.Addresses.Update(Address);
-            _context.SaveChanges();
-            _context.Entry(Address).State = EntityState.Detached;
+            _context.Addresses.Update(address);
+            await _context.SaveChangesAsync();
+            _context.Entry(address).State = EntityState.Detached;
         }
 
-        public bool ExistAddress(long AddressId)
+        public async Task<bool> ExistAddressAsync(long addressId)
         {
-            return _context.Addresses.Any(x => x.ID == AddressId);
+            return await _context.Addresses.AsNoTracking().AnyAsync(x => x.ID == addressId);
         }
 
-        public List<Address> GetAllAddresses(int pageIndex = 1, int pageSize = 20, string searchText = "")
+        public async Task<List<Address>> GetAllAddressesAsync(int pageIndex = 1, int pageSize = 20, string searchText = "")
         {
-            return _context.Addresses.Where(x =>
-            (!string.IsNullOrEmpty(x.AddressCity.ToString()) && x.AddressCity.ToString().Contains(searchText))
-           || (!string.IsNullOrEmpty(x.AddressLocationHorizentalPoint.ToString()) && x.AddressLocationHorizentalPoint.ToString().Contains(searchText))
-           || (!string.IsNullOrEmpty(x.AddressLocationVerticalPoint.ToString()) && x.AddressLocationVerticalPoint.ToString().Contains(searchText))
-           || (!string.IsNullOrEmpty(x.AddressPostalCode.ToString()) && x.AddressPostalCode.ToString().Contains(searchText))
-           || (!string.IsNullOrEmpty(x.State.ToString()) && x.State.ToString().Contains(searchText))
-           || (!string.IsNullOrEmpty(x.Description.ToString()) && x.Description.ToString().Contains(searchText))
-           || (!string.IsNullOrEmpty(x.AddressStreet.ToString()) && x.AddressStreet.ToString().Contains(searchText))
-           || (!string.IsNullOrEmpty(x.CreateDate.ToString()) && x.CreateDate.Value.ToString("yyyy/MM/dd HH:mm").Contains(searchText))
-           || (!string.IsNullOrEmpty(x.UpdateDate.ToString()) && x.UpdateDate.Value.ToString("yyyy/MM/dd HH:mm").Contains(searchText))
-            ).OrderByDescending(x => x.CreateDate).ToPaging(pageIndex,pageSize).ToList();
+            return await _context.Addresses
+                .AsNoTracking()
+                .Where(x =>
+                    (!string.IsNullOrEmpty(x.AddressCity.ToString()) && x.AddressCity.ToString().Contains(searchText)) ||
+                    (!string.IsNullOrEmpty(x.AddressLocationHorizentalPoint.ToString()) && x.AddressLocationHorizentalPoint.ToString().Contains(searchText)) ||
+                    (!string.IsNullOrEmpty(x.AddressLocationVerticalPoint.ToString()) && x.AddressLocationVerticalPoint.ToString().Contains(searchText)) ||
+                    (!string.IsNullOrEmpty(x.AddressPostalCode.ToString()) && x.AddressPostalCode.ToString().Contains(searchText)) ||
+                    (!string.IsNullOrEmpty(x.State.ToString()) && x.State.ToString().Contains(searchText)) ||
+                    (!string.IsNullOrEmpty(x.Description.ToString()) && x.Description.ToString().Contains(searchText)) ||
+                    (!string.IsNullOrEmpty(x.AddressStreet.ToString()) && x.AddressStreet.ToString().Contains(searchText)) ||
+                    (!string.IsNullOrEmpty(x.CreateDate.ToString()) && x.CreateDate.Value.ToString("yyyy/MM/dd HH:mm").Contains(searchText)) ||
+                    (!string.IsNullOrEmpty(x.UpdateDate.ToString()) && x.UpdateDate.Value.ToString("yyyy/MM/dd HH:mm").Contains(searchText))
+                )
+                .OrderByDescending(x => x.CreateDate)
+                .ToPaging(pageIndex, pageSize)
+                .ToListAsync();
         }
 
-        public Address GetAddressById(long AddressId)
+        public async Task<Address> GetAddressByIdAsync(long addressId)
         {
-            return _context.Addresses.Find(AddressId);
+            return await _context.Addresses.AsNoTracking().SingleOrDefaultAsync(x => x.ID == addressId);
         }
 
-        public Address GetAddressByPersonId(long personId)
+        public async Task<Address> GetAddressByPersonIdAsync(long personId)
         {
-            var person = _context.Persons.Include(x=> x.Address).SingleOrDefault(x=> x.ID == personId);
-            return person.Address;
+            var person = await _context.Persons
+                .Include(x => x.Address)
+                .AsNoTracking()
+                .SingleOrDefaultAsync(x => x.ID == personId);
+            return person?.Address;
         }
 
-        public void RemoveAddress(Address Address)
+        public async Task RemoveAddressAsync(Address address)
         {
-            _context.Addresses.Remove(Address);
-            _context.SaveChanges();
-            _context.Entry(Address).State = EntityState.Detached;
+            _context.Addresses.Remove(address);
+            await _context.SaveChangesAsync();
+            _context.Entry(address).State = EntityState.Detached;
         }
 
-        public void RemoveAddress(long AddressId)
+        public async Task RemoveAddressAsync(long addressId)
         {
-            var Address = GetAddressById(AddressId);
-            RemoveAddress(Address);
+            var address = await GetAddressByIdAsync(addressId);
+            await RemoveAddressAsync(address);
         }
 
     }

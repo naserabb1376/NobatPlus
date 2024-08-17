@@ -9,13 +9,13 @@ namespace NobatPlusDATA.DataLayer.Repositories
 {
     public interface IAdminRep
     {
-        public List<Admin> GetAllAdmins(int pageIndex = 1,int pageSize = 20, string searchText ="");
-        public List<Admin> GetAdminsOfDiscount(long DiscountId, int pageIndex = 1, int pageSize = 20, string searchText = "");
-        public Admin GetAdminById(long adminId);
-        public void AddAdmin(Admin admin);
-        public void EditAdmin(Admin admin);
-        public void RemoveAdmin(Admin admin);
-        public void RemoveAdmin(long adminId);
-        public bool ExistAdmin(long adminId);
+        public Task<List<Admin>> GetAllAdminsAsync(int pageIndex = 1, int pageSize = 20, string searchText = "");
+        public Task<List<Admin>> GetAdminsOfDiscountAsync(long DiscountId, int pageIndex = 1, int pageSize = 20, string searchText = "");
+        public Task<Admin> GetAdminByIdAsync(long adminId);
+        public Task AddAdminAsync(Admin admin);
+        public Task EditAdminAsync(Admin admin);
+        public Task RemoveAdminAsync(Admin admin);
+        public Task RemoveAdminAsync(long adminId);
+        public Task<bool> ExistAdminAsync(long adminId);
     }
 }

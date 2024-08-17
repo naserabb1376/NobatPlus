@@ -21,52 +21,61 @@ namespace NobatPlusDATA.DataLayer.Services
             _context = DbTools.GetDbContext();
         }
 
-        public void AddLog(Log Log)
+        public async Task AddLogAsync(Log Log)
         {
             _context.Logs.Add(Log);
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
             _context.Entry(Log).State = EntityState.Detached;
         }
 
-        public void EditLog(Log Log)
+        public async Task EditLogAsync(Log Log)
         {
             _context.Logs.Update(Log);
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
             _context.Entry(Log).State = EntityState.Detached;
         }
 
-        public bool ExistLog(long LogId)
+        public async Task<bool> ExistLogAsync(long LogId)
         {
-            return _context.Logs.Any(x => x.ID == LogId);
+            return await _context.Logs
+                .AsNoTracking()
+                .AnyAsync(x => x.ID == LogId);
         }
 
-        public List<Log> GetAllLogs(int pageIndex = 1, int pageSize = 20, string searchText = "")
+        public async Task<List<Log>> GetAllLogsAsync(int pageIndex = 1, int pageSize = 20, string searchText = "")
         {
-            return _context.Logs.Where(x =>
-            (!string.IsNullOrEmpty(x.ActionName.ToString()) && x.ActionName.ToString().Contains(searchText))
-           || (!string.IsNullOrEmpty(x.Description.ToString()) && x.Description.ToString().Contains(searchText))
-           || (!string.IsNullOrEmpty(x.LogTime.ToString()) && x.LogTime.ToString("yyyy/MM/dd HH:mm").Contains(searchText))
-           || (!string.IsNullOrEmpty(x.CreateDate.ToString()) && x.CreateDate.Value.ToString("yyyy/MM/dd HH:mm").Contains(searchText))
-           || (!string.IsNullOrEmpty(x.UpdateDate.ToString()) && x.UpdateDate.Value.ToString("yyyy/MM/dd HH:mm").Contains(searchText))
-            ).OrderByDescending(x => x.CreateDate).ToPaging(pageIndex,pageSize).ToList();
+            return await _context.Logs
+                .AsNoTracking()
+                .Where(x =>
+                    (!string.IsNullOrEmpty(x.ActionName.ToString()) && x.ActionName.ToString().Contains(searchText)) ||
+                    (!string.IsNullOrEmpty(x.Description.ToString()) && x.Description.ToString().Contains(searchText)) ||
+                    (!string.IsNullOrEmpty(x.LogTime.ToString()) && x.LogTime.ToString("yyyy/MM/dd HH:mm").Contains(searchText)) ||
+                    (!string.IsNullOrEmpty(x.CreateDate.ToString()) && x.CreateDate.Value.ToString("yyyy/MM/dd HH:mm").Contains(searchText)) ||
+                    (!string.IsNullOrEmpty(x.UpdateDate.ToString()) && x.UpdateDate.Value.ToString("yyyy/MM/dd HH:mm").Contains(searchText))
+                )
+                .OrderByDescending(x => x.CreateDate)
+                .ToPaging(pageIndex, pageSize)
+                .ToListAsync();
         }
 
-        public Log GetLogById(long LogId)
+        public async Task<Log> GetLogByIdAsync(long LogId)
         {
-            return _context.Logs.Find(LogId);
+            return await _context.Logs
+                .AsNoTracking()
+                .SingleOrDefaultAsync(x => x.ID == LogId);
         }
 
-        public void RemoveLog(Log Log)
+        public async Task RemoveLogAsync(Log Log)
         {
             _context.Logs.Remove(Log);
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
             _context.Entry(Log).State = EntityState.Detached;
         }
 
-        public void RemoveLog(long LogId)
+        public async Task RemoveLogAsync(long LogId)
         {
-            var Log = GetLogById(LogId);
-            RemoveLog(Log);
+            var Log = await GetLogByIdAsync(LogId);
+            await RemoveLogAsync(Log);
         }
     }
 }

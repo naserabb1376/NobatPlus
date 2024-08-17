@@ -10,13 +10,13 @@ namespace NobatPlusDATA.DataLayer.Repositories
 {
     public interface ICustomerRep
     {
-        public List<Customer> GetAllCustomers(int pageIndex = 1,int pageSize = 20, string searchText ="");
-        public List<Customer> GetCustomersOfDiscount(long DiscountId,int pageIndex = 1,int pageSize = 20, string searchText ="");
-        public Customer GetCustomerById(long customerId);
-        public void AddCustomer(Customer customer);
-        public void EditCustomer(Customer customer);
-        public void RemoveCustomer(Customer customer);
-        public void RemoveCustomer(long customerId);
-        public bool ExistCustomer(long customerId);
+        public Task<List<Customer>> GetAllCustomersAsync(int pageIndex = 1, int pageSize = 20, string searchText = "");
+        public Task<List<Customer>> GetCustomersOfDiscountAsync(long DiscountId, int pageIndex = 1, int pageSize = 20, string searchText = "");
+        public Task<Customer> GetCustomerByIdAsync(long customerId);
+        public Task AddCustomerAsync(Customer customer);
+        public Task EditCustomerAsync(Customer customer);
+        public Task RemoveCustomerAsync(Customer customer);
+        public Task RemoveCustomerAsync(long customerId);
+        public Task<bool> ExistCustomerAsync(long customerId);
     }
 }

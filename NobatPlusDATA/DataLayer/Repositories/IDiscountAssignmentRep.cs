@@ -9,12 +9,12 @@ namespace NobatPlusDATA.DataLayer.Repositories
 {
     public interface IDiscountAssignmentRep
     {
-        public List<DiscountAssignment> GetAllDiscountAssignments(long DiscountId, long AdminId = 0 , long StylistId = 0,int pageIndex = 1,int pageSize = 20, string searchText ="");
-        public DiscountAssignment GetDiscountAssignmentById(long DiscountAssignmentId);
-        public void AddDiscountAssignment(DiscountAssignment DiscountAssignment);
-        public void EditDiscountAssignment(DiscountAssignment DiscountAssignment);
-        public void RemoveDiscountAssignment(DiscountAssignment DiscountAssignment);
-        public void RemoveDiscountAssignment(long DiscountAssignmentId);
-        public bool ExistDiscountAssignment(long DiscountAssignmentId);
+        public Task<List<DiscountAssignment>> GetAllDiscountAssignmentsAsync(long DiscountId, long AdminId = 0, long StylistId = 0, int pageIndex = 1, int pageSize = 20, string searchText = "");
+        public Task<DiscountAssignment> GetDiscountAssignmentByIdAsync(long DiscountAssignmentId);
+        public Task AddDiscountAssignmentAsync(DiscountAssignment DiscountAssignment);
+        public Task EditDiscountAssignmentAsync(DiscountAssignment DiscountAssignment);
+        public Task RemoveDiscountAssignmentAsync(DiscountAssignment DiscountAssignment);
+        public Task RemoveDiscountAssignmentAsync(long DiscountAssignmentId);
+        public Task<bool> ExistDiscountAssignmentAsync(long DiscountAssignmentId);
     }
 }

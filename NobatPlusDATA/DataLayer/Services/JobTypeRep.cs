@@ -21,53 +21,65 @@ namespace NobatPlusDATA.DataLayer.Services
             _context = DbTools.GetDbContext();
         }
 
-        public void AddJobType(JobType JobType)
+        public async Task AddJobTypeAsync(JobType JobType)
         {
             _context.JobTypes.Add(JobType);
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
             _context.Entry(JobType).State = EntityState.Detached;
         }
 
-        public void EditJobType(JobType JobType)
+        public async Task EditJobTypeAsync(JobType JobType)
         {
             _context.JobTypes.Update(JobType);
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
             _context.Entry(JobType).State = EntityState.Detached;
         }
 
-        public bool ExistJobType(long JobTypeId)
+        public async Task<bool> ExistJobTypeAsync(long JobTypeId)
         {
-            return _context.JobTypes.Any(x => x.ID == JobTypeId);
+            return await _context.JobTypes
+                .AsNoTracking()
+                .AnyAsync(x => x.ID == JobTypeId);
         }
 
-        public List<JobType> GetAllJobTypes(int SexTypeChecked = 0, int pageIndex= 1, int pageSize = 20, string searchText= "")
+        public async Task<List<JobType>> GetAllJobTypesAsync(int SexTypeChecked = 0, int pageIndex = 1, int pageSize = 20, string searchText = "")
         {
-            return _context.JobTypes.Where(x =>
-            (x.SexTypeChecked == SexTypeChecked) &&
-             ((!string.IsNullOrEmpty(x.JobTitle.ToString()) && x.JobTitle.ToString().Contains(searchText))
-            || (!string.IsNullOrEmpty(x.SexTypeChecked.ToString()) && x.SexTypeChecked.ToString().Contains(searchText))
-            || (!string.IsNullOrEmpty(x.Description.ToString()) && x.Description.ToString().Contains(searchText))
-            || (!string.IsNullOrEmpty(x.CreateDate.ToString()) && x.CreateDate.Value.ToString("yyyy/MM/dd HH:mm").Contains(searchText))
-            || (!string.IsNullOrEmpty(x.UpdateDate.ToString()) && x.UpdateDate.Value.ToString("yyyy/MM/dd HH:mm").Contains(searchText))
-             )).OrderByDescending(x=> x.CreateDate).ToPaging(pageIndex, pageSize).ToList();
+            return await _context.JobTypes
+                .AsNoTracking()
+                .Where(x =>
+                    x.SexTypeChecked == SexTypeChecked &&
+                    (
+                        (!string.IsNullOrEmpty(x.JobTitle.ToString()) && x.JobTitle.ToString().Contains(searchText)) ||
+                        (!string.IsNullOrEmpty(x.SexTypeChecked.ToString()) && x.SexTypeChecked.ToString().Contains(searchText)) ||
+                        (!string.IsNullOrEmpty(x.Description.ToString()) && x.Description.ToString().Contains(searchText)) ||
+                        (!string.IsNullOrEmpty(x.CreateDate.ToString()) && x.CreateDate.Value.ToString("yyyy/MM/dd HH:mm").Contains(searchText)) ||
+                        (!string.IsNullOrEmpty(x.UpdateDate.ToString()) && x.UpdateDate.Value.ToString("yyyy/MM/dd HH:mm").Contains(searchText))
+                    )
+                )
+                .OrderByDescending(x => x.CreateDate)
+                .ToPaging(pageIndex, pageSize)
+                .ToListAsync();
         }
 
-        public JobType GetJobTypeById(long JobTypeId)
+        public async Task<JobType> GetJobTypeByIdAsync(long JobTypeId)
         {
-            return _context.JobTypes.Find(JobTypeId);
+            return await _context.JobTypes
+                .AsNoTracking()
+                .SingleOrDefaultAsync(x => x.ID == JobTypeId);
         }
 
-        public void RemoveJobType(JobType JobType)
+        public async Task RemoveJobTypeAsync(JobType JobType)
         {
             _context.JobTypes.Remove(JobType);
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
             _context.Entry(JobType).State = EntityState.Detached;
         }
 
-        public void RemoveJobType(long JobTypeId)
+        public async Task RemoveJobTypeAsync(long JobTypeId)
         {
-            var JobType = GetJobTypeById(JobTypeId);
-            RemoveJobType(JobType);
+            var JobType = await GetJobTypeByIdAsync(JobTypeId);
+            await RemoveJobTypeAsync(JobType);
         }
+
     }
 }
