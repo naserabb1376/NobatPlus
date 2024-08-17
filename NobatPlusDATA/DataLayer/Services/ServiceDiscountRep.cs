@@ -21,109 +21,91 @@ namespace NobatPlusDATA.DataLayer.Services
             _context = DbTools.GetDbContext();
         }
 
-        public void AddServiceDiscount(ServiceDiscount ServiceDiscount)
+        public async Task AddServiceDiscountAsync(ServiceDiscount ServiceDiscount)
         {
             _context.ServiceDiscounts.Add(ServiceDiscount);
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
             _context.Entry(ServiceDiscount).State = EntityState.Detached;
         }
 
-        public void EditServiceDiscount(ServiceDiscount ServiceDiscount)
+        public async Task EditServiceDiscountAsync(ServiceDiscount ServiceDiscount)
         {
             _context.ServiceDiscounts.Update(ServiceDiscount);
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
             _context.Entry(ServiceDiscount).State = EntityState.Detached;
         }
 
-        public bool ExistServiceDiscount(long ServiceDiscountId)
+        public async Task<bool> ExistServiceDiscountAsync(long ServiceDiscountId)
         {
-            return _context.ServiceDiscounts.Any(x => x.ID == ServiceDiscountId);
+            return await _context.ServiceDiscounts
+                .AsNoTracking()
+                .AnyAsync(x => x.ID == ServiceDiscountId);
         }
 
-        public List<ServiceDiscount> GetAllServiceDiscounts(long DiscountId, long ServiceManagementId, long AdminId = 0, long StylistId = 0, int pageIndex = 1, int pageSize = 20, string searchText = "")
+        public async Task<List<ServiceDiscount>> GetAllServiceDiscountsAsync(long DiscountId, long ServiceManagementId, long AdminId = 0, long StylistId = 0, int pageIndex = 1, int pageSize = 20, string searchText = "")
         {
+            IQueryable<ServiceDiscount> query = _context.ServiceDiscounts
+                .AsNoTracking()
+                .Include(x => x.Discount)
+                .Include(x => x.Admin).ThenInclude(x => x.Person)
+                .Include(x => x.Stylist).ThenInclude(x => x.Person)
+                .Include(x => x.ServiceManagement);
+
             if (AdminId > 0)
             {
-                return _context.ServiceDiscounts.Include(x => x.Discount).Include(x => x.Admin).ThenInclude(x => x.Person).Include(x => x.Stylist).ThenInclude(x => x.Person).Where(x =>
-                 (x.DiscountId == DiscountId && x.ServiceManagementId == ServiceManagementId && x.AdminId == AdminId) &&
-             ((!string.IsNullOrEmpty(x.Discount.DiscountCode.ToString()) && x.Discount.DiscountCode.ToString().Contains(searchText))
-            || (!string.IsNullOrEmpty(x.Discount.DiscountAmount.ToString()) && x.Discount.DiscountCode.ToString().Contains(searchText))
-            || (!string.IsNullOrEmpty(x.Discount.Description.ToString()) && x.Discount.Description.ToString().Contains(searchText))
-            || (!string.IsNullOrEmpty(x.Description.ToString()) && x.Description.ToString().Contains(searchText))
-            || (!string.IsNullOrEmpty(x.Discount.StartDate.ToString()) && x.Discount.StartDate.ToString("yyyy/MM/dd HH:mm").Contains(searchText))
-            || (!string.IsNullOrEmpty(x.Discount.EndDate.ToString()) && x.Discount.EndDate.ToString("yyyy/MM/dd HH:mm").Contains(searchText))
-            || (!string.IsNullOrEmpty(x.Admin.Person.FirstName.ToString()) && x.Admin.Person.FirstName.ToString().Contains(searchText))
-            || (!string.IsNullOrEmpty(x.Admin.Person.LastName.ToString()) && x.Admin.Person.LastName.ToString().Contains(searchText))
-            || (!string.IsNullOrEmpty(x.Stylist.Person.FirstName.ToString()) && x.Stylist.Person.FirstName.ToString().Contains(searchText))
-            || (!string.IsNullOrEmpty(x.Stylist.Person.LastName.ToString()) && x.Stylist.Person.LastName.ToString().Contains(searchText))
-            || (!string.IsNullOrEmpty(x.Stylist.Specialty.ToString()) && x.Stylist.Specialty.ToString().Contains(searchText))
-            || (!string.IsNullOrEmpty(x.ServiceManagement.ServiceName.ToString()) && x.ServiceManagement.ServiceName.ToString().Contains(searchText))
-            || (!string.IsNullOrEmpty(x.ServiceManagement.Price.ToString()) && x.ServiceManagement.Price.ToString().Contains(searchText))
-            || (!string.IsNullOrEmpty(x.CreateDate.ToString()) && x.CreateDate.Value.ToString("yyyy/MM/dd HH:mm").Contains(searchText))
-            || (!string.IsNullOrEmpty(x.UpdateDate.ToString()) && x.UpdateDate.Value.ToString("yyyy/MM/dd HH:mm").Contains(searchText))
-             )).OrderByDescending(x => x.CreateDate).ToPaging(pageIndex, pageSize).ToList();
+                query = query.Where(x => x.DiscountId == DiscountId && x.ServiceManagementId == ServiceManagementId && x.AdminId == AdminId);
             }
-
-            if (StylistId > 0)
+            else if (StylistId > 0)
             {
-                return _context.ServiceDiscounts.Include(x => x.Discount).Include(x => x.Admin).ThenInclude(x => x.Person).Include(x => x.Stylist).ThenInclude(x => x.Person).Where(x =>
-                (x.DiscountId == DiscountId && x.ServiceManagementId == ServiceManagementId && x.StylistId == StylistId) &&
-            ((!string.IsNullOrEmpty(x.Discount.DiscountCode.ToString()) && x.Discount.DiscountCode.ToString().Contains(searchText))
-           || (!string.IsNullOrEmpty(x.Discount.DiscountAmount.ToString()) && x.Discount.DiscountCode.ToString().Contains(searchText))
-           || (!string.IsNullOrEmpty(x.Discount.Description.ToString()) && x.Discount.Description.ToString().Contains(searchText))
-           || (!string.IsNullOrEmpty(x.Description.ToString()) && x.Description.ToString().Contains(searchText))
-           || (!string.IsNullOrEmpty(x.Discount.StartDate.ToString()) && x.Discount.StartDate.ToString("yyyy/MM/dd HH:mm").Contains(searchText))
-           || (!string.IsNullOrEmpty(x.Discount.EndDate.ToString()) && x.Discount.EndDate.ToString("yyyy/MM/dd HH:mm").Contains(searchText))
-           || (!string.IsNullOrEmpty(x.Admin.Person.FirstName.ToString()) && x.Admin.Person.FirstName.ToString().Contains(searchText))
-           || (!string.IsNullOrEmpty(x.Admin.Person.LastName.ToString()) && x.Admin.Person.LastName.ToString().Contains(searchText))
-           || (!string.IsNullOrEmpty(x.Stylist.Person.FirstName.ToString()) && x.Stylist.Person.FirstName.ToString().Contains(searchText))
-           || (!string.IsNullOrEmpty(x.Stylist.Person.LastName.ToString()) && x.Stylist.Person.LastName.ToString().Contains(searchText))
-           || (!string.IsNullOrEmpty(x.Stylist.Specialty.ToString()) && x.Stylist.Specialty.ToString().Contains(searchText))
-           || (!string.IsNullOrEmpty(x.ServiceManagement.ServiceName.ToString()) && x.ServiceManagement.ServiceName.ToString().Contains(searchText))
-           || (!string.IsNullOrEmpty(x.ServiceManagement.Price.ToString()) && x.ServiceManagement.Price.ToString().Contains(searchText))
-           || (!string.IsNullOrEmpty(x.CreateDate.ToString()) && x.CreateDate.Value.ToString("yyyy/MM/dd HH:mm").Contains(searchText))
-           || (!string.IsNullOrEmpty(x.UpdateDate.ToString()) && x.UpdateDate.Value.ToString("yyyy/MM/dd HH:mm").Contains(searchText))
-            )).OrderByDescending(x => x.CreateDate).ToPaging(pageIndex, pageSize).ToList();
+                query = query.Where(x => x.DiscountId == DiscountId && x.ServiceManagementId == ServiceManagementId && x.StylistId == StylistId);
             }
             else
             {
-                return _context.ServiceDiscounts.Include(x => x.Discount).Include(x => x.Admin).ThenInclude(x => x.Person).Include(x => x.Stylist).ThenInclude(x => x.Person).Where(x =>
-                (x.DiscountId == DiscountId && x.ServiceManagementId == ServiceManagementId ) &&
-          ((!string.IsNullOrEmpty(x.Discount.DiscountCode.ToString()) && x.Discount.DiscountCode.ToString().Contains(searchText))
-         || (!string.IsNullOrEmpty(x.Discount.DiscountAmount.ToString()) && x.Discount.DiscountCode.ToString().Contains(searchText))
-         || (!string.IsNullOrEmpty(x.Discount.Description.ToString()) && x.Discount.Description.ToString().Contains(searchText))
-         || (!string.IsNullOrEmpty(x.Description.ToString()) && x.Description.ToString().Contains(searchText))
-         || (!string.IsNullOrEmpty(x.Discount.StartDate.ToString()) && x.Discount.StartDate.ToString("yyyy/MM/dd HH:mm").Contains(searchText))
-         || (!string.IsNullOrEmpty(x.Discount.EndDate.ToString()) && x.Discount.EndDate.ToString("yyyy/MM/dd HH:mm").Contains(searchText))
-         || (!string.IsNullOrEmpty(x.Admin.Person.FirstName.ToString()) && x.Admin.Person.FirstName.ToString().Contains(searchText))
-         || (!string.IsNullOrEmpty(x.Admin.Person.LastName.ToString()) && x.Admin.Person.LastName.ToString().Contains(searchText))
-         || (!string.IsNullOrEmpty(x.Stylist.Person.FirstName.ToString()) && x.Stylist.Person.FirstName.ToString().Contains(searchText))
-         || (!string.IsNullOrEmpty(x.Stylist.Person.LastName.ToString()) && x.Stylist.Person.LastName.ToString().Contains(searchText))
-         || (!string.IsNullOrEmpty(x.Stylist.Specialty.ToString()) && x.Stylist.Specialty.ToString().Contains(searchText))
-         || (!string.IsNullOrEmpty(x.ServiceManagement.ServiceName.ToString()) && x.ServiceManagement.ServiceName.ToString().Contains(searchText))
-         || (!string.IsNullOrEmpty(x.ServiceManagement.Price.ToString()) && x.ServiceManagement.Price.ToString().Contains(searchText))
-         || (!string.IsNullOrEmpty(x.CreateDate.ToString()) && x.CreateDate.Value.ToString("yyyy/MM/dd HH:mm").Contains(searchText))
-         || (!string.IsNullOrEmpty(x.UpdateDate.ToString()) && x.UpdateDate.Value.ToString("yyyy/MM/dd HH:mm").Contains(searchText))
-          )).OrderByDescending(x => x.CreateDate).ToPaging(pageIndex, pageSize).ToList();
+                query = query.Where(x => x.DiscountId == DiscountId && x.ServiceManagementId == ServiceManagementId);
             }
+
+            query = query.Where(x =>
+                (!string.IsNullOrEmpty(x.Discount.DiscountCode) && x.Discount.DiscountCode.Contains(searchText)) ||
+                (!string.IsNullOrEmpty(x.Discount.DiscountAmount.ToString()) && x.Discount.DiscountAmount.ToString().Contains(searchText)) ||
+                (!string.IsNullOrEmpty(x.Discount.Description) && x.Discount.Description.Contains(searchText)) ||
+                (!string.IsNullOrEmpty(x.Description) && x.Description.Contains(searchText)) ||
+                (!string.IsNullOrEmpty(x.Discount.StartDate.ToString()) && x.Discount.StartDate.ToString("yyyy/MM/dd HH:mm").Contains(searchText)) ||
+                (!string.IsNullOrEmpty(x.Discount.EndDate.ToString()) && x.Discount.EndDate.ToString("yyyy/MM/dd HH:mm").Contains(searchText)) ||
+                (!string.IsNullOrEmpty(x.Admin.Person.FirstName) && x.Admin.Person.FirstName.Contains(searchText)) ||
+                (!string.IsNullOrEmpty(x.Admin.Person.LastName) && x.Admin.Person.LastName.Contains(searchText)) ||
+                (!string.IsNullOrEmpty(x.Stylist.Person.FirstName) && x.Stylist.Person.FirstName.Contains(searchText)) ||
+                (!string.IsNullOrEmpty(x.Stylist.Person.LastName) && x.Stylist.Person.LastName.Contains(searchText)) ||
+                (!string.IsNullOrEmpty(x.Stylist.Specialty) && x.Stylist.Specialty.Contains(searchText)) ||
+                (!string.IsNullOrEmpty(x.ServiceManagement.ServiceName) && x.ServiceManagement.ServiceName.Contains(searchText)) ||
+                (!string.IsNullOrEmpty(x.ServiceManagement.Price.ToString()) && x.ServiceManagement.Price.ToString().Contains(searchText)) ||
+                (!string.IsNullOrEmpty(x.CreateDate.ToString()) && x.CreateDate.Value.ToString("yyyy/MM/dd HH:mm").Contains(searchText)) ||
+                (!string.IsNullOrEmpty(x.UpdateDate.ToString()) && x.UpdateDate.Value.ToString("yyyy/MM/dd HH:mm").Contains(searchText))
+            );
+
+            return await query
+                .OrderByDescending(x => x.CreateDate)
+                .ToPaging(pageIndex, pageSize)
+                .ToListAsync();
         }
 
-        public ServiceDiscount GetServiceDiscountById(long ServiceDiscountId)
+        public async Task<ServiceDiscount> GetServiceDiscountByIdAsync(long ServiceDiscountId)
         {
-            return _context.ServiceDiscounts.Find(ServiceDiscountId);
+            return await _context.ServiceDiscounts
+                .AsNoTracking()
+                .SingleOrDefaultAsync(x => x.ID == ServiceDiscountId);
         }
 
-        public void RemoveServiceDiscount(ServiceDiscount ServiceDiscount)
+        public async Task RemoveServiceDiscountAsync(ServiceDiscount ServiceDiscount)
         {
             _context.ServiceDiscounts.Remove(ServiceDiscount);
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
             _context.Entry(ServiceDiscount).State = EntityState.Detached;
         }
 
-        public void RemoveServiceDiscount(long ServiceDiscountId)
+        public async Task RemoveServiceDiscountAsync(long ServiceDiscountId)
         {
-            var ServiceDiscount = GetServiceDiscountById(ServiceDiscountId);
-            RemoveServiceDiscount(ServiceDiscount);
+            var serviceDiscount = await GetServiceDiscountByIdAsync(ServiceDiscountId);
+            await RemoveServiceDiscountAsync(serviceDiscount);
         }
     }
 }

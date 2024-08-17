@@ -21,98 +21,114 @@ namespace NobatPlusDATA.DataLayer.Services
             _context = DbTools.GetDbContext();
         }
 
-        public void AddAdmin(Admin Admin)
+        public async Task AddAdminAsync(Admin admin)
         {
-            _context.Admins.Add(Admin);
-            _context.SaveChanges();
-            _context.Entry(Admin).State = EntityState.Detached;
+            await _context.Admins.AddAsync(admin);
+            await _context.SaveChangesAsync();
+            _context.Entry(admin).State = EntityState.Detached;
         }
 
-        public void EditAdmin(Admin Admin)
+        public async Task EditAdminAsync(Admin admin)
         {
-            _context.Admins.Update(Admin);
-            _context.SaveChanges();
-            _context.Entry(Admin).State = EntityState.Detached;
+            _context.Admins.Update(admin);
+            await _context.SaveChangesAsync();
+            _context.Entry(admin).State = EntityState.Detached;
         }
 
-        public bool ExistAdmin(long AdminId)
+        public async Task<bool> ExistAdminAsync(long adminId)
         {
-            return _context.Admins.Any(x => x.ID == AdminId);
+            return await _context.Admins.AsNoTracking().AnyAsync(x => x.ID == adminId);
         }
 
-        public List<Admin> GetAllAdmins(int pageIndex= 1, int pageSize = 20, string searchText= "")
+        public async Task<List<Admin>> GetAllAdminsAsync(int pageIndex = 1, int pageSize = 20, string searchText = "")
         {
-            return _context.Admins.Include(x => x.Person).Where(x =>
-             (!string.IsNullOrEmpty(x.Person.FirstName.ToString()) && x.Person.FirstName.ToString().Contains(searchText))
-            || (!string.IsNullOrEmpty(x.Person.LastName.ToString()) && x.Person.LastName.ToString().Contains(searchText))
-            || (!string.IsNullOrEmpty(x.Person.NaCode.ToString()) && x.Person.NaCode.ToString().Contains(searchText))
-            || (!string.IsNullOrEmpty(x.Person.PhoneNumber.ToString()) && x.Person.PhoneNumber.ToString().Contains(searchText))
-            || (!string.IsNullOrEmpty(x.Person.Email.ToString()) && x.Person.Email.ToString().Contains(searchText))
-            || (!string.IsNullOrEmpty(x.Person.Description.ToString()) && x.Person.Description.ToString().Contains(searchText))
-            || (!string.IsNullOrEmpty(x.Person.DateOfBirth.ToString()) && x.Person.DateOfBirth.Value.ToString("yyyy/MM/dd HH:mm").Contains(searchText))
-            || (!string.IsNullOrEmpty(x.Description.ToString()) && x.Description.ToString().Contains(searchText))
-            || (!string.IsNullOrEmpty(x.CreateDate.ToString()) && x.CreateDate.Value.ToString("yyyy/MM/dd HH:mm").Contains(searchText))
-            || (!string.IsNullOrEmpty(x.UpdateDate.ToString()) && x.UpdateDate.Value.ToString("yyyy/MM/dd HH:mm").Contains(searchText))
-             ).OrderByDescending(x=> x.CreateDate).ToPaging(pageIndex, pageSize).ToList();
+            return await _context.Admins
+                .Include(x => x.Person)
+                .AsNoTracking()
+                .Where(x =>
+                    (!string.IsNullOrEmpty(x.Person.FirstName) && x.Person.FirstName.Contains(searchText)) ||
+                    (!string.IsNullOrEmpty(x.Person.LastName) && x.Person.LastName.Contains(searchText)) ||
+                    (!string.IsNullOrEmpty(x.Person.NaCode) && x.Person.NaCode.Contains(searchText)) ||
+                    (!string.IsNullOrEmpty(x.Person.PhoneNumber) && x.Person.PhoneNumber.Contains(searchText)) ||
+                    (!string.IsNullOrEmpty(x.Person.Email) && x.Person.Email.Contains(searchText)) ||
+                    (!string.IsNullOrEmpty(x.Person.Description) && x.Person.Description.Contains(searchText)) ||
+                    (!string.IsNullOrEmpty(x.Person.DateOfBirth.ToString()) && x.Person.DateOfBirth.Value.ToString("yyyy/MM/dd HH:mm").Contains(searchText)) ||
+                    (!string.IsNullOrEmpty(x.Description) && x.Description.Contains(searchText)) ||
+                    (!string.IsNullOrEmpty(x.CreateDate.ToString()) && x.CreateDate.Value.ToString("yyyy/MM/dd HH:mm").Contains(searchText)) ||
+                    (!string.IsNullOrEmpty(x.UpdateDate.ToString()) && x.UpdateDate.Value.ToString("yyyy/MM/dd HH:mm").Contains(searchText))
+                )
+                .OrderByDescending(x => x.CreateDate)
+                .ToPaging(pageIndex, pageSize)
+                .ToListAsync();
         }
 
-        public List<Admin> GetAdminsOfDiscount(long DiscountId, int pageIndex = 1, int pageSize = 20, string searchText = "")
+        public async Task<List<Admin>> GetAdminsOfDiscountAsync(long discountId, int pageIndex = 1, int pageSize = 20, string searchText = "")
         {
-            List<Admin> admins = new List<Admin>();
+            var admins = new List<Admin>();
 
-            admins.AddRange(
-                  _context.DiscountAssignments
-           .Where(bs => bs.DiscountId == DiscountId)
-           .Select(bs => bs.Admin).Include(x => x.Person).Where(x =>
-             (!string.IsNullOrEmpty(x.Person.FirstName.ToString()) && x.Person.FirstName.ToString().Contains(searchText))
-            || (!string.IsNullOrEmpty(x.Person.LastName.ToString()) && x.Person.LastName.ToString().Contains(searchText))
-            || (!string.IsNullOrEmpty(x.Person.NaCode.ToString()) && x.Person.NaCode.ToString().Contains(searchText))
-            || (!string.IsNullOrEmpty(x.Person.PhoneNumber.ToString()) && x.Person.PhoneNumber.ToString().Contains(searchText))
-            || (!string.IsNullOrEmpty(x.Person.Email.ToString()) && x.Person.Email.ToString().Contains(searchText))
-            || (!string.IsNullOrEmpty(x.Person.Description.ToString()) && x.Person.Description.ToString().Contains(searchText))
-            || (!string.IsNullOrEmpty(x.Person.DateOfBirth.ToString()) && x.Person.DateOfBirth.Value.ToString("yyyy/MM/dd HH:mm").Contains(searchText))
-            || (!string.IsNullOrEmpty(x.Description.ToString()) && x.Description.ToString().Contains(searchText))
-            || (!string.IsNullOrEmpty(x.CreateDate.ToString()) && x.CreateDate.Value.ToString("yyyy/MM/dd HH:mm").Contains(searchText))
-            || (!string.IsNullOrEmpty(x.UpdateDate.ToString()) && x.UpdateDate.Value.ToString("yyyy/MM/dd HH:mm").Contains(searchText))
-             ).OrderByDescending(x => x.CreateDate).ToPaging(pageIndex, pageSize).ToList()
-                );
+            admins.AddRange(await _context.DiscountAssignments
+                .Where(bs => bs.DiscountId == discountId)
+                .Select(bs => bs.Admin)
+                .Include(x => x.Person)
+                .AsNoTracking()
+                .Where(x =>
+                    (!string.IsNullOrEmpty(x.Person.FirstName) && x.Person.FirstName.Contains(searchText)) ||
+                    (!string.IsNullOrEmpty(x.Person.LastName) && x.Person.LastName.Contains(searchText)) ||
+                    (!string.IsNullOrEmpty(x.Person.NaCode) && x.Person.NaCode.Contains(searchText)) ||
+                    (!string.IsNullOrEmpty(x.Person.PhoneNumber) && x.Person.PhoneNumber.Contains(searchText)) ||
+                    (!string.IsNullOrEmpty(x.Person.Email) && x.Person.Email.Contains(searchText)) ||
+                    (!string.IsNullOrEmpty(x.Person.Description) && x.Person.Description.Contains(searchText)) ||
+                    (!string.IsNullOrEmpty(x.Person.DateOfBirth.ToString()) && x.Person.DateOfBirth.Value.ToString("yyyy/MM/dd HH:mm").Contains(searchText)) ||
+                    (!string.IsNullOrEmpty(x.Description) && x.Description.Contains(searchText)) ||
+                    (!string.IsNullOrEmpty(x.CreateDate.ToString()) && x.CreateDate.Value.ToString("yyyy/MM/dd HH:mm").Contains(searchText)) ||
+                    (!string.IsNullOrEmpty(x.UpdateDate.ToString()) && x.UpdateDate.Value.ToString("yyyy/MM/dd HH:mm").Contains(searchText))
+                )
+                .OrderByDescending(x => x.CreateDate)
+                .ToPaging(pageIndex, pageSize)
+                .ToListAsync());
 
-            admins.AddRange(
-                  _context.ServiceDiscounts
-           .Where(bs => bs.DiscountId == DiscountId)
-           .Select(bs => bs.Admin).Include(x => x.Person).Where(x =>
-             (!string.IsNullOrEmpty(x.Person.FirstName.ToString()) && x.Person.FirstName.ToString().Contains(searchText))
-            || (!string.IsNullOrEmpty(x.Person.LastName.ToString()) && x.Person.LastName.ToString().Contains(searchText))
-            || (!string.IsNullOrEmpty(x.Person.NaCode.ToString()) && x.Person.NaCode.ToString().Contains(searchText))
-            || (!string.IsNullOrEmpty(x.Person.PhoneNumber.ToString()) && x.Person.PhoneNumber.ToString().Contains(searchText))
-            || (!string.IsNullOrEmpty(x.Person.Email.ToString()) && x.Person.Email.ToString().Contains(searchText))
-            || (!string.IsNullOrEmpty(x.Person.Description.ToString()) && x.Person.Description.ToString().Contains(searchText))
-            || (!string.IsNullOrEmpty(x.Person.DateOfBirth.ToString()) && x.Person.DateOfBirth.Value.ToString("yyyy/MM/dd HH:mm").Contains(searchText))
-            || (!string.IsNullOrEmpty(x.Description.ToString()) && x.Description.ToString().Contains(searchText))
-            || (!string.IsNullOrEmpty(x.CreateDate.ToString()) && x.CreateDate.Value.ToString("yyyy/MM/dd HH:mm").Contains(searchText))
-            || (!string.IsNullOrEmpty(x.UpdateDate.ToString()) && x.UpdateDate.Value.ToString("yyyy/MM/dd HH:mm").Contains(searchText))
-             ).OrderByDescending(x => x.CreateDate).ToPaging(pageIndex, pageSize).ToList()
-                );
+            admins.AddRange(await _context.ServiceDiscounts
+                .Where(bs => bs.DiscountId == discountId)
+                .Select(bs => bs.Admin)
+                .Include(x => x.Person)
+                .AsNoTracking()
+                .Where(x =>
+                    (!string.IsNullOrEmpty(x.Person.FirstName) && x.Person.FirstName.Contains(searchText)) ||
+                    (!string.IsNullOrEmpty(x.Person.LastName) && x.Person.LastName.Contains(searchText)) ||
+                    (!string.IsNullOrEmpty(x.Person.NaCode) && x.Person.NaCode.Contains(searchText)) ||
+                    (!string.IsNullOrEmpty(x.Person.PhoneNumber) && x.Person.PhoneNumber.Contains(searchText)) ||
+                    (!string.IsNullOrEmpty(x.Person.Email) && x.Person.Email.Contains(searchText)) ||
+                    (!string.IsNullOrEmpty(x.Person.Description) && x.Person.Description.Contains(searchText)) ||
+                    (!string.IsNullOrEmpty(x.Person.DateOfBirth.ToString()) && x.Person.DateOfBirth.Value.ToString("yyyy/MM/dd HH:mm").Contains(searchText)) ||
+                    (!string.IsNullOrEmpty(x.Description) && x.Description.Contains(searchText)) ||
+                    (!string.IsNullOrEmpty(x.CreateDate.ToString()) && x.CreateDate.Value.ToString("yyyy/MM/dd HH:mm").Contains(searchText)) ||
+                    (!string.IsNullOrEmpty(x.UpdateDate.ToString()) && x.UpdateDate.Value.ToString("yyyy/MM/dd HH:mm").Contains(searchText))
+                )
+                .OrderByDescending(x => x.CreateDate)
+                .ToPaging(pageIndex, pageSize)
+                .ToListAsync());
 
             return admins;
         }
 
-        public Admin GetAdminById(long AdminId)
+        public async Task<Admin> GetAdminByIdAsync(long adminId)
         {
-            return _context.Admins.Find(AdminId);
+            return await _context.Admins
+                .AsNoTracking()
+                .SingleOrDefaultAsync(x => x.ID == adminId);
         }
 
-        public void RemoveAdmin(Admin Admin)
+        public async Task RemoveAdminAsync(Admin admin)
         {
-            _context.Admins.Remove(Admin);
-            _context.SaveChanges();
-            _context.Entry(Admin).State = EntityState.Detached;
+            _context.Admins.Remove(admin);
+            await _context.SaveChangesAsync();
+            _context.Entry(admin).State = EntityState.Detached;
         }
 
-        public void RemoveAdmin(long AdminId)
+        public async Task RemoveAdminAsync(long adminId)
         {
-            var Admin = GetAdminById(AdminId);
-            RemoveAdmin(Admin);
+            var admin = await GetAdminByIdAsync(adminId);
+            await RemoveAdminAsync(admin);
         }
     }
 }

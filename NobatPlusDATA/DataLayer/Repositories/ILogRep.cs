@@ -10,12 +10,12 @@ namespace NobatPlusDATA.DataLayer.Repositories
 {
     public interface ILogRep
     {
-        public List<Log> GetAllLogs(int pageIndex = 1,int pageSize = 20, string searchText ="");
-        public Log GetLogById(long LogId);
-        public void AddLog(Log Log);
-        public void EditLog(Log Log);
-        public void RemoveLog(Log Log);
-        public void RemoveLog(long LogId);
-        public bool ExistLog(long LogId);
+        public Task<List<Log>> GetAllLogsAsync(int pageIndex = 1, int pageSize = 20, string searchText = "");
+        public Task<Log> GetLogByIdAsync(long LogId);
+        public Task AddLogAsync(Log Log);
+        public Task EditLogAsync(Log Log);
+        public Task RemoveLogAsync(Log Log);
+        public Task RemoveLogAsync(long LogId);
+        public Task<bool> ExistLogAsync(long LogId);
     }
 }

@@ -21,68 +21,84 @@ namespace NobatPlusDATA.DataLayer.Services
             _context = DbTools.GetDbContext();
         }
 
-        public void AddPaymentHistory(PaymentHistory PaymentHistory)
+        public async Task AddPaymentHistoryAsync(PaymentHistory PaymentHistory)
         {
             _context.PaymentHistories.Add(PaymentHistory);
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
             _context.Entry(PaymentHistory).State = EntityState.Detached;
         }
 
-        public void EditPaymentHistory(PaymentHistory PaymentHistory)
+        public async Task EditPaymentHistoryAsync(PaymentHistory PaymentHistory)
         {
             _context.PaymentHistories.Update(PaymentHistory);
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
             _context.Entry(PaymentHistory).State = EntityState.Detached;
         }
 
-        public bool ExistPaymentHistory(long PaymentHistoryId)
+        public async Task<bool> ExistPaymentHistoryAsync(long PaymentHistoryId)
         {
-            return _context.PaymentHistories.Any(x => x.ID == PaymentHistoryId);
+            return await _context.PaymentHistories
+                .AsNoTracking()
+                .AnyAsync(x => x.ID == PaymentHistoryId);
         }
 
-        public List<PaymentHistory> GetAllPaymentHistories(long bookingId = 0, int pageIndex= 1, int pageSize = 20, string searchText= "")
+        public async Task<List<PaymentHistory>> GetAllPaymentHistoriesAsync(long bookingId = 0, int pageIndex = 1, int pageSize = 20, string searchText = "")
         {
             if (bookingId == 0)
             {
-                return _context.PaymentHistories.Where(x =>
-            (!string.IsNullOrEmpty(x.PaymentMethod.ToString()) && x.PaymentMethod.ToString().Contains(searchText))
-           || (!string.IsNullOrEmpty(x.Description.ToString()) && x.Description.ToString().Contains(searchText))
-           || (!string.IsNullOrEmpty(x.Amount.ToString()) && x.Amount.ToString().Contains(searchText))
-           || (!string.IsNullOrEmpty(x.PaymentDate.ToString()) && x.PaymentDate.ToString("yyyy/MM/dd HH:mm").Contains(searchText))
-           || (!string.IsNullOrEmpty(x.CreateDate.ToString()) && x.CreateDate.Value.ToString("yyyy/MM/dd HH:mm").Contains(searchText))
-           || (!string.IsNullOrEmpty(x.UpdateDate.ToString()) && x.UpdateDate.Value.ToString("yyyy/MM/dd HH:mm").Contains(searchText))
-            ).OrderByDescending(x => x.CreateDate).ToPaging(pageIndex, pageSize).ToList();
+                return await _context.PaymentHistories
+                    .AsNoTracking()
+                    .Where(x =>
+                        (!string.IsNullOrEmpty(x.PaymentMethod) && x.PaymentMethod.Contains(searchText)) ||
+                        (!string.IsNullOrEmpty(x.Description) && x.Description.Contains(searchText)) ||
+                        (!string.IsNullOrEmpty(x.Amount.ToString()) && x.Amount.ToString().Contains(searchText)) ||
+                        (!string.IsNullOrEmpty(x.PaymentDate.ToString()) && x.PaymentDate.ToString("yyyy/MM/dd HH:mm").Contains(searchText)) ||
+                        (x.CreateDate.HasValue && x.CreateDate.Value.ToString("yyyy/MM/dd HH:mm").Contains(searchText)) ||
+                        (x.UpdateDate.HasValue && x.UpdateDate.Value.ToString("yyyy/MM/dd HH:mm").Contains(searchText))
+                    )
+                    .OrderByDescending(x => x.CreateDate)
+                    .ToPaging(pageIndex, pageSize)
+                    .ToListAsync();
             }
             else
             {
-                return _context.PaymentHistories.Where(x =>
-                (x.BookingID == bookingId) &&
-           ((!string.IsNullOrEmpty(x.PaymentMethod.ToString()) && x.PaymentMethod.ToString().Contains(searchText))
-          || (!string.IsNullOrEmpty(x.Description.ToString()) && x.Description.ToString().Contains(searchText))
-          || (!string.IsNullOrEmpty(x.Amount.ToString()) && x.Amount.ToString().Contains(searchText))
-          || (!string.IsNullOrEmpty(x.PaymentDate.ToString()) && x.PaymentDate.ToString("yyyy/MM/dd HH:mm").Contains(searchText))
-          || (!string.IsNullOrEmpty(x.CreateDate.ToString()) && x.CreateDate.Value.ToString("yyyy/MM/dd HH:mm").Contains(searchText))
-          || (!string.IsNullOrEmpty(x.UpdateDate.ToString()) && x.UpdateDate.Value.ToString("yyyy/MM/dd HH:mm").Contains(searchText))
-           )).OrderByDescending(x => x.CreateDate).ToPaging(pageIndex, pageSize).ToList();
+                return await _context.PaymentHistories
+                    .AsNoTracking()
+                    .Where(x =>
+                        x.BookingID == bookingId &&
+                        (
+                            (!string.IsNullOrEmpty(x.PaymentMethod) && x.PaymentMethod.Contains(searchText)) ||
+                            (!string.IsNullOrEmpty(x.Description) && x.Description.Contains(searchText)) ||
+                            (!string.IsNullOrEmpty(x.Amount.ToString()) && x.Amount.ToString().Contains(searchText)) ||
+                            (!string.IsNullOrEmpty(x.PaymentDate.ToString()) && x.PaymentDate.ToString("yyyy/MM/dd HH:mm").Contains(searchText)) ||
+                            (x.CreateDate.HasValue && x.CreateDate.Value.ToString("yyyy/MM/dd HH:mm").Contains(searchText)) ||
+                            (x.UpdateDate.HasValue && x.UpdateDate.Value.ToString("yyyy/MM/dd HH:mm").Contains(searchText))
+                        )
+                    )
+                    .OrderByDescending(x => x.CreateDate)
+                    .ToPaging(pageIndex, pageSize)
+                    .ToListAsync();
             }
         }
 
-        public PaymentHistory GetPaymentHistoryById(long PaymentHistoryId)
+        public async Task<PaymentHistory> GetPaymentHistoryByIdAsync(long PaymentHistoryId)
         {
-            return _context.PaymentHistories.Find(PaymentHistoryId);
+            return await _context.PaymentHistories
+                .AsNoTracking()
+                .SingleOrDefaultAsync(x => x.ID == PaymentHistoryId);
         }
 
-        public void RemovePaymentHistory(PaymentHistory PaymentHistory)
+        public async Task RemovePaymentHistoryAsync(PaymentHistory PaymentHistory)
         {
             _context.PaymentHistories.Remove(PaymentHistory);
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
             _context.Entry(PaymentHistory).State = EntityState.Detached;
         }
 
-        public void RemovePaymentHistory(long PaymentHistoryId)
+        public async Task RemovePaymentHistoryAsync(long PaymentHistoryId)
         {
-            var PaymentHistory = GetPaymentHistoryById(PaymentHistoryId);
-            RemovePaymentHistory(PaymentHistory);
+            var PaymentHistory = await GetPaymentHistoryByIdAsync(PaymentHistoryId);
+            await RemovePaymentHistoryAsync(PaymentHistory);
         }
     }
 }

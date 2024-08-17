@@ -9,12 +9,12 @@ namespace NobatPlusDATA.DataLayer.Repositories
 {
     public interface INotificationRep
     {
-        public List<Notification> GetAllNotifications(long personId = 0,int pageIndex = 1,int pageSize = 20, string searchText ="");
-        public Notification GetNotificationById(long NotificationId);
-        public void AddNotification(Notification Notification);
-        public void EditNotification(Notification Notification);
-        public void RemoveNotification(Notification Notification);
-        public void RemoveNotification(long NotificationId);
-        public bool ExistNotification(long NotificationId);
+        public Task<List<Notification>> GetAllNotificationsAsync(long personId = 0, int pageIndex = 1, int pageSize = 20, string searchText = "");
+        public Task<Notification> GetNotificationByIdAsync(long NotificationId);
+        public Task AddNotificationAsync(Notification Notification);
+        public Task EditNotificationAsync(Notification Notification);
+        public Task RemoveNotificationAsync(Notification Notification);
+        public Task RemoveNotificationAsync(long NotificationId);
+        public Task<bool> ExistNotificationAsync(long NotificationId);
     }
 }

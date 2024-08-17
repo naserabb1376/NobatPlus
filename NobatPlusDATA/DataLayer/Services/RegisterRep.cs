@@ -21,64 +21,75 @@ namespace NobatPlusDATA.DataLayer.Services
             _context = DbTools.GetDbContext();
         }
 
-        public void AddRegister(Register Register)
+        public async Task AddRegisterAsync(Register Register)
         {
             _context.Registers.Add(Register);
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
             _context.Entry(Register).State = EntityState.Detached;
         }
 
-        public void EditRegister(Register Register)
+        public async Task EditRegisterAsync(Register Register)
         {
             _context.Registers.Update(Register);
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
             _context.Entry(Register).State = EntityState.Detached;
         }
 
-        public bool ExistRegister(long RegisterId)
+        public async Task<bool> ExistRegisterAsync(long RegisterId)
         {
-            return _context.Registers.Any(x => x.ID == RegisterId);
+            return await _context.Registers
+                .AsNoTracking()
+                .AnyAsync(x => x.ID == RegisterId);
         }
 
-        public List<Register> GetAllRegisters(int pageIndex= 1, int pageSize = 20, string searchText= "")
+        public async Task<List<Register>> GetAllRegistersAsync(int pageIndex = 1, int pageSize = 20, string searchText = "")
         {
-            return _context.Registers.Include(x => x.Person).Where(x =>
-   (!string.IsNullOrEmpty(x.Person.FirstName.ToString()) && x.Person.FirstName.ToString().Contains(searchText))
-  || (!string.IsNullOrEmpty(x.Person.LastName.ToString()) && x.Person.LastName.ToString().Contains(searchText))
-  || (!string.IsNullOrEmpty(x.Person.NaCode.ToString()) && x.Person.NaCode.ToString().Contains(searchText))
-  || (!string.IsNullOrEmpty(x.Person.PhoneNumber.ToString()) && x.Person.PhoneNumber.ToString().Contains(searchText))
-  || (!string.IsNullOrEmpty(x.Person.Email.ToString()) && x.Person.Email.ToString().Contains(searchText))
-  || (!string.IsNullOrEmpty(x.Person.Description.ToString()) && x.Person.Description.ToString().Contains(searchText))
-  || (!string.IsNullOrEmpty(x.Person.DateOfBirth.ToString()) && x.Person.DateOfBirth.Value.ToString("yyyy/MM/dd HH:mm").Contains(searchText))
-  || (!string.IsNullOrEmpty(x.Description.ToString()) && x.Description.ToString().Contains(searchText))
-  || (!string.IsNullOrEmpty(x.RegistrationDate.ToString()) && x.RegistrationDate.ToString("yyyy/MM/dd HH:mm").Contains(searchText))
-  || (!string.IsNullOrEmpty(x.CreateDate.ToString()) && x.CreateDate.Value.ToString("yyyy/MM/dd HH:mm").Contains(searchText))
-  || (!string.IsNullOrEmpty(x.UpdateDate.ToString()) && x.UpdateDate.Value.ToString("yyyy/MM/dd HH:mm").Contains(searchText))
-   ).OrderByDescending(x => x.CreateDate).ToPaging(pageIndex, pageSize).ToList();
-
+            return await _context.Registers
+                .AsNoTracking()
+                .Include(x => x.Person)
+                .Where(x =>
+                    (!string.IsNullOrEmpty(x.Person.FirstName) && x.Person.FirstName.Contains(searchText)) ||
+                    (!string.IsNullOrEmpty(x.Person.LastName) && x.Person.LastName.Contains(searchText)) ||
+                    (!string.IsNullOrEmpty(x.Person.NaCode) && x.Person.NaCode.Contains(searchText)) ||
+                    (!string.IsNullOrEmpty(x.Person.PhoneNumber) && x.Person.PhoneNumber.Contains(searchText)) ||
+                    (!string.IsNullOrEmpty(x.Person.Email) && x.Person.Email.Contains(searchText)) ||
+                    (!string.IsNullOrEmpty(x.Person.Description) && x.Person.Description.Contains(searchText)) ||
+                    (x.Person.DateOfBirth.HasValue && x.Person.DateOfBirth.Value.ToString("yyyy/MM/dd HH:mm").Contains(searchText)) ||
+                    (!string.IsNullOrEmpty(x.Description) && x.Description.Contains(searchText)) ||
+                    (x.RegistrationDate.ToString("yyyy/MM/dd HH:mm").Contains(searchText)) ||
+                    (x.CreateDate.HasValue && x.CreateDate.Value.ToString("yyyy/MM/dd HH:mm").Contains(searchText)) ||
+                    (x.UpdateDate.HasValue && x.UpdateDate.Value.ToString("yyyy/MM/dd HH:mm").Contains(searchText))
+                )
+                .OrderByDescending(x => x.CreateDate)
+                .ToPaging(pageIndex, pageSize)
+                .ToListAsync();
         }
 
-        public Register GetRegisterById(long RegisterId)
+        public async Task<Register> GetRegisterByIdAsync(long RegisterId)
         {
-            return _context.Registers.Find(RegisterId);
+            return await _context.Registers
+                .AsNoTracking()
+                .SingleOrDefaultAsync(x => x.ID == RegisterId);
         }
 
-        public Register GetRegisterByPersonId(long PersonId)
+        public async Task<Register> GetRegisterByPersonIdAsync(long PersonId)
         {
-            return _context.Registers.SingleOrDefault(x=> x.PersonID == PersonId);
+            return await _context.Registers
+                .AsNoTracking()
+                .SingleOrDefaultAsync(x => x.PersonID == PersonId);
         }
 
-        public void RemoveRegister(Register Register)
+        public async Task RemoveRegisterAsync(Register Register)
         {
             _context.Registers.Remove(Register);
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
             _context.Entry(Register).State = EntityState.Detached;
         }
 
-        public void RemoveRegister(long RegisterId)
+        public async Task RemoveRegisterAsync(long RegisterId)
         {
-            var Register = GetRegisterById(RegisterId);
-            RemoveRegister(Register);
+            var Register = await GetRegisterByIdAsync(RegisterId);
+            await RemoveRegisterAsync(Register);
         }
     }
 }

@@ -20,54 +20,67 @@ namespace NobatPlusDATA.DataLayer.Services
             _context = DbTools.GetDbContext();
         }
 
-        public void AddBookingService(BookingService BookingService)
+        public async Task AddBookingServiceAsync(BookingService BookingService)
         {
             _context.BookingServices.Add(BookingService);
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
             _context.Entry(BookingService).State = EntityState.Detached;
         }
 
-        public void EditBookingService(BookingService BookingService)
+        public async Task EditBookingServiceAsync(BookingService BookingService)
         {
             _context.BookingServices.Update(BookingService);
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
             _context.Entry(BookingService).State = EntityState.Detached;
         }
 
-        public bool ExistBookingService(long BookingId, long ServiceManagementId)
+        public async Task<bool> ExistBookingServiceAsync(long BookingId, long ServiceManagementId)
         {
-            return _context.BookingServices.Any(x => x.BookingID == BookingId && x.ServiceManagementID == ServiceManagementId);
+            return await _context.BookingServices
+                .AsNoTracking()
+                .AnyAsync(x => x.BookingID == BookingId && x.ServiceManagementID == ServiceManagementId);
         }
 
-        public List<BookingService> GetAllBookingServices(int pageIndex = 1, int pageSize = 20, string searchText = "")
+        public async Task<List<BookingService>> GetAllBookingServicesAsync(int pageIndex = 1, int pageSize = 20, string searchText = "")
         {
-            return _context.BookingServices.Include(x=> x.Booking).ThenInclude(x=> x.Stylist).ThenInclude(x=> x.Person).Include(x=> x.ServiceManagement).Where(x =>
-            (!string.IsNullOrEmpty(x.Booking.BookingDate.ToString()) && x.Booking.BookingDate.ToString("yyyy/MM/dd HH:mm").Contains(searchText))
-            || (!string.IsNullOrEmpty(x.Booking.BookingTime.ToString()) && x.Booking.BookingTime.ToString("HH:mm").Contains(searchText))
-            || (!string.IsNullOrEmpty(x.Booking.Status.ToString()) && x.Booking.Status.ToString().Contains(searchText))
-            || (!string.IsNullOrEmpty(x.ServiceManagement.ServiceName.ToString()) && x.ServiceManagement.ServiceName.ToString().Contains(searchText))
-            || (!string.IsNullOrEmpty(x.Booking.Stylist.Specialty.ToString()) && x.Booking.Stylist.Specialty.ToString().Contains(searchText))
-            || (!string.IsNullOrEmpty(x.Booking.Stylist.Person.FirstName.ToString()) && x.Booking.Stylist.Person.FirstName.ToString().Contains(searchText))
-            || (!string.IsNullOrEmpty(x.Booking.Stylist.Person.LastName.ToString()) && x.Booking.Stylist.Person.LastName.ToString().Contains(searchText))
-            ).OrderByDescending(x => x.Booking.BookingDate).ToPaging(pageIndex,pageSize).ToList();
+            return await _context.BookingServices
+                .AsNoTracking()
+                .Include(x => x.Booking).ThenInclude(x => x.Stylist).ThenInclude(x => x.Person)
+                .Include(x => x.ServiceManagement)
+                .Where(x =>
+                    (!string.IsNullOrEmpty(x.Booking.BookingDate.ToString()) && x.Booking.BookingDate.ToString("yyyy/MM/dd HH:mm").Contains(searchText))
+                    || (!string.IsNullOrEmpty(x.Booking.BookingTime.ToString()) && x.Booking.BookingTime.ToString("HH:mm").Contains(searchText))
+                    || (!string.IsNullOrEmpty(x.Booking.Status.ToString()) && x.Booking.Status.ToString().Contains(searchText))
+                    || (!string.IsNullOrEmpty(x.ServiceManagement.ServiceName.ToString()) && x.ServiceManagement.ServiceName.ToString().Contains(searchText))
+                    || (!string.IsNullOrEmpty(x.Booking.Stylist.Specialty.ToString()) && x.Booking.Stylist.Specialty.ToString().Contains(searchText))
+                    || (!string.IsNullOrEmpty(x.Booking.Stylist.Person.FirstName.ToString()) && x.Booking.Stylist.Person.FirstName.ToString().Contains(searchText))
+                    || (!string.IsNullOrEmpty(x.Booking.Stylist.Person.LastName.ToString()) && x.Booking.Stylist.Person.LastName.ToString().Contains(searchText))
+                )
+                .OrderByDescending(x => x.Booking.BookingDate)
+                .ToPaging(pageIndex, pageSize)
+                .ToListAsync();
         }
 
-        public BookingService GetBookingServiceById(long BookingId, long ServiceManagementId)
+        public async Task<BookingService> GetBookingServiceByIdAsync(long BookingId, long ServiceManagementId)
         {
-            return _context.BookingServices.Include(x => x.Booking).ThenInclude(x => x.Stylist).ThenInclude(x => x.Person).Include(x => x.ServiceManagement).SingleOrDefault(x => x.BookingID == BookingId && x.ServiceManagementID == ServiceManagementId);
+            return await _context.BookingServices
+                .AsNoTracking()
+                .Include(x => x.Booking).ThenInclude(x => x.Stylist).ThenInclude(x => x.Person)
+                .Include(x => x.ServiceManagement)
+                .SingleOrDefaultAsync(x => x.BookingID == BookingId && x.ServiceManagementID == ServiceManagementId);
         }
 
-        public void RemoveBookingService(BookingService BookingService)
+        public async Task RemoveBookingServiceAsync(BookingService BookingService)
         {
             _context.BookingServices.Remove(BookingService);
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
             _context.Entry(BookingService).State = EntityState.Detached;
         }
 
-        public void RemoveBookingService(long BookingId, long ServiceManagementId)
+        public async Task RemoveBookingServiceAsync(long BookingId, long ServiceManagementId)
         {
-            var BookingService = GetBookingServiceById(BookingId,ServiceManagementId);
-            RemoveBookingService(BookingService);
+            var BookingService = await GetBookingServiceByIdAsync(BookingId, ServiceManagementId);
+            await RemoveBookingServiceAsync(BookingService);
         }
     }
 }

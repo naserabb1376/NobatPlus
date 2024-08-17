@@ -21,73 +21,90 @@ namespace NobatPlusDATA.DataLayer.Services
             _context = DbTools.GetDbContext();
         }
 
-        public void AddCheckAvailability(CheckAvailability CheckAvailability)
+        public async Task AddCheckAvailabilityAsync(CheckAvailability CheckAvailability)
         {
             _context.CheckAvailabilities.Add(CheckAvailability);
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
             _context.Entry(CheckAvailability).State = EntityState.Detached;
         }
 
-        public void EditCheckAvailability(CheckAvailability CheckAvailability)
+        public async Task EditCheckAvailabilityAsync(CheckAvailability CheckAvailability)
         {
             _context.CheckAvailabilities.Update(CheckAvailability);
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
             _context.Entry(CheckAvailability).State = EntityState.Detached;
         }
 
-        public bool ExistCheckAvailability(long CheckAvailabilityId)
+        public async Task<bool> ExistCheckAvailabilityAsync(long CheckAvailabilityId)
         {
-            return _context.CheckAvailabilities.Any(x => x.ID == CheckAvailabilityId);
+            return await _context.CheckAvailabilities
+                .AsNoTracking()
+                .AnyAsync(x => x.ID == CheckAvailabilityId);
         }
 
-        public List<CheckAvailability> GetAllCheckAvailabilities(long stylistId = -1, int pageIndex= 1, int pageSize = 20, string searchText= "")
+        public async Task<List<CheckAvailability>> GetAllCheckAvailabilitiesAsync(long stylistId = -1, int pageIndex = 1, int pageSize = 20, string searchText = "")
         {
             if (stylistId < 0)
             {
-            return _context.CheckAvailabilities.Include(x=> x.Stylist).ThenInclude(x => x.Person).Where(x =>
-             (!string.IsNullOrEmpty(x.Stylist.Person.FirstName.ToString()) && x.Stylist.Person.FirstName.ToString().Contains(searchText))
-            || (!string.IsNullOrEmpty(x.Stylist.Person.LastName.ToString()) && x.Stylist.Person.LastName.ToString().Contains(searchText))
-            || (!string.IsNullOrEmpty(x.Stylist.Specialty.ToString()) && x.Stylist.Specialty.ToString().Contains(searchText))
-            || (!string.IsNullOrEmpty(x.Time.ToString()) && x.Time.ToString("HH:mm").Contains(searchText))
-            || (!string.IsNullOrEmpty(x.Description.ToString()) && x.Description.ToString().Contains(searchText))
-            || (!string.IsNullOrEmpty(x.Date.ToString()) && x.Date.ToString("yyyy/MM/dd HH:mm").Contains(searchText))
-            || (!string.IsNullOrEmpty(x.CreateDate.ToString()) && x.CreateDate.Value.ToString("yyyy/MM/dd HH:mm").Contains(searchText))
-            || (!string.IsNullOrEmpty(x.UpdateDate.ToString()) && x.UpdateDate.Value.ToString("yyyy/MM/dd HH:mm").Contains(searchText))
-             ).OrderByDescending(x=> x.CreateDate).ToPaging(pageIndex, pageSize).ToList();
+                return await _context.CheckAvailabilities
+                    .AsNoTracking()
+                    .Include(x => x.Stylist).ThenInclude(x => x.Person)
+                    .Where(x =>
+                        (!string.IsNullOrEmpty(x.Stylist.Person.FirstName.ToString()) && x.Stylist.Person.FirstName.ToString().Contains(searchText)) ||
+                        (!string.IsNullOrEmpty(x.Stylist.Person.LastName.ToString()) && x.Stylist.Person.LastName.ToString().Contains(searchText)) ||
+                        (!string.IsNullOrEmpty(x.Stylist.Specialty.ToString()) && x.Stylist.Specialty.ToString().Contains(searchText)) ||
+                        (!string.IsNullOrEmpty(x.Time.ToString()) && x.Time.ToString("HH:mm").Contains(searchText)) ||
+                        (!string.IsNullOrEmpty(x.Description.ToString()) && x.Description.ToString().Contains(searchText)) ||
+                        (!string.IsNullOrEmpty(x.Date.ToString()) && x.Date.ToString("yyyy/MM/dd HH:mm").Contains(searchText)) ||
+                        (!string.IsNullOrEmpty(x.CreateDate.ToString()) && x.CreateDate.Value.ToString("yyyy/MM/dd HH:mm").Contains(searchText)) ||
+                        (!string.IsNullOrEmpty(x.UpdateDate.ToString()) && x.UpdateDate.Value.ToString("yyyy/MM/dd HH:mm").Contains(searchText))
+                    )
+                    .OrderByDescending(x => x.CreateDate)
+                    .ToPaging(pageIndex, pageSize)
+                    .ToListAsync();
             }
             else
             {
-                return _context.CheckAvailabilities.Include(x => x.Stylist).ThenInclude(x => x.Person).Where(x =>
-                (x.StylistID == stylistId) &&
-             ((!string.IsNullOrEmpty(x.Stylist.Person.FirstName.ToString()) && x.Stylist.Person.FirstName.ToString().Contains(searchText))
-            || (!string.IsNullOrEmpty(x.Stylist.Person.LastName.ToString()) && x.Stylist.Person.LastName.ToString().Contains(searchText))
-            || (!string.IsNullOrEmpty(x.Stylist.Specialty.ToString()) && x.Stylist.Specialty.ToString().Contains(searchText))
-            || (!string.IsNullOrEmpty(x.Time.ToString()) && x.Time.ToString("HH:mm").Contains(searchText))
-            || (!string.IsNullOrEmpty(x.Description.ToString()) && x.Description.ToString().Contains(searchText))
-            || (!string.IsNullOrEmpty(x.Date.ToString()) && x.Date.ToString("yyyy/MM/dd HH:mm").Contains(searchText))
-            || (!string.IsNullOrEmpty(x.CreateDate.ToString()) && x.CreateDate.Value.ToString("yyyy/MM/dd HH:mm").Contains(searchText))
-            || (!string.IsNullOrEmpty(x.UpdateDate.ToString()) && x.UpdateDate.Value.ToString("yyyy/MM/dd HH:mm").Contains(searchText))
-             )).OrderByDescending(x => x.CreateDate).ToPaging(pageIndex, pageSize).ToList();
+                return await _context.CheckAvailabilities
+                    .AsNoTracking()
+                    .Include(x => x.Stylist).ThenInclude(x => x.Person)
+                    .Where(x =>
+                        x.StylistID == stylistId &&
+                        (
+                            (!string.IsNullOrEmpty(x.Stylist.Person.FirstName.ToString()) && x.Stylist.Person.FirstName.ToString().Contains(searchText)) ||
+                            (!string.IsNullOrEmpty(x.Stylist.Person.LastName.ToString()) && x.Stylist.Person.LastName.ToString().Contains(searchText)) ||
+                            (!string.IsNullOrEmpty(x.Stylist.Specialty.ToString()) && x.Stylist.Specialty.ToString().Contains(searchText)) ||
+                            (!string.IsNullOrEmpty(x.Time.ToString()) && x.Time.ToString("HH:mm").Contains(searchText)) ||
+                            (!string.IsNullOrEmpty(x.Description.ToString()) && x.Description.ToString().Contains(searchText)) ||
+                            (!string.IsNullOrEmpty(x.Date.ToString()) && x.Date.ToString("yyyy/MM/dd HH:mm").Contains(searchText)) ||
+                            (!string.IsNullOrEmpty(x.CreateDate.ToString()) && x.CreateDate.Value.ToString("yyyy/MM/dd HH:mm").Contains(searchText)) ||
+                            (!string.IsNullOrEmpty(x.UpdateDate.ToString()) && x.UpdateDate.Value.ToString("yyyy/MM/dd HH:mm").Contains(searchText))
+                        )
+                    )
+                    .OrderByDescending(x => x.CreateDate)
+                    .ToPaging(pageIndex, pageSize)
+                    .ToListAsync();
             }
-            
         }
 
-        public CheckAvailability GetCheckAvailabilityById(long CheckAvailabilityId)
+        public async Task<CheckAvailability> GetCheckAvailabilityByIdAsync(long CheckAvailabilityId)
         {
-            return _context.CheckAvailabilities.Find(CheckAvailabilityId);
+            return await _context.CheckAvailabilities
+                .AsNoTracking()
+ .SingleOrDefaultAsync(x => x.ID == CheckAvailabilityId);
         }
 
-        public void RemoveCheckAvailability(CheckAvailability CheckAvailability)
+        public async Task RemoveCheckAvailabilityAsync(CheckAvailability CheckAvailability)
         {
             _context.CheckAvailabilities.Remove(CheckAvailability);
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
             _context.Entry(CheckAvailability).State = EntityState.Detached;
         }
 
-        public void RemoveCheckAvailability(long CheckAvailabilityId)
+        public async Task RemoveCheckAvailabilityAsync(long CheckAvailabilityId)
         {
-            var CheckAvailability = GetCheckAvailabilityById(CheckAvailabilityId);
-            RemoveCheckAvailability(CheckAvailability);
+            var CheckAvailability = await GetCheckAvailabilityByIdAsync(CheckAvailabilityId);
+            await RemoveCheckAvailabilityAsync(CheckAvailability);
         }
     }
 }

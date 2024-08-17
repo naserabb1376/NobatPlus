@@ -20,54 +20,67 @@ namespace NobatPlusDATA.DataLayer.Services
             _context = DbTools.GetDbContext();
         }
 
-        public void AddStylistService(StylistService StylistService)
+        public async Task AddStylistServiceAsync(StylistService StylistService)
         {
             _context.StylistServices.Add(StylistService);
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
             _context.Entry(StylistService).State = EntityState.Detached;
         }
 
-        public void EditStylistService(StylistService StylistService)
+        public async Task EditStylistServiceAsync(StylistService StylistService)
         {
             _context.StylistServices.Update(StylistService);
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
             _context.Entry(StylistService).State = EntityState.Detached;
         }
 
-        public bool ExistStylistService(long StylistId, long ServiceManagementId)
+        public async Task<bool> ExistStylistServiceAsync(long StylistId, long ServiceManagementId)
         {
-            return _context.StylistServices.Any(x => x.StylistID == StylistId && x.ServiceManagementID == ServiceManagementId);
+            return await _context.StylistServices.AnyAsync(x => x.StylistID == StylistId && x.ServiceManagementID == ServiceManagementId);
         }
 
-        public List<StylistService> GetAllStylistServices(int pageIndex = 1, int pageSize = 20, string searchText = "")
+        public async Task<List<StylistService>> GetAllStylistServicesAsync(int pageIndex = 1, int pageSize = 20, string searchText = "")
         {
-            return _context.StylistServices.Include(x=> x.Stylist).ThenInclude(x=> x.Person).Include(x=> x.ServiceManagement).Where(x =>
-            (!string.IsNullOrEmpty(x.ServiceManagement.ServiceName.ToString()) && x.ServiceManagement.ServiceName.ToString().Contains(searchText))
-            || (!string.IsNullOrEmpty(x.ServiceManagement.Description.ToString()) && x.ServiceManagement.Description.ToString().Contains(searchText))
-            || (!string.IsNullOrEmpty(x.ServiceManagement.Duration.ToString()) && x.ServiceManagement.Duration.ToString("HH:mm").Contains(searchText))
-            || (!string.IsNullOrEmpty(x.ServiceManagement.ServiceName.ToString()) && x.ServiceManagement.ServiceName.ToString().Contains(searchText))
-            || (!string.IsNullOrEmpty(x.Stylist.Specialty.ToString()) && x.Stylist.Specialty.ToString().Contains(searchText))
-            || (!string.IsNullOrEmpty(x.Stylist.Person.FirstName.ToString()) && x.Stylist.Person.FirstName.ToString().Contains(searchText))
-            || (!string.IsNullOrEmpty(x.Stylist.Person.LastName.ToString()) && x.Stylist.Person.LastName.ToString().Contains(searchText))
-            ).OrderByDescending(x => x.ServiceManagement.CreateDate).ToPaging(pageIndex,pageSize).ToList();
+            return await _context.StylistServices
+                .Include(x => x.Stylist).ThenInclude(x => x.Person)
+                .Include(x => x.ServiceManagement)
+                .AsNoTracking()
+                .Where(x =>
+                    (!string.IsNullOrEmpty(x.ServiceManagement.ServiceName) && x.ServiceManagement.ServiceName.Contains(searchText)) ||
+                    (!string.IsNullOrEmpty(x.ServiceManagement.Description) && x.ServiceManagement.Description.Contains(searchText)) ||
+                    (!string.IsNullOrEmpty(x.ServiceManagement.Duration.ToString("HH:mm")) && x.ServiceManagement.Duration.ToString("HH:mm").Contains(searchText)) ||
+                    (!string.IsNullOrEmpty(x.Stylist.Specialty) && x.Stylist.Specialty.Contains(searchText)) ||
+                    (!string.IsNullOrEmpty(x.Stylist.Person.FirstName) && x.Stylist.Person.FirstName.Contains(searchText)) ||
+                    (!string.IsNullOrEmpty(x.Stylist.Person.LastName) && x.Stylist.Person.LastName.Contains(searchText))
+                )
+                .OrderByDescending(x => x.ServiceManagement.CreateDate)
+                .ToPaging(pageIndex, pageSize)
+                .ToListAsync();
         }
 
-        public StylistService GetStylistServiceById(long StylistId, long ServiceManagementId)
+        public async Task<StylistService> GetStylistServiceByIdAsync(long StylistId, long ServiceManagementId)
         {
-            return _context.StylistServices.Include(x => x.Stylist).ThenInclude(x => x.Person).Include(x => x.ServiceManagement).SingleOrDefault(x => x.StylistID == StylistId && x.ServiceManagementID == ServiceManagementId);
+            return await _context.StylistServices
+                .Include(x => x.Stylist).ThenInclude(x => x.Person)
+                .Include(x => x.ServiceManagement)
+                .AsNoTracking()
+                .SingleOrDefaultAsync(x => x.StylistID == StylistId && x.ServiceManagementID == ServiceManagementId);
         }
 
-        public void RemoveStylistService(StylistService StylistService)
+        public async Task RemoveStylistServiceAsync(StylistService StylistService)
         {
             _context.StylistServices.Remove(StylistService);
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
             _context.Entry(StylistService).State = EntityState.Detached;
         }
 
-        public void RemoveStylistService(long StylistId, long ServiceManagementId)
+        public async Task RemoveStylistServiceAsync(long StylistId, long ServiceManagementId)
         {
-            var StylistService = GetStylistServiceById(StylistId,ServiceManagementId);
-            RemoveStylistService(StylistService);
+            var stylistService = await GetStylistServiceByIdAsync(StylistId, ServiceManagementId);
+            if (stylistService != null)
+            {
+                await RemoveStylistServiceAsync(stylistService);
+            }
         }
     }
 }
