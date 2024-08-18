@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using NobatPlusDATA.DataLayer.Repositories;
 using NobatPlusDATA.Domain;
+using NobatPlusDATA.ResultObjects;
 using NobatPlusDATA.Tools;
 using System;
 using System.Collections.Generic;
@@ -21,56 +22,72 @@ namespace NobatPlusDATA.DataLayer.Services
             _context = DbTools.GetDbContext();
         }
 
-        public async Task AddCheckAvailabilityAsync(CheckAvailability CheckAvailability)
+        public async Task<BitResultObject> AddCheckAvailabilityAsync(CheckAvailability CheckAvailability)
         {
-            _context.CheckAvailabilities.Add(CheckAvailability);
-            await _context.SaveChangesAsync();
-            _context.Entry(CheckAvailability).State = EntityState.Detached;
+            BitResultObject result = new BitResultObject();
+            try
+            {
+                _context.CheckAvailabilities.Add(CheckAvailability);
+                await _context.SaveChangesAsync();
+                _context.Entry(CheckAvailability).State = EntityState.Detached;
+            }
+            catch (Exception ex)
+            {
+                result.Status = false;
+                result.ErrorMessage = $"{ex.Message} - {ex.InnerException?.Message}";
+            }
+            return result;
+           
         }
 
-        public async Task EditCheckAvailabilityAsync(CheckAvailability CheckAvailability)
+        public async Task<BitResultObject> EditCheckAvailabilityAsync(CheckAvailability CheckAvailability)
         {
-            _context.CheckAvailabilities.Update(CheckAvailability);
-            await _context.SaveChangesAsync();
-            _context.Entry(CheckAvailability).State = EntityState.Detached;
+            BitResultObject result = new BitResultObject();
+            try
+            {
+                _context.CheckAvailabilities.Update(CheckAvailability);
+                await _context.SaveChangesAsync();
+                _context.Entry(CheckAvailability).State = EntityState.Detached;
+            }
+            catch (Exception ex)
+            {
+                result.Status = false;
+                result.ErrorMessage = $"{ex.Message} - {ex.InnerException?.Message}";
+            }
+            return result;
+            
         }
 
-        public async Task<bool> ExistCheckAvailabilityAsync(long CheckAvailabilityId)
+        public async Task<BitResultObject> ExistCheckAvailabilityAsync(long CheckAvailabilityId)
         {
-            return await _context.CheckAvailabilities
+            BitResultObject result = new BitResultObject();
+            try
+            {
+                result.Status = await _context.CheckAvailabilities
                 .AsNoTracking()
                 .AnyAsync(x => x.ID == CheckAvailabilityId);
+            }
+            catch (Exception ex)
+            {
+                result.Status = false;
+                result.ErrorMessage = $"{ex.Message} - {ex.InnerException?.Message}";
+            }
+            return result;
         }
 
-        public async Task<List<CheckAvailability>> GetAllCheckAvailabilitiesAsync(long stylistId = -1, int pageIndex = 1, int pageSize = 20, string searchText = "")
+        public async Task<ListResultObject<CheckAvailability>> GetAllCheckAvailabilitiesAsync(long stylistId = -1, int pageIndex = 1, int pageSize = 20, string searchText = "")
         {
-            if (stylistId < 0)
+            ListResultObject<CheckAvailability> results = new ListResultObject<CheckAvailability>();
+            try
             {
-                return await _context.CheckAvailabilities
-                    .AsNoTracking()
-                    .Include(x => x.Stylist).ThenInclude(x => x.Person)
-                    .Where(x =>
-                        (!string.IsNullOrEmpty(x.Stylist.Person.FirstName.ToString()) && x.Stylist.Person.FirstName.ToString().Contains(searchText)) ||
-                        (!string.IsNullOrEmpty(x.Stylist.Person.LastName.ToString()) && x.Stylist.Person.LastName.ToString().Contains(searchText)) ||
-                        (!string.IsNullOrEmpty(x.Stylist.Specialty.ToString()) && x.Stylist.Specialty.ToString().Contains(searchText)) ||
-                        (!string.IsNullOrEmpty(x.Time.ToString()) && x.Time.ToString("HH:mm").Contains(searchText)) ||
-                        (!string.IsNullOrEmpty(x.Description.ToString()) && x.Description.ToString().Contains(searchText)) ||
-                        (!string.IsNullOrEmpty(x.Date.ToString()) && x.Date.ToString("yyyy/MM/dd HH:mm").Contains(searchText)) ||
-                        (!string.IsNullOrEmpty(x.CreateDate.ToString()) && x.CreateDate.Value.ToString("yyyy/MM/dd HH:mm").Contains(searchText)) ||
-                        (!string.IsNullOrEmpty(x.UpdateDate.ToString()) && x.UpdateDate.Value.ToString("yyyy/MM/dd HH:mm").Contains(searchText))
-                    )
-                    .OrderByDescending(x => x.CreateDate)
-                    .ToPaging(pageIndex, pageSize)
-                    .ToListAsync();
-            }
-            else
-            {
-                return await _context.CheckAvailabilities
-                    .AsNoTracking()
-                    .Include(x => x.Stylist).ThenInclude(x => x.Person)
-                    .Where(x =>
-                        x.StylistID == stylistId &&
-                        (
+                IQueryable<CheckAvailability> query;
+
+                if (stylistId < 0)
+                {
+                    query = _context.CheckAvailabilities
+                        .AsNoTracking()
+                        .Include(x => x.Stylist).ThenInclude(x => x.Person)
+                        .Where(x =>
                             (!string.IsNullOrEmpty(x.Stylist.Person.FirstName.ToString()) && x.Stylist.Person.FirstName.ToString().Contains(searchText)) ||
                             (!string.IsNullOrEmpty(x.Stylist.Person.LastName.ToString()) && x.Stylist.Person.LastName.ToString().Contains(searchText)) ||
                             (!string.IsNullOrEmpty(x.Stylist.Specialty.ToString()) && x.Stylist.Specialty.ToString().Contains(searchText)) ||
@@ -79,32 +96,93 @@ namespace NobatPlusDATA.DataLayer.Services
                             (!string.IsNullOrEmpty(x.Date.ToString()) && x.Date.ToString("yyyy/MM/dd HH:mm").Contains(searchText)) ||
                             (!string.IsNullOrEmpty(x.CreateDate.ToString()) && x.CreateDate.Value.ToString("yyyy/MM/dd HH:mm").Contains(searchText)) ||
                             (!string.IsNullOrEmpty(x.UpdateDate.ToString()) && x.UpdateDate.Value.ToString("yyyy/MM/dd HH:mm").Contains(searchText))
-                        )
-                    )
-                    .OrderByDescending(x => x.CreateDate)
-                    .ToPaging(pageIndex, pageSize)
-                    .ToListAsync();
+                        );
+                }
+                else
+                {
+                    query = _context.CheckAvailabilities
+                        .AsNoTracking()
+                        .Include(x => x.Stylist).ThenInclude(x => x.Person)
+                        .Where(x =>
+                            x.StylistID == stylistId &&
+                            (
+                                (!string.IsNullOrEmpty(x.Stylist.Person.FirstName.ToString()) && x.Stylist.Person.FirstName.ToString().Contains(searchText)) ||
+                                (!string.IsNullOrEmpty(x.Stylist.Person.LastName.ToString()) && x.Stylist.Person.LastName.ToString().Contains(searchText)) ||
+                                (!string.IsNullOrEmpty(x.Stylist.Specialty.ToString()) && x.Stylist.Specialty.ToString().Contains(searchText)) ||
+                                (!string.IsNullOrEmpty(x.Time.ToString()) && x.Time.ToString("HH:mm").Contains(searchText)) ||
+                                (!string.IsNullOrEmpty(x.Description.ToString()) && x.Description.ToString().Contains(searchText)) ||
+                                (!string.IsNullOrEmpty(x.Date.ToString()) && x.Date.ToString("yyyy/MM/dd HH:mm").Contains(searchText)) ||
+                                (!string.IsNullOrEmpty(x.CreateDate.ToString()) && x.CreateDate.Value.ToString("yyyy/MM/dd HH:mm").Contains(searchText)) ||
+                                (!string.IsNullOrEmpty(x.UpdateDate.ToString()) && x.UpdateDate.Value.ToString("yyyy/MM/dd HH:mm").Contains(searchText))
+                            )
+                        );
+                }
+                results.TotalCount = query.Count();
+                results.PageCount = DbTools.GetPageCount(results.TotalCount, pageSize);
+                results.Results = await query.OrderByDescending(x => x.CreateDate)
+                .ToPaging(pageIndex, pageSize)
+                .ToListAsync();
             }
+            catch (Exception ex)
+            {
+                results.Status = false;
+                results.ErrorMessage = $"{ex.Message} - {ex.InnerException?.Message}";
+            }
+            return results;
+           
         }
 
-        public async Task<CheckAvailability> GetCheckAvailabilityByIdAsync(long CheckAvailabilityId)
+        public async Task<RowResultObject<CheckAvailability>> GetCheckAvailabilityByIdAsync(long CheckAvailabilityId)
         {
-            return await _context.CheckAvailabilities
+            RowResultObject<CheckAvailability> result = new RowResultObject<CheckAvailability>();
+            try
+            {
+                result.Result = await _context.CheckAvailabilities
                 .AsNoTracking()
  .SingleOrDefaultAsync(x => x.ID == CheckAvailabilityId);
+            }
+            catch (Exception ex)
+            {
+                result.Status = false;
+                result.ErrorMessage = $"{ex.Message} - {ex.InnerException?.Message}";
+            }
+            return result;
+           
         }
 
-        public async Task RemoveCheckAvailabilityAsync(CheckAvailability CheckAvailability)
+        public async Task<BitResultObject> RemoveCheckAvailabilityAsync(CheckAvailability CheckAvailability)
         {
-            _context.CheckAvailabilities.Remove(CheckAvailability);
-            await _context.SaveChangesAsync();
-            _context.Entry(CheckAvailability).State = EntityState.Detached;
+            BitResultObject result = new BitResultObject();
+            try
+            {
+                _context.CheckAvailabilities.Remove(CheckAvailability);
+                await _context.SaveChangesAsync();
+                _context.Entry(CheckAvailability).State = EntityState.Detached;
+            }
+            catch (Exception ex)
+            {
+                result.Status = false;
+                result.ErrorMessage = $"{ex.Message} - {ex.InnerException?.Message}";
+            }
+            return result;
+            
         }
 
-        public async Task RemoveCheckAvailabilityAsync(long CheckAvailabilityId)
+        public async Task<BitResultObject> RemoveCheckAvailabilityAsync(long CheckAvailabilityId)
         {
-            var CheckAvailability = await GetCheckAvailabilityByIdAsync(CheckAvailabilityId);
-            await RemoveCheckAvailabilityAsync(CheckAvailability);
+            BitResultObject result = new BitResultObject();
+            try
+            {
+                var CheckAvailability = await GetCheckAvailabilityByIdAsync(CheckAvailabilityId);
+                result = await RemoveCheckAvailabilityAsync(CheckAvailability.Result);
+            }
+            catch (Exception ex)
+            {
+                result.Status = false;
+                result.ErrorMessage = $"{ex.Message} - {ex.InnerException?.Message}";
+            }
+            return result;
+            
         }
     }
 }

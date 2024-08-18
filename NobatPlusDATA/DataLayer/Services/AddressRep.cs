@@ -2,10 +2,12 @@
 using Microsoft.EntityFrameworkCore;
 using NobatPlusDATA.DataLayer.Repositories;
 using NobatPlusDATA.Domain;
+using NobatPlusDATA.ResultObjects;
 using NobatPlusDATA.Tools;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Reflection.Metadata;
 using System.Text;
 using System.Threading.Tasks;
@@ -21,70 +23,156 @@ namespace NobatPlusDATA.DataLayer.Services
             _context = DbTools.GetDbContext();
         }
 
-        public async Task AddAddressAsync(Address address)
+        public async Task<BitResultObject> AddAddressAsync(Address address)
         {
-            await _context.Addresses.AddAsync(address);
-            await _context.SaveChangesAsync();
-            _context.Entry(address).State = EntityState.Detached;
+            BitResultObject result = new BitResultObject();
+            try
+            {
+                await _context.Addresses.AddAsync(address);
+                await _context.SaveChangesAsync();
+                _context.Entry(address).State = EntityState.Detached;
+            }
+            catch (Exception ex)
+            {
+                result.Status = false;
+                result.ErrorMessage = $"{ex.Message} - {ex.InnerException?.Message}";
+            }
+            return result;
         }
 
-        public async Task EditAddressAsync(Address address)
+        public async Task<BitResultObject> EditAddressAsync(Address address)
         {
-            _context.Addresses.Update(address);
-            await _context.SaveChangesAsync();
-            _context.Entry(address).State = EntityState.Detached;
+            BitResultObject result = new BitResultObject();
+            try
+            {
+                _context.Addresses.Update(address);
+                await _context.SaveChangesAsync();
+                _context.Entry(address).State = EntityState.Detached;
+            }
+            catch (Exception ex)
+            {
+                result.Status = false;
+                result.ErrorMessage = $"{ex.Message} - {ex.InnerException?.Message}";
+            }
+            return result;
         }
 
-        public async Task<bool> ExistAddressAsync(long addressId)
+        public async Task<BitResultObject> ExistAddressAsync(long addressId)
         {
-            return await _context.Addresses.AsNoTracking().AnyAsync(x => x.ID == addressId);
+            BitResultObject result = new BitResultObject();
+            try
+            {
+                result.Status = await _context.Addresses.AsNoTracking().AnyAsync(x => x.ID == addressId);
+            }
+            catch (Exception ex)
+            {
+                result.Status = false;
+                result.ErrorMessage = $"{ex.Message} - {ex.InnerException?.Message}";
+            }
+            return result;
+
         }
 
-        public async Task<List<Address>> GetAllAddressesAsync(int pageIndex = 1, int pageSize = 20, string searchText = "")
+        public async Task<ListResultObject<Address>> GetAllAddressesAsync(int pageIndex = 1, int pageSize = 20, string searchText = "")
         {
-            return await _context.Addresses
-                .AsNoTracking()
-                .Where(x =>
-                    (!string.IsNullOrEmpty(x.AddressCity.ToString()) && x.AddressCity.ToString().Contains(searchText)) ||
-                    (!string.IsNullOrEmpty(x.AddressLocationHorizentalPoint.ToString()) && x.AddressLocationHorizentalPoint.ToString().Contains(searchText)) ||
-                    (!string.IsNullOrEmpty(x.AddressLocationVerticalPoint.ToString()) && x.AddressLocationVerticalPoint.ToString().Contains(searchText)) ||
-                    (!string.IsNullOrEmpty(x.AddressPostalCode.ToString()) && x.AddressPostalCode.ToString().Contains(searchText)) ||
-                    (!string.IsNullOrEmpty(x.State.ToString()) && x.State.ToString().Contains(searchText)) ||
-                    (!string.IsNullOrEmpty(x.Description.ToString()) && x.Description.ToString().Contains(searchText)) ||
-                    (!string.IsNullOrEmpty(x.AddressStreet.ToString()) && x.AddressStreet.ToString().Contains(searchText)) ||
-                    (!string.IsNullOrEmpty(x.CreateDate.ToString()) && x.CreateDate.Value.ToString("yyyy/MM/dd HH:mm").Contains(searchText)) ||
-                    (!string.IsNullOrEmpty(x.UpdateDate.ToString()) && x.UpdateDate.Value.ToString("yyyy/MM/dd HH:mm").Contains(searchText))
-                )
-                .OrderByDescending(x => x.CreateDate)
-                .ToPaging(pageIndex, pageSize)
+            ListResultObject<Address> results = new ListResultObject<Address>();
+            try
+            {
+                var query = _context.Addresses
+    .AsNoTracking()
+    .Where(x =>
+        (!string.IsNullOrEmpty(x.AddressCity.ToString()) && x.AddressCity.ToString().Contains(searchText)) ||
+        (!string.IsNullOrEmpty(x.AddressLocationHorizentalPoint.ToString()) && x.AddressLocationHorizentalPoint.ToString().Contains(searchText)) ||
+        (!string.IsNullOrEmpty(x.AddressLocationVerticalPoint.ToString()) && x.AddressLocationVerticalPoint.ToString().Contains(searchText)) ||
+        (!string.IsNullOrEmpty(x.AddressPostalCode.ToString()) && x.AddressPostalCode.ToString().Contains(searchText)) ||
+        (!string.IsNullOrEmpty(x.State.ToString()) && x.State.ToString().Contains(searchText)) ||
+        (!string.IsNullOrEmpty(x.Description.ToString()) && x.Description.ToString().Contains(searchText)) ||
+        (!string.IsNullOrEmpty(x.AddressStreet.ToString()) && x.AddressStreet.ToString().Contains(searchText)) ||
+        (!string.IsNullOrEmpty(x.CreateDate.ToString()) && x.CreateDate.Value.ToString("yyyy/MM/dd HH:mm").Contains(searchText)) ||
+        (!string.IsNullOrEmpty(x.UpdateDate.ToString()) && x.UpdateDate.Value.ToString("yyyy/MM/dd HH:mm").Contains(searchText))
+    );
+                results.TotalCount = query.Count();
+                results.PageCount = DbTools.GetPageCount(results.TotalCount, pageSize);
+                results.Results = await query.OrderByDescending(x => x.CreateDate)
+            .ToPaging(pageIndex, pageSize)
                 .ToListAsync();
+            }
+            catch (Exception ex)
+            {
+                results.Status = false;
+                results.ErrorMessage = $"{ex.Message} - {ex.InnerException?.Message}";
+            }
+
+            return results;
         }
 
-        public async Task<Address> GetAddressByIdAsync(long addressId)
+        public async Task<RowResultObject<Address>> GetAddressByIdAsync(long addressId)
         {
-            return await _context.Addresses.AsNoTracking().SingleOrDefaultAsync(x => x.ID == addressId);
+            RowResultObject<Address> result = new RowResultObject<Address>();
+            try
+            {
+                result.Result = await _context.Addresses.AsNoTracking().SingleOrDefaultAsync(x => x.ID == addressId);
+            }
+            catch (Exception ex)
+            {
+
+                result.Status = false;
+                result.ErrorMessage = $"{ex.Message} - {ex.InnerException?.Message}";
+            }
+            return result;
         }
 
-        public async Task<Address> GetAddressByPersonIdAsync(long personId)
+        public async Task<RowResultObject<Address>> GetAddressByPersonIdAsync(long personId)
         {
-            var person = await _context.Persons
+            RowResultObject<Address> result = new RowResultObject<Address>();
+            try
+            {
+                var person = await _context.Persons
                 .Include(x => x.Address)
                 .AsNoTracking()
                 .SingleOrDefaultAsync(x => x.ID == personId);
-            return person?.Address;
+                result.Result = person?.Address;
+            }
+            catch (Exception ex)
+            {
+
+                result.Status = false;
+                result.ErrorMessage = $"{ex.Message} - {ex.InnerException?.Message}";
+            }
+            return result;
         }
 
-        public async Task RemoveAddressAsync(Address address)
+        public async Task<BitResultObject> RemoveAddressAsync(Address address)
         {
-            _context.Addresses.Remove(address);
-            await _context.SaveChangesAsync();
-            _context.Entry(address).State = EntityState.Detached;
+            BitResultObject result = new BitResultObject();
+            try
+            {
+                _context.Addresses.Remove(address);
+                await _context.SaveChangesAsync();
+                _context.Entry(address).State = EntityState.Detached;
+            }
+            catch (Exception ex)
+            {
+                result.Status = false;
+                result.ErrorMessage = $"{ex.Message} - {ex.InnerException?.Message}";
+            }
+            return result;
         }
 
-        public async Task RemoveAddressAsync(long addressId)
+        public async Task<BitResultObject> RemoveAddressAsync(long addressId)
         {
-            var address = await GetAddressByIdAsync(addressId);
-            await RemoveAddressAsync(address);
+            BitResultObject result = new BitResultObject();
+            try
+            {
+                var address = await GetAddressByIdAsync(addressId);
+                result = await RemoveAddressAsync(address.Result);
+            }
+            catch (Exception ex)
+            {
+                result.Status = false;
+                result.ErrorMessage = $"{ex.Message} - {ex.InnerException?.Message}";
+            }
+            return result;
         }
 
     }

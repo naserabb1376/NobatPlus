@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using NobatPlusDATA.DataLayer.Repositories;
 using NobatPlusDATA.Domain;
+using NobatPlusDATA.ResultObjects;
 using NobatPlusDATA.Tools;
 using System;
 using System.Collections.Generic;
@@ -21,30 +22,65 @@ namespace NobatPlusDATA.DataLayer.Services
             _context = DbTools.GetDbContext();
         }
 
-        public async Task AddCustomerDiscountAsync(CustomerDiscount CustomerDiscount)
+        public async Task<BitResultObject> AddCustomerDiscountAsync(CustomerDiscount CustomerDiscount)
         {
-            _context.CustomerDiscounts.Add(CustomerDiscount);
-            await _context.SaveChangesAsync();
-            _context.Entry(CustomerDiscount).State = EntityState.Detached;
+            BitResultObject result = new BitResultObject();
+            try
+            {
+                _context.CustomerDiscounts.Add(CustomerDiscount);
+                await _context.SaveChangesAsync();
+                _context.Entry(CustomerDiscount).State = EntityState.Detached;
+            }
+            catch (Exception ex)
+            {
+                result.Status = false;
+                result.ErrorMessage = $"{ex.Message} - {ex.InnerException?.Message}";
+            }
+            return result;
+            
         }
 
-        public async Task EditCustomerDiscountAsync(CustomerDiscount CustomerDiscount)
+        public async Task<BitResultObject> EditCustomerDiscountAsync(CustomerDiscount CustomerDiscount)
         {
-            _context.CustomerDiscounts.Update(CustomerDiscount);
-            await _context.SaveChangesAsync();
-            _context.Entry(CustomerDiscount).State = EntityState.Detached;
+            BitResultObject result = new BitResultObject();
+            try
+            {
+                _context.CustomerDiscounts.Update(CustomerDiscount);
+                await _context.SaveChangesAsync();
+                _context.Entry(CustomerDiscount).State = EntityState.Detached;
+            }
+            catch (Exception ex)
+            {
+                result.Status = false;
+                result.ErrorMessage = $"{ex.Message} - {ex.InnerException?.Message}";
+            }
+            return result;
+           
         }
 
-        public async Task<bool> ExistCustomerDiscountAsync(long CustomerDiscountId)
+        public async Task<BitResultObject> ExistCustomerDiscountAsync(long CustomerDiscountId)
         {
-            return await _context.CustomerDiscounts
+            BitResultObject result = new BitResultObject();
+            try
+            {
+                result.Status = await _context.CustomerDiscounts
                 .AsNoTracking()
                 .AnyAsync(x => x.ID == CustomerDiscountId);
+            }
+            catch (Exception ex)
+            {
+                result.Status = false;
+                result.ErrorMessage = $"{ex.Message} - {ex.InnerException?.Message}";
+            }
+            return result;
         }
 
-        public async Task<List<CustomerDiscount>> GetAllCustomerDiscountsAsync(long DiscountId, long CustomerId, long StylistId, int pageIndex = 1, int pageSize = 20, string searchText = "")
+        public async Task<ListResultObject<CustomerDiscount>> GetAllCustomerDiscountsAsync(long DiscountId, long CustomerId, long StylistId, int pageIndex = 1, int pageSize = 20, string searchText = "")
         {
-            return await _context.CustomerDiscounts
+            ListResultObject<CustomerDiscount> results = new ListResultObject<CustomerDiscount>();
+            try
+            {
+                var query = _context.CustomerDiscounts
                 .AsNoTracking()
                 .Include(x => x.Discount)
                 .Include(x => x.Customer).ThenInclude(x => x.Person)
@@ -66,30 +102,71 @@ namespace NobatPlusDATA.DataLayer.Services
                         (!string.IsNullOrEmpty(x.CreateDate.ToString()) && x.CreateDate.Value.ToString("yyyy/MM/dd HH:mm").Contains(searchText)) ||
                         (!string.IsNullOrEmpty(x.UpdateDate.ToString()) && x.UpdateDate.Value.ToString("yyyy/MM/dd HH:mm").Contains(searchText))
                     )
-                )
-                .OrderByDescending(x => x.CreateDate)
+                );
+                results.TotalCount = query.Count();
+                results.PageCount = DbTools.GetPageCount(results.TotalCount, pageSize);
+                results.Results = await query.OrderByDescending(x => x.CreateDate)
                 .ToPaging(pageIndex, pageSize)
                 .ToListAsync();
+            }
+            catch (Exception ex)
+            {
+                results.Status = false;
+                results.ErrorMessage = $"{ex.Message} - {ex.InnerException?.Message}";
+            }
+            return results;
         }
 
-        public async Task<CustomerDiscount> GetCustomerDiscountByIdAsync(long CustomerDiscountId)
+        public async Task<RowResultObject<CustomerDiscount>> GetCustomerDiscountByIdAsync(long CustomerDiscountId)
         {
-            return await _context.CustomerDiscounts
+            RowResultObject<CustomerDiscount> result = new RowResultObject<CustomerDiscount>();
+            try
+            {
+                result.Result = await _context.CustomerDiscounts
                 .AsNoTracking()
-                .SingleOrDefaultAsync(x=> x.ID == CustomerDiscountId);
+                .SingleOrDefaultAsync(x => x.ID == CustomerDiscountId);
+            }
+            catch (Exception ex)
+            {
+                result.Status = false;
+                result.ErrorMessage = $"{ex.Message} - {ex.InnerException?.Message}";
+            }
+            return result;
         }
 
-        public async Task RemoveCustomerDiscountAsync(CustomerDiscount CustomerDiscount)
+        public async Task<BitResultObject> RemoveCustomerDiscountAsync(CustomerDiscount CustomerDiscount)
         {
-            _context.CustomerDiscounts.Remove(CustomerDiscount);
-            await _context.SaveChangesAsync();
-            _context.Entry(CustomerDiscount).State = EntityState.Detached;
+            BitResultObject result = new BitResultObject();
+            try
+            {
+                _context.CustomerDiscounts.Remove(CustomerDiscount);
+                await _context.SaveChangesAsync();
+                _context.Entry(CustomerDiscount).State = EntityState.Detached;
+            }
+            catch (Exception ex)
+            {
+                result.Status = false;
+                result.ErrorMessage = $"{ex.Message} - {ex.InnerException?.Message}";
+            }
+            return result;
+            
         }
 
-        public async Task RemoveCustomerDiscountAsync(long CustomerDiscountId)
+        public async Task<BitResultObject> RemoveCustomerDiscountAsync(long CustomerDiscountId)
         {
-            var CustomerDiscount = await GetCustomerDiscountByIdAsync(CustomerDiscountId);
-            await RemoveCustomerDiscountAsync(CustomerDiscount);
+            BitResultObject result = new BitResultObject();
+            try
+            {
+                var CustomerDiscount = await GetCustomerDiscountByIdAsync(CustomerDiscountId);
+                result = await RemoveCustomerDiscountAsync(CustomerDiscount.Result);
+            }
+            catch (Exception ex)
+            {
+                result.Status = false;
+                result.ErrorMessage = $"{ex.Message} - {ex.InnerException?.Message}";
+            }
+            return result;
+            
         }
     }
 }

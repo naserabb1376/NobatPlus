@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using NobatPlusDATA.DataLayer.Repositories;
 using NobatPlusDATA.Domain;
+using NobatPlusDATA.ResultObjects;
 using NobatPlusDATA.Tools;
 using System;
 using System.Collections.Generic;
@@ -21,30 +22,66 @@ namespace NobatPlusDATA.DataLayer.Services
             _context = DbTools.GetDbContext();
         }
 
-        public async Task AddJobTypeAsync(JobType JobType)
+        public async Task<BitResultObject> AddJobTypeAsync(JobType JobType)
         {
-            _context.JobTypes.Add(JobType);
-            await _context.SaveChangesAsync();
-            _context.Entry(JobType).State = EntityState.Detached;
+            BitResultObject result = new BitResultObject();
+            try
+            {
+                _context.JobTypes.Add(JobType);
+                await _context.SaveChangesAsync();
+                _context.Entry(JobType).State = EntityState.Detached;
+            }
+            catch (Exception ex)
+            {
+                result.Status = false;
+                result.ErrorMessage = $"{ex.Message} - {ex.InnerException?.Message}";
+            }
+            return result;
+            
         }
 
-        public async Task EditJobTypeAsync(JobType JobType)
+        public async Task<BitResultObject> EditJobTypeAsync(JobType JobType)
         {
-            _context.JobTypes.Update(JobType);
-            await _context.SaveChangesAsync();
-            _context.Entry(JobType).State = EntityState.Detached;
+            BitResultObject result = new BitResultObject();
+            try
+            {
+                _context.JobTypes.Update(JobType);
+                await _context.SaveChangesAsync();
+                _context.Entry(JobType).State = EntityState.Detached;
+            }
+            catch (Exception ex)
+            {
+                result.Status = false;
+                result.ErrorMessage = $"{ex.Message} - {ex.InnerException?.Message}";
+            }
+            return result;
+            
         }
 
-        public async Task<bool> ExistJobTypeAsync(long JobTypeId)
+        public async Task<BitResultObject> ExistJobTypeAsync(long JobTypeId)
         {
-            return await _context.JobTypes
+            BitResultObject result = new BitResultObject();
+            try
+            {
+                result.Status = await _context.JobTypes
                 .AsNoTracking()
                 .AnyAsync(x => x.ID == JobTypeId);
+            }
+            catch (Exception ex)
+            {
+                result.Status = false;
+                result.ErrorMessage = $"{ex.Message} - {ex.InnerException?.Message}";
+            }
+            return result;
+            
         }
 
-        public async Task<List<JobType>> GetAllJobTypesAsync(int SexTypeChecked = 0, int pageIndex = 1, int pageSize = 20, string searchText = "")
+        public async Task<ListResultObject<JobType>> GetAllJobTypesAsync(int SexTypeChecked = 0, int pageIndex = 1, int pageSize = 20, string searchText = "")
         {
-            return await _context.JobTypes
+            ListResultObject<JobType> results = new ListResultObject<JobType>();
+            try
+            {
+                var query = _context.JobTypes
                 .AsNoTracking()
                 .Where(x =>
                     x.SexTypeChecked == SexTypeChecked &&
@@ -55,30 +92,73 @@ namespace NobatPlusDATA.DataLayer.Services
                         (!string.IsNullOrEmpty(x.CreateDate.ToString()) && x.CreateDate.Value.ToString("yyyy/MM/dd HH:mm").Contains(searchText)) ||
                         (!string.IsNullOrEmpty(x.UpdateDate.ToString()) && x.UpdateDate.Value.ToString("yyyy/MM/dd HH:mm").Contains(searchText))
                     )
-                )
-                .OrderByDescending(x => x.CreateDate)
+                );
+                results.TotalCount = query.Count();
+                results.PageCount = DbTools.GetPageCount(results.TotalCount, pageSize);
+                results.Results = await query.OrderByDescending(x => x.CreateDate)
                 .ToPaging(pageIndex, pageSize)
                 .ToListAsync();
+            }
+            catch (Exception ex)
+            {
+                results.Status = false;
+                results.ErrorMessage = $"{ex.Message} - {ex.InnerException?.Message}";
+            }
+            return results;
+           
         }
 
-        public async Task<JobType> GetJobTypeByIdAsync(long JobTypeId)
+        public async Task<RowResultObject<JobType>> GetJobTypeByIdAsync(long JobTypeId)
         {
-            return await _context.JobTypes
+            RowResultObject<JobType> result = new RowResultObject<JobType>();
+            try
+            {
+                result.Result = await _context.JobTypes
                 .AsNoTracking()
                 .SingleOrDefaultAsync(x => x.ID == JobTypeId);
+            }
+            catch (Exception ex)
+            {
+                result.Status = false;
+                result.ErrorMessage = $"{ex.Message} - {ex.InnerException?.Message}";
+            }
+            return result;
+            
         }
 
-        public async Task RemoveJobTypeAsync(JobType JobType)
+        public async Task<BitResultObject> RemoveJobTypeAsync(JobType JobType)
         {
-            _context.JobTypes.Remove(JobType);
-            await _context.SaveChangesAsync();
-            _context.Entry(JobType).State = EntityState.Detached;
+            BitResultObject result = new BitResultObject();
+            try
+            {
+                _context.JobTypes.Remove(JobType);
+                await _context.SaveChangesAsync();
+                _context.Entry(JobType).State = EntityState.Detached;
+            }
+            catch (Exception ex)
+            {
+                result.Status = false;
+                result.ErrorMessage = $"{ex.Message} - {ex.InnerException?.Message}";
+            }
+            return result;
+           
         }
 
-        public async Task RemoveJobTypeAsync(long JobTypeId)
+        public async Task<BitResultObject> RemoveJobTypeAsync(long JobTypeId)
         {
-            var JobType = await GetJobTypeByIdAsync(JobTypeId);
-            await RemoveJobTypeAsync(JobType);
+            BitResultObject result = new BitResultObject();
+            try
+            {
+                var JobType = await GetJobTypeByIdAsync(JobTypeId);
+                result = await RemoveJobTypeAsync(JobType.Result);
+            }
+            catch (Exception ex)
+            {
+                result.Status = false;
+                result.ErrorMessage = $"{ex.Message} - {ex.InnerException?.Message}";
+            }
+            return result;
+           
         }
 
     }

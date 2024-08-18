@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using NobatPlusDATA.DataLayer.Repositories;
 using NobatPlusDATA.Domain;
+using NobatPlusDATA.ResultObjects;
 using NobatPlusDATA.Tools;
 using System;
 using System.Collections.Generic;
@@ -21,60 +22,73 @@ namespace NobatPlusDATA.DataLayer.Services
             _context = DbTools.GetDbContext();
         }
 
-        public async Task AddLoginAsync(Login Login)
+        public async Task<BitResultObject> AddLoginAsync(Login Login)
         {
-            _context.Logins.Add(Login);
-            await _context.SaveChangesAsync();
-            _context.Entry(Login).State = EntityState.Detached;
+            BitResultObject result = new BitResultObject();
+            try
+            {
+                _context.Logins.Add(Login);
+                await _context.SaveChangesAsync();
+                _context.Entry(Login).State = EntityState.Detached;
+            }
+            catch (Exception ex)
+            {
+                result.Status = false;
+                result.ErrorMessage = $"{ex.Message} - {ex.InnerException?.Message}";
+            }
+            return result;
+            
         }
 
-        public async Task EditLoginAsync(Login Login)
+        public async Task<BitResultObject> EditLoginAsync(Login Login)
         {
-            _context.Logins.Update(Login);
-            await _context.SaveChangesAsync();
-            _context.Entry(Login).State = EntityState.Detached;
+            BitResultObject result = new BitResultObject();
+            try
+            {
+                _context.Logins.Update(Login);
+                await _context.SaveChangesAsync();
+                _context.Entry(Login).State = EntityState.Detached;
+            }
+            catch (Exception ex)
+            {
+                result.Status = false;
+                result.ErrorMessage = $"{ex.Message} - {ex.InnerException?.Message}";
+            }
+            return result;
+           
         }
 
-        public async Task<bool> ExistLoginAsync(long LoginId)
+        public async Task<BitResultObject> ExistLoginAsync(long LoginId)
         {
-            return await _context.Logins
+            BitResultObject result = new BitResultObject();
+            try
+            {
+                result.Status = await _context.Logins
                 .AsNoTracking()
                 .AnyAsync(x => x.ID == LoginId);
+            }
+            catch (Exception ex)
+            {
+                result.Status = false;
+                result.ErrorMessage = $"{ex.Message} - {ex.InnerException?.Message}";
+            }
+            return result;
+            
         }
 
-        public async Task<List<Login>> GetAllLoginsAsync(long personId = 0, int pageIndex = 1, int pageSize = 20, string searchText = "")
+        public async Task<ListResultObject<Login>> GetAllLoginsAsync(long personId = 0, int pageIndex = 1, int pageSize = 20, string searchText = "")
         {
-            if (personId == 0)
+            ListResultObject<Login> results = new ListResultObject<Login>();
+            try
             {
-                return await _context.Logins
-                    .AsNoTracking()
-                    .Include(x => x.Person)
-                    .Where(x =>
-                        (!string.IsNullOrEmpty(x.Person.FirstName.ToString()) && x.Person.FirstName.ToString().Contains(searchText)) ||
-                        (!string.IsNullOrEmpty(x.Person.LastName.ToString()) && x.Person.LastName.ToString().Contains(searchText)) ||
-                        (!string.IsNullOrEmpty(x.Person.NaCode.ToString()) && x.Person.NaCode.ToString().Contains(searchText)) ||
-                        (!string.IsNullOrEmpty(x.Person.PhoneNumber.ToString()) && x.Person.PhoneNumber.ToString().Contains(searchText)) ||
-                        (!string.IsNullOrEmpty(x.Person.Email.ToString()) && x.Person.Email.ToString().Contains(searchText)) ||
-                        (!string.IsNullOrEmpty(x.Person.Description.ToString()) && x.Person.Description.ToString().Contains(searchText)) ||
-                        (!string.IsNullOrEmpty(x.Person.DateOfBirth.ToString()) && x.Person.DateOfBirth.Value.ToString("yyyy/MM/dd HH:mm").Contains(searchText)) ||
-                        (!string.IsNullOrEmpty(x.Username.ToString()) && x.Username.ToString().Contains(searchText)) ||
-                        (!string.IsNullOrEmpty(x.Description.ToString()) && x.Description.ToString().Contains(searchText)) ||
-                        (!string.IsNullOrEmpty(x.LastLoginDate.ToString()) && x.LastLoginDate.ToString("yyyy/MM/dd HH:mm").Contains(searchText)) ||
-                        (!string.IsNullOrEmpty(x.CreateDate.ToString()) && x.CreateDate.Value.ToString("yyyy/MM/dd HH:mm").Contains(searchText)) ||
-                        (!string.IsNullOrEmpty(x.UpdateDate.ToString()) && x.UpdateDate.Value.ToString("yyyy/MM/dd HH:mm").Contains(searchText))
-                    )
-                    .OrderByDescending(x => x.CreateDate)
-                    .ToPaging(pageIndex, pageSize)
-                    .ToListAsync();
-            }
-            else
-            {
-                return await _context.Logins
-                    .AsNoTracking()
-                    .Include(x => x.Person)
-                    .Where(x =>
-                        x.PersonID == personId &&
-                        (
+                IQueryable<Login> query;
+
+                if (personId == 0)
+                {
+                    query = _context.Logins
+                        .AsNoTracking()
+                        .Include(x => x.Person)
+                        .Where(x =>
                             (!string.IsNullOrEmpty(x.Person.FirstName.ToString()) && x.Person.FirstName.ToString().Contains(searchText)) ||
                             (!string.IsNullOrEmpty(x.Person.LastName.ToString()) && x.Person.LastName.ToString().Contains(searchText)) ||
                             (!string.IsNullOrEmpty(x.Person.NaCode.ToString()) && x.Person.NaCode.ToString().Contains(searchText)) ||
@@ -87,32 +101,98 @@ namespace NobatPlusDATA.DataLayer.Services
                             (!string.IsNullOrEmpty(x.LastLoginDate.ToString()) && x.LastLoginDate.ToString("yyyy/MM/dd HH:mm").Contains(searchText)) ||
                             (!string.IsNullOrEmpty(x.CreateDate.ToString()) && x.CreateDate.Value.ToString("yyyy/MM/dd HH:mm").Contains(searchText)) ||
                             (!string.IsNullOrEmpty(x.UpdateDate.ToString()) && x.UpdateDate.Value.ToString("yyyy/MM/dd HH:mm").Contains(searchText))
-                        )
-                    )
-                    .OrderByDescending(x => x.CreateDate)
-                    .ToPaging(pageIndex, pageSize)
-                    .ToListAsync();
+                        );
+                }
+                else
+                {
+                    query = _context.Logins
+                         .AsNoTracking()
+                         .Include(x => x.Person)
+                         .Where(x =>
+                             x.PersonID == personId &&
+                             (
+                                 (!string.IsNullOrEmpty(x.Person.FirstName.ToString()) && x.Person.FirstName.ToString().Contains(searchText)) ||
+                                 (!string.IsNullOrEmpty(x.Person.LastName.ToString()) && x.Person.LastName.ToString().Contains(searchText)) ||
+                                 (!string.IsNullOrEmpty(x.Person.NaCode.ToString()) && x.Person.NaCode.ToString().Contains(searchText)) ||
+                                 (!string.IsNullOrEmpty(x.Person.PhoneNumber.ToString()) && x.Person.PhoneNumber.ToString().Contains(searchText)) ||
+                                 (!string.IsNullOrEmpty(x.Person.Email.ToString()) && x.Person.Email.ToString().Contains(searchText)) ||
+                                 (!string.IsNullOrEmpty(x.Person.Description.ToString()) && x.Person.Description.ToString().Contains(searchText)) ||
+                                 (!string.IsNullOrEmpty(x.Person.DateOfBirth.ToString()) && x.Person.DateOfBirth.Value.ToString("yyyy/MM/dd HH:mm").Contains(searchText)) ||
+                                 (!string.IsNullOrEmpty(x.Username.ToString()) && x.Username.ToString().Contains(searchText)) ||
+                                 (!string.IsNullOrEmpty(x.Description.ToString()) && x.Description.ToString().Contains(searchText)) ||
+                                 (!string.IsNullOrEmpty(x.LastLoginDate.ToString()) && x.LastLoginDate.ToString("yyyy/MM/dd HH:mm").Contains(searchText)) ||
+                                 (!string.IsNullOrEmpty(x.CreateDate.ToString()) && x.CreateDate.Value.ToString("yyyy/MM/dd HH:mm").Contains(searchText)) ||
+                                 (!string.IsNullOrEmpty(x.UpdateDate.ToString()) && x.UpdateDate.Value.ToString("yyyy/MM/dd HH:mm").Contains(searchText))
+                             )
+                         );
+                }
+
+                results.TotalCount = query.Count();
+                results.PageCount = DbTools.GetPageCount(results.TotalCount, pageSize);
+                results.Results = await query.OrderByDescending(x => x.CreateDate)
+                .ToPaging(pageIndex, pageSize)
+                .ToListAsync();
             }
+            catch (Exception ex)
+            {
+                results.Status = false;
+                results.ErrorMessage = $"{ex.Message} - {ex.InnerException?.Message}";
+            }
+            return results;
+          
         }
 
-        public async Task<Login> GetLoginByIdAsync(long LoginId)
+        public async Task<RowResultObject<Login>> GetLoginByIdAsync(long LoginId)
         {
-            return await _context.Logins
+            RowResultObject<Login> result = new RowResultObject<Login>();
+            try
+            {
+                result.Result = await _context.Logins
                 .AsNoTracking()
                 .SingleOrDefaultAsync(x => x.ID == LoginId);
+            }
+            catch (Exception ex)
+            {
+                result.Status = false;
+                result.ErrorMessage = $"{ex.Message} - {ex.InnerException?.Message}";
+            }
+            return result;
+            
         }
 
-        public async Task RemoveLoginAsync(Login Login)
+        public async Task<BitResultObject> RemoveLoginAsync(Login Login)
         {
-            _context.Logins.Remove(Login);
-            await _context.SaveChangesAsync();
-            _context.Entry(Login).State = EntityState.Detached;
+            BitResultObject result = new BitResultObject();
+            try
+            {
+                _context.Logins.Remove(Login);
+                await _context.SaveChangesAsync();
+                _context.Entry(Login).State = EntityState.Detached;
+            }
+            catch (Exception ex)
+            {
+                result.Status = false;
+                result.ErrorMessage = $"{ex.Message} - {ex.InnerException?.Message}";
+            }
+            return result;
+            
         }
 
-        public async Task RemoveLoginAsync(long LoginId)
+        public async Task<BitResultObject> RemoveLoginAsync(long LoginId)
         {
-            var Login = await GetLoginByIdAsync(LoginId);
-            await RemoveLoginAsync(Login);
+            BitResultObject result = new BitResultObject();
+            try
+            {
+                var Login = await GetLoginByIdAsync(LoginId);
+                result = await RemoveLoginAsync(Login.Result);
+            }
+            catch (Exception ex)
+            {
+                result.Status = false;
+                result.ErrorMessage = $"{ex.Message} - {ex.InnerException?.Message}";
+            }
+            return result;
+           
         }
     }
 }
