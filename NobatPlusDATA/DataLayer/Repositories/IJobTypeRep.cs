@@ -1,4 +1,5 @@
 ﻿using NobatPlusDATA.Domain;
+using NobatPlusDATA.ResultObjects;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,12 +10,12 @@ namespace NobatPlusDATA.DataLayer.Repositories
 {
     public interface IJobTypeRep
     {
-        public Task<List<JobType>> GetAllJobTypesAsync(int SexTypeChecked = 0, int pageIndex = 1, int pageSize = 20, string searchText = "");
-        public Task<JobType> GetJobTypeByIdAsync(long JobTypeId);
-        public Task AddJobTypeAsync(JobType JobType);
-        public Task EditJobTypeAsync(JobType JobType);
-        public Task RemoveJobTypeAsync(JobType JobType);
-        public Task RemoveJobTypeAsync(long JobTypeId);
-        public Task<bool> ExistJobTypeAsync(long JobTypeId);
+        public Task<ListResultObject<JobType>> GetAllJobTypesAsync(int SexTypeChecked = 0, int pageIndex = 1, int pageSize = 20, string searchText = "");
+        public Task<RowResultObject<JobType>> GetJobTypeByIdAsync(long JobTypeId);
+        public Task<BitResultObject> AddJobTypeAsync(JobType JobType);
+        public Task<BitResultObject> EditJobTypeAsync(JobType JobType);
+        public Task<BitResultObject> RemoveJobTypeAsync(JobType JobType);
+        public Task<BitResultObject> RemoveJobTypeAsync(long JobTypeId);
+        public Task<BitResultObject> ExistJobTypeAsync(long JobTypeId);
     }
 }

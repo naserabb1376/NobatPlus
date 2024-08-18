@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using NobatPlusDATA.DataLayer.Repositories;
 using NobatPlusDATA.Domain;
+using NobatPlusDATA.ResultObjects;
 using NobatPlusDATA.Tools;
 using System;
 using System.Collections.Generic;
@@ -21,30 +22,66 @@ namespace NobatPlusDATA.DataLayer.Services
             _context = DbTools.GetDbContext();
         }
 
-        public async Task AddLogAsync(Log Log)
+        public async Task<BitResultObject> AddLogAsync(Log Log)
         {
-            _context.Logs.Add(Log);
-            await _context.SaveChangesAsync();
-            _context.Entry(Log).State = EntityState.Detached;
+            BitResultObject result = new BitResultObject();
+            try
+            {
+                _context.Logs.Add(Log);
+                await _context.SaveChangesAsync();
+                _context.Entry(Log).State = EntityState.Detached;
+            }
+            catch (Exception ex)
+            {
+                result.Status = false;
+                result.ErrorMessage = $"{ex.Message} - {ex.InnerException?.Message}";
+            }
+            return result;
+           
         }
 
-        public async Task EditLogAsync(Log Log)
+        public async Task<BitResultObject> EditLogAsync(Log Log)
         {
-            _context.Logs.Update(Log);
-            await _context.SaveChangesAsync();
-            _context.Entry(Log).State = EntityState.Detached;
+            BitResultObject result = new BitResultObject();
+            try
+            {
+                _context.Logs.Update(Log);
+                await _context.SaveChangesAsync();
+                _context.Entry(Log).State = EntityState.Detached;
+            }
+            catch (Exception ex)
+            {
+                result.Status = false;
+                result.ErrorMessage = $"{ex.Message} - {ex.InnerException?.Message}";
+            }
+            return result;
+            
         }
 
-        public async Task<bool> ExistLogAsync(long LogId)
+        public async Task<BitResultObject> ExistLogAsync(long LogId)
         {
-            return await _context.Logs
+            BitResultObject result = new BitResultObject();
+            try
+            {
+                result.Status = await _context.Logs
                 .AsNoTracking()
                 .AnyAsync(x => x.ID == LogId);
+            }
+            catch (Exception ex)
+            {
+                result.Status = false;
+                result.ErrorMessage = $"{ex.Message} - {ex.InnerException?.Message}";
+            }
+            return result;
+            
         }
 
-        public async Task<List<Log>> GetAllLogsAsync(int pageIndex = 1, int pageSize = 20, string searchText = "")
+        public async Task<ListResultObject<Log>> GetAllLogsAsync(int pageIndex = 1, int pageSize = 20, string searchText = "")
         {
-            return await _context.Logs
+            ListResultObject<Log> results = new ListResultObject<Log>();
+            try
+            {
+                var query = _context.Logs
                 .AsNoTracking()
                 .Where(x =>
                     (!string.IsNullOrEmpty(x.ActionName.ToString()) && x.ActionName.ToString().Contains(searchText)) ||
@@ -52,30 +89,74 @@ namespace NobatPlusDATA.DataLayer.Services
                     (!string.IsNullOrEmpty(x.LogTime.ToString()) && x.LogTime.ToString("yyyy/MM/dd HH:mm").Contains(searchText)) ||
                     (!string.IsNullOrEmpty(x.CreateDate.ToString()) && x.CreateDate.Value.ToString("yyyy/MM/dd HH:mm").Contains(searchText)) ||
                     (!string.IsNullOrEmpty(x.UpdateDate.ToString()) && x.UpdateDate.Value.ToString("yyyy/MM/dd HH:mm").Contains(searchText))
-                )
-                .OrderByDescending(x => x.CreateDate)
+                );
+
+                results.TotalCount = query.Count();
+                results.PageCount = DbTools.GetPageCount(results.TotalCount, pageSize);
+                results.Results = await query.OrderByDescending(x => x.CreateDate)
                 .ToPaging(pageIndex, pageSize)
                 .ToListAsync();
+            }
+            catch (Exception ex)
+            {
+                results.Status = false;
+                results.ErrorMessage = $"{ex.Message} - {ex.InnerException?.Message}";
+            }
+            return results;
+  
         }
 
-        public async Task<Log> GetLogByIdAsync(long LogId)
+        public async Task<RowResultObject<Log>> GetLogByIdAsync(long LogId)
         {
-            return await _context.Logs
+            RowResultObject<Log> result = new RowResultObject<Log>();
+            try
+            {
+                result.Result = await _context.Logs
                 .AsNoTracking()
                 .SingleOrDefaultAsync(x => x.ID == LogId);
+            }
+            catch (Exception ex)
+            {
+                result.Status = false;
+                result.ErrorMessage = $"{ex.Message} - {ex.InnerException?.Message}";
+            }
+            return result;
+            
         }
 
-        public async Task RemoveLogAsync(Log Log)
+        public async Task<BitResultObject> RemoveLogAsync(Log Log)
         {
-            _context.Logs.Remove(Log);
-            await _context.SaveChangesAsync();
-            _context.Entry(Log).State = EntityState.Detached;
+            BitResultObject result = new BitResultObject();
+            try
+            {
+                _context.Logs.Remove(Log);
+                await _context.SaveChangesAsync();
+                _context.Entry(Log).State = EntityState.Detached;
+            }
+            catch (Exception ex)
+            {
+                result.Status = false;
+                result.ErrorMessage = $"{ex.Message} - {ex.InnerException?.Message}";
+            }
+            return result;
+           
         }
 
-        public async Task RemoveLogAsync(long LogId)
+        public async Task<BitResultObject> RemoveLogAsync(long LogId)
         {
-            var Log = await GetLogByIdAsync(LogId);
-            await RemoveLogAsync(Log);
+            BitResultObject result = new BitResultObject();
+            try
+            {
+                var Log = await GetLogByIdAsync(LogId);
+                result = await RemoveLogAsync(Log.Result);
+            }
+            catch (Exception ex)
+            {
+                result.Status = false;
+                result.ErrorMessage = $"{ex.Message} - {ex.InnerException?.Message}";
+            }
+            return result;
+            
         }
     }
 }

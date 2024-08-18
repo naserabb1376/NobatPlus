@@ -127,6 +127,7 @@ namespace NobatPlusDATA.Tools
 
         public static int GetPageCount(int totalItemsCount, int pageItemsCount)
         {
+            if(totalItemsCount == 0) return 1;
             int pageCount = totalItemsCount / pageItemsCount;
             if (totalItemsCount % pageItemsCount != 0)
             {

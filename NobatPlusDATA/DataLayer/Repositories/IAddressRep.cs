@@ -1,5 +1,6 @@
 ﻿using Domain;
 using NobatPlusDATA.Domain;
+using NobatPlusDATA.ResultObjects;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,13 +11,13 @@ namespace NobatPlusDATA.DataLayer.Repositories
 {
     public interface IAddressRep
     {
-        public Task<List<Address>> GetAllAddressesAsync(int pageIndex = 1, int pageSize = 20, string searchText = "");
-        public Task<Address> GetAddressByIdAsync(long addressId);
-        public Task<Address> GetAddressByPersonIdAsync(long personId);
-        public Task AddAddressAsync(Address address);
-        public Task EditAddressAsync(Address address);
-        public Task RemoveAddressAsync(Address address);
-        public Task RemoveAddressAsync(long addressId);
-        public Task<bool> ExistAddressAsync(long addressId);
+        public Task<ListResultObject<Address>> GetAllAddressesAsync(int pageIndex = 1, int pageSize = 20, string searchText = "");
+        public Task<RowResultObject<Address>> GetAddressByIdAsync(long addressId);
+        public Task<RowResultObject<Address>> GetAddressByPersonIdAsync(long personId);
+        public Task<BitResultObject> AddAddressAsync(Address address);
+        public Task<BitResultObject> EditAddressAsync(Address address);
+        public Task<BitResultObject> RemoveAddressAsync(Address address);
+        public Task<BitResultObject> RemoveAddressAsync(long addressId);
+        public Task<BitResultObject> ExistAddressAsync(long addressId);
     }
 }

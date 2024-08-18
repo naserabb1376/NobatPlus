@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using NobatPlusDATA.DataLayer.Repositories;
 using NobatPlusDATA.Domain;
+using NobatPlusDATA.ResultObjects;
 using NobatPlusDATA.Tools;
 using System;
 using System.Collections.Generic;
@@ -21,30 +22,65 @@ namespace NobatPlusDATA.DataLayer.Services
             _context = DbTools.GetDbContext();
         }
 
-        public async Task AddCustomerAsync(Customer Customer)
+        public async Task<BitResultObject> AddCustomerAsync(Customer Customer)
         {
-            _context.Customers.Add(Customer);
-            await _context.SaveChangesAsync();
-            _context.Entry(Customer).State = EntityState.Detached;
+            BitResultObject result = new BitResultObject();
+            try
+            {
+                _context.Customers.Add(Customer);
+                await _context.SaveChangesAsync();
+                _context.Entry(Customer).State = EntityState.Detached;
+            }
+            catch (Exception ex)
+            {
+                result.Status = false;
+                result.ErrorMessage = $"{ex.Message} - {ex.InnerException?.Message}";
+            }
+            return result;
+            
         }
 
-        public async Task EditCustomerAsync(Customer Customer)
+        public async Task<BitResultObject> EditCustomerAsync(Customer Customer)
         {
-            _context.Customers.Update(Customer);
-            await _context.SaveChangesAsync();
-            _context.Entry(Customer).State = EntityState.Detached;
+            BitResultObject result = new BitResultObject();
+            try
+            {
+                _context.Customers.Update(Customer);
+                await _context.SaveChangesAsync();
+                _context.Entry(Customer).State = EntityState.Detached;
+            }
+            catch (Exception ex)
+            {
+                result.Status = false;
+                result.ErrorMessage = $"{ex.Message} - {ex.InnerException?.Message}";
+            }
+            return result;
+            
         }
 
-        public async Task<bool> ExistCustomerAsync(long CustomerId)
+        public async Task<BitResultObject> ExistCustomerAsync(long CustomerId)
         {
-            return await _context.Customers
+            BitResultObject result = new BitResultObject();
+            try
+            {
+                result.Status = await _context.Customers
                 .AsNoTracking()
                 .AnyAsync(x => x.ID == CustomerId);
+            }
+            catch (Exception ex)
+            {
+                result.Status = false;
+                result.ErrorMessage = $"{ex.Message} - {ex.InnerException?.Message}";
+            }
+            return result;
         }
 
-        public async Task<List<Customer>> GetAllCustomersAsync(int pageIndex = 1, int pageSize = 20, string searchText = "")
+        public async Task<ListResultObject<Customer>> GetAllCustomersAsync(int pageIndex = 1, int pageSize = 20, string searchText = "")
         {
-            return await _context.Customers
+            ListResultObject<Customer> results = new ListResultObject<Customer>();
+            try
+            {
+                var query = _context.Customers
                 .AsNoTracking()
                 .Include(x => x.Person)
                 .Where(x =>
@@ -58,15 +94,27 @@ namespace NobatPlusDATA.DataLayer.Services
                     (!string.IsNullOrEmpty(x.Description) && x.Description.Contains(searchText)) ||
                     (x.CreateDate.HasValue && x.CreateDate.Value.ToString("yyyy/MM/dd HH:mm").Contains(searchText)) ||
                     (x.UpdateDate.HasValue && x.UpdateDate.Value.ToString("yyyy/MM/dd HH:mm").Contains(searchText))
-                )
-                .OrderByDescending(x => x.CreateDate)
+                );
+                results.TotalCount = query.Count();
+                results.PageCount = DbTools.GetPageCount(results.TotalCount, pageSize);
+                results.Results = await query.OrderByDescending(x => x.CreateDate)
                 .ToPaging(pageIndex, pageSize)
                 .ToListAsync();
+            }
+            catch (Exception ex)
+            {
+                results.Status = false;
+                results.ErrorMessage = $"{ex.Message} - {ex.InnerException?.Message}";
+            }
+            return results;
         }
 
-        public async Task<List<Customer>> GetCustomersOfDiscountAsync(long DiscountId, int pageIndex = 1, int pageSize = 20, string searchText = "")
+        public async Task<ListResultObject<Customer>> GetCustomersOfDiscountAsync(long DiscountId, int pageIndex = 1, int pageSize = 20, string searchText = "")
         {
-            return await _context.CustomerDiscounts
+            ListResultObject<Customer> results = new ListResultObject<Customer>();
+            try
+            {
+                var query = _context.CustomerDiscounts
                 .AsNoTracking()
                 .Where(bs => bs.DiscountId == DiscountId)
                 .Select(bs => bs.Customer)
@@ -82,30 +130,73 @@ namespace NobatPlusDATA.DataLayer.Services
                     (!string.IsNullOrEmpty(x.Description) && x.Description.Contains(searchText)) ||
                     (x.CreateDate.HasValue && x.CreateDate.Value.ToString("yyyy/MM/dd HH:mm").Contains(searchText)) ||
                     (x.UpdateDate.HasValue && x.UpdateDate.Value.ToString("yyyy/MM/dd HH:mm").Contains(searchText))
-                )
-                .OrderByDescending(x => x.CreateDate)
+                );
+                results.TotalCount = query.Count();
+                results.PageCount = DbTools.GetPageCount(results.TotalCount, pageSize);
+                results.Results = await query.OrderByDescending(x => x.CreateDate)
                 .ToPaging(pageIndex, pageSize)
                 .ToListAsync();
+            }
+            catch (Exception ex)
+            {
+                results.Status = false;
+                results.ErrorMessage = $"{ex.Message} - {ex.InnerException?.Message}";
+            }
+            return results;
+            
         }
 
-        public async Task<Customer> GetCustomerByIdAsync(long CustomerId)
+        public async Task<RowResultObject<Customer>> GetCustomerByIdAsync(long CustomerId)
         {
-            return await _context.Customers
+            RowResultObject<Customer> result = new RowResultObject<Customer>();
+            try
+            {
+                result.Result = await _context.Customers
                 .AsNoTracking()
-                .SingleOrDefaultAsync(x=> x.ID == CustomerId);
+                .SingleOrDefaultAsync(x => x.ID == CustomerId);
+            }
+            catch (Exception ex)
+            {
+                result.Status = false;
+                result.ErrorMessage = $"{ex.Message} - {ex.InnerException?.Message}";
+            }
+            return result;
+      
         }
 
-        public async Task RemoveCustomerAsync(Customer Customer)
+        public async Task<BitResultObject> RemoveCustomerAsync(Customer Customer)
         {
-            _context.Customers.Remove(Customer);
-            await _context.SaveChangesAsync();
-            _context.Entry(Customer).State = EntityState.Detached;
+            BitResultObject result = new BitResultObject();
+            try
+            {
+                _context.Customers.Remove(Customer);
+                await _context.SaveChangesAsync();
+                _context.Entry(Customer).State = EntityState.Detached;
+            }
+            catch (Exception ex)
+            {
+                result.Status = false;
+                result.ErrorMessage = $"{ex.Message} - {ex.InnerException?.Message}";
+            }
+            return result;
+           
         }
 
-        public async Task RemoveCustomerAsync(long CustomerId)
+        public async Task<BitResultObject> RemoveCustomerAsync(long CustomerId)
         {
-            var Customer = await GetCustomerByIdAsync(CustomerId);
-            await RemoveCustomerAsync(Customer);
+            BitResultObject result = new BitResultObject();
+            try
+            {
+                var Customer = await GetCustomerByIdAsync(CustomerId);
+                result = await RemoveCustomerAsync(Customer.Result);
+            }
+            catch (Exception ex)
+            {
+                result.Status = false;
+                result.ErrorMessage = $"{ex.Message} - {ex.InnerException?.Message}";
+            }
+            return result;
+           
         }
     }
 }
