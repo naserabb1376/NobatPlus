@@ -17,18 +17,18 @@ namespace NobatPlusDATA.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "8.0.7")
+                .HasAnnotation("ProductVersion", "8.0.8")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
             modelBuilder.Entity("Domain.Address", b =>
                 {
-                    b.Property<int>("ID")
+                    b.Property<long>("ID")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
+                        .HasColumnType("bigint");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ID"));
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("ID"));
 
                     b.Property<string>("AddressCity")
                         .IsRequired()
@@ -66,13 +66,17 @@ namespace NobatPlusDATA.Migrations
                     b.ToTable("Addresses");
                 });
 
-            modelBuilder.Entity("NobatPlusDATA.Domain.Admin", b =>
+            modelBuilder.Entity("Domains.Log", b =>
                 {
-                    b.Property<int>("ID")
+                    b.Property<long>("ID")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
+                        .HasColumnType("bigint");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ID"));
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("ID"));
+
+                    b.Property<string>("ActionName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime?>("CreateDate")
                         .HasColumnType("datetime2");
@@ -80,8 +84,33 @@ namespace NobatPlusDATA.Migrations
                     b.Property<string>("Description")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("PersonID")
-                        .HasColumnType("int");
+                    b.Property<DateTime>("LogTime")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("UpdateDate")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("ID");
+
+                    b.ToTable("Logs");
+                });
+
+            modelBuilder.Entity("NobatPlusDATA.Domain.Admin", b =>
+                {
+                    b.Property<long>("ID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("ID"));
+
+                    b.Property<DateTime?>("CreateDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<long>("PersonID")
+                        .HasColumnType("bigint");
 
                     b.Property<string>("Role")
                         .IsRequired()
@@ -99,11 +128,11 @@ namespace NobatPlusDATA.Migrations
 
             modelBuilder.Entity("NobatPlusDATA.Domain.Booking", b =>
                 {
-                    b.Property<int>("ID")
+                    b.Property<long>("ID")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
+                        .HasColumnType("bigint");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ID"));
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("ID"));
 
                     b.Property<DateTime>("BookingDate")
                         .HasColumnType("datetime2");
@@ -118,8 +147,8 @@ namespace NobatPlusDATA.Migrations
                     b.Property<DateTime?>("CreateDate")
                         .HasColumnType("datetime2");
 
-                    b.Property<int>("CustomerID")
-                        .HasColumnType("int");
+                    b.Property<long>("CustomerID")
+                        .HasColumnType("bigint");
 
                     b.Property<string>("Description")
                         .HasColumnType("nvarchar(max)");
@@ -131,8 +160,8 @@ namespace NobatPlusDATA.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("StylistID")
-                        .HasColumnType("int");
+                    b.Property<long>("StylistID")
+                        .HasColumnType("bigint");
 
                     b.Property<DateTime?>("UpdateDate")
                         .HasColumnType("datetime2");
@@ -148,11 +177,11 @@ namespace NobatPlusDATA.Migrations
 
             modelBuilder.Entity("NobatPlusDATA.Domain.BookingService", b =>
                 {
-                    b.Property<int>("BookingID")
-                        .HasColumnType("int");
+                    b.Property<long>("BookingID")
+                        .HasColumnType("bigint");
 
-                    b.Property<int>("ServiceManagementID")
-                        .HasColumnType("int");
+                    b.Property<long>("ServiceManagementID")
+                        .HasColumnType("bigint");
 
                     b.HasKey("BookingID", "ServiceManagementID");
 
@@ -163,11 +192,11 @@ namespace NobatPlusDATA.Migrations
 
             modelBuilder.Entity("NobatPlusDATA.Domain.CheckAvailability", b =>
                 {
-                    b.Property<int>("ID")
+                    b.Property<long>("ID")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
+                        .HasColumnType("bigint");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ID"));
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("ID"));
 
                     b.Property<DateTime?>("CreateDate")
                         .HasColumnType("datetime2");
@@ -178,8 +207,8 @@ namespace NobatPlusDATA.Migrations
                     b.Property<string>("Description")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("StylistID")
-                        .HasColumnType("int");
+                    b.Property<long>("StylistID")
+                        .HasColumnType("bigint");
 
                     b.Property<TimeSpan>("Time")
                         .HasColumnType("time");
@@ -196,11 +225,11 @@ namespace NobatPlusDATA.Migrations
 
             modelBuilder.Entity("NobatPlusDATA.Domain.Customer", b =>
                 {
-                    b.Property<int>("ID")
+                    b.Property<long>("ID")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
+                        .HasColumnType("bigint");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ID"));
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("ID"));
 
                     b.Property<DateTime?>("CreateDate")
                         .HasColumnType("datetime2");
@@ -208,8 +237,8 @@ namespace NobatPlusDATA.Migrations
                     b.Property<string>("Description")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("PersonID")
-                        .HasColumnType("int");
+                    b.Property<long>("PersonID")
+                        .HasColumnType("bigint");
 
                     b.Property<DateTime?>("UpdateDate")
                         .HasColumnType("datetime2");
@@ -223,26 +252,26 @@ namespace NobatPlusDATA.Migrations
 
             modelBuilder.Entity("NobatPlusDATA.Domain.CustomerDiscount", b =>
                 {
-                    b.Property<int>("ID")
+                    b.Property<long>("ID")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
+                        .HasColumnType("bigint");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ID"));
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("ID"));
 
                     b.Property<DateTime?>("CreateDate")
                         .HasColumnType("datetime2");
 
-                    b.Property<int>("CustomerId")
-                        .HasColumnType("int");
+                    b.Property<long>("CustomerId")
+                        .HasColumnType("bigint");
 
                     b.Property<string>("Description")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("DiscountId")
-                        .HasColumnType("int");
+                    b.Property<long>("DiscountId")
+                        .HasColumnType("bigint");
 
-                    b.Property<int>("StylistId")
-                        .HasColumnType("int");
+                    b.Property<long>("StylistId")
+                        .HasColumnType("bigint");
 
                     b.Property<DateTime?>("UpdateDate")
                         .HasColumnType("datetime2");
@@ -260,11 +289,11 @@ namespace NobatPlusDATA.Migrations
 
             modelBuilder.Entity("NobatPlusDATA.Domain.Discount", b =>
                 {
-                    b.Property<int>("ID")
+                    b.Property<long>("ID")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
+                        .HasColumnType("bigint");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ID"));
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("ID"));
 
                     b.Property<DateTime?>("CreateDate")
                         .HasColumnType("datetime2");
@@ -296,14 +325,14 @@ namespace NobatPlusDATA.Migrations
 
             modelBuilder.Entity("NobatPlusDATA.Domain.DiscountAssignment", b =>
                 {
-                    b.Property<int>("ID")
+                    b.Property<long>("ID")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
+                        .HasColumnType("bigint");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ID"));
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("ID"));
 
-                    b.Property<int?>("AdminId")
-                        .HasColumnType("int");
+                    b.Property<long?>("AdminId")
+                        .HasColumnType("bigint");
 
                     b.Property<DateTime?>("CreateDate")
                         .HasColumnType("datetime2");
@@ -311,11 +340,11 @@ namespace NobatPlusDATA.Migrations
                     b.Property<string>("Description")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("DiscountId")
-                        .HasColumnType("int");
+                    b.Property<long>("DiscountId")
+                        .HasColumnType("bigint");
 
-                    b.Property<int?>("StylistId")
-                        .HasColumnType("int");
+                    b.Property<long?>("StylistId")
+                        .HasColumnType("bigint");
 
                     b.Property<DateTime?>("UpdateDate")
                         .HasColumnType("datetime2");
@@ -333,11 +362,11 @@ namespace NobatPlusDATA.Migrations
 
             modelBuilder.Entity("NobatPlusDATA.Domain.JobType", b =>
                 {
-                    b.Property<int>("ID")
+                    b.Property<long>("ID")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
+                        .HasColumnType("bigint");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ID"));
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("ID"));
 
                     b.Property<DateTime?>("CreateDate")
                         .HasColumnType("datetime2");
@@ -362,11 +391,11 @@ namespace NobatPlusDATA.Migrations
 
             modelBuilder.Entity("NobatPlusDATA.Domain.Login", b =>
                 {
-                    b.Property<int>("ID")
+                    b.Property<long>("ID")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
+                        .HasColumnType("bigint");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ID"));
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("ID"));
 
                     b.Property<DateTime?>("CreateDate")
                         .HasColumnType("datetime2");
@@ -381,8 +410,8 @@ namespace NobatPlusDATA.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("PersonID")
-                        .HasColumnType("int");
+                    b.Property<long>("PersonID")
+                        .HasColumnType("bigint");
 
                     b.Property<DateTime?>("UpdateDate")
                         .HasColumnType("datetime2");
@@ -400,11 +429,11 @@ namespace NobatPlusDATA.Migrations
 
             modelBuilder.Entity("NobatPlusDATA.Domain.Notification", b =>
                 {
-                    b.Property<int>("ID")
+                    b.Property<long>("ID")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
+                        .HasColumnType("bigint");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ID"));
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("ID"));
 
                     b.Property<DateTime?>("CreateDate")
                         .HasColumnType("datetime2");
@@ -416,8 +445,8 @@ namespace NobatPlusDATA.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("PersonID")
-                        .HasColumnType("int");
+                    b.Property<long>("PersonID")
+                        .HasColumnType("bigint");
 
                     b.Property<DateTime>("SentDate")
                         .HasColumnType("datetime2");
@@ -434,17 +463,17 @@ namespace NobatPlusDATA.Migrations
 
             modelBuilder.Entity("NobatPlusDATA.Domain.Payment", b =>
                 {
-                    b.Property<int>("ID")
+                    b.Property<long>("ID")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
+                        .HasColumnType("bigint");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ID"));
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("ID"));
 
                     b.Property<long>("Amount")
                         .HasColumnType("bigint");
 
-                    b.Property<int>("BookingID")
-                        .HasColumnType("int");
+                    b.Property<long>("BookingID")
+                        .HasColumnType("bigint");
 
                     b.Property<DateTime?>("CreateDate")
                         .HasColumnType("datetime2");
@@ -471,17 +500,17 @@ namespace NobatPlusDATA.Migrations
 
             modelBuilder.Entity("NobatPlusDATA.Domain.PaymentHistory", b =>
                 {
-                    b.Property<int>("ID")
+                    b.Property<long>("ID")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
+                        .HasColumnType("bigint");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ID"));
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("ID"));
 
                     b.Property<long>("Amount")
                         .HasColumnType("bigint");
 
-                    b.Property<int>("BookingID")
-                        .HasColumnType("int");
+                    b.Property<long>("BookingID")
+                        .HasColumnType("bigint");
 
                     b.Property<DateTime?>("CreateDate")
                         .HasColumnType("datetime2");
@@ -508,14 +537,14 @@ namespace NobatPlusDATA.Migrations
 
             modelBuilder.Entity("NobatPlusDATA.Domain.Person", b =>
                 {
-                    b.Property<int>("ID")
+                    b.Property<long>("ID")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
+                        .HasColumnType("bigint");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ID"));
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("ID"));
 
-                    b.Property<int>("AddressID")
-                        .HasColumnType("int");
+                    b.Property<long>("AddressID")
+                        .HasColumnType("bigint");
 
                     b.Property<DateTime?>("CreateDate")
                         .HasColumnType("datetime2");
@@ -557,11 +586,11 @@ namespace NobatPlusDATA.Migrations
 
             modelBuilder.Entity("NobatPlusDATA.Domain.Register", b =>
                 {
-                    b.Property<int>("ID")
+                    b.Property<long>("ID")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
+                        .HasColumnType("bigint");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ID"));
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("ID"));
 
                     b.Property<DateTime?>("CreateDate")
                         .HasColumnType("datetime2");
@@ -569,8 +598,8 @@ namespace NobatPlusDATA.Migrations
                     b.Property<string>("Description")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("PersonID")
-                        .HasColumnType("int");
+                    b.Property<long>("PersonID")
+                        .HasColumnType("bigint");
 
                     b.Property<DateTime>("RegistrationDate")
                         .HasColumnType("datetime2");
@@ -587,14 +616,14 @@ namespace NobatPlusDATA.Migrations
 
             modelBuilder.Entity("NobatPlusDATA.Domain.Review", b =>
                 {
-                    b.Property<int>("ID")
+                    b.Property<long>("ID")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
+                        .HasColumnType("bigint");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ID"));
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("ID"));
 
-                    b.Property<int>("BookingID")
-                        .HasColumnType("int");
+                    b.Property<long>("BookingID")
+                        .HasColumnType("bigint");
 
                     b.Property<string>("Comments")
                         .IsRequired()
@@ -603,8 +632,8 @@ namespace NobatPlusDATA.Migrations
                     b.Property<DateTime?>("CreateDate")
                         .HasColumnType("datetime2");
 
-                    b.Property<int>("CustomerID")
-                        .HasColumnType("int");
+                    b.Property<long>("CustomerID")
+                        .HasColumnType("bigint");
 
                     b.Property<string>("Description")
                         .HasColumnType("nvarchar(max)");
@@ -639,14 +668,14 @@ namespace NobatPlusDATA.Migrations
 
             modelBuilder.Entity("NobatPlusDATA.Domain.ServiceDiscount", b =>
                 {
-                    b.Property<int>("ID")
+                    b.Property<long>("ID")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
+                        .HasColumnType("bigint");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ID"));
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("ID"));
 
-                    b.Property<int?>("AdminId")
-                        .HasColumnType("int");
+                    b.Property<long?>("AdminId")
+                        .HasColumnType("bigint");
 
                     b.Property<DateTime?>("CreateDate")
                         .HasColumnType("datetime2");
@@ -654,14 +683,14 @@ namespace NobatPlusDATA.Migrations
                     b.Property<string>("Description")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("DiscountId")
-                        .HasColumnType("int");
+                    b.Property<long>("DiscountId")
+                        .HasColumnType("bigint");
 
-                    b.Property<int>("ServiceManagementId")
-                        .HasColumnType("int");
+                    b.Property<long>("ServiceManagementId")
+                        .HasColumnType("bigint");
 
-                    b.Property<int?>("StylistId")
-                        .HasColumnType("int");
+                    b.Property<long?>("StylistId")
+                        .HasColumnType("bigint");
 
                     b.Property<DateTime?>("UpdateDate")
                         .HasColumnType("datetime2");
@@ -681,11 +710,11 @@ namespace NobatPlusDATA.Migrations
 
             modelBuilder.Entity("NobatPlusDATA.Domain.ServiceManagement", b =>
                 {
-                    b.Property<int>("ID")
+                    b.Property<long>("ID")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
+                        .HasColumnType("bigint");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ID"));
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("ID"));
 
                     b.Property<DateTime?>("CreateDate")
                         .HasColumnType("datetime2");
@@ -703,9 +732,8 @@ namespace NobatPlusDATA.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("ServiceParentID")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                    b.Property<long>("ServiceParentID")
+                        .HasColumnType("bigint");
 
                     b.Property<DateTime?>("UpdateDate")
                         .HasColumnType("datetime2");
@@ -717,11 +745,11 @@ namespace NobatPlusDATA.Migrations
 
             modelBuilder.Entity("NobatPlusDATA.Domain.Stylist", b =>
                 {
-                    b.Property<int>("ID")
+                    b.Property<long>("ID")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
+                        .HasColumnType("bigint");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ID"));
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("ID"));
 
                     b.Property<DateTime?>("CreateDate")
                         .HasColumnType("datetime2");
@@ -729,17 +757,17 @@ namespace NobatPlusDATA.Migrations
                     b.Property<string>("Description")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("JobTypeID")
-                        .HasColumnType("int");
+                    b.Property<long>("JobTypeID")
+                        .HasColumnType("bigint");
 
-                    b.Property<int>("PersonID")
-                        .HasColumnType("int");
+                    b.Property<long>("PersonID")
+                        .HasColumnType("bigint");
 
                     b.Property<string>("Specialty")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("StylistParentID")
-                        .HasColumnType("int");
+                    b.Property<long>("StylistParentID")
+                        .HasColumnType("bigint");
 
                     b.Property<DateTime?>("UpdateDate")
                         .HasColumnType("datetime2");
@@ -758,11 +786,11 @@ namespace NobatPlusDATA.Migrations
 
             modelBuilder.Entity("NobatPlusDATA.Domain.StylistService", b =>
                 {
-                    b.Property<int>("StylistID")
-                        .HasColumnType("int");
+                    b.Property<long>("StylistID")
+                        .HasColumnType("bigint");
 
-                    b.Property<int>("ServiceManagementID")
-                        .HasColumnType("int");
+                    b.Property<long>("ServiceManagementID")
+                        .HasColumnType("bigint");
 
                     b.HasKey("StylistID", "ServiceManagementID");
 

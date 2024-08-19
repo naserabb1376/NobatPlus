@@ -27,7 +27,7 @@ namespace NobatPlusDATA.DataLayer.Services
             BitResultObject result = new BitResultObject();
             try
             {
-                _context.CheckAvailabilities.Add(CheckAvailability);
+                await _context.CheckAvailabilities.AddAsync(CheckAvailability);
                 await _context.SaveChangesAsync();
                 _context.Entry(CheckAvailability).State = EntityState.Detached;
             }

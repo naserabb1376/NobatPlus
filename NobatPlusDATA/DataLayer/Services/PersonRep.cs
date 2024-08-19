@@ -26,7 +26,7 @@ namespace NobatPlusDATA.DataLayer.Services
             BitResultObject result = new BitResultObject();
             try
             {
-                _context.Persons.Add(person);
+                await _context.Persons.AddAsync(person);
                 await _context.SaveChangesAsync();
                 _context.Entry(person).State = EntityState.Detached;
             }

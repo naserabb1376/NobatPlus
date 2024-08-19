@@ -18,5 +18,6 @@ namespace NobatPlusDATA.DataLayer.Repositories
         public Task<BitResultObject> RemoveLoginAsync(Login Login);
         public Task<BitResultObject> RemoveLoginAsync(long LoginId);
         public Task<BitResultObject> ExistLoginAsync(long LoginId);
+        public Task<BitResultObject> ExistUserNameAsync(string userName);
     }
 }

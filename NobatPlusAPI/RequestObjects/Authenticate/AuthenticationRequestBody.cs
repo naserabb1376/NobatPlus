@@ -1,4 +1,4 @@
-﻿namespace NobatPlusAPI.RequestObjects
+﻿namespace NobatPlusAPI.RequestObjects.Authenticate
 {
     public class AuthenticationRequestBody
     {

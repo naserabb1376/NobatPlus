@@ -16,11 +16,11 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\NobatPlusDATA\NobatPlusDATA.csproj" />
+    <Folder Include="Models\" />
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Models\" />
+    <ProjectReference Include="..\NobatPlusDATA\NobatPlusDATA.csproj" />
   </ItemGroup>
 
 </Project>

@@ -27,7 +27,7 @@ namespace NobatPlusDATA.DataLayer.Services
             BitResultObject result = new BitResultObject();
             try
             {
-                _context.Reviews.Add(Review);
+                await _context.Reviews.AddAsync(Review);
                 await _context.SaveChangesAsync();
                 _context.Entry(Review).State = EntityState.Detached;
             }
