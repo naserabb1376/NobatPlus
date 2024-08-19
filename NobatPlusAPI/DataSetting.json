@@ -1,0 +1,6 @@
+{
+  "ConnectionStrings": {
+    "publicdb": "Server=mtcoding.ir;Initial Catalog=mtcoding_NobatPlus;User ID=mtcoding_nobatplus;Password=38o70&dcA;MultipleActiveResultSets=True;TrustServerCertificate=True;",
+    "localdb": "Data Source =.;Initial Catalog=NobatPlusDb;Integrated Security=True;MultipleActiveResultSets=True;TrustServerCertificate=True;"
+  }
+}

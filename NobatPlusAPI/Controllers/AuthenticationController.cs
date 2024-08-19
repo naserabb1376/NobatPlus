@@ -1,7 +1,9 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
-using NobatPlusAPI.Models;
+using NobatPlusAPI.RequestObjects;
+using NobatPlusDATA.DataLayer.Repositories;
+using NobatPlusDATA.ResultObjects;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
@@ -15,54 +17,57 @@ namespace NobatPlusAPI.Controllers
     public class AuthenticationController : ControllerBase
     {
         private readonly IConfiguration _configuration;
+        private readonly ILoginRep _loginRep;
 
-        public AuthenticationController(IConfiguration configuration)
+        public AuthenticationController(IConfiguration configuration,ILoginRep loginRep)
         {
             _configuration = configuration;
+            _loginRep = loginRep;
         }
 
         [HttpPost("authenticate")]
-        public ActionResult<string> Authenticate(AuthenticationRequestBody authenticationRequestBody)
+        public async Task<ActionResult<RowResultObject<string>>> Authenticate(AuthenticationRequestBody authenticationRequestBody)
         {
-            var user = ValidateUserCredentials(authenticationRequestBody.UserName, authenticationRequestBody.Password);
+            string tokenString = "";
+            RowResultObject<string> result = new RowResultObject<string>();
+            var authenticateResult = await _loginRep.AuthenticateAsync(authenticationRequestBody.UserName,authenticationRequestBody.Password);
 
-            if (user == null)
-            {
-                return Unauthorized();
-            }
+            if (authenticateResult.Status) {
+                var key = _configuration["Jwt:Key"];
+                var issuer = _configuration["Jwt:Issuer"];
+                var audience = _configuration["Jwt:Audience"];
 
-            var key = _configuration["Jwt:Key"];
-            var issuer = _configuration["Jwt:Issuer"];
-            var audience = _configuration["Jwt:Audience"];
+                var securityKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(key));
+                var signingCredentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
 
-            var securityKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(key));
-            var signingCredentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
-
-            var claims = new List<Claim>
+                var claims = new List<Claim>
         {
-            new Claim(JwtRegisteredClaimNames.Sub, user.UserName),
+            new Claim(JwtRegisteredClaimNames.Sub, authenticateResult.Result.Username),
             new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-            new Claim("userId", user.UserId.ToString()),
-            new Claim("firstName", user.FirstName),
-            new Claim("lastName", user.LastName)
+            new Claim("userId", authenticateResult.Result.PersonID.ToString()),
+            new Claim("firstName", authenticateResult.Result.Person.FirstName),
+            new Claim("lastName", authenticateResult.Result.Person.LastName)
         };
 
-            var token = new JwtSecurityToken(
-                issuer,
-                audience,
-                claims,
-                expires: DateTime.UtcNow.AddHours(1),
-                signingCredentials: signingCredentials);
+                var token = new JwtSecurityToken(
+                    issuer,
+                    audience,
+                    claims,
+                    expires: DateTime.UtcNow.AddHours(1),
+                    signingCredentials: signingCredentials);
 
-            var tokenString = new JwtSecurityTokenHandler().WriteToken(token);
-            return Ok(tokenString);
+                 tokenString = new JwtSecurityTokenHandler().WriteToken(token);             
+            }
+
+            result.Status = authenticateResult.Status;
+            result.ErrorMessage = authenticateResult.ErrorMessage;
+            result.Result = tokenString;
+            if (result.Status)
+            {
+                return Ok(result);
+            }
+            return BadRequest(result);
         }
 
-
-        private CityInfoUser ValidateUserCredentials(string? userName,
-            string? password)
-        {
-            return new CityInfoUser(1,userName??"","Mohammad","Tavoosi","Esfahan") ;
-        }
     }
 }

@@ -40,6 +40,46 @@ namespace NobatPlusDATA.DataLayer.Services
             
         }
 
+        public async Task<RowResultObject<Login>> AuthenticateAsync(string userName, string password)
+        {
+            RowResultObject<Login> result = new RowResultObject<Login>();
+            try
+            {
+                result.Status = await _context.Logins
+                .AsNoTracking()
+                .AnyAsync(x => x.Username == userName && x.PasswordHash == password.ToHash());
+                if (result.Status)
+                {
+                    var loginRow = await _context.Logins
+                .AsNoTracking().Include(x=> x.Person)
+                .SingleOrDefaultAsync(x => x.Username == userName && x.PasswordHash == password.ToHash());
+                    loginRow.LastLoginDate = DateTime.Now;
+                    loginRow.UpdateDate = DateTime.Now;
+                    var updateRow = await EditLoginAsync(loginRow);
+                    if (updateRow.Status)
+                    {
+                        result.Result = loginRow;
+                        result.ErrorMessage = $"احراز هویت موفق بود";
+                    }
+                    else {
+                        result.Status = updateRow.Status;
+                        result.ErrorMessage = updateRow.ErrorMessage;
+
+                    }
+
+                }
+                else {
+                    result.ErrorMessage = $"احراز هویت ناموفق بود";
+                }
+            }
+            catch (Exception ex)
+            {
+                result.Status = false;
+                result.ErrorMessage = $"{ex.Message} - {ex.InnerException?.Message}";
+            }
+            return result;
+        }
+
         public async Task<BitResultObject> EditLoginAsync(Login Login)
         {
             BitResultObject result = new BitResultObject();
