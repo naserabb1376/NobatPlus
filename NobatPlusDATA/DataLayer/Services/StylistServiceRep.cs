@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using NobatPlusDATA.DataLayer.Repositories;
 using NobatPlusDATA.Domain;
+using NobatPlusDATA.ResultObjects;
 using NobatPlusDATA.Tools;
 using System;
 using System.Collections.Generic;
@@ -20,28 +21,64 @@ namespace NobatPlusDATA.DataLayer.Services
             _context = DbTools.GetDbContext();
         }
 
-        public async Task AddStylistServiceAsync(StylistService StylistService)
+        public async Task<BitResultObject> AddStylistServiceAsync(StylistService StylistService)
         {
-            _context.StylistServices.Add(StylistService);
-            await _context.SaveChangesAsync();
-            _context.Entry(StylistService).State = EntityState.Detached;
+            BitResultObject result = new BitResultObject();
+            try
+            {
+                _context.StylistServices.Add(StylistService);
+                await _context.SaveChangesAsync();
+                _context.Entry(StylistService).State = EntityState.Detached;
+            }
+            catch (Exception ex)
+            {
+                result.Status = false;
+                result.ErrorMessage = $"{ex.Message} - {ex.InnerException?.Message}";
+            }
+            return result;
+            
         }
 
-        public async Task EditStylistServiceAsync(StylistService StylistService)
+        public async Task<BitResultObject> EditStylistServiceAsync(StylistService StylistService)
         {
-            _context.StylistServices.Update(StylistService);
-            await _context.SaveChangesAsync();
-            _context.Entry(StylistService).State = EntityState.Detached;
+            BitResultObject result = new BitResultObject();
+            try
+            {
+                _context.StylistServices.Update(StylistService);
+                await _context.SaveChangesAsync();
+                _context.Entry(StylistService).State = EntityState.Detached;
+            }
+            catch (Exception ex)
+            {
+                result.Status = false;
+                result.ErrorMessage = $"{ex.Message} - {ex.InnerException?.Message}";
+            }
+            return result;
+           
         }
 
-        public async Task<bool> ExistStylistServiceAsync(long StylistId, long ServiceManagementId)
+        public async Task<BitResultObject> ExistStylistServiceAsync(long StylistId, long ServiceManagementId)
         {
-            return await _context.StylistServices.AnyAsync(x => x.StylistID == StylistId && x.ServiceManagementID == ServiceManagementId);
+            BitResultObject result = new BitResultObject();
+            try
+            {
+                result.Status = await _context.StylistServices.AnyAsync(x => x.StylistID == StylistId && x.ServiceManagementID == ServiceManagementId);
+            }
+            catch (Exception ex)
+            {
+                result.Status = false;
+                result.ErrorMessage = $"{ex.Message} - {ex.InnerException?.Message}";
+            }
+            return result;
+         
         }
 
-        public async Task<List<StylistService>> GetAllStylistServicesAsync(int pageIndex = 1, int pageSize = 20, string searchText = "")
+        public async Task<ListResultObject<StylistService>> GetAllStylistServicesAsync(int pageIndex = 1, int pageSize = 20, string searchText = "")
         {
-            return await _context.StylistServices
+            ListResultObject<StylistService> results = new ListResultObject<StylistService>();
+            try
+            {
+                var query = _context.StylistServices
                 .Include(x => x.Stylist).ThenInclude(x => x.Person)
                 .Include(x => x.ServiceManagement)
                 .AsNoTracking()
@@ -52,35 +89,76 @@ namespace NobatPlusDATA.DataLayer.Services
                     (!string.IsNullOrEmpty(x.Stylist.Specialty) && x.Stylist.Specialty.Contains(searchText)) ||
                     (!string.IsNullOrEmpty(x.Stylist.Person.FirstName) && x.Stylist.Person.FirstName.Contains(searchText)) ||
                     (!string.IsNullOrEmpty(x.Stylist.Person.LastName) && x.Stylist.Person.LastName.Contains(searchText))
-                )
-                .OrderByDescending(x => x.ServiceManagement.CreateDate)
+                );
+
+                results.TotalCount = query.Count();
+                results.PageCount = DbTools.GetPageCount(results.TotalCount, pageSize);
+                results.Results = await query.OrderByDescending(x => x.ServiceManagement.CreateDate)
                 .ToPaging(pageIndex, pageSize)
                 .ToListAsync();
+            }
+            catch (Exception ex)
+            {
+                results.Status = false;
+                results.ErrorMessage = $"{ex.Message} - {ex.InnerException?.Message}";
+            }
+            return results;
+           
         }
 
-        public async Task<StylistService> GetStylistServiceByIdAsync(long StylistId, long ServiceManagementId)
+        public async Task<RowResultObject<StylistService>> GetStylistServiceByIdAsync(long StylistId, long ServiceManagementId)
         {
-            return await _context.StylistServices
+            RowResultObject<StylistService> result = new RowResultObject<StylistService>();
+            try
+            {
+                result.Result = await _context.StylistServices
                 .Include(x => x.Stylist).ThenInclude(x => x.Person)
                 .Include(x => x.ServiceManagement)
                 .AsNoTracking()
                 .SingleOrDefaultAsync(x => x.StylistID == StylistId && x.ServiceManagementID == ServiceManagementId);
-        }
-
-        public async Task RemoveStylistServiceAsync(StylistService StylistService)
-        {
-            _context.StylistServices.Remove(StylistService);
-            await _context.SaveChangesAsync();
-            _context.Entry(StylistService).State = EntityState.Detached;
-        }
-
-        public async Task RemoveStylistServiceAsync(long StylistId, long ServiceManagementId)
-        {
-            var stylistService = await GetStylistServiceByIdAsync(StylistId, ServiceManagementId);
-            if (stylistService != null)
-            {
-                await RemoveStylistServiceAsync(stylistService);
             }
+            catch (Exception ex)
+            {
+                result.Status = false;
+                result.ErrorMessage = $"{ex.Message} - {ex.InnerException?.Message}";
+            }
+            return result;
+           
+        }
+
+        public async Task<BitResultObject> RemoveStylistServiceAsync(StylistService StylistService)
+        {
+            BitResultObject result = new BitResultObject();
+            try
+            {
+                _context.StylistServices.Remove(StylistService);
+                await _context.SaveChangesAsync();
+                _context.Entry(StylistService).State = EntityState.Detached;
+            }
+            catch (Exception ex)
+            {
+                result.Status = false;
+                result.ErrorMessage = $"{ex.Message} - {ex.InnerException?.Message}";
+            }
+            return result;
+           
+        }
+
+        public async Task<BitResultObject> RemoveStylistServiceAsync(long StylistId, long ServiceManagementId)
+        {
+            BitResultObject result = new BitResultObject();
+            try
+            {
+                var stylistService = await GetStylistServiceByIdAsync(StylistId, ServiceManagementId);
+                result = await RemoveStylistServiceAsync(stylistService.Result);
+            }
+            catch (Exception ex)
+            {
+                result.Status = false;
+                result.ErrorMessage = $"{ex.Message} - {ex.InnerException?.Message}";
+            }
+            return result;
+          
         }
     }
 }

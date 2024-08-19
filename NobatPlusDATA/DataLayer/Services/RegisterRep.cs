@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using NobatPlusDATA.DataLayer.Repositories;
 using NobatPlusDATA.Domain;
+using NobatPlusDATA.ResultObjects;
 using NobatPlusDATA.Tools;
 using System;
 using System.Collections.Generic;
@@ -21,30 +22,66 @@ namespace NobatPlusDATA.DataLayer.Services
             _context = DbTools.GetDbContext();
         }
 
-        public async Task AddRegisterAsync(Register Register)
+        public async Task<BitResultObject> AddRegisterAsync(Register Register)
         {
-            _context.Registers.Add(Register);
-            await _context.SaveChangesAsync();
-            _context.Entry(Register).State = EntityState.Detached;
+            BitResultObject result = new BitResultObject();
+            try
+            {
+                _context.Registers.Add(Register);
+                await _context.SaveChangesAsync();
+                _context.Entry(Register).State = EntityState.Detached;
+            }
+            catch (Exception ex)
+            {
+                result.Status = false;
+                result.ErrorMessage = $"{ex.Message} - {ex.InnerException?.Message}";
+            }
+            return result;
+         
         }
 
-        public async Task EditRegisterAsync(Register Register)
+        public async Task<BitResultObject> EditRegisterAsync(Register Register)
         {
-            _context.Registers.Update(Register);
-            await _context.SaveChangesAsync();
-            _context.Entry(Register).State = EntityState.Detached;
+            BitResultObject result = new BitResultObject();
+            try
+            {
+                _context.Registers.Update(Register);
+                await _context.SaveChangesAsync();
+                _context.Entry(Register).State = EntityState.Detached;
+            }
+            catch (Exception ex)
+            {
+                result.Status = false;
+                result.ErrorMessage = $"{ex.Message} - {ex.InnerException?.Message}";
+            }
+            return result;
+            
         }
 
-        public async Task<bool> ExistRegisterAsync(long RegisterId)
+        public async Task<BitResultObject> ExistRegisterAsync(long RegisterId)
         {
-            return await _context.Registers
+            BitResultObject result = new BitResultObject();
+            try
+            {
+                result.Status = await _context.Registers
                 .AsNoTracking()
                 .AnyAsync(x => x.ID == RegisterId);
+            }
+            catch (Exception ex)
+            {
+                result.Status = false;
+                result.ErrorMessage = $"{ex.Message} - {ex.InnerException?.Message}";
+            }
+            return result;
+            
         }
 
-        public async Task<List<Register>> GetAllRegistersAsync(int pageIndex = 1, int pageSize = 20, string searchText = "")
+        public async Task<ListResultObject<Register>> GetAllRegistersAsync(int pageIndex = 1, int pageSize = 20, string searchText = "")
         {
-            return await _context.Registers
+            ListResultObject<Register> results = new ListResultObject<Register>();
+            try
+            {
+                var query = _context.Registers
                 .AsNoTracking()
                 .Include(x => x.Person)
                 .Where(x =>
@@ -59,37 +96,91 @@ namespace NobatPlusDATA.DataLayer.Services
                     (x.RegistrationDate.ToString("yyyy/MM/dd HH:mm").Contains(searchText)) ||
                     (x.CreateDate.HasValue && x.CreateDate.Value.ToString("yyyy/MM/dd HH:mm").Contains(searchText)) ||
                     (x.UpdateDate.HasValue && x.UpdateDate.Value.ToString("yyyy/MM/dd HH:mm").Contains(searchText))
-                )
-                .OrderByDescending(x => x.CreateDate)
+                );
+                results.TotalCount = query.Count();
+                results.PageCount = DbTools.GetPageCount(results.TotalCount, pageSize);
+                results.Results = await query.OrderByDescending(x => x.CreateDate)
                 .ToPaging(pageIndex, pageSize)
                 .ToListAsync();
+            }
+            catch (Exception ex)
+            {
+                results.Status = false;
+                results.ErrorMessage = $"{ex.Message} - {ex.InnerException?.Message}";
+            }
+            return results;
+            
         }
 
-        public async Task<Register> GetRegisterByIdAsync(long RegisterId)
+        public async Task<RowResultObject<Register>> GetRegisterByIdAsync(long RegisterId)
         {
-            return await _context.Registers
+            RowResultObject<Register> result = new RowResultObject<Register>();
+            try
+            {
+                result.Result = await _context.Registers
                 .AsNoTracking()
                 .SingleOrDefaultAsync(x => x.ID == RegisterId);
+            }
+            catch (Exception ex)
+            {
+                result.Status = false;
+                result.ErrorMessage = $"{ex.Message} - {ex.InnerException?.Message}";
+            }
+            return result;
+            
         }
 
-        public async Task<Register> GetRegisterByPersonIdAsync(long PersonId)
+        public async Task<RowResultObject<Register>> GetRegisterByPersonIdAsync(long PersonId)
         {
-            return await _context.Registers
+            RowResultObject<Register> result = new RowResultObject<Register>();
+            try
+            {
+                result.Result = await _context.Registers
                 .AsNoTracking()
                 .SingleOrDefaultAsync(x => x.PersonID == PersonId);
+            }
+            catch (Exception ex)
+            {
+                result.Status = false;
+                result.ErrorMessage = $"{ex.Message} - {ex.InnerException?.Message}";
+            }
+            return result;
+            
         }
 
-        public async Task RemoveRegisterAsync(Register Register)
+        public async Task<BitResultObject> RemoveRegisterAsync(Register Register)
         {
-            _context.Registers.Remove(Register);
-            await _context.SaveChangesAsync();
-            _context.Entry(Register).State = EntityState.Detached;
+            BitResultObject result = new BitResultObject();
+            try
+            {
+                _context.Registers.Remove(Register);
+                await _context.SaveChangesAsync();
+                _context.Entry(Register).State = EntityState.Detached;
+            }
+            catch (Exception ex)
+            {
+                result.Status = false;
+                result.ErrorMessage = $"{ex.Message} - {ex.InnerException?.Message}";
+            }
+            return result;
+            
         }
 
-        public async Task RemoveRegisterAsync(long RegisterId)
+        public async Task<BitResultObject> RemoveRegisterAsync(long RegisterId)
         {
-            var Register = await GetRegisterByIdAsync(RegisterId);
-            await RemoveRegisterAsync(Register);
+            BitResultObject result = new BitResultObject();
+            try
+            {
+                var Register = await GetRegisterByIdAsync(RegisterId);
+                result = await RemoveRegisterAsync(Register.Result);
+            }
+            catch (Exception ex)
+            {
+                result.Status = false;
+                result.ErrorMessage = $"{ex.Message} - {ex.InnerException?.Message}";
+            }
+            return result;
+            
         }
     }
 }

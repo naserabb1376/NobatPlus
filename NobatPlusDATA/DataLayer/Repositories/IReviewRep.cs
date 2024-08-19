@@ -1,4 +1,5 @@
 ﻿using NobatPlusDATA.Domain;
+using NobatPlusDATA.ResultObjects;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,12 +10,12 @@ namespace NobatPlusDATA.DataLayer.Repositories
 {
     public interface IReviewRep
     {
-        public Task<List<Review>> GetAllReviewsAsync(long BookingId = 0, long CustomerId = 0, int pageIndex = 1, int pageSize = 20, string searchText = "");
-        public Task<Review> GetReviewByIdAsync(long ReviewId);
-        public Task AddReviewAsync(Review Review);
-        public Task EditReviewAsync(Review Review);
-        public Task RemoveReviewAsync(Review Review);
-        public Task RemoveReviewAsync(long ReviewId);
-        public Task<bool> ExistReviewAsync(long ReviewId);
+        public Task<ListResultObject<Review>> GetAllReviewsAsync(long BookingId = 0, long CustomerId = 0, int pageIndex = 1, int pageSize = 20, string searchText = "");
+        public Task<RowResultObject<Review>> GetReviewByIdAsync(long ReviewId);
+        public Task<BitResultObject> AddReviewAsync(Review Review);
+        public Task<BitResultObject> EditReviewAsync(Review Review);
+        public Task<BitResultObject> RemoveReviewAsync(Review Review);
+        public Task<BitResultObject> RemoveReviewAsync(long ReviewId);
+        public Task<BitResultObject> ExistReviewAsync(long ReviewId);
     }
 }
