@@ -143,5 +143,18 @@ namespace NobatPlusDATA.Tools
                 summary = value.Substring(0, 70) + "...";
             return summary;
         }
+
+        public static DateTime StringToDate(this string stringDate)
+        {
+            var arr = stringDate.Split('/');
+            var date = new DateTime(int.Parse(arr[0]), int.Parse(arr[1]), int.Parse(arr[2]));
+            return date;
+        }
+
+        public static string DateToString(this DateTime date)
+        {
+            string stringDate = $"{date.Year}/{date.Month}/{date.Day} {date.Hour}:{date.Minute}";
+            return stringDate;
+        }
     }
 }

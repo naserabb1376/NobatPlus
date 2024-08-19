@@ -116,6 +116,23 @@ namespace NobatPlusDATA.DataLayer.Services
             
         }
 
+        public async Task<BitResultObject> ExistUserNameAsync(string userName)
+        {
+            BitResultObject result = new BitResultObject();
+            try
+            {
+                result.Status = await _context.Logins
+                .AsNoTracking()
+                .AnyAsync(x => x.Username == userName);
+            }
+            catch (Exception ex)
+            {
+                result.Status = false;
+                result.ErrorMessage = $"{ex.Message} - {ex.InnerException?.Message}";
+            }
+            return result;
+        }
+
         public async Task<ListResultObject<Login>> GetAllLoginsAsync(long personId = 0, int pageIndex = 1, int pageSize = 20, string searchText = "")
         {
             ListResultObject<Login> results = new ListResultObject<Login>();

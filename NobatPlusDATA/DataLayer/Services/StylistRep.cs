@@ -28,7 +28,7 @@ namespace NobatPlusDATA.DataLayer.Services
             BitResultObject result = new BitResultObject();
             try
             {
-                _context.Stylists.Add(Stylist);
+                await _context.Stylists.AddAsync(Stylist);
                 await _context.SaveChangesAsync();
                 _context.Entry(Stylist).State = EntityState.Detached;
             }

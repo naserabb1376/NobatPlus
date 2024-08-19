@@ -26,7 +26,7 @@ namespace NobatPlusDATA.DataLayer.Services
             BitResultObject result = new BitResultObject();
             try
             {
-                _context.BookingServices.Add(BookingService);
+                await _context.BookingServices.AddAsync(BookingService);
                 await _context.SaveChangesAsync();
                 _context.Entry(BookingService).State = EntityState.Detached;
             }

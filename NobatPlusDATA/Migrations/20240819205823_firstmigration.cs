@@ -15,7 +15,7 @@ namespace NobatPlusDATA.Migrations
                 name: "Addresses",
                 columns: table => new
                 {
-                    ID = table.Column<int>(type: "int", nullable: false)
+                    ID = table.Column<long>(type: "bigint", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     State = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     AddressCity = table.Column<string>(type: "nvarchar(max)", nullable: false),
@@ -36,7 +36,7 @@ namespace NobatPlusDATA.Migrations
                 name: "Discounts",
                 columns: table => new
                 {
-                    ID = table.Column<int>(type: "int", nullable: false)
+                    ID = table.Column<long>(type: "bigint", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     DiscountCode = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     DiscountAmount = table.Column<int>(type: "int", nullable: false),
@@ -55,7 +55,7 @@ namespace NobatPlusDATA.Migrations
                 name: "JobTypes",
                 columns: table => new
                 {
-                    ID = table.Column<int>(type: "int", nullable: false)
+                    ID = table.Column<long>(type: "bigint", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     JobTitle = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     SexTypeChecked = table.Column<int>(type: "int", nullable: false),
@@ -69,12 +69,29 @@ namespace NobatPlusDATA.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "Logs",
+                columns: table => new
+                {
+                    ID = table.Column<long>(type: "bigint", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    LogTime = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    ActionName = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    CreateDate = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    UpdateDate = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    Description = table.Column<string>(type: "nvarchar(max)", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Logs", x => x.ID);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "ServiceManagements",
                 columns: table => new
                 {
-                    ID = table.Column<int>(type: "int", nullable: false)
+                    ID = table.Column<long>(type: "bigint", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    ServiceParentID = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    ServiceParentID = table.Column<long>(type: "bigint", nullable: false),
                     ServiceName = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Duration = table.Column<TimeSpan>(type: "time", nullable: false),
                     Price = table.Column<long>(type: "bigint", nullable: false),
@@ -91,13 +108,13 @@ namespace NobatPlusDATA.Migrations
                 name: "Persons",
                 columns: table => new
                 {
-                    ID = table.Column<int>(type: "int", nullable: false)
+                    ID = table.Column<long>(type: "bigint", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     FirstName = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     LastName = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Email = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     PhoneNumber = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    AddressID = table.Column<int>(type: "int", nullable: false),
+                    AddressID = table.Column<long>(type: "bigint", nullable: false),
                     NaCode = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     DateOfBirth = table.Column<DateTime>(type: "datetime2", nullable: true),
                     CreateDate = table.Column<DateTime>(type: "datetime2", nullable: true),
@@ -119,9 +136,9 @@ namespace NobatPlusDATA.Migrations
                 name: "Admins",
                 columns: table => new
                 {
-                    ID = table.Column<int>(type: "int", nullable: false)
+                    ID = table.Column<long>(type: "bigint", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    PersonID = table.Column<int>(type: "int", nullable: false),
+                    PersonID = table.Column<long>(type: "bigint", nullable: false),
                     Role = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     CreateDate = table.Column<DateTime>(type: "datetime2", nullable: true),
                     UpdateDate = table.Column<DateTime>(type: "datetime2", nullable: true),
@@ -142,9 +159,9 @@ namespace NobatPlusDATA.Migrations
                 name: "Customers",
                 columns: table => new
                 {
-                    ID = table.Column<int>(type: "int", nullable: false)
+                    ID = table.Column<long>(type: "bigint", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    PersonID = table.Column<int>(type: "int", nullable: false),
+                    PersonID = table.Column<long>(type: "bigint", nullable: false),
                     CreateDate = table.Column<DateTime>(type: "datetime2", nullable: true),
                     UpdateDate = table.Column<DateTime>(type: "datetime2", nullable: true),
                     Description = table.Column<string>(type: "nvarchar(max)", nullable: true)
@@ -164,9 +181,9 @@ namespace NobatPlusDATA.Migrations
                 name: "Logins",
                 columns: table => new
                 {
-                    ID = table.Column<int>(type: "int", nullable: false)
+                    ID = table.Column<long>(type: "bigint", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    PersonID = table.Column<int>(type: "int", nullable: false),
+                    PersonID = table.Column<long>(type: "bigint", nullable: false),
                     Username = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     PasswordHash = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     LastLoginDate = table.Column<DateTime>(type: "datetime2", nullable: false),
@@ -189,9 +206,9 @@ namespace NobatPlusDATA.Migrations
                 name: "Notifications",
                 columns: table => new
                 {
-                    ID = table.Column<int>(type: "int", nullable: false)
+                    ID = table.Column<long>(type: "bigint", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    PersonID = table.Column<int>(type: "int", nullable: false),
+                    PersonID = table.Column<long>(type: "bigint", nullable: false),
                     Message = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     SentDate = table.Column<DateTime>(type: "datetime2", nullable: false),
                     CreateDate = table.Column<DateTime>(type: "datetime2", nullable: true),
@@ -213,9 +230,9 @@ namespace NobatPlusDATA.Migrations
                 name: "Registers",
                 columns: table => new
                 {
-                    ID = table.Column<int>(type: "int", nullable: false)
+                    ID = table.Column<long>(type: "bigint", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    PersonID = table.Column<int>(type: "int", nullable: false),
+                    PersonID = table.Column<long>(type: "bigint", nullable: false),
                     RegistrationDate = table.Column<DateTime>(type: "datetime2", nullable: false),
                     CreateDate = table.Column<DateTime>(type: "datetime2", nullable: true),
                     UpdateDate = table.Column<DateTime>(type: "datetime2", nullable: true),
@@ -236,13 +253,13 @@ namespace NobatPlusDATA.Migrations
                 name: "Stylists",
                 columns: table => new
                 {
-                    ID = table.Column<int>(type: "int", nullable: false)
+                    ID = table.Column<long>(type: "bigint", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    StylistParentID = table.Column<int>(type: "int", nullable: false),
-                    PersonID = table.Column<int>(type: "int", nullable: false),
+                    StylistParentID = table.Column<long>(type: "bigint", nullable: false),
+                    PersonID = table.Column<long>(type: "bigint", nullable: false),
                     Specialty = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     YearsOfExperience = table.Column<int>(type: "int", nullable: false),
-                    JobTypeID = table.Column<int>(type: "int", nullable: false),
+                    JobTypeID = table.Column<long>(type: "bigint", nullable: false),
                     CreateDate = table.Column<DateTime>(type: "datetime2", nullable: true),
                     UpdateDate = table.Column<DateTime>(type: "datetime2", nullable: true),
                     Description = table.Column<string>(type: "nvarchar(max)", nullable: true)
@@ -268,10 +285,10 @@ namespace NobatPlusDATA.Migrations
                 name: "Bookings",
                 columns: table => new
                 {
-                    ID = table.Column<int>(type: "int", nullable: false)
+                    ID = table.Column<long>(type: "bigint", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    StylistID = table.Column<int>(type: "int", nullable: false),
-                    CustomerID = table.Column<int>(type: "int", nullable: false),
+                    StylistID = table.Column<long>(type: "bigint", nullable: false),
+                    CustomerID = table.Column<long>(type: "bigint", nullable: false),
                     BookingDate = table.Column<DateTime>(type: "datetime2", nullable: false),
                     BookingTime = table.Column<TimeSpan>(type: "time", nullable: false),
                     Status = table.Column<string>(type: "nvarchar(max)", nullable: false),
@@ -301,9 +318,9 @@ namespace NobatPlusDATA.Migrations
                 name: "CheckAvailabilities",
                 columns: table => new
                 {
-                    ID = table.Column<int>(type: "int", nullable: false)
+                    ID = table.Column<long>(type: "bigint", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    StylistID = table.Column<int>(type: "int", nullable: false),
+                    StylistID = table.Column<long>(type: "bigint", nullable: false),
                     Date = table.Column<DateTime>(type: "datetime2", nullable: false),
                     Time = table.Column<TimeSpan>(type: "time", nullable: false),
                     CreateDate = table.Column<DateTime>(type: "datetime2", nullable: true),
@@ -325,11 +342,11 @@ namespace NobatPlusDATA.Migrations
                 name: "CustomerDiscounts",
                 columns: table => new
                 {
-                    ID = table.Column<int>(type: "int", nullable: false)
+                    ID = table.Column<long>(type: "bigint", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    DiscountId = table.Column<int>(type: "int", nullable: false),
-                    CustomerId = table.Column<int>(type: "int", nullable: false),
-                    StylistId = table.Column<int>(type: "int", nullable: false),
+                    DiscountId = table.Column<long>(type: "bigint", nullable: false),
+                    CustomerId = table.Column<long>(type: "bigint", nullable: false),
+                    StylistId = table.Column<long>(type: "bigint", nullable: false),
                     CreateDate = table.Column<DateTime>(type: "datetime2", nullable: true),
                     UpdateDate = table.Column<DateTime>(type: "datetime2", nullable: true),
                     Description = table.Column<string>(type: "nvarchar(max)", nullable: true)
@@ -361,11 +378,11 @@ namespace NobatPlusDATA.Migrations
                 name: "DiscountAssignments",
                 columns: table => new
                 {
-                    ID = table.Column<int>(type: "int", nullable: false)
+                    ID = table.Column<long>(type: "bigint", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    DiscountId = table.Column<int>(type: "int", nullable: false),
-                    AdminId = table.Column<int>(type: "int", nullable: true),
-                    StylistId = table.Column<int>(type: "int", nullable: true),
+                    DiscountId = table.Column<long>(type: "bigint", nullable: false),
+                    AdminId = table.Column<long>(type: "bigint", nullable: true),
+                    StylistId = table.Column<long>(type: "bigint", nullable: true),
                     CreateDate = table.Column<DateTime>(type: "datetime2", nullable: true),
                     UpdateDate = table.Column<DateTime>(type: "datetime2", nullable: true),
                     Description = table.Column<string>(type: "nvarchar(max)", nullable: true)
@@ -397,12 +414,12 @@ namespace NobatPlusDATA.Migrations
                 name: "ServiceDiscounts",
                 columns: table => new
                 {
-                    ID = table.Column<int>(type: "int", nullable: false)
+                    ID = table.Column<long>(type: "bigint", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    DiscountId = table.Column<int>(type: "int", nullable: false),
-                    ServiceManagementId = table.Column<int>(type: "int", nullable: false),
-                    AdminId = table.Column<int>(type: "int", nullable: true),
-                    StylistId = table.Column<int>(type: "int", nullable: true),
+                    DiscountId = table.Column<long>(type: "bigint", nullable: false),
+                    ServiceManagementId = table.Column<long>(type: "bigint", nullable: false),
+                    AdminId = table.Column<long>(type: "bigint", nullable: true),
+                    StylistId = table.Column<long>(type: "bigint", nullable: true),
                     CreateDate = table.Column<DateTime>(type: "datetime2", nullable: true),
                     UpdateDate = table.Column<DateTime>(type: "datetime2", nullable: true),
                     Description = table.Column<string>(type: "nvarchar(max)", nullable: true)
@@ -440,8 +457,8 @@ namespace NobatPlusDATA.Migrations
                 name: "StylistServices",
                 columns: table => new
                 {
-                    StylistID = table.Column<int>(type: "int", nullable: false),
-                    ServiceManagementID = table.Column<int>(type: "int", nullable: false)
+                    StylistID = table.Column<long>(type: "bigint", nullable: false),
+                    ServiceManagementID = table.Column<long>(type: "bigint", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -463,8 +480,8 @@ namespace NobatPlusDATA.Migrations
                 name: "BookingServices",
                 columns: table => new
                 {
-                    BookingID = table.Column<int>(type: "int", nullable: false),
-                    ServiceManagementID = table.Column<int>(type: "int", nullable: false)
+                    BookingID = table.Column<long>(type: "bigint", nullable: false),
+                    ServiceManagementID = table.Column<long>(type: "bigint", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -486,9 +503,9 @@ namespace NobatPlusDATA.Migrations
                 name: "PaymentHistories",
                 columns: table => new
                 {
-                    ID = table.Column<int>(type: "int", nullable: false)
+                    ID = table.Column<long>(type: "bigint", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    BookingID = table.Column<int>(type: "int", nullable: false),
+                    BookingID = table.Column<long>(type: "bigint", nullable: false),
                     Amount = table.Column<long>(type: "bigint", nullable: false),
                     PaymentDate = table.Column<DateTime>(type: "datetime2", nullable: false),
                     PaymentMethod = table.Column<string>(type: "nvarchar(max)", nullable: false),
@@ -511,9 +528,9 @@ namespace NobatPlusDATA.Migrations
                 name: "Payments",
                 columns: table => new
                 {
-                    ID = table.Column<int>(type: "int", nullable: false)
+                    ID = table.Column<long>(type: "bigint", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    BookingID = table.Column<int>(type: "int", nullable: false),
+                    BookingID = table.Column<long>(type: "bigint", nullable: false),
                     Amount = table.Column<long>(type: "bigint", nullable: false),
                     PaymentDate = table.Column<DateTime>(type: "datetime2", nullable: false),
                     PaymentStatus = table.Column<string>(type: "nvarchar(max)", nullable: false),
@@ -536,10 +553,10 @@ namespace NobatPlusDATA.Migrations
                 name: "Reviews",
                 columns: table => new
                 {
-                    ID = table.Column<int>(type: "int", nullable: false)
+                    ID = table.Column<long>(type: "bigint", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    BookingID = table.Column<int>(type: "int", nullable: false),
-                    CustomerID = table.Column<int>(type: "int", nullable: false),
+                    BookingID = table.Column<long>(type: "bigint", nullable: false),
+                    CustomerID = table.Column<long>(type: "bigint", nullable: false),
                     Rating = table.Column<int>(type: "int", nullable: false),
                     Comments = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Status = table.Column<string>(type: "nvarchar(max)", nullable: false),
@@ -719,6 +736,9 @@ namespace NobatPlusDATA.Migrations
 
             migrationBuilder.DropTable(
                 name: "Logins");
+
+            migrationBuilder.DropTable(
+                name: "Logs");
 
             migrationBuilder.DropTable(
                 name: "Notifications");
