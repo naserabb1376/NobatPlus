@@ -2,6 +2,9 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using NobatPlusDATA.DataLayer.Repositories;
+using NobatPlusDATA.DataLayer.Services;
+using System.Globalization;
 using System.Text;
 
 namespace NobatPlusAPI
@@ -54,6 +57,35 @@ namespace NobatPlusAPI
     });
             });
 
+
+            #region ImportDbServices
+
+            builder.Services.AddScoped<IAddressRep, AddressRep>();
+            builder.Services.AddScoped<IAdminRep, AdminRep>();
+            builder.Services.AddScoped<IBookingRep, BookingRep>();
+            builder.Services.AddScoped<IBookingServiceRep, BookingServiceRep>();
+            builder.Services.AddScoped<ICheckAvailabilityRep, CheckAvailabilityRep>();
+            builder.Services.AddScoped<ICustomerDiscountRep, CustomerDiscountRep>();
+            builder.Services.AddScoped<ICustomerRep, CustomerRep>();
+            builder.Services.AddScoped<IDiscountAssignmentRep, DiscountAssignmentRep>();
+            builder.Services.AddScoped<IDiscountRep, DiscountRep>();
+            builder.Services.AddScoped<IJobTypeRep, JobTypeRep>();
+            builder.Services.AddScoped<ILoginRep, LoginRep>();
+            builder.Services.AddScoped<ILogRep, LogRep>();
+            builder.Services.AddScoped<INotificationRep, NotificationRep>();
+            builder.Services.AddScoped<IPaymentHistoryRep, PaymentHistoryRep>();
+            builder.Services.AddScoped<IPaymentRep, PaymentRep>();
+            builder.Services.AddScoped<IPersonRep, PersonRep>();
+            builder.Services.AddScoped<IRegisterRep, RegisterRep>();
+            builder.Services.AddScoped<IReviewRep, ReviewRep>();
+            builder.Services.AddScoped<IServiceDiscountRep, ServiceDiscountRep>();
+            builder.Services.AddScoped<IServiceManagementRep, ServiceManagementRep>();
+            builder.Services.AddScoped<IStylistRep, StylistRep>();
+            builder.Services.AddScoped<IStylistServiceRep, StylistServiceRep>();
+
+            #endregion
+
+
             builder.Services.AddAuthentication(options =>
             {
                 options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -76,6 +108,7 @@ namespace NobatPlusAPI
   });
 
             var app = builder.Build();
+
 
             // Configure the HTTP request pipeline.
             #region Pipeline

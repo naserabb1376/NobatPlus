@@ -13,6 +13,7 @@ namespace NobatPlusDATA.DataLayer.Repositories
         public Task<ListResultObject<Login>> GetAllLoginsAsync(long personId = 0, int pageIndex = 1, int pageSize = 20, string searchText = "");
         public Task<RowResultObject<Login>> GetLoginByIdAsync(long LoginId);
         public Task<BitResultObject> AddLoginAsync(Login Login);
+        public Task<RowResultObject<Login>> AuthenticateAsync(string userName,string password);
         public Task<BitResultObject> EditLoginAsync(Login Login);
         public Task<BitResultObject> RemoveLoginAsync(Login Login);
         public Task<BitResultObject> RemoveLoginAsync(long LoginId);
