@@ -1,4 +1,5 @@
 ﻿using NobatPlusDATA.Domain;
+using NobatPlusDATA.ResultObjects;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,12 +10,12 @@ namespace NobatPlusDATA.DataLayer.Repositories
 {
     public interface INotificationRep
     {
-        public Task<List<Notification>> GetAllNotificationsAsync(long personId = 0, int pageIndex = 1, int pageSize = 20, string searchText = "");
-        public Task<Notification> GetNotificationByIdAsync(long NotificationId);
-        public Task AddNotificationAsync(Notification Notification);
-        public Task EditNotificationAsync(Notification Notification);
-        public Task RemoveNotificationAsync(Notification Notification);
-        public Task RemoveNotificationAsync(long NotificationId);
-        public Task<bool> ExistNotificationAsync(long NotificationId);
+        public Task<ListResultObject<Notification>> GetAllNotificationsAsync(long personId = 0, int pageIndex = 1, int pageSize = 20, string searchText = "");
+        public Task<RowResultObject<Notification>> GetNotificationByIdAsync(long NotificationId);
+        public Task<BitResultObject> AddNotificationAsync(Notification Notification);
+        public Task<BitResultObject> EditNotificationAsync(Notification Notification);
+        public Task<BitResultObject> RemoveNotificationAsync(Notification Notification);
+        public Task<BitResultObject> RemoveNotificationAsync(long NotificationId);
+        public Task<BitResultObject> ExistNotificationAsync(long NotificationId);
     }
 }

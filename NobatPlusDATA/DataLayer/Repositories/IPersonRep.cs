@@ -1,4 +1,5 @@
 ﻿using NobatPlusDATA.Domain;
+using NobatPlusDATA.ResultObjects;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,12 +10,12 @@ namespace NobatPlusDATA.DataLayer.Repositories
 {
     public interface IPersonRep
     {
-        public Task<List<Person>> GetAllPersonsAsync(int pageIndex = 1, int pageSize = 20, string searchText = "");
-        public Task<Person> GetPersonByIdAsync(long personId);
-        public Task AddPersonAsync(Person person);
-        public Task EditPersonAsync(Person person);
-        public Task RemovePersonAsync(Person person);
-        public Task RemovePersonAsync(long personId);
-        public Task<bool> ExistPersonAsync(long personId);
+        public Task<ListResultObject<Person>> GetAllPersonsAsync(int pageIndex = 1, int pageSize = 20, string searchText = "");
+        public Task<RowResultObject<Person>> GetPersonByIdAsync(long personId);
+        public Task<BitResultObject> AddPersonAsync(Person person);
+        public Task<BitResultObject> EditPersonAsync(Person person);
+        public Task<BitResultObject> RemovePersonAsync(Person person);
+        public Task<BitResultObject> RemovePersonAsync(long personId);
+        public Task<BitResultObject> ExistPersonAsync(long personId);
     }
 }

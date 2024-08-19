@@ -1,4 +1,5 @@
 ﻿using NobatPlusDATA.Domain;
+using NobatPlusDATA.ResultObjects;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,13 +10,13 @@ namespace NobatPlusDATA.DataLayer.Repositories
 {
     public interface IRegisterRep
     {
-        public Task<List<Register>> GetAllRegistersAsync(int pageIndex = 1, int pageSize = 20, string searchText = "");
-        public Task<Register> GetRegisterByIdAsync(long RegisterId);
-        public Task<Register> GetRegisterByPersonIdAsync(long PersonId);
-        public Task AddRegisterAsync(Register Register);
-        public Task EditRegisterAsync(Register Register);
-        public Task RemoveRegisterAsync(Register Register);
-        public Task RemoveRegisterAsync(long RegisterId);
-        public Task<bool> ExistRegisterAsync(long RegisterId);
+        public Task<ListResultObject<Register>> GetAllRegistersAsync(int pageIndex = 1, int pageSize = 20, string searchText = "");
+        public Task<RowResultObject<Register>> GetRegisterByIdAsync(long RegisterId);
+        public Task<RowResultObject<Register>> GetRegisterByPersonIdAsync(long PersonId);
+        public Task<BitResultObject> AddRegisterAsync(Register Register);
+        public Task<BitResultObject> EditRegisterAsync(Register Register);
+        public Task<BitResultObject> RemoveRegisterAsync(Register Register);
+        public Task<BitResultObject> RemoveRegisterAsync(long RegisterId);
+        public Task<BitResultObject> ExistRegisterAsync(long RegisterId);
     }
 }

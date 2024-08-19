@@ -1,4 +1,5 @@
 ﻿using NobatPlusDATA.Domain;
+using NobatPlusDATA.ResultObjects;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,12 +10,12 @@ namespace NobatPlusDATA.DataLayer.Repositories
 {
     public interface IPaymentHistoryRep
     {
-        public Task<List<PaymentHistory>> GetAllPaymentHistoriesAsync(long bookingId = 0, int pageIndex = 1, int pageSize = 20, string searchText = "");
-        public Task<PaymentHistory> GetPaymentHistoryByIdAsync(long PaymentHistoryId);
-        public Task AddPaymentHistoryAsync(PaymentHistory PaymentHistory);
-        public Task EditPaymentHistoryAsync(PaymentHistory PaymentHistory);
-        public Task RemovePaymentHistoryAsync(PaymentHistory PaymentHistory);
-        public Task RemovePaymentHistoryAsync(long PaymentHistoryId);
-        public Task<bool> ExistPaymentHistoryAsync(long PaymentHistoryId);
+        public Task<ListResultObject<PaymentHistory>> GetAllPaymentHistoriesAsync(long bookingId = 0, int pageIndex = 1, int pageSize = 20, string searchText = "");
+        public Task<RowResultObject<PaymentHistory>> GetPaymentHistoryByIdAsync(long PaymentHistoryId);
+        public Task<BitResultObject> AddPaymentHistoryAsync(PaymentHistory PaymentHistory);
+        public Task<BitResultObject> EditPaymentHistoryAsync(PaymentHistory PaymentHistory);
+        public Task<BitResultObject> RemovePaymentHistoryAsync(PaymentHistory PaymentHistory);
+        public Task<BitResultObject> RemovePaymentHistoryAsync(long PaymentHistoryId);
+        public Task<BitResultObject> ExistPaymentHistoryAsync(long PaymentHistoryId);
     }
 }

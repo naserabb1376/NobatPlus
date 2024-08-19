@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using NobatPlusDATA.DataLayer.Repositories;
 using NobatPlusDATA.Domain;
+using NobatPlusDATA.ResultObjects;
 using NobatPlusDATA.Tools;
 using System;
 using System.Collections.Generic;
@@ -21,83 +22,160 @@ namespace NobatPlusDATA.DataLayer.Services
             _context = DbTools.GetDbContext();
         }
 
-        public async Task AddReviewAsync(Review Review)
+        public async Task<BitResultObject> AddReviewAsync(Review Review)
         {
-            _context.Reviews.Add(Review);
-            await _context.SaveChangesAsync();
-            _context.Entry(Review).State = EntityState.Detached;
+            BitResultObject result = new BitResultObject();
+            try
+            {
+                _context.Reviews.Add(Review);
+                await _context.SaveChangesAsync();
+                _context.Entry(Review).State = EntityState.Detached;
+            }
+            catch (Exception ex)
+            {
+                result.Status = false;
+                result.ErrorMessage = $"{ex.Message} - {ex.InnerException?.Message}";
+            }
+            return result;
+            
         }
 
-        public async Task EditReviewAsync(Review Review)
+        public async Task<BitResultObject> EditReviewAsync(Review Review)
         {
-            _context.Reviews.Update(Review);
-            await _context.SaveChangesAsync();
-            _context.Entry(Review).State = EntityState.Detached;
+            BitResultObject result = new BitResultObject();
+            try
+            {
+                _context.Reviews.Update(Review);
+                await _context.SaveChangesAsync();
+                _context.Entry(Review).State = EntityState.Detached;
+            }
+            catch (Exception ex)
+            {
+                result.Status = false;
+                result.ErrorMessage = $"{ex.Message} - {ex.InnerException?.Message}";
+            }
+            return result;
+            
         }
 
-        public async Task<bool> ExistReviewAsync(long ReviewId)
+        public async Task<BitResultObject> ExistReviewAsync(long ReviewId)
         {
-            return await _context.Reviews
+            BitResultObject result = new BitResultObject();
+            try
+            {
+                result.Status = await _context.Reviews
                 .AsNoTracking()
                 .AnyAsync(x => x.ID == ReviewId);
+            }
+            catch (Exception ex)
+            {
+                result.Status = false;
+                result.ErrorMessage = $"{ex.Message} - {ex.InnerException?.Message}";
+            }
+            return result;
+            
         }
 
-        public async Task<List<Review>> GetAllReviewsAsync(long BookingId = 0, long CustomerId = 0, int pageIndex = 1, int pageSize = 20, string searchText = "")
+        public async Task<ListResultObject<Review>> GetAllReviewsAsync(long BookingId = 0, long CustomerId = 0, int pageIndex = 1, int pageSize = 20, string searchText = "")
         {
-            IQueryable<Review> query = _context.Reviews
-                .AsNoTracking()
-                .Include(x => x.Booking).ThenInclude(x => x.Stylist)
-                .Include(x => x.Customer).ThenInclude(x => x.Person);
-
-            if (BookingId > 0)
+            ListResultObject<Review> results = new ListResultObject<Review>();
+            try
             {
-                query = query.Where(x => x.BookingID == BookingId);
-            }
-            else if (CustomerId > 0)
-            {
-                query = query.Where(x => x.CustomerID == CustomerId);
-            }
+                IQueryable<Review> query = _context.Reviews
+              .AsNoTracking()
+              .Include(x => x.Booking).ThenInclude(x => x.Stylist)
+              .Include(x => x.Customer).ThenInclude(x => x.Person);
 
-            query = query.Where(x =>
-                (!string.IsNullOrEmpty(x.Customer.Person.FirstName) && x.Customer.Person.FirstName.Contains(searchText)) ||
-                (!string.IsNullOrEmpty(x.Customer.Person.LastName) && x.Customer.Person.LastName.Contains(searchText)) ||
-                (!string.IsNullOrEmpty(x.ReviewDate.ToString()) && x.ReviewDate.ToString("yyyy/MM/dd HH:mm").Contains(searchText)) ||
-                (!string.IsNullOrEmpty(x.Comments) && x.Comments.Contains(searchText)) ||
-                (!string.IsNullOrEmpty(x.Description) && x.Description.Contains(searchText)) ||
-                (!string.IsNullOrEmpty(x.LikeCount.ToString()) && x.LikeCount.ToString().Contains(searchText)) ||
-                (!string.IsNullOrEmpty(x.DislikeCount.ToString()) && x.DislikeCount.ToString().Contains(searchText)) ||
-                (!string.IsNullOrEmpty(x.Rating.ToString()) && x.Rating.ToString().Contains(searchText)) ||
-                (!string.IsNullOrEmpty(x.Booking.BookingDate.ToString()) && x.Booking.BookingDate.ToString("yyyy/MM/dd HH:mm").Contains(searchText)) ||
-                (!string.IsNullOrEmpty(x.Booking.BookingTime.ToString()) && x.Booking.BookingTime.ToString("HH:mm").Contains(searchText)) ||
-                (!string.IsNullOrEmpty(x.Booking.Status.ToString()) && x.Booking.Status.ToString().Contains(searchText)) ||
-                (!string.IsNullOrEmpty(x.CreateDate.ToString()) && x.CreateDate.Value.ToString("yyyy/MM/dd HH:mm").Contains(searchText)) ||
-                (!string.IsNullOrEmpty(x.UpdateDate.ToString()) && x.UpdateDate.Value.ToString("yyyy/MM/dd HH:mm").Contains(searchText))
-            );
+                if (BookingId > 0)
+                {
+                    query = query.Where(x => x.BookingID == BookingId);
+                }
+                else if (CustomerId > 0)
+                {
+                    query = query.Where(x => x.CustomerID == CustomerId);
+                }
 
-            return await query
-                .OrderByDescending(x => x.CreateDate)
+                query = query.Where(x =>
+                    (!string.IsNullOrEmpty(x.Customer.Person.FirstName) && x.Customer.Person.FirstName.Contains(searchText)) ||
+                    (!string.IsNullOrEmpty(x.Customer.Person.LastName) && x.Customer.Person.LastName.Contains(searchText)) ||
+                    (!string.IsNullOrEmpty(x.ReviewDate.ToString()) && x.ReviewDate.ToString("yyyy/MM/dd HH:mm").Contains(searchText)) ||
+                    (!string.IsNullOrEmpty(x.Comments) && x.Comments.Contains(searchText)) ||
+                    (!string.IsNullOrEmpty(x.Description) && x.Description.Contains(searchText)) ||
+                    (!string.IsNullOrEmpty(x.LikeCount.ToString()) && x.LikeCount.ToString().Contains(searchText)) ||
+                    (!string.IsNullOrEmpty(x.DislikeCount.ToString()) && x.DislikeCount.ToString().Contains(searchText)) ||
+                    (!string.IsNullOrEmpty(x.Rating.ToString()) && x.Rating.ToString().Contains(searchText)) ||
+                    (!string.IsNullOrEmpty(x.Booking.BookingDate.ToString()) && x.Booking.BookingDate.ToString("yyyy/MM/dd HH:mm").Contains(searchText)) ||
+                    (!string.IsNullOrEmpty(x.Booking.BookingTime.ToString()) && x.Booking.BookingTime.ToString("HH:mm").Contains(searchText)) ||
+                    (!string.IsNullOrEmpty(x.Booking.Status.ToString()) && x.Booking.Status.ToString().Contains(searchText)) ||
+                    (!string.IsNullOrEmpty(x.CreateDate.ToString()) && x.CreateDate.Value.ToString("yyyy/MM/dd HH:mm").Contains(searchText)) ||
+                    (!string.IsNullOrEmpty(x.UpdateDate.ToString()) && x.UpdateDate.Value.ToString("yyyy/MM/dd HH:mm").Contains(searchText))
+                );
+                results.TotalCount = query.Count();
+                results.PageCount = DbTools.GetPageCount(results.TotalCount, pageSize);
+                results.Results = await query.OrderByDescending(x => x.CreateDate)
                 .ToPaging(pageIndex, pageSize)
                 .ToListAsync();
+            }
+            catch (Exception ex)
+            {
+                results.Status = false;
+                results.ErrorMessage = $"{ex.Message} - {ex.InnerException?.Message}";
+            }
+            return results;
+       
         }
 
-        public async Task<Review> GetReviewByIdAsync(long ReviewId)
+        public async Task<RowResultObject<Review>> GetReviewByIdAsync(long ReviewId)
         {
-            return await _context.Reviews
+            RowResultObject<Review> result = new RowResultObject<Review>();
+            try
+            {
+                result.Result = await _context.Reviews
                 .AsNoTracking()
                 .SingleOrDefaultAsync(x => x.ID == ReviewId);
+            }
+            catch (Exception ex)
+            {
+                result.Status = false;
+                result.ErrorMessage = $"{ex.Message} - {ex.InnerException?.Message}";
+            }
+            return result;
+           
         }
 
-        public async Task RemoveReviewAsync(Review Review)
+        public async Task<BitResultObject> RemoveReviewAsync(Review Review)
         {
-            _context.Reviews.Remove(Review);
-            await _context.SaveChangesAsync();
-            _context.Entry(Review).State = EntityState.Detached;
+            BitResultObject result = new BitResultObject();
+            try
+            {
+                _context.Reviews.Remove(Review);
+                await _context.SaveChangesAsync();
+                _context.Entry(Review).State = EntityState.Detached;
+            }
+            catch (Exception ex)
+            {
+                result.Status = false;
+                result.ErrorMessage = $"{ex.Message} - {ex.InnerException?.Message}";
+            }
+            return result;
+            
         }
 
-        public async Task RemoveReviewAsync(long ReviewId)
+        public async Task<BitResultObject> RemoveReviewAsync(long ReviewId)
         {
-            var Review = await GetReviewByIdAsync(ReviewId);
-            await RemoveReviewAsync(Review);
+            BitResultObject result = new BitResultObject();
+            try
+            {
+                var Review = await GetReviewByIdAsync(ReviewId);
+                result = await RemoveReviewAsync(Review.Result);
+            }
+            catch (Exception ex)
+            {
+                result.Status = false;
+                result.ErrorMessage = $"{ex.Message} - {ex.InnerException?.Message}";
+            }
+            return result;
+            
         }
     }
 }

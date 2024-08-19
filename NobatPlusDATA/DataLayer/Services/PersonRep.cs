@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using NobatPlusDATA.DataLayer.Repositories;
 using NobatPlusDATA.Domain;
+using NobatPlusDATA.ResultObjects;
 using NobatPlusDATA.Tools;
 using System;
 using System.Collections.Generic;
@@ -20,30 +21,66 @@ namespace NobatPlusDATA.DataLayer.Services
             _context = DbTools.GetDbContext();
         }
 
-        public async Task AddPersonAsync(Person person)
+        public async Task<BitResultObject> AddPersonAsync(Person person)
         {
-            _context.Persons.Add(person);
-            await _context.SaveChangesAsync();
-            _context.Entry(person).State = EntityState.Detached;
+            BitResultObject result = new BitResultObject();
+            try
+            {
+                _context.Persons.Add(person);
+                await _context.SaveChangesAsync();
+                _context.Entry(person).State = EntityState.Detached;
+            }
+            catch (Exception ex)
+            {
+                result.Status = false;
+                result.ErrorMessage = $"{ex.Message} - {ex.InnerException?.Message}";
+            }
+            return result;
+           
         }
 
-        public async Task EditPersonAsync(Person person)
+        public async Task<BitResultObject> EditPersonAsync(Person person)
         {
-            _context.Persons.Update(person);
-            await _context.SaveChangesAsync();
-            _context.Entry(person).State = EntityState.Detached;
+            BitResultObject result = new BitResultObject();
+            try
+            {
+                _context.Persons.Update(person);
+                await _context.SaveChangesAsync();
+                _context.Entry(person).State = EntityState.Detached;
+            }
+            catch (Exception ex)
+            {
+                result.Status = false;
+                result.ErrorMessage = $"{ex.Message} - {ex.InnerException?.Message}";
+            }
+            return result;
+            
         }
 
-        public async Task<bool> ExistPersonAsync(long personId)
+        public async Task<BitResultObject> ExistPersonAsync(long personId)
         {
-            return await _context.Persons
+            BitResultObject result = new BitResultObject();
+            try
+            {
+                result.Status =await _context.Persons
                 .AsNoTracking()
                 .AnyAsync(x => x.ID == personId);
+            }
+            catch (Exception ex)
+            {
+                result.Status = false;
+                result.ErrorMessage = $"{ex.Message} - {ex.InnerException?.Message}";
+            }
+            return result;
+            
         }
 
-        public async Task<List<Person>> GetAllPersonsAsync(int pageIndex = 1, int pageSize = 20, string searchText = "")
+        public async Task<ListResultObject<Person>> GetAllPersonsAsync(int pageIndex = 1, int pageSize = 20, string searchText = "")
         {
-            return await _context.Persons
+            ListResultObject<Person> results = new ListResultObject<Person>();
+            try
+            {
+                var query = _context.Persons
                 .AsNoTracking()
                 .Where(x =>
                     (!string.IsNullOrEmpty(x.FirstName) && x.FirstName.Contains(searchText)) ||
@@ -55,30 +92,73 @@ namespace NobatPlusDATA.DataLayer.Services
                     (x.DateOfBirth.HasValue && x.DateOfBirth.Value.ToString("yyyy/MM/dd HH:mm").Contains(searchText)) ||
                     (x.CreateDate.HasValue && x.CreateDate.Value.ToString("yyyy/MM/dd HH:mm").Contains(searchText)) ||
                     (x.UpdateDate.HasValue && x.UpdateDate.Value.ToString("yyyy/MM/dd HH:mm").Contains(searchText))
-                )
-                .OrderByDescending(x => x.CreateDate)
+                );
+                results.TotalCount = query.Count();
+                results.PageCount = DbTools.GetPageCount(results.TotalCount, pageSize);
+                results.Results = await query.OrderByDescending(x => x.CreateDate)
                 .ToPaging(pageIndex, pageSize)
                 .ToListAsync();
+            }
+            catch (Exception ex)
+            {
+                results.Status = false;
+                results.ErrorMessage = $"{ex.Message} - {ex.InnerException?.Message}";
+            }
+            return results;
+            
         }
 
-        public async Task<Person> GetPersonByIdAsync(long personId)
+        public async Task<RowResultObject<Person>> GetPersonByIdAsync(long personId)
         {
-            return await _context.Persons
+            RowResultObject<Person> result = new RowResultObject<Person>();
+            try
+            {
+                result.Result= await _context.Persons
                 .AsNoTracking()
                 .SingleOrDefaultAsync(x => x.ID == personId);
+            }
+            catch (Exception ex)
+            {
+                result.Status = false;
+                result.ErrorMessage = $"{ex.Message} - {ex.InnerException?.Message}";
+            }
+            return result;
+            
         }
 
-        public async Task RemovePersonAsync(Person person)
+        public async Task<BitResultObject> RemovePersonAsync(Person person)
         {
-            _context.Persons.Remove(person);
-            await _context.SaveChangesAsync();
-            _context.Entry(person).State = EntityState.Detached;
+            BitResultObject result = new BitResultObject();
+            try
+            {
+                _context.Persons.Remove(person);
+                await _context.SaveChangesAsync();
+                _context.Entry(person).State = EntityState.Detached;
+            }
+            catch (Exception ex)
+            {
+                result.Status = false;
+                result.ErrorMessage = $"{ex.Message} - {ex.InnerException?.Message}";
+            }
+            return result;
+           
         }
 
-        public async Task RemovePersonAsync(long personId)
+        public async Task<BitResultObject> RemovePersonAsync(long personId)
         {
-            var person = await GetPersonByIdAsync(personId);
-            await RemovePersonAsync(person);
+            BitResultObject result = new BitResultObject();
+            try
+            {
+                var person = await GetPersonByIdAsync(personId);
+                result= await RemovePersonAsync(person.Result);
+            }
+            catch (Exception ex)
+            {
+                result.Status = false;
+                result.ErrorMessage = $"{ex.Message} - {ex.InnerException?.Message}";
+            }
+            return result;
+            
         }
     }
 }
