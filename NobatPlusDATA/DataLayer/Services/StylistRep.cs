@@ -82,7 +82,7 @@ namespace NobatPlusDATA.DataLayer.Services
             {
                 IQueryable<Stylist> query = _context.Stylists.Include(x => x.Person).Include(x => x.JobType).AsNoTracking();
 
-                if (parentId == 0)
+                if (parentId < 0)
                 {
                     query = query.Where(x =>
                         (!string.IsNullOrEmpty(x.Person.FirstName) && x.Person.FirstName.Contains(searchText)) ||

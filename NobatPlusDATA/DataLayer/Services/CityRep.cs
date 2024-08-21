@@ -83,7 +83,7 @@ namespace NobatPlusDATA.DataLayer.Services
             {
                 IQueryable<City> query = _context.Cities.AsNoTracking();
 
-                if (parentId == 0)
+                if (parentId < 0)
                 {
                     query = query.Where(x =>
                         (!string.IsNullOrEmpty(x.CityName) && x.CityName.Contains(searchText)) ||
