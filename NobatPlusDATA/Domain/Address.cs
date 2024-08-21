@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using Domains;
+using NobatPlusDATA.Domain;
 
 namespace Domain
 {
@@ -10,10 +11,10 @@ namespace Domain
         [MinLength(50)]
         public string State { get; set; }
 
-        [Display(Name = "شهر")]
-        [Required(ErrorMessage = "لطفا {0} را وارد کنید")]
-        [MinLength(50)]
-        public string AddressCity { get; set; }
+        //[Display(Name = "شهر")]
+        //[Required(ErrorMessage = "لطفا {0} را وارد کنید")]
+        //[MinLength(50)]
+        //public string AddressCity { get; set; }
 
         [Display(Name = "خیابان")]
         [Required(ErrorMessage = "لطفا {0} را وارد کنید")]
@@ -32,5 +33,8 @@ namespace Domain
         [Display(Name = "مختصات عمودی")]
         [MinLength(500)]
         public string? AddressLocationVerticalPoint { get; set; }
+
+        public City City { get; set; }
+        public long CityID { get; set; }
     }
 }
