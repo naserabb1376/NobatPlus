@@ -84,7 +84,6 @@ namespace NobatPlusDATA.DataLayer.Services
         (!string.IsNullOrEmpty(x.AddressLocationHorizentalPoint.ToString()) && x.AddressLocationHorizentalPoint.ToString().Contains(searchText)) ||
         (!string.IsNullOrEmpty(x.AddressLocationVerticalPoint.ToString()) && x.AddressLocationVerticalPoint.ToString().Contains(searchText)) ||
         (!string.IsNullOrEmpty(x.AddressPostalCode.ToString()) && x.AddressPostalCode.ToString().Contains(searchText)) ||
-        (!string.IsNullOrEmpty(x.State.ToString()) && x.State.ToString().Contains(searchText)) ||
         (!string.IsNullOrEmpty(x.Description.ToString()) && x.Description.ToString().Contains(searchText)) ||
         (!string.IsNullOrEmpty(x.AddressStreet.ToString()) && x.AddressStreet.ToString().Contains(searchText)) ||
         (x.CreateDate.HasValue && x.CreateDate.Value.ToString().Contains(searchText)) ||
