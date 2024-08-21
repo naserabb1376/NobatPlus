@@ -6,10 +6,10 @@ namespace Domain
 {
     public class Address : BaseEntity
     {
-        [Display(Name = "استان")]
-        [Required(ErrorMessage = "لطفا {0} را وارد کنید")]
-        [MinLength(50)]
-        public string State { get; set; }
+        //[Display(Name = "استان")]
+        //[Required(ErrorMessage = "لطفا {0} را وارد کنید")]
+        //[MinLength(50)]
+        //public string State { get; set; }
 
         //[Display(Name = "شهر")]
         //[Required(ErrorMessage = "لطفا {0} را وارد کنید")]
