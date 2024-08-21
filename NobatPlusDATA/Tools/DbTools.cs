@@ -61,7 +61,19 @@ namespace NobatPlusDATA.Tools
             var date = value.Split(' ')[0].Split('/');
             DateTime dateTime = new DateTime(Convert.ToInt32(date[0]), Convert.ToInt32(date[1]), Convert.ToInt32(date[2]));
             PersianCalendar persianCalendar = new PersianCalendar();
-            return persianCalendar.GetYear(dateTime) + "/" + persianCalendar.GetMonth(dateTime).ToString("00") + "/" + persianCalendar.GetDayOfMonth(dateTime).ToString("00") + " - " + DateTime.Now.ToString("HH:mm");
+            string shamsiDate = $"{persianCalendar.GetYear(dateTime)}/{persianCalendar.GetMonth(dateTime)}/{persianCalendar.GetDayOfMonth(dateTime)} {persianCalendar.GetHour(dateTime)}:{persianCalendar.GetMinute(dateTime)}:{persianCalendar.GetSecond(dateTime)}";
+            return shamsiDate;
+        }
+
+        public static DateTime ToShamsi(this DateTime value) // use this word for use the method for all DateTime variables in project
+        {
+            var strDate = $"{value.Year}/{value.Month}/{value.Day} {value.Hour}:{value.Minute}:{value.Second}";
+            var strshamsi = ToShamsi(strDate);
+            var date = strshamsi.Split(' ')[0].Split('/');
+            var time = strshamsi.Split(' ')[1].Split(':');
+            DateTime dateTime = new DateTime(Convert.ToInt32(date[0]), Convert.ToInt32(date[1]), Convert.ToInt32(date[2]), Convert.ToInt32(time[0]), Convert.ToInt32(time[1]), Convert.ToInt32(time[2]));
+            return dateTime;
+
         }
 
         public static string FixPrice(this decimal value)

@@ -89,9 +89,9 @@ namespace NobatPlusDATA.DataLayer.Services
                     (!string.IsNullOrEmpty(x.PhoneNumber) && x.PhoneNumber.Contains(searchText)) ||
                     (!string.IsNullOrEmpty(x.Email) && x.Email.Contains(searchText)) ||
                     (!string.IsNullOrEmpty(x.Description) && x.Description.Contains(searchText)) ||
-                    (x.DateOfBirth.HasValue && x.DateOfBirth.Value.ToString("yyyy/MM/dd HH:mm").Contains(searchText)) ||
-                    (x.CreateDate.HasValue && x.CreateDate.Value.ToString("yyyy/MM/dd HH:mm").Contains(searchText)) ||
-                    (x.UpdateDate.HasValue && x.UpdateDate.Value.ToString("yyyy/MM/dd HH:mm").Contains(searchText))
+                    (x.DateOfBirth.HasValue && x.DateOfBirth.Value.ToString().Contains(searchText)) ||
+                    (x.CreateDate.HasValue && x.CreateDate.Value.ToString().Contains(searchText)) ||
+                    (x.UpdateDate.HasValue && x.UpdateDate.Value.ToString().Contains(searchText))
                 );
                 results.TotalCount = query.Count();
                 results.PageCount = DbTools.GetPageCount(results.TotalCount, pageSize);

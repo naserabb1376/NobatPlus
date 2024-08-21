@@ -1,4 +1,5 @@
 ﻿using Domain;
+using Domains;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -27,8 +28,9 @@ namespace NobatPlusAPI.Controllers
         private readonly ICustomerRep _customerRep;
         private readonly IStylistRep _stylistRep;
         private readonly IAddressRep _addressRep;
+        private readonly ILogRep _logRep;
 
-        public AuthenticationController(IConfiguration configuration,ILoginRep loginRep, IRegisterRep registerRep, IPersonRep personRep, ICustomerRep customerRep, IStylistRep stylistRep, IAddressRep addressRep)
+        public AuthenticationController(IConfiguration configuration,ILoginRep loginRep, IRegisterRep registerRep, IPersonRep personRep, ICustomerRep customerRep, IStylistRep stylistRep, IAddressRep addressRep,ILogRep logRep)
         {
             _configuration = configuration;
             _loginRep = loginRep;
@@ -37,6 +39,7 @@ namespace NobatPlusAPI.Controllers
             _customerRep = customerRep;
             _stylistRep = stylistRep;
             _addressRep = addressRep;
+            _logRep = logRep;
         }
 
         [HttpPost("Authenticate")]
@@ -78,6 +81,20 @@ namespace NobatPlusAPI.Controllers
             result.Result = tokenString;
             if (result.Status)
             {
+                #region AddLog
+
+                Log log = new Log()
+                {
+                    CreateDate = DateTime.Now.ToShamsi(),
+                    UpdateDate = DateTime.Now.ToShamsi(),
+                    LogTime = DateTime.Now.ToShamsi(),
+                    ActionName = this.ControllerContext.RouteData.Values["action"].ToString(),
+
+                };
+               await _logRep.AddLogAsync(log);
+
+                #endregion
+
                 return Ok(result);
             }
             return BadRequest(result);
@@ -87,7 +104,7 @@ namespace NobatPlusAPI.Controllers
         public async Task<ActionResult<BitResultObject>> Signup(SignupRequestBody signupRequestBody)
         {
             BitResultObject result = new BitResultObject();
-            var validUserName = await _loginRep.ExistUserNameAsync(signupRequestBody.UserName);
+            var validUserName = await _loginRep.ExistLoginAsync(signupRequestBody.UserName,2);
 
             if (validUserName.Status && !string.IsNullOrEmpty(validUserName.ErrorMessage))
             {
@@ -95,6 +112,25 @@ namespace NobatPlusAPI.Controllers
                 result.ErrorMessage = "نام کاربری تکراری است";
                 return BadRequest(result);
             }
+
+            var validPhoneNumber = await _loginRep.ExistLoginAsync(signupRequestBody.PhoneNumber, 3);
+
+            if (validPhoneNumber.Status && !string.IsNullOrEmpty(validPhoneNumber.ErrorMessage))
+            {
+                result.Status = !validPhoneNumber.Status;
+                result.ErrorMessage = "شماره تماس تکراری است";
+                return BadRequest(result);
+            }
+
+            var validNaCode = await _loginRep.ExistLoginAsync(signupRequestBody.PhoneNumber, 4);
+
+            if (validNaCode.Status && !string.IsNullOrEmpty(validNaCode.ErrorMessage))
+            {
+                result.Status = !validNaCode.Status;
+                result.ErrorMessage = "کد ملی تکراری است";
+                return BadRequest(result);
+            }
+
             Address address = new Address()
             {
                 AddressCity = signupRequestBody.AddressCity,
@@ -103,9 +139,13 @@ namespace NobatPlusAPI.Controllers
                 AddressPostalCode = signupRequestBody.AddressPostalCode,
                 AddressStreet = signupRequestBody.AddressStreet,
                 State = signupRequestBody.State,
-                CreateDate = DateTime.Now,
+                Description = signupRequestBody.AddressDescription,
+                CreateDate = DateTime.Now.ToShamsi(),
+                UpdateDate = DateTime.Now.ToShamsi(),
                 
             };
+
+
 
             result = await _addressRep.AddAddressAsync(address);
 
@@ -119,8 +159,10 @@ namespace NobatPlusAPI.Controllers
                     Email = signupRequestBody.Email,
                     PhoneNumber = signupRequestBody.PhoneNumber,
                     DateOfBirth = signupRequestBody.DateOfBirth.StringToDate(),
-                    CreateDate = DateTime.Now,
+                    CreateDate = DateTime.Now.ToShamsi(),
+                    UpdateDate = DateTime.Now.ToShamsi(),
                     AddressID = address.ID,
+                    Description = signupRequestBody.PersonDescription,
                 };
                 result = await _personRep.AddPersonAsync(person);
 
@@ -129,7 +171,9 @@ namespace NobatPlusAPI.Controllers
                     Customer customer = new Customer()
                     {
                         PersonID = person.ID,
-                        CreateDate = DateTime.Now,
+                        CreateDate = DateTime.Now.ToShamsi(),
+                        UpdateDate= DateTime.Now.ToShamsi(),
+                        Description = signupRequestBody.CustomerDescription,
                     };
                     result = await _customerRep.AddCustomerAsync(customer);
 
@@ -138,9 +182,11 @@ namespace NobatPlusAPI.Controllers
 
                         Register register = new Register()
                         {
-                            CreateDate = DateTime.Now,
+                            CreateDate = DateTime.Now.ToShamsi(),
                             PersonID = person.ID,
-                            RegistrationDate = DateTime.Now,
+                            RegistrationDate = DateTime.Now.ToShamsi(),
+                            UpdateDate = DateTime.Now.ToShamsi(),
+                            Description= signupRequestBody.RegisterDescription,
                         };
                         result = await _registerRep.AddRegisterAsync(register);
                         if (result.Status)
@@ -150,8 +196,10 @@ namespace NobatPlusAPI.Controllers
                                 Username = signupRequestBody.UserName,
                                 PasswordHash = signupRequestBody.Password.ToHash(),
                                 PersonID = person.ID,
-                                CreateDate = DateTime.Now,
-                                LastLoginDate = DateTime.Now,
+                                CreateDate = DateTime.Now.ToShamsi(),
+                                LastLoginDate = DateTime.Now.ToShamsi(),
+                                UpdateDate = DateTime.Now.ToShamsi(),
+                                Description = signupRequestBody.LoginDescription,
                             };
                             result = await _loginRep.AddLoginAsync(login);
                             if (result.Status && signupRequestBody.IsStylist)
@@ -163,9 +211,29 @@ namespace NobatPlusAPI.Controllers
                                     Specialty = signupRequestBody.Specialty,
                                     StylistParentID = signupRequestBody.StylistParentID,
                                     PersonID = person.ID,
-                                    CreateDate = DateTime.Now,
+                                    CreateDate = DateTime.Now.ToShamsi(),
+                                    UpdateDate = DateTime.Now.ToShamsi(),
+                                    Description = login.Description,
                                 };
                                 result = await _stylistRep.AddStylistAsync(stylist);
+                            }
+                            if (result.Status)
+                            {
+
+                                #region AddLog
+
+                                Log log = new Log()
+                                {
+                                    CreateDate = DateTime.Now.ToShamsi(),
+                                    UpdateDate = DateTime.Now.ToShamsi(),
+                                    LogTime = DateTime.Now.ToShamsi(),
+                                    ActionName = this.ControllerContext.RouteData.Values["action"].ToString(),
+
+                                };
+                                result = await _logRep.AddLogAsync(log);
+
+                                #endregion
+
                             }
                             return Ok(result);
                         }

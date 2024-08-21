@@ -93,10 +93,10 @@ namespace NobatPlusDATA.DataLayer.Services
                             || (!string.IsNullOrEmpty(x.IsCancelled.ToString()) && x.IsCancelled.ToString().Contains(searchText))
                             || (!string.IsNullOrEmpty(x.Status.ToString()) && x.Status.ToString().Contains(searchText))
                             || (!string.IsNullOrEmpty(x.Description.ToString()) && x.Description.ToString().Contains(searchText))
-                            || (!string.IsNullOrEmpty(x.BookingDate.ToString()) && x.BookingDate.ToString("yyyy/MM/dd HH:mm").Contains(searchText))
-                            || (!string.IsNullOrEmpty(x.BookingTime.ToString()) && x.BookingTime.ToString("HH:mm").Contains(searchText))
-                            || (!string.IsNullOrEmpty(x.CreateDate.ToString()) && x.CreateDate.Value.ToString("yyyy/MM/dd HH:mm").Contains(searchText))
-                            || (!string.IsNullOrEmpty(x.UpdateDate.ToString()) && x.UpdateDate.Value.ToString("yyyy/MM/dd HH:mm").Contains(searchText))
+                            || (x.BookingDate != null && x.BookingDate.ToString().Contains(searchText))
+                            || (!string.IsNullOrEmpty(x.BookingTime.ToString()) && x.BookingTime.ToString().Contains(searchText))
+                            || (x.CreateDate.HasValue && x.CreateDate.Value.ToString().Contains(searchText))
+                            || (x.UpdateDate.HasValue && x.UpdateDate.Value.ToString().Contains(searchText))
                         );
                 }
                 else if (cancelState == 1)
@@ -111,11 +111,11 @@ namespace NobatPlusDATA.DataLayer.Services
                             || (!string.IsNullOrEmpty(x.IsCancelled.ToString()) && x.IsCancelled.ToString().Contains(searchText))
                             || (!string.IsNullOrEmpty(x.Status.ToString()) && x.Status.ToString().Contains(searchText))
                             || (!string.IsNullOrEmpty(x.Description.ToString()) && x.Description.ToString().Contains(searchText))
-                            || (!string.IsNullOrEmpty(x.BookingDate.ToString()) && x.BookingDate.ToString("yyyy/MM/dd HH:mm").Contains(searchText))
-                            || (!string.IsNullOrEmpty(x.BookingTime.ToString()) && x.BookingTime.ToString("HH:mm").Contains(searchText))
-                            || (!string.IsNullOrEmpty(x.CreateDate.ToString()) && x.CreateDate.Value.ToString("yyyy/MM/dd HH:mm").Contains(searchText))
-                            || (!string.IsNullOrEmpty(x.UpdateDate.ToString()) && x.UpdateDate.Value.ToString("yyyy/MM/dd HH:mm").Contains(searchText))
-                        ));
+                            || (!string.IsNullOrEmpty(x.BookingDate.ToString()) && x.BookingDate.ToString().Contains(searchText))
+                            || (!string.IsNullOrEmpty(x.BookingTime.ToString()) && x.BookingTime.ToString().Contains(searchText))
+                            || (x.CreateDate.HasValue && x.CreateDate.Value.ToString().Contains(searchText))
+                            || (x.UpdateDate.HasValue && x.UpdateDate.Value.ToString().Contains(searchText))
+                            ));
                 }
                 else
                 {
@@ -129,10 +129,10 @@ namespace NobatPlusDATA.DataLayer.Services
                             || (!string.IsNullOrEmpty(x.IsCancelled.ToString()) && x.IsCancelled.ToString().Contains(searchText))
                             || (!string.IsNullOrEmpty(x.Status.ToString()) && x.Status.ToString().Contains(searchText))
                             || (!string.IsNullOrEmpty(x.Description.ToString()) && x.Description.ToString().Contains(searchText))
-                            || (!string.IsNullOrEmpty(x.BookingDate.ToString()) && x.BookingDate.ToString("yyyy/MM/dd HH:mm").Contains(searchText))
-                            || (!string.IsNullOrEmpty(x.BookingTime.ToString()) && x.BookingTime.ToString("HH:mm").Contains(searchText))
-                            || (!string.IsNullOrEmpty(x.CreateDate.ToString()) && x.CreateDate.Value.ToString("yyyy/MM/dd HH:mm").Contains(searchText))
-                            || (!string.IsNullOrEmpty(x.UpdateDate.ToString()) && x.UpdateDate.Value.ToString("yyyy/MM/dd HH:mm").Contains(searchText))
+                            || (!string.IsNullOrEmpty(x.BookingDate.ToString()) && x.BookingDate.ToString().Contains(searchText))
+                            || (!string.IsNullOrEmpty(x.BookingTime.ToString()) && x.BookingTime.ToString().Contains(searchText))
+                            || (x.CreateDate.HasValue && x.CreateDate.Value.ToString().Contains(searchText))
+                            || (x.UpdateDate.HasValue && x.UpdateDate.Value.ToString().Contains(searchText))
                         ));
                         
                     
@@ -173,10 +173,10 @@ namespace NobatPlusDATA.DataLayer.Services
                         || (!string.IsNullOrEmpty(x.IsCancelled.ToString()) && x.IsCancelled.ToString().Contains(searchText))
                         || (!string.IsNullOrEmpty(x.Status.ToString()) && x.Status.ToString().Contains(searchText))
                         || (!string.IsNullOrEmpty(x.Description.ToString()) && x.Description.ToString().Contains(searchText))
-                        || (!string.IsNullOrEmpty(x.BookingDate.ToString()) && x.BookingDate.ToString("yyyy/MM/dd HH:mm").Contains(searchText))
-                        || (!string.IsNullOrEmpty(x.BookingTime.ToString()) && x.BookingTime.ToString("HH:mm").Contains(searchText))
-                        || (!string.IsNullOrEmpty(x.CreateDate.ToString()) && x.CreateDate.Value.ToString("yyyy/MM/dd HH:mm").Contains(searchText))
-                        || (!string.IsNullOrEmpty(x.UpdateDate.ToString()) && x.UpdateDate.Value.ToString("yyyy/MM/dd HH:mm").Contains(searchText))
+                        || (!string.IsNullOrEmpty(x.BookingDate.ToString()) && x.BookingDate.ToString().Contains(searchText))
+                        || (!string.IsNullOrEmpty(x.BookingTime.ToString()) && x.BookingTime.ToString().Contains(searchText))
+                        || (x.CreateDate.HasValue && x.CreateDate.Value.ToString().Contains(searchText))
+                        || (x.UpdateDate.HasValue && x.UpdateDate.Value.ToString().Contains(searchText))
                     );
                 }
                 else if (cancelState == 1)
@@ -193,10 +193,11 @@ namespace NobatPlusDATA.DataLayer.Services
                         || (!string.IsNullOrEmpty(x.IsCancelled.ToString()) && x.IsCancelled.ToString().Contains(searchText))
                         || (!string.IsNullOrEmpty(x.Status.ToString()) && x.Status.ToString().Contains(searchText))
                         || (!string.IsNullOrEmpty(x.Description.ToString()) && x.Description.ToString().Contains(searchText))
-                        || (!string.IsNullOrEmpty(x.BookingDate.ToString()) && x.BookingDate.ToString("yyyy/MM/dd HH:mm").Contains(searchText))
-                        || (!string.IsNullOrEmpty(x.BookingTime.ToString()) && x.BookingTime.ToString("HH:mm").Contains(searchText))
-                        || (!string.IsNullOrEmpty(x.CreateDate.ToString()) && x.CreateDate.Value.ToString("yyyy/MM/dd HH:mm").Contains(searchText))
-                        || (!string.IsNullOrEmpty(x.UpdateDate.ToString()) && x.UpdateDate.Value.ToString("yyyy/MM/dd HH:mm").Contains(searchText))
+                        || (!string.IsNullOrEmpty(x.BookingDate.ToString()) && x.BookingDate.ToString().Contains(searchText))
+                        || (!string.IsNullOrEmpty(x.BookingTime.ToString()) && x.BookingTime.ToString().Contains(searchText))
+                        || (x.CreateDate.HasValue && x.CreateDate.Value.ToString().Contains(searchText))
+                        || (x.UpdateDate.HasValue && x.UpdateDate.Value.ToString().Contains(searchText))
+
                     ));
                 }
                 else
@@ -213,10 +214,10 @@ namespace NobatPlusDATA.DataLayer.Services
                         || (!string.IsNullOrEmpty(x.IsCancelled.ToString()) && x.IsCancelled.ToString().Contains(searchText))
                         || (!string.IsNullOrEmpty(x.Status.ToString()) && x.Status.ToString().Contains(searchText))
                         || (!string.IsNullOrEmpty(x.Description.ToString()) && x.Description.ToString().Contains(searchText))
-                        || (!string.IsNullOrEmpty(x.BookingDate.ToString()) && x.BookingDate.ToString("yyyy/MM/dd HH:mm").Contains(searchText))
-                        || (!string.IsNullOrEmpty(x.BookingTime.ToString()) && x.BookingTime.ToString("HH:mm").Contains(searchText))
-                        || (!string.IsNullOrEmpty(x.CreateDate.ToString()) && x.CreateDate.Value.ToString("yyyy/MM/dd HH:mm").Contains(searchText))
-                        || (!string.IsNullOrEmpty(x.UpdateDate.ToString()) && x.UpdateDate.Value.ToString("yyyy/MM/dd HH:mm").Contains(searchText))
+                        || (!string.IsNullOrEmpty(x.BookingDate.ToString()) && x.BookingDate.ToString().Contains(searchText))
+                        || (!string.IsNullOrEmpty(x.BookingTime.ToString()) && x.BookingTime.ToString().Contains(searchText))
+                        || (x.CreateDate.HasValue && x.CreateDate.Value.ToString().Contains(searchText))
+                        || (x.UpdateDate.HasValue && x.UpdateDate.Value.ToString().Contains(searchText))
                     ));
                }
                 results.TotalCount = query.Count();

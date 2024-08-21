@@ -90,11 +90,11 @@ namespace NobatPlusDATA.DataLayer.Services
                 }
 
                 query = query.Where(x =>
-                    (!string.IsNullOrEmpty(x.CreateDate.ToString()) && x.CreateDate.Value.ToString("yyyy/MM/dd HH:mm").Contains(searchText))
-                    || (!string.IsNullOrEmpty(x.UpdateDate.ToString()) && x.UpdateDate.Value.ToString("yyyy/MM/dd HH:mm").Contains(searchText))
+                   (x.CreateDate.HasValue && x.CreateDate.Value.ToString().Contains(searchText)) ||
+                   (x.UpdateDate.HasValue && x.UpdateDate.Value.ToString().Contains(searchText))
                     || (!string.IsNullOrEmpty(x.Description.ToString()) && x.Description.ToString().Contains(searchText))
                     || (!string.IsNullOrEmpty(x.ServiceName.ToString()) && x.ServiceName.ToString().Contains(searchText))
-                    || (!string.IsNullOrEmpty(x.Duration.ToString()) && x.Duration.ToString("HH:mm").Contains(searchText))
+                    || (!string.IsNullOrEmpty(x.Duration.ToString()) && x.Duration.ToString().Contains(searchText))
                 );
 
                 results.TotalCount = query.Count();
@@ -122,11 +122,11 @@ namespace NobatPlusDATA.DataLayer.Services
                 .Select(bs => bs.ServiceManagement)
                 .AsNoTracking()
                 .Where(x =>
-                    (!string.IsNullOrEmpty(x.CreateDate.ToString()) && x.CreateDate.Value.ToString("yyyy/MM/dd HH:mm").Contains(searchText))
-                    || (!string.IsNullOrEmpty(x.UpdateDate.ToString()) && x.UpdateDate.Value.ToString("yyyy/MM/dd HH:mm").Contains(searchText))
+                    (x.CreateDate.HasValue && x.CreateDate.Value.ToString().Contains(searchText)) ||
+                    (x.UpdateDate.HasValue && x.UpdateDate.Value.ToString().Contains(searchText))
                     || (!string.IsNullOrEmpty(x.Description.ToString()) && x.Description.ToString().Contains(searchText))
                     || (!string.IsNullOrEmpty(x.ServiceName.ToString()) && x.ServiceName.ToString().Contains(searchText))
-                    || (!string.IsNullOrEmpty(x.Duration.ToString()) && x.Duration.ToString("HH:mm").Contains(searchText))
+                    || (!string.IsNullOrEmpty(x.Duration.ToString()) && x.Duration.ToString().Contains(searchText))
                 );
 
                 results.TotalCount = query.Count();
@@ -154,11 +154,11 @@ namespace NobatPlusDATA.DataLayer.Services
                 .Select(bs => bs.ServiceManagement)
                 .AsNoTracking()
                 .Where(x =>
-                    (!string.IsNullOrEmpty(x.CreateDate.ToString()) && x.CreateDate.Value.ToString("yyyy/MM/dd HH:mm").Contains(searchText))
-                    || (!string.IsNullOrEmpty(x.UpdateDate.ToString()) && x.UpdateDate.Value.ToString("yyyy/MM/dd HH:mm").Contains(searchText))
+                    (x.CreateDate.HasValue && x.CreateDate.Value.ToString().Contains(searchText)) ||
+                    (x.UpdateDate.HasValue && x.UpdateDate.Value.ToString().Contains(searchText))
                     || (!string.IsNullOrEmpty(x.Description.ToString()) && x.Description.ToString().Contains(searchText))
                     || (!string.IsNullOrEmpty(x.ServiceName.ToString()) && x.ServiceName.ToString().Contains(searchText))
-                    || (!string.IsNullOrEmpty(x.Duration.ToString()) && x.Duration.ToString("HH:mm").Contains(searchText))
+                    || (!string.IsNullOrEmpty(x.Duration.ToString()) && x.Duration.ToString().Contains(searchText))
                 );
 
                 results.TotalCount = query.Count();
@@ -186,11 +186,11 @@ namespace NobatPlusDATA.DataLayer.Services
                 .Select(bs => bs.ServiceManagement)
                 .AsNoTracking()
                 .Where(x =>
-                    (!string.IsNullOrEmpty(x.CreateDate.ToString()) && x.CreateDate.Value.ToString("yyyy/MM/dd HH:mm").Contains(searchText))
-                    || (!string.IsNullOrEmpty(x.UpdateDate.ToString()) && x.UpdateDate.Value.ToString("yyyy/MM/dd HH:mm").Contains(searchText))
+                    (x.CreateDate.HasValue && x.CreateDate.Value.ToString().Contains(searchText)) ||
+                    (x.UpdateDate.HasValue && x.UpdateDate.Value.ToString().Contains(searchText))
                     || (!string.IsNullOrEmpty(x.Description.ToString()) && x.Description.ToString().Contains(searchText))
                     || (!string.IsNullOrEmpty(x.ServiceName.ToString()) && x.ServiceName.ToString().Contains(searchText))
-                    || (!string.IsNullOrEmpty(x.Duration.ToString()) && x.Duration.ToString("HH:mm").Contains(searchText))
+                    || (!string.IsNullOrEmpty(x.Duration.ToString()) && x.Duration.ToString().Contains(searchText))
                 );
 
                 results.TotalCount = query.Count();

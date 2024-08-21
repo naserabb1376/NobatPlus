@@ -91,11 +91,11 @@ namespace NobatPlusDATA.DataLayer.Services
                             (!string.IsNullOrEmpty(x.Stylist.Person.FirstName.ToString()) && x.Stylist.Person.FirstName.ToString().Contains(searchText)) ||
                             (!string.IsNullOrEmpty(x.Stylist.Person.LastName.ToString()) && x.Stylist.Person.LastName.ToString().Contains(searchText)) ||
                             (!string.IsNullOrEmpty(x.Stylist.Specialty.ToString()) && x.Stylist.Specialty.ToString().Contains(searchText)) ||
-                            (!string.IsNullOrEmpty(x.Time.ToString()) && x.Time.ToString("HH:mm").Contains(searchText)) ||
+                            (!string.IsNullOrEmpty(x.Time.ToString()) && x.Time.ToString().Contains(searchText)) ||
                             (!string.IsNullOrEmpty(x.Description.ToString()) && x.Description.ToString().Contains(searchText)) ||
-                            (!string.IsNullOrEmpty(x.Date.ToString()) && x.Date.ToString("yyyy/MM/dd HH:mm").Contains(searchText)) ||
-                            (!string.IsNullOrEmpty(x.CreateDate.ToString()) && x.CreateDate.Value.ToString("yyyy/MM/dd HH:mm").Contains(searchText)) ||
-                            (!string.IsNullOrEmpty(x.UpdateDate.ToString()) && x.UpdateDate.Value.ToString("yyyy/MM/dd HH:mm").Contains(searchText))
+                            (!string.IsNullOrEmpty(x.Date.ToString()) && x.Date.ToString().Contains(searchText)) ||
+                            (x.CreateDate.HasValue && x.CreateDate.Value.ToString().Contains(searchText)) ||
+                            (x.UpdateDate.HasValue && x.UpdateDate.Value.ToString().Contains(searchText))
                         );
                 }
                 else
@@ -109,11 +109,11 @@ namespace NobatPlusDATA.DataLayer.Services
                                 (!string.IsNullOrEmpty(x.Stylist.Person.FirstName.ToString()) && x.Stylist.Person.FirstName.ToString().Contains(searchText)) ||
                                 (!string.IsNullOrEmpty(x.Stylist.Person.LastName.ToString()) && x.Stylist.Person.LastName.ToString().Contains(searchText)) ||
                                 (!string.IsNullOrEmpty(x.Stylist.Specialty.ToString()) && x.Stylist.Specialty.ToString().Contains(searchText)) ||
-                                (!string.IsNullOrEmpty(x.Time.ToString()) && x.Time.ToString("HH:mm").Contains(searchText)) ||
+                                (!string.IsNullOrEmpty(x.Time.ToString()) && x.Time.ToString().Contains(searchText)) ||
                                 (!string.IsNullOrEmpty(x.Description.ToString()) && x.Description.ToString().Contains(searchText)) ||
-                                (!string.IsNullOrEmpty(x.Date.ToString()) && x.Date.ToString("yyyy/MM/dd HH:mm").Contains(searchText)) ||
-                                (!string.IsNullOrEmpty(x.CreateDate.ToString()) && x.CreateDate.Value.ToString("yyyy/MM/dd HH:mm").Contains(searchText)) ||
-                                (!string.IsNullOrEmpty(x.UpdateDate.ToString()) && x.UpdateDate.Value.ToString("yyyy/MM/dd HH:mm").Contains(searchText))
+                                (!string.IsNullOrEmpty(x.Date.ToString()) && x.Date.ToString().Contains(searchText)) ||
+                                (x.CreateDate.HasValue && x.CreateDate.Value.ToString().Contains(searchText)) ||
+                                (x.UpdateDate.HasValue && x.UpdateDate.Value.ToString().Contains(searchText))
                             )
                         );
                 }

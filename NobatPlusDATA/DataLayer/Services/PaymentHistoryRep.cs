@@ -91,9 +91,9 @@ namespace NobatPlusDATA.DataLayer.Services
                              (!string.IsNullOrEmpty(x.PaymentMethod) && x.PaymentMethod.Contains(searchText)) ||
                              (!string.IsNullOrEmpty(x.Description) && x.Description.Contains(searchText)) ||
                              (!string.IsNullOrEmpty(x.Amount.ToString()) && x.Amount.ToString().Contains(searchText)) ||
-                             (!string.IsNullOrEmpty(x.PaymentDate.ToString()) && x.PaymentDate.ToString("yyyy/MM/dd HH:mm").Contains(searchText)) ||
-                             (x.CreateDate.HasValue && x.CreateDate.Value.ToString("yyyy/MM/dd HH:mm").Contains(searchText)) ||
-                             (x.UpdateDate.HasValue && x.UpdateDate.Value.ToString("yyyy/MM/dd HH:mm").Contains(searchText))
+                             (!string.IsNullOrEmpty(x.PaymentDate.ToString()) && x.PaymentDate.ToString().Contains(searchText)) ||
+                             (x.CreateDate.HasValue && x.CreateDate.Value.ToString().Contains(searchText)) ||
+                             (x.UpdateDate.HasValue && x.UpdateDate.Value.ToString().Contains(searchText))
                          );
                 }
                 else
@@ -106,9 +106,9 @@ namespace NobatPlusDATA.DataLayer.Services
                                 (!string.IsNullOrEmpty(x.PaymentMethod) && x.PaymentMethod.Contains(searchText)) ||
                                 (!string.IsNullOrEmpty(x.Description) && x.Description.Contains(searchText)) ||
                                 (!string.IsNullOrEmpty(x.Amount.ToString()) && x.Amount.ToString().Contains(searchText)) ||
-                                (!string.IsNullOrEmpty(x.PaymentDate.ToString()) && x.PaymentDate.ToString("yyyy/MM/dd HH:mm").Contains(searchText)) ||
-                                (x.CreateDate.HasValue && x.CreateDate.Value.ToString("yyyy/MM/dd HH:mm").Contains(searchText)) ||
-                                (x.UpdateDate.HasValue && x.UpdateDate.Value.ToString("yyyy/MM/dd HH:mm").Contains(searchText))
+                                (!string.IsNullOrEmpty(x.PaymentDate.ToString()) && x.PaymentDate.ToString().Contains(searchText)) ||
+                                (x.CreateDate.HasValue && x.CreateDate.Value.ToString().Contains(searchText)) ||
+                                (x.UpdateDate.HasValue && x.UpdateDate.Value.ToString().Contains(searchText))
                             )
                         );
                 }

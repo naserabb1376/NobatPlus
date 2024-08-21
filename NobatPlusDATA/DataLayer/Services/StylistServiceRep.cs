@@ -85,7 +85,7 @@ namespace NobatPlusDATA.DataLayer.Services
                 .Where(x =>
                     (!string.IsNullOrEmpty(x.ServiceManagement.ServiceName) && x.ServiceManagement.ServiceName.Contains(searchText)) ||
                     (!string.IsNullOrEmpty(x.ServiceManagement.Description) && x.ServiceManagement.Description.Contains(searchText)) ||
-                    (!string.IsNullOrEmpty(x.ServiceManagement.Duration.ToString("HH:mm")) && x.ServiceManagement.Duration.ToString("HH:mm").Contains(searchText)) ||
+                    (!string.IsNullOrEmpty(x.ServiceManagement.Duration.ToString()) && x.ServiceManagement.Duration.ToString().Contains(searchText)) ||
                     (!string.IsNullOrEmpty(x.Stylist.Specialty) && x.Stylist.Specialty.Contains(searchText)) ||
                     (!string.IsNullOrEmpty(x.Stylist.Person.FirstName) && x.Stylist.Person.FirstName.Contains(searchText)) ||
                     (!string.IsNullOrEmpty(x.Stylist.Person.LastName) && x.Stylist.Person.LastName.Contains(searchText))

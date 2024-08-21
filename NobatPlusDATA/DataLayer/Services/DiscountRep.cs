@@ -94,10 +94,10 @@ namespace NobatPlusDATA.DataLayer.Services
                                 (!string.IsNullOrEmpty(x.DiscountCode) && x.DiscountCode.Contains(searchText)) ||
                                 (!string.IsNullOrEmpty(x.DiscountAmount.ToString()) && x.DiscountAmount.ToString().Contains(searchText)) ||
                                 (!string.IsNullOrEmpty(x.Description) && x.Description.Contains(searchText)) ||
-                                (!string.IsNullOrEmpty(x.StartDate.ToString()) && x.StartDate.ToString("yyyy/MM/dd HH:mm").Contains(searchText)) ||
-                                (!string.IsNullOrEmpty(x.EndDate.ToString()) && x.EndDate.ToString("yyyy/MM/dd HH:mm").Contains(searchText)) ||
-                                (!string.IsNullOrEmpty(x.CreateDate.ToString()) && x.CreateDate.Value.ToString("yyyy/MM/dd HH:mm").Contains(searchText)) ||
-                                (!string.IsNullOrEmpty(x.UpdateDate.ToString()) && x.UpdateDate.Value.ToString("yyyy/MM/dd HH:mm").Contains(searchText))
+                                (!string.IsNullOrEmpty(x.StartDate.ToString()) && x.StartDate.ToString().Contains(searchText)) ||
+                                (!string.IsNullOrEmpty(x.EndDate.ToString()) && x.EndDate.ToString().Contains(searchText)) ||
+                                (x.CreateDate.HasValue && x.CreateDate.Value.ToString().Contains(searchText)) ||
+                                (x.UpdateDate.HasValue && x.UpdateDate.Value.ToString().Contains(searchText))
                             );
                         break;
                     case DiscountType.Admin:
@@ -109,10 +109,10 @@ namespace NobatPlusDATA.DataLayer.Services
                                 (!string.IsNullOrEmpty(x.DiscountCode) && x.DiscountCode.Contains(searchText)) ||
                                 (!string.IsNullOrEmpty(x.DiscountAmount.ToString()) && x.DiscountAmount.ToString().Contains(searchText)) ||
                                 (!string.IsNullOrEmpty(x.Description) && x.Description.Contains(searchText)) ||
-                                (!string.IsNullOrEmpty(x.StartDate.ToString()) && x.StartDate.ToString("yyyy/MM/dd HH:mm").Contains(searchText)) ||
-                                (!string.IsNullOrEmpty(x.EndDate.ToString()) && x.EndDate.ToString("yyyy/MM/dd HH:mm").Contains(searchText)) ||
-                                (!string.IsNullOrEmpty(x.CreateDate.ToString()) && x.CreateDate.Value.ToString("yyyy/MM/dd HH:mm").Contains(searchText)) ||
-                                (!string.IsNullOrEmpty(x.UpdateDate.ToString()) && x.UpdateDate.Value.ToString("yyyy/MM/dd HH:mm").Contains(searchText))
+                                (!string.IsNullOrEmpty(x.StartDate.ToString()) && x.StartDate.ToString().Contains(searchText)) ||
+                                (!string.IsNullOrEmpty(x.EndDate.ToString()) && x.EndDate.ToString().Contains(searchText)) ||
+                                (x.CreateDate.HasValue && x.CreateDate.Value.ToString().Contains(searchText)) ||
+                                (x.UpdateDate.HasValue && x.UpdateDate.Value.ToString().Contains(searchText))
                             );
                         break;
                     case DiscountType.Customer:
@@ -124,10 +124,10 @@ namespace NobatPlusDATA.DataLayer.Services
                                 (!string.IsNullOrEmpty(x.DiscountCode) && x.DiscountCode.Contains(searchText)) ||
                                 (!string.IsNullOrEmpty(x.DiscountAmount.ToString()) && x.DiscountAmount.ToString().Contains(searchText)) ||
                                 (!string.IsNullOrEmpty(x.Description) && x.Description.Contains(searchText)) ||
-                                (!string.IsNullOrEmpty(x.StartDate.ToString()) && x.StartDate.ToString("yyyy/MM/dd HH:mm").Contains(searchText)) ||
-                                (!string.IsNullOrEmpty(x.EndDate.ToString()) && x.EndDate.ToString("yyyy/MM/dd HH:mm").Contains(searchText)) ||
-                                (!string.IsNullOrEmpty(x.CreateDate.ToString()) && x.CreateDate.Value.ToString("yyyy/MM/dd HH:mm").Contains(searchText)) ||
-                                (!string.IsNullOrEmpty(x.UpdateDate.ToString()) && x.UpdateDate.Value.ToString("yyyy/MM/dd HH:mm").Contains(searchText))
+                                (!string.IsNullOrEmpty(x.StartDate.ToString()) && x.StartDate.ToString().Contains(searchText)) ||
+                                (!string.IsNullOrEmpty(x.EndDate.ToString()) && x.EndDate.ToString().Contains(searchText)) ||
+                                (x.CreateDate.HasValue && x.CreateDate.Value.ToString().Contains(searchText)) ||
+                                (x.UpdateDate.HasValue && x.UpdateDate.Value.ToString().Contains(searchText))
                             );
                         break;
                     case DiscountType.Stylist:
@@ -139,10 +139,10 @@ namespace NobatPlusDATA.DataLayer.Services
                                 (!string.IsNullOrEmpty(x.DiscountCode) && x.DiscountCode.Contains(searchText)) ||
                                 (!string.IsNullOrEmpty(x.DiscountAmount.ToString()) && x.DiscountAmount.ToString().Contains(searchText)) ||
                                 (!string.IsNullOrEmpty(x.Description) && x.Description.Contains(searchText)) ||
-                                (!string.IsNullOrEmpty(x.StartDate.ToString()) && x.StartDate.ToString("yyyy/MM/dd HH:mm").Contains(searchText)) ||
-                                (!string.IsNullOrEmpty(x.EndDate.ToString()) && x.EndDate.ToString("yyyy/MM/dd HH:mm").Contains(searchText)) ||
-                                (!string.IsNullOrEmpty(x.CreateDate.ToString()) && x.CreateDate.Value.ToString("yyyy/MM/dd HH:mm").Contains(searchText)) ||
-                                (!string.IsNullOrEmpty(x.UpdateDate.ToString()) && x.UpdateDate.Value.ToString("yyyy/MM/dd HH:mm").Contains(searchText))
+                                (!string.IsNullOrEmpty(x.StartDate.ToString()) && x.StartDate.ToString().Contains(searchText)) ||
+                                (!string.IsNullOrEmpty(x.EndDate.ToString()) && x.EndDate.ToString().Contains(searchText)) ||
+                                (x.CreateDate.HasValue && x.CreateDate.Value.ToString().Contains(searchText)) ||
+                                (x.UpdateDate.HasValue && x.UpdateDate.Value.ToString().Contains(searchText))
                             );
                         break;
                     case DiscountType.StylistCustomer:
@@ -154,10 +154,10 @@ namespace NobatPlusDATA.DataLayer.Services
                                 (!string.IsNullOrEmpty(x.DiscountCode) && x.DiscountCode.Contains(searchText)) ||
                                 (!string.IsNullOrEmpty(x.DiscountAmount.ToString()) && x.DiscountAmount.ToString().Contains(searchText)) ||
                                 (!string.IsNullOrEmpty(x.Description) && x.Description.Contains(searchText)) ||
-                                (!string.IsNullOrEmpty(x.StartDate.ToString()) && x.StartDate.ToString("yyyy/MM/dd HH:mm").Contains(searchText)) ||
-                                (!string.IsNullOrEmpty(x.EndDate.ToString()) && x.EndDate.ToString("yyyy/MM/dd HH:mm").Contains(searchText)) ||
-                                (!string.IsNullOrEmpty(x.CreateDate.ToString()) && x.CreateDate.Value.ToString("yyyy/MM/dd HH:mm").Contains(searchText)) ||
-                                (!string.IsNullOrEmpty(x.UpdateDate.ToString()) && x.UpdateDate.Value.ToString("yyyy/MM/dd HH:mm").Contains(searchText))
+                                (!string.IsNullOrEmpty(x.StartDate.ToString()) && x.StartDate.ToString().Contains(searchText)) ||
+                                (!string.IsNullOrEmpty(x.EndDate.ToString()) && x.EndDate.ToString().Contains(searchText)) ||
+                                (x.CreateDate.HasValue && x.CreateDate.Value.ToString().Contains(searchText)) ||
+                                (x.UpdateDate.HasValue && x.UpdateDate.Value.ToString().Contains(searchText))
                             );
                         break;
                     case DiscountType.Service:
@@ -169,10 +169,10 @@ namespace NobatPlusDATA.DataLayer.Services
                                 (!string.IsNullOrEmpty(x.DiscountCode) && x.DiscountCode.Contains(searchText)) ||
                                 (!string.IsNullOrEmpty(x.DiscountAmount.ToString()) && x.DiscountAmount.ToString().Contains(searchText)) ||
                                 (!string.IsNullOrEmpty(x.Description) && x.Description.Contains(searchText)) ||
-                                (!string.IsNullOrEmpty(x.StartDate.ToString()) && x.StartDate.ToString("yyyy/MM/dd HH:mm").Contains(searchText)) ||
-                                (!string.IsNullOrEmpty(x.EndDate.ToString()) && x.EndDate.ToString("yyyy/MM/dd HH:mm").Contains(searchText)) ||
-                                (!string.IsNullOrEmpty(x.CreateDate.ToString()) && x.CreateDate.Value.ToString("yyyy/MM/dd HH:mm").Contains(searchText)) ||
-                                (!string.IsNullOrEmpty(x.UpdateDate.ToString()) && x.UpdateDate.Value.ToString("yyyy/MM/dd HH:mm").Contains(searchText))
+                                (!string.IsNullOrEmpty(x.StartDate.ToString()) && x.StartDate.ToString().Contains(searchText)) ||
+                                (!string.IsNullOrEmpty(x.EndDate.ToString()) && x.EndDate.ToString().Contains(searchText)) ||
+                                (x.CreateDate.HasValue && x.CreateDate.Value.ToString().Contains(searchText)) ||
+                                (x.UpdateDate.HasValue && x.UpdateDate.Value.ToString().Contains(searchText))
                             );
                         break;
                     case DiscountType.AdminService:
@@ -184,10 +184,10 @@ namespace NobatPlusDATA.DataLayer.Services
                                 (!string.IsNullOrEmpty(x.DiscountCode) && x.DiscountCode.Contains(searchText)) ||
                                 (!string.IsNullOrEmpty(x.DiscountAmount.ToString()) && x.DiscountAmount.ToString().Contains(searchText)) ||
                                 (!string.IsNullOrEmpty(x.Description) && x.Description.Contains(searchText)) ||
-                                (!string.IsNullOrEmpty(x.StartDate.ToString()) && x.StartDate.ToString("yyyy/MM/dd HH:mm").Contains(searchText)) ||
-                                (!string.IsNullOrEmpty(x.EndDate.ToString()) && x.EndDate.ToString("yyyy/MM/dd HH:mm").Contains(searchText)) ||
-                                (!string.IsNullOrEmpty(x.CreateDate.ToString()) && x.CreateDate.Value.ToString("yyyy/MM/dd HH:mm").Contains(searchText)) ||
-                                (!string.IsNullOrEmpty(x.UpdateDate.ToString()) && x.UpdateDate.Value.ToString("yyyy/MM/dd HH:mm").Contains(searchText))
+                                (!string.IsNullOrEmpty(x.StartDate.ToString()) && x.StartDate.ToString().Contains(searchText)) ||
+                                (!string.IsNullOrEmpty(x.EndDate.ToString()) && x.EndDate.ToString().Contains(searchText)) ||
+                                (x.CreateDate.HasValue && x.CreateDate.Value.ToString().Contains(searchText)) ||
+                                (x.UpdateDate.HasValue && x.UpdateDate.Value.ToString().Contains(searchText))
                             );
                         break;
                     case DiscountType.StylistService:
@@ -199,10 +199,10 @@ namespace NobatPlusDATA.DataLayer.Services
                                 (!string.IsNullOrEmpty(x.DiscountCode) && x.DiscountCode.Contains(searchText)) ||
                                 (!string.IsNullOrEmpty(x.DiscountAmount.ToString()) && x.DiscountAmount.ToString().Contains(searchText)) ||
                                 (!string.IsNullOrEmpty(x.Description) && x.Description.Contains(searchText)) ||
-                                (!string.IsNullOrEmpty(x.StartDate.ToString()) && x.StartDate.ToString("yyyy/MM/dd HH:mm").Contains(searchText)) ||
-                                (!string.IsNullOrEmpty(x.EndDate.ToString()) && x.EndDate.ToString("yyyy/MM/dd HH:mm").Contains(searchText)) ||
-                                (!string.IsNullOrEmpty(x.CreateDate.ToString()) && x.CreateDate.Value.ToString("yyyy/MM/dd HH:mm").Contains(searchText)) ||
-                                (!string.IsNullOrEmpty(x.UpdateDate.ToString()) && x.UpdateDate.Value.ToString("yyyy/MM/dd HH:mm").Contains(searchText))
+                                (!string.IsNullOrEmpty(x.StartDate.ToString()) && x.StartDate.ToString().Contains(searchText)) ||
+                                (!string.IsNullOrEmpty(x.EndDate.ToString()) && x.EndDate.ToString().Contains(searchText)) ||
+                                (x.CreateDate.HasValue && x.CreateDate.Value.ToString().Contains(searchText)) ||
+                                (x.UpdateDate.HasValue && x.UpdateDate.Value.ToString().Contains(searchText))
                             );
                         break;
                 }

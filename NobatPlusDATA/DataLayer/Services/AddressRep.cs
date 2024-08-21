@@ -88,8 +88,8 @@ namespace NobatPlusDATA.DataLayer.Services
         (!string.IsNullOrEmpty(x.State.ToString()) && x.State.ToString().Contains(searchText)) ||
         (!string.IsNullOrEmpty(x.Description.ToString()) && x.Description.ToString().Contains(searchText)) ||
         (!string.IsNullOrEmpty(x.AddressStreet.ToString()) && x.AddressStreet.ToString().Contains(searchText)) ||
-        (!string.IsNullOrEmpty(x.CreateDate.ToString()) && x.CreateDate.Value.ToString("yyyy/MM/dd HH:mm").Contains(searchText)) ||
-        (!string.IsNullOrEmpty(x.UpdateDate.ToString()) && x.UpdateDate.Value.ToString("yyyy/MM/dd HH:mm").Contains(searchText))
+        (x.CreateDate.HasValue && x.CreateDate.Value.ToString().Contains(searchText)) ||
+        (x.UpdateDate.HasValue && x.UpdateDate.Value.ToString().Contains(searchText))
     );
                 results.TotalCount = query.Count();
                 results.PageCount = DbTools.GetPageCount(results.TotalCount, pageSize);

@@ -1,4 +1,5 @@
 ﻿using Domain;
+using Domains;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -8,6 +9,7 @@ using NobatPlusAPI.RequestObjects;
 using NobatPlusAPI.RequestObjects.JobType;
 using NobatPlusAPI.RequestObjects.Public;
 using NobatPlusDATA.DataLayer.Repositories;
+using NobatPlusDATA.DataLayer.Services;
 using NobatPlusDATA.Domain;
 using NobatPlusDATA.ResultObjects;
 using NobatPlusDATA.Tools;
@@ -25,6 +27,7 @@ namespace NobatPlusAPI.Controllers
     public class JobTypeController : ControllerBase
     {
         IJobTypeRep _jobTypeRep;
+        ILogRep _logRep;
 
         public JobTypeController(IJobTypeRep jobTypeRep)
         {
@@ -78,6 +81,21 @@ namespace NobatPlusAPI.Controllers
             var result = await _jobTypeRep.AddJobTypeAsync(jobType);
             if (result.Status)
             {
+                #region AddLog
+
+                Log log = new Log()
+                {
+                    CreateDate = DateTime.Now.ToShamsi(),
+                    UpdateDate = DateTime.Now.ToShamsi(),
+                    LogTime = DateTime.Now.ToShamsi(),
+                    ActionName = this.ControllerContext.RouteData.Values["action"].ToString(),
+
+                };
+                result = await _logRep.AddLogAsync(log);
+
+                #endregion
+
+
                 return Ok(result);
             }
             return BadRequest(result);
@@ -97,6 +115,21 @@ namespace NobatPlusAPI.Controllers
             var result = await _jobTypeRep.EditJobTypeAsync(jobType);
             if (result.Status)
             {
+
+                #region AddLog
+
+                Log log = new Log()
+                {
+                    CreateDate = DateTime.Now.ToShamsi(),
+                    UpdateDate = DateTime.Now.ToShamsi(),
+                    LogTime = DateTime.Now.ToShamsi(),
+                    ActionName = this.ControllerContext.RouteData.Values["action"].ToString(),
+
+                };
+                await _logRep.AddLogAsync(log);
+
+                #endregion
+
                 return Ok(result);
             }
             return BadRequest(result);
@@ -108,6 +141,21 @@ namespace NobatPlusAPI.Controllers
             var result = await _jobTypeRep.RemoveJobTypeAsync(requestBody.ID);
             if (result.Status)
             {
+
+                #region AddLog
+
+                Log log = new Log()
+                {
+                    CreateDate = DateTime.Now.ToShamsi(),
+                    UpdateDate = DateTime.Now.ToShamsi(),
+                    LogTime = DateTime.Now.ToShamsi(),
+                    ActionName = this.ControllerContext.RouteData.Values["action"].ToString(),
+
+                };
+                await _logRep.AddLogAsync(log);
+
+                #endregion
+
                 return Ok(result);
             }
             return BadRequest(result);
