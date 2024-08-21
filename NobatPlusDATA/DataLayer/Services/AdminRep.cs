@@ -6,6 +6,7 @@ using NobatPlusDATA.ResultObjects;
 using NobatPlusDATA.Tools;
 using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Linq;
 using System.Reflection.Metadata;
 using System.Text;
@@ -72,7 +73,7 @@ namespace NobatPlusDATA.DataLayer.Services
             return result;
         }
 
-        public async Task<ListResultObject<Admin>> GetAllAdminsAsync(int pageIndex = 1, int pageSize = 20, string searchText = "")
+        public async Task<ListResultObject<Admin>> GetAllAdminsAsync(string role = "", int pageIndex = 1, int pageSize = 20, string searchText = "")
         {
             ListResultObject<Admin> results = new ListResultObject<Admin>();
             try
@@ -81,7 +82,8 @@ namespace NobatPlusDATA.DataLayer.Services
                 .Include(x => x.Person)
                 .AsNoTracking()
                 .Where(x =>
-                    (!string.IsNullOrEmpty(x.Person.FirstName) && x.Person.FirstName.Contains(searchText)) ||
+                    (!string.IsNullOrEmpty(role) && x.Role == role) &&
+                    ((!string.IsNullOrEmpty(x.Person.FirstName) && x.Person.FirstName.Contains(searchText)) ||
                     (!string.IsNullOrEmpty(x.Person.LastName) && x.Person.LastName.Contains(searchText)) ||
                     (!string.IsNullOrEmpty(x.Person.NaCode) && x.Person.NaCode.Contains(searchText)) ||
                     (!string.IsNullOrEmpty(x.Person.PhoneNumber) && x.Person.PhoneNumber.Contains(searchText)) ||
@@ -89,9 +91,10 @@ namespace NobatPlusDATA.DataLayer.Services
                     (!string.IsNullOrEmpty(x.Person.Description) && x.Person.Description.Contains(searchText)) ||
                     (x.Person.DateOfBirth.HasValue && x.Person.DateOfBirth.Value.ToString().Contains(searchText)) ||
                     (!string.IsNullOrEmpty(x.Description) && x.Description.Contains(searchText)) ||
+                    (!string.IsNullOrEmpty(x.Role) && x.Role.Contains(searchText)) ||
                     (x.CreateDate.HasValue && x.CreateDate.Value.ToString().Contains(searchText)) ||
                     (x.UpdateDate.HasValue && x.UpdateDate.Value.ToString().Contains(searchText))
-                );
+                ));
                 results.TotalCount = query.Count();
                 results.PageCount = DbTools.GetPageCount(results.TotalCount, pageSize);
                 results.Results = await query.OrderByDescending(x => x.CreateDate)
@@ -106,7 +109,7 @@ namespace NobatPlusDATA.DataLayer.Services
             return results;
         }
 
-        public async Task<ListResultObject<Admin>> GetAdminsOfDiscountAsync(long discountId, int pageIndex = 1, int pageSize = 20, string searchText = "")
+        public async Task<ListResultObject<Admin>> GetAdminsOfDiscountAsync(long discountId, string role = "", int pageIndex = 1, int pageSize = 20, string searchText = "")
         {
             ListResultObject<Admin> results = new ListResultObject<Admin>();
             try
@@ -117,7 +120,8 @@ namespace NobatPlusDATA.DataLayer.Services
                 .Include(x => x.Person)
                 .AsNoTracking()
                 .Where(x =>
-                    (!string.IsNullOrEmpty(x.Person.FirstName) && x.Person.FirstName.Contains(searchText)) ||
+                    (!string.IsNullOrEmpty(role) && x.Role == role) &&
+                    ((!string.IsNullOrEmpty(x.Person.FirstName) && x.Person.FirstName.Contains(searchText)) ||
                     (!string.IsNullOrEmpty(x.Person.LastName) && x.Person.LastName.Contains(searchText)) ||
                     (!string.IsNullOrEmpty(x.Person.NaCode) && x.Person.NaCode.Contains(searchText)) ||
                     (!string.IsNullOrEmpty(x.Person.PhoneNumber) && x.Person.PhoneNumber.Contains(searchText)) ||
@@ -125,10 +129,11 @@ namespace NobatPlusDATA.DataLayer.Services
                     (!string.IsNullOrEmpty(x.Person.Description) && x.Person.Description.Contains(searchText)) ||
                     (x.Person.DateOfBirth.HasValue && x.Person.DateOfBirth.Value.ToString().Contains(searchText)) ||
                     (!string.IsNullOrEmpty(x.Description) && x.Description.Contains(searchText)) ||
+                    (!string.IsNullOrEmpty(x.Role) && x.Role.Contains(searchText)) ||
                     (x.CreateDate.HasValue && x.CreateDate.Value.ToString().Contains(searchText)) ||
                     (x.UpdateDate.HasValue && x.UpdateDate.Value.ToString().Contains(searchText))
 
-                );
+                ));
 
                 var query2 = _context.ServiceDiscounts
                 .Where(bs => bs.DiscountId == discountId)
@@ -136,7 +141,8 @@ namespace NobatPlusDATA.DataLayer.Services
                 .Include(x => x.Person)
                 .AsNoTracking()
                 .Where(x =>
-                    (!string.IsNullOrEmpty(x.Person.FirstName) && x.Person.FirstName.Contains(searchText)) ||
+                    (!string.IsNullOrEmpty(role) && x.Role == role) &&
+                    ((!string.IsNullOrEmpty(x.Person.FirstName) && x.Person.FirstName.Contains(searchText)) ||
                     (!string.IsNullOrEmpty(x.Person.LastName) && x.Person.LastName.Contains(searchText)) ||
                     (!string.IsNullOrEmpty(x.Person.NaCode) && x.Person.NaCode.Contains(searchText)) ||
                     (!string.IsNullOrEmpty(x.Person.PhoneNumber) && x.Person.PhoneNumber.Contains(searchText)) ||
@@ -144,9 +150,11 @@ namespace NobatPlusDATA.DataLayer.Services
                     (!string.IsNullOrEmpty(x.Person.Description) && x.Person.Description.Contains(searchText)) ||
                     (x.Person.DateOfBirth.HasValue && x.Person.DateOfBirth.Value.ToString().Contains(searchText)) ||
                     (!string.IsNullOrEmpty(x.Description) && x.Description.Contains(searchText)) ||
+                    (!string.IsNullOrEmpty(x.Role) && x.Role.Contains(searchText)) ||
                     (x.CreateDate.HasValue && x.CreateDate.Value.ToString().Contains(searchText)) ||
                     (x.UpdateDate.HasValue && x.UpdateDate.Value.ToString().Contains(searchText))
-                );
+
+                ));
 
                 var query = query1.Union(query2);
                 results.TotalCount = query.Count();

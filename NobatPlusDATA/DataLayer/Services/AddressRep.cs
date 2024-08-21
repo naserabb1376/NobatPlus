@@ -78,7 +78,7 @@ namespace NobatPlusDATA.DataLayer.Services
             try
             {
                 var query = _context.Addresses
-    .AsNoTracking()
+    .AsNoTracking().Include(x=> x.City)
     .Where(x =>
         (!string.IsNullOrEmpty(x.City.CityName.ToString()) && x.City.CityName.ToString().Contains(searchText)) ||
         (!string.IsNullOrEmpty(x.AddressLocationHorizentalPoint.ToString()) && x.AddressLocationHorizentalPoint.ToString().Contains(searchText)) ||
