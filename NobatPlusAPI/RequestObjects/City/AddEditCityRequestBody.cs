@@ -10,7 +10,7 @@ namespace NobatPlusAPI.RequestObjects.City
         [Display(Name = "نام شهر")]
         [Required(ErrorMessage = "لطفا {0} را انتخاب کنید")]
         public string CityName { get; set; }
-        public long ParentId { get; set; } = 0; 
+        public long ParentId { get; set; } = -1; 
         public string? Description { get; set; }
 
     }

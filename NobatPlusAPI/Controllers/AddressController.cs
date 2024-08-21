@@ -7,7 +7,6 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 using NobatPlusAPI.RequestObjects;
 using NobatPlusAPI.RequestObjects.Authenticate;
-using NobatPlusAPI.RequestObjects.JobType;
 using NobatPlusAPI.RequestObjects.Public;
 using NobatPlusDATA.DataLayer.Repositories;
 using NobatPlusDATA.DataLayer.Services;
@@ -20,30 +19,30 @@ using System.Text;
 
 namespace NobatPlusAPI.Controllers
 {
-    [Route("jobtype")]
+    [Route("Address")]
     [ApiController]
     [Authorize]
     [Produces("application/json")]
 
-    public class JobTypeController : ControllerBase
+    public class AddressController : ControllerBase
     {
-        IJobTypeRep _jobTypeRep;
+        IAddressRep _AddressRep;
         ILogRep _logRep;
 
-        public JobTypeController(IJobTypeRep jobTypeRep,ILogRep logRep)
+        public AddressController(IAddressRep AddressRep,ILogRep logRep)
         {
-           _jobTypeRep = jobTypeRep;
-           _logRep = logRep;
+           _AddressRep = AddressRep;
+            _logRep = logRep;
         }
 
-        [HttpPost("GetAllJobTypes_Base")]
-        public async Task<ActionResult<ListResultObject<JobType>>> GetAllJobTypes_Base(GetJobTypeListRequestBody requestBody)
+        [HttpPost("GetAllAddresses_Base")]
+        public async Task<ActionResult<ListResultObject<Address>>> GetAllAddresses_Base(GetAddressListRequestBody requestBody)
         {
-            if (ModelState.IsValid)
+            if (!ModelState.IsValid)
             {
                 return BadRequest(requestBody);
             }
-            var result = await _jobTypeRep.GetAllJobTypesAsync(requestBody.SexTypeChecked,requestBody.PageIndex,requestBody.PageSize,requestBody.SearchText);
+            var result = await _AddressRep.GetAllAddressesAsync(requestBody.PageIndex,requestBody.PageSize,requestBody.SearchText);
             if (result.Status)
             {
                 return Ok(result);
@@ -51,14 +50,14 @@ namespace NobatPlusAPI.Controllers
             return BadRequest(result);
         }
 
-        [HttpPost("GetJobTypeById_Base")]
-        public async Task<ActionResult<ListResultObject<JobType>>> GetJobTypeById_Base(GetRowRequestBody requestBody)
+        [HttpPost("GetAddressById_Base")]
+        public async Task<ActionResult<ListResultObject<Address>>> GetAddressById_Base(GetRowRequestBody requestBody)
         {
-            if (ModelState.IsValid)
+            if (!ModelState.IsValid)
             {
                 return BadRequest(requestBody);
             }
-            var result = await _jobTypeRep.GetJobTypeByIdAsync(requestBody.ID);
+            var result = await _AddressRep.GetAddressByIdAsync(requestBody.ID);
             if (result.Status)
             {
                 return Ok(result);
@@ -66,14 +65,14 @@ namespace NobatPlusAPI.Controllers
             return BadRequest(result);
         }
 
-        [HttpPost("ExistJobType_Base")]
-        public async Task<ActionResult<BitResultObject>> ExistJobType_Base(GetRowRequestBody requestBody)
+        [HttpPost("ExistAddress_Base")]
+        public async Task<ActionResult<BitResultObject>> ExistAddress_Base(GetRowRequestBody requestBody)
         {
-            if (ModelState.IsValid)
+            if (!ModelState.IsValid)
             {
                 return BadRequest(requestBody);
             }
-            var result = await _jobTypeRep.ExistJobTypeAsync(requestBody.ID);
+            var result = await _AddressRep.ExistAddressAsync(requestBody.ID);
             if (string.IsNullOrEmpty(result.ErrorMessage))
             {
                 return Ok(result);
@@ -81,21 +80,25 @@ namespace NobatPlusAPI.Controllers
             return BadRequest(result);
         }
 
-        [HttpPost("AddJobType_Base")]
-        public async Task<ActionResult<BitResultObject>> AddJobType_Base(AddEditJobTypeRequestBody requestBody)
+        [HttpPost("AddAddress_Base")]
+        public async Task<ActionResult<BitResultObject>> AddAddress_Base(AddEditAddressRequestBody requestBody)
         {
-            if (ModelState.IsValid)
+            if (!ModelState.IsValid)
             {
                 return BadRequest(requestBody);
             }
-            JobType jobType = new JobType()
+            Address Address = new Address()
             {
                 CreateDate = DateTime.Now.ToShamsi(),
-                JobTitle = requestBody.JobTitle,
-                SexTypeChecked = requestBody.SexTypeChecked,
-                Description = requestBody.Description,
+                UpdateDate = DateTime.Now.ToShamsi(),
+                CityID = requestBody.CityID,
+                AddressLocationHorizentalPoint = requestBody.AddressLocationHorizentalPoint,
+                AddressLocationVerticalPoint = requestBody.AddressLocationVerticalPoint,
+                AddressPostalCode = requestBody.AddressPostalCode,
+                AddressStreet = requestBody.AddressStreet,
+                Description = requestBody.AddressDescription,
             };
-            var result = await _jobTypeRep.AddJobTypeAsync(jobType);
+            var result = await _AddressRep.AddAddressAsync(Address);
             if (result.Status)
             {
                 #region AddLog
@@ -118,22 +121,24 @@ namespace NobatPlusAPI.Controllers
             return BadRequest(result);
         }
 
-        [HttpPut("EditJobType_Base")]
-        public async Task<ActionResult<BitResultObject>> EditJobType_Base(AddEditJobTypeRequestBody requestBody)
+        [HttpPut("EditAddress_Base")]
+        public async Task<ActionResult<BitResultObject>> EditAddress_Base(AddEditAddressRequestBody requestBody)
         {
-            if (ModelState.IsValid)
+            if (!ModelState.IsValid)
             {
                 return BadRequest(requestBody);
             }
-            JobType jobType = new JobType()
+            Address Address = new Address()
             {
                 UpdateDate = DateTime.Now.ToShamsi(),
-                ID = requestBody.ID,
-                JobTitle = requestBody.JobTitle,
-                SexTypeChecked = requestBody.SexTypeChecked,
-                Description = requestBody.Description,
+                CityID = requestBody.CityID,
+                AddressLocationHorizentalPoint = requestBody.AddressLocationHorizentalPoint,
+                AddressLocationVerticalPoint = requestBody.AddressLocationVerticalPoint,
+                AddressPostalCode = requestBody.AddressPostalCode,
+                AddressStreet = requestBody.AddressStreet,
+                Description = requestBody.AddressDescription,
             };
-            var result = await _jobTypeRep.EditJobTypeAsync(jobType);
+            var result = await _AddressRep.EditAddressAsync(Address);
             if (result.Status)
             {
 
@@ -156,14 +161,14 @@ namespace NobatPlusAPI.Controllers
             return BadRequest(result);
         }
 
-        [HttpDelete("DeleteJobType_Base")]
-        public async Task<ActionResult<BitResultObject>> DeleteJobType_Base(GetRowRequestBody requestBody)
+        [HttpDelete("DeleteAddress_Base")]
+        public async Task<ActionResult<BitResultObject>> DeleteAddress_Base(GetRowRequestBody requestBody)
         {
-            if (ModelState.IsValid)
+            if (!ModelState.IsValid)
             {
                 return BadRequest(requestBody);
             }
-            var result = await _jobTypeRep.RemoveJobTypeAsync(requestBody.ID);
+            var result = await _AddressRep.RemoveAddressAsync(requestBody.ID);
             if (result.Status)
             {
 
