@@ -11,7 +11,7 @@ namespace NobatPlusDATA.DataLayer
     {
         public DbSet<Person> Persons { get; set; }
         public DbSet<Address> Addresses { get; set; }
-        public DbSet<City> Citys { get; set; }
+        public DbSet<City> Cities { get; set; }
         public DbSet<Customer> Customers { get; set; }
         public DbSet<Admin> Admins { get; set; }
         public DbSet<Stylist> Stylists { get; set; }

@@ -30,9 +30,10 @@ namespace NobatPlusAPI.Controllers
         IJobTypeRep _jobTypeRep;
         ILogRep _logRep;
 
-        public JobTypeController(IJobTypeRep jobTypeRep)
+        public JobTypeController(IJobTypeRep jobTypeRep,ILogRep logRep)
         {
            _jobTypeRep = jobTypeRep;
+           _logRep = logRep;
         }
 
         [HttpPost("GetAllJobTypes_Base")]

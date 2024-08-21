@@ -4,9 +4,9 @@ using System.ComponentModel.DataAnnotations;
 
 namespace NobatPlusAPI.RequestObjects
 {
-    public class GetJobTypeListRequestBody:GetListRequestBody
+    public class GetCityListRequestBody:GetListRequestBody
     {
-        public int SexTypeChecked { get; set; } = 0;
+        public long ParentId { get; set; } = 0;
 
     }
 }

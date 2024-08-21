@@ -63,6 +63,7 @@ namespace NobatPlusAPI
             builder.Services.AddScoped<IBookingRep, BookingRep>();
             builder.Services.AddScoped<IBookingServiceRep, BookingServiceRep>();
             builder.Services.AddScoped<ICheckAvailabilityRep, CheckAvailabilityRep>();
+            builder.Services.AddScoped<ICityRep, CityRep>();
             builder.Services.AddScoped<ICustomerDiscountRep, CustomerDiscountRep>();
             builder.Services.AddScoped<ICustomerRep, CustomerRep>();
             builder.Services.AddScoped<IDiscountAssignmentRep, DiscountAssignmentRep>();

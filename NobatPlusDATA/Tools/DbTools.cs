@@ -71,8 +71,8 @@ namespace NobatPlusDATA.Tools
             var strshamsi = ToShamsi(strDate);
             var date = strshamsi.Split(' ')[0].Split('/');
             var time = strshamsi.Split(' ')[1].Split(':');
-            DateTime dateTime = new DateTime(Convert.ToInt32(date[0]), Convert.ToInt32(date[1]), Convert.ToInt32(date[2]), Convert.ToInt32(time[0]), Convert.ToInt32(time[1]), Convert.ToInt32(time[2]));
-            return dateTime;
+            DateTime shamsiDate = new DateTime(Convert.ToInt32(date[0]), Convert.ToInt32(date[1]), Convert.ToInt32(date[2]), Convert.ToInt32(time[0]), Convert.ToInt32(time[1]), Convert.ToInt32(time[2]));
+            return shamsiDate;
 
         }
 
@@ -139,7 +139,7 @@ namespace NobatPlusDATA.Tools
 
         public static int GetPageCount(int totalItemsCount, int pageItemsCount)
         {
-            if(totalItemsCount == 0) return 1;
+            if(totalItemsCount == 0 || pageItemsCount == 0) return 1;
             int pageCount = totalItemsCount / pageItemsCount;
             if (totalItemsCount % pageItemsCount != 0)
             {

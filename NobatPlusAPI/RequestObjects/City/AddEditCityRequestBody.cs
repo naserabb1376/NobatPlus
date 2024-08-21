@@ -1,16 +1,16 @@
 ﻿using Domain;
 using System.ComponentModel.DataAnnotations;
 
-namespace NobatPlusAPI.RequestObjects.JobType
+namespace NobatPlusAPI.RequestObjects.City
 {
-    public class AddEditJobTypeRequestBody
+    public class AddEditCityRequestBody
     {
         public long ID { get; set; } = 0;
 
-        [Display(Name = "عنوان گروه شغلی")]
+        [Display(Name = "نام شهر")]
         [Required(ErrorMessage = "لطفا {0} را انتخاب کنید")]
-        public string JobTitle { get; set; }
-        public int SexTypeChecked { get; set; } = 0;
+        public string CityName { get; set; }
+        public long ParentId { get; set; } = 0; 
         public string? Description { get; set; }
 
     }
