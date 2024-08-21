@@ -17,7 +17,6 @@ namespace NobatPlusAPI.Controllers
     [Route("authentication")]
     [ApiController]
     [Produces("application/json")]
-
     public class AuthenticationController : ControllerBase
     {
         private readonly IConfiguration _configuration;
@@ -28,7 +27,7 @@ namespace NobatPlusAPI.Controllers
         private readonly IStylistRep _stylistRep;
         private readonly IAddressRep _addressRep;
 
-        public AuthenticationController(IConfiguration configuration,ILoginRep loginRep, IRegisterRep registerRep, IPersonRep personRep, ICustomerRep customerRep, IStylistRep stylistRep, IAddressRep addressRep)
+        public AuthenticationController(IConfiguration configuration, ILoginRep loginRep, IRegisterRep registerRep, IPersonRep personRep, ICustomerRep customerRep, IStylistRep stylistRep, IAddressRep addressRep)
         {
             _configuration = configuration;
             _loginRep = loginRep;
@@ -44,9 +43,10 @@ namespace NobatPlusAPI.Controllers
         {
             string tokenString = "";
             RowResultObject<string> result = new RowResultObject<string>();
-            var authenticateResult = await _loginRep.AuthenticateAsync(authenticationRequestBody.UserName,authenticationRequestBody.Password);
+            var authenticateResult = await _loginRep.AuthenticateAsync(authenticationRequestBody.UserName, authenticationRequestBody.Password);
 
-            if (authenticateResult.Status) {
+            if (authenticateResult.Status)
+            {
                 var key = _configuration["Jwt:Key"];
                 var issuer = _configuration["Jwt:Issuer"];
                 var audience = _configuration["Jwt:Audience"];
@@ -70,7 +70,7 @@ namespace NobatPlusAPI.Controllers
                     expires: DateTime.UtcNow.AddHours(1),
                     signingCredentials: signingCredentials);
 
-                 tokenString = new JwtSecurityTokenHandler().WriteToken(token);             
+                tokenString = new JwtSecurityTokenHandler().WriteToken(token);
             }
 
             result.Status = authenticateResult.Status;
@@ -97,14 +97,13 @@ namespace NobatPlusAPI.Controllers
             }
             Address address = new Address()
             {
-                AddressCity = signupRequestBody.AddressCity,
+                CityID = signupRequestBody.CityID,
                 AddressLocationHorizentalPoint = signupRequestBody.AddressLocationHorizentalPoint,
                 AddressLocationVerticalPoint = signupRequestBody.AddressLocationVerticalPoint,
                 AddressPostalCode = signupRequestBody.AddressPostalCode,
                 AddressStreet = signupRequestBody.AddressStreet,
                 State = signupRequestBody.State,
                 CreateDate = DateTime.Now,
-                
             };
 
             result = await _addressRep.AddAddressAsync(address);
@@ -135,7 +134,6 @@ namespace NobatPlusAPI.Controllers
 
                     if (result.Status)
                     {
-
                         Register register = new Register()
                         {
                             CreateDate = DateTime.Now,
@@ -171,11 +169,8 @@ namespace NobatPlusAPI.Controllers
                         }
                     }
                 }
-               
             }
             return BadRequest(result);
         }
-
-
     }
 }

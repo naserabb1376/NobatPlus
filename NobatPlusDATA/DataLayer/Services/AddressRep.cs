@@ -16,8 +16,8 @@ namespace NobatPlusDATA.DataLayer.Services
 {
     public class AddressRep : IAddressRep
     {
-
         private NobatPlusContext _context;
+
         public AddressRep()
         {
             _context = DbTools.GetDbContext();
@@ -70,7 +70,6 @@ namespace NobatPlusDATA.DataLayer.Services
                 result.ErrorMessage = $"{ex.Message} - {ex.InnerException?.Message}";
             }
             return result;
-
         }
 
         public async Task<ListResultObject<Address>> GetAllAddressesAsync(int pageIndex = 1, int pageSize = 20, string searchText = "")
@@ -81,7 +80,7 @@ namespace NobatPlusDATA.DataLayer.Services
                 var query = _context.Addresses
     .AsNoTracking()
     .Where(x =>
-        (!string.IsNullOrEmpty(x.AddressCity.ToString()) && x.AddressCity.ToString().Contains(searchText)) ||
+        (!string.IsNullOrEmpty(x.City.CityName.ToString()) && x.City.CityName.ToString().Contains(searchText)) ||
         (!string.IsNullOrEmpty(x.AddressLocationHorizentalPoint.ToString()) && x.AddressLocationHorizentalPoint.ToString().Contains(searchText)) ||
         (!string.IsNullOrEmpty(x.AddressLocationVerticalPoint.ToString()) && x.AddressLocationVerticalPoint.ToString().Contains(searchText)) ||
         (!string.IsNullOrEmpty(x.AddressPostalCode.ToString()) && x.AddressPostalCode.ToString().Contains(searchText)) ||
@@ -115,7 +114,6 @@ namespace NobatPlusDATA.DataLayer.Services
             }
             catch (Exception ex)
             {
-
                 result.Status = false;
                 result.ErrorMessage = $"{ex.Message} - {ex.InnerException?.Message}";
             }
@@ -135,7 +133,6 @@ namespace NobatPlusDATA.DataLayer.Services
             }
             catch (Exception ex)
             {
-
                 result.Status = false;
                 result.ErrorMessage = $"{ex.Message} - {ex.InnerException?.Message}";
             }
@@ -174,6 +171,5 @@ namespace NobatPlusDATA.DataLayer.Services
             }
             return result;
         }
-
     }
 }
