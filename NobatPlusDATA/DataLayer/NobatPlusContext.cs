@@ -34,7 +34,7 @@ namespace NobatPlusDATA.DataLayer
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
             var configHelper = new ConfigurationHelper();
-            string _connectionString = configHelper.GetConnectionString("publicdb");
+            string _connectionString = configHelper.GetConnectionString("localdb");
             optionsBuilder.UseSqlServer(_connectionString);
         }
 

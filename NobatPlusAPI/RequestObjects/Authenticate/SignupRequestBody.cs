@@ -13,7 +13,7 @@ namespace NobatPlusAPI.RequestObjects.Authenticate
         public string Email { get; set; }
         public string PhoneNumber { get; set; }
         public string State { get; set; }
-        public string AddressCity { get; set; }
+        public int CityID { get; set; }
         public string AddressStreet { get; set; }
         public string AddressPostalCode { get; set; }
         public string? AddressLocationHorizentalPoint { get; set; }
