@@ -44,6 +44,10 @@ namespace NobatPlusAPI.Controllers
         [HttpPost("Authenticate")]
         public async Task<ActionResult<RowResultObject<string>>> Authenticate(AuthenticationRequestBody authenticationRequestBody)
         {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(authenticationRequestBody);
+            }
             string tokenString = "";
             RowResultObject<string> result = new RowResultObject<string>();
             var authenticateResult = await _loginRep.AuthenticateAsync(authenticationRequestBody.UserName, authenticationRequestBody.Password);
@@ -103,6 +107,11 @@ namespace NobatPlusAPI.Controllers
         [HttpPost("Signup")]
         public async Task<ActionResult<BitResultObject>> Signup(SignupRequestBody signupRequestBody)
         {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(signupRequestBody);
+            }
+
             BitResultObject result = new BitResultObject();
             var validUserName = await _loginRep.ExistLoginAsync(signupRequestBody.UserName,2);
 
@@ -138,8 +147,10 @@ namespace NobatPlusAPI.Controllers
                 AddressLocationVerticalPoint = signupRequestBody.AddressLocationVerticalPoint,
                 AddressPostalCode = signupRequestBody.AddressPostalCode,
                 AddressStreet = signupRequestBody.AddressStreet,
-
-                CreateDate = DateTime.Now,
+                Description = signupRequestBody.AddressDescription,
+                CreateDate = DateTime.Now.ToShamsi(),
+                UpdateDate = DateTime.Now.ToShamsi(),
+                
             };
 
 

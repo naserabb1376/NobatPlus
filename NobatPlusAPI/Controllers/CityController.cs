@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 using NobatPlusAPI.RequestObjects;
 using NobatPlusAPI.RequestObjects.Authenticate;
-using NobatPlusAPI.RequestObjects.JobType;
+using NobatPlusAPI.RequestObjects.City;
 using NobatPlusAPI.RequestObjects.Public;
 using NobatPlusDATA.DataLayer.Repositories;
 using NobatPlusDATA.DataLayer.Services;
@@ -20,29 +20,29 @@ using System.Text;
 
 namespace NobatPlusAPI.Controllers
 {
-    [Route("jobtype")]
+    [Route("City")]
     [ApiController]
     [Authorize]
     [Produces("application/json")]
 
-    public class JobTypeController : ControllerBase
+    public class CityController : ControllerBase
     {
-        IJobTypeRep _jobTypeRep;
+        ICityRep _CityRep;
         ILogRep _logRep;
 
-        public JobTypeController(IJobTypeRep jobTypeRep)
+        public CityController(ICityRep CityRep)
         {
-           _jobTypeRep = jobTypeRep;
+           _CityRep = CityRep;
         }
 
-        [HttpPost("GetAllJobTypes_Base")]
-        public async Task<ActionResult<ListResultObject<JobType>>> GetAllJobTypes_Base(GetJobTypeListRequestBody requestBody)
+        [HttpPost("GetAllCitys_Base")]
+        public async Task<ActionResult<ListResultObject<City>>> GetAllCitys_Base(GetCityListRequestBody requestBody)
         {
             if (ModelState.IsValid)
             {
                 return BadRequest(requestBody);
             }
-            var result = await _jobTypeRep.GetAllJobTypesAsync(requestBody.SexTypeChecked,requestBody.PageIndex,requestBody.PageSize,requestBody.SearchText);
+            var result = await _CityRep.GetAllCitysAsync(requestBody.SexTypeChecked,requestBody.PageIndex,requestBody.PageSize,requestBody.SearchText);
             if (result.Status)
             {
                 return Ok(result);
@@ -50,14 +50,14 @@ namespace NobatPlusAPI.Controllers
             return BadRequest(result);
         }
 
-        [HttpPost("GetJobTypeById_Base")]
-        public async Task<ActionResult<ListResultObject<JobType>>> GetJobTypeById_Base(GetRowRequestBody requestBody)
+        [HttpPost("GetCityById_Base")]
+        public async Task<ActionResult<ListResultObject<City>>> GetCityById_Base(GetRowRequestBody requestBody)
         {
             if (ModelState.IsValid)
             {
                 return BadRequest(requestBody);
             }
-            var result = await _jobTypeRep.GetJobTypeByIdAsync(requestBody.ID);
+            var result = await _CityRep.GetCityByIdAsync(requestBody.ID);
             if (result.Status)
             {
                 return Ok(result);
@@ -65,14 +65,14 @@ namespace NobatPlusAPI.Controllers
             return BadRequest(result);
         }
 
-        [HttpPost("ExistJobType_Base")]
-        public async Task<ActionResult<BitResultObject>> ExistJobType_Base(GetRowRequestBody requestBody)
+        [HttpPost("ExistCity_Base")]
+        public async Task<ActionResult<BitResultObject>> ExistCity_Base(GetRowRequestBody requestBody)
         {
             if (ModelState.IsValid)
             {
                 return BadRequest(requestBody);
             }
-            var result = await _jobTypeRep.ExistJobTypeAsync(requestBody.ID);
+            var result = await _CityRep.ExistCityAsync(requestBody.ID);
             if (string.IsNullOrEmpty(result.ErrorMessage))
             {
                 return Ok(result);
@@ -80,21 +80,21 @@ namespace NobatPlusAPI.Controllers
             return BadRequest(result);
         }
 
-        [HttpPost("AddJobType_Base")]
-        public async Task<ActionResult<BitResultObject>> AddJobType_Base(AddEditJobTypeRequestBody requestBody)
+        [HttpPost("AddCity_Base")]
+        public async Task<ActionResult<BitResultObject>> AddCity_Base(AddEditCityRequestBody requestBody)
         {
             if (ModelState.IsValid)
             {
                 return BadRequest(requestBody);
             }
-            JobType jobType = new JobType()
+            City City = new City()
             {
                 CreateDate = DateTime.Now,
                 JobTitle = requestBody.JobTitle,
                 SexTypeChecked = requestBody.SexTypeChecked,
                 Description = requestBody.Description,
             };
-            var result = await _jobTypeRep.AddJobTypeAsync(jobType);
+            var result = await _CityRep.AddCityAsync(City);
             if (result.Status)
             {
                 #region AddLog
@@ -117,14 +117,14 @@ namespace NobatPlusAPI.Controllers
             return BadRequest(result);
         }
 
-        [HttpPut("EditJobType_Base")]
-        public async Task<ActionResult<BitResultObject>> EditJobType_Base(AddEditJobTypeRequestBody requestBody)
+        [HttpPut("EditCity_Base")]
+        public async Task<ActionResult<BitResultObject>> EditCity_Base(AddEditCityRequestBody requestBody)
         {
             if (ModelState.IsValid)
             {
                 return BadRequest(requestBody);
             }
-            JobType jobType = new JobType()
+            City City = new City()
             {
                 UpdateDate = DateTime.Now,
                 ID = requestBody.ID,
@@ -132,7 +132,7 @@ namespace NobatPlusAPI.Controllers
                 SexTypeChecked = requestBody.SexTypeChecked,
                 Description = requestBody.Description,
             };
-            var result = await _jobTypeRep.EditJobTypeAsync(jobType);
+            var result = await _CityRep.EditCityAsync(City);
             if (result.Status)
             {
 
@@ -155,14 +155,14 @@ namespace NobatPlusAPI.Controllers
             return BadRequest(result);
         }
 
-        [HttpDelete("DeleteJobType_Base")]
-        public async Task<ActionResult<BitResultObject>> DeleteJobType_Base(GetRowRequestBody requestBody)
+        [HttpDelete("DeleteCity_Base")]
+        public async Task<ActionResult<BitResultObject>> DeleteCity_Base(GetRowRequestBody requestBody)
         {
             if (ModelState.IsValid)
             {
                 return BadRequest(requestBody);
             }
-            var result = await _jobTypeRep.RemoveJobTypeAsync(requestBody.ID);
+            var result = await _CityRep.RemoveCityAsync(requestBody.ID);
             if (result.Status)
             {
 
