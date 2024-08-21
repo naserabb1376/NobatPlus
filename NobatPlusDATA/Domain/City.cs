@@ -10,7 +10,7 @@ namespace NobatPlusDATA.Domain
 {
     public class City : BaseEntity
     {
-        public int CityParentID { get; set; }
+        public long CityParentID { get; set; }
         public string CityName { get; set; }
         public ICollection<Address> Addresses { get; set; }
     }

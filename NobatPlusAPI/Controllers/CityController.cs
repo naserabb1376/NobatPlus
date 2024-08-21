@@ -22,7 +22,7 @@ namespace NobatPlusAPI.Controllers
 {
     [Route("City")]
     [ApiController]
-    [Authorize]
+    //[Authorize]
     [Produces("application/json")]
 
     public class CityController : ControllerBase
@@ -30,19 +30,20 @@ namespace NobatPlusAPI.Controllers
         ICityRep _CityRep;
         ILogRep _logRep;
 
-        public CityController(ICityRep CityRep)
+        public CityController(ICityRep CityRep,ILogRep logRep)
         {
            _CityRep = CityRep;
+            _logRep = logRep;
         }
 
-        [HttpPost("GetAllCitys_Base")]
-        public async Task<ActionResult<ListResultObject<City>>> GetAllCitys_Base(GetCityListRequestBody requestBody)
+        [HttpPost("GetAllCities_Base")]
+        public async Task<ActionResult<ListResultObject<City>>> GetAllCities_Base(GetCityListRequestBody requestBody)
         {
-            if (ModelState.IsValid)
+            if (!ModelState.IsValid)
             {
                 return BadRequest(requestBody);
             }
-            var result = await _CityRep.GetAllCitysAsync(requestBody.SexTypeChecked,requestBody.PageIndex,requestBody.PageSize,requestBody.SearchText);
+            var result = await _CityRep.GetAllCitiesAsync(requestBody.ParentId,requestBody.PageIndex,requestBody.PageSize,requestBody.SearchText);
             if (result.Status)
             {
                 return Ok(result);
@@ -53,7 +54,7 @@ namespace NobatPlusAPI.Controllers
         [HttpPost("GetCityById_Base")]
         public async Task<ActionResult<ListResultObject<City>>> GetCityById_Base(GetRowRequestBody requestBody)
         {
-            if (ModelState.IsValid)
+            if (!ModelState.IsValid)
             {
                 return BadRequest(requestBody);
             }
@@ -68,7 +69,7 @@ namespace NobatPlusAPI.Controllers
         [HttpPost("ExistCity_Base")]
         public async Task<ActionResult<BitResultObject>> ExistCity_Base(GetRowRequestBody requestBody)
         {
-            if (ModelState.IsValid)
+            if (!ModelState.IsValid)
             {
                 return BadRequest(requestBody);
             }
@@ -83,15 +84,15 @@ namespace NobatPlusAPI.Controllers
         [HttpPost("AddCity_Base")]
         public async Task<ActionResult<BitResultObject>> AddCity_Base(AddEditCityRequestBody requestBody)
         {
-            if (ModelState.IsValid)
+            if (!ModelState.IsValid)
             {
                 return BadRequest(requestBody);
             }
             City City = new City()
             {
-                CreateDate = DateTime.Now,
-                JobTitle = requestBody.JobTitle,
-                SexTypeChecked = requestBody.SexTypeChecked,
+                CreateDate = DateTime.Now.ToShamsi(),
+                CityName = requestBody.CityName,
+                CityParentID = requestBody.ParentId,
                 Description = requestBody.Description,
             };
             var result = await _CityRep.AddCityAsync(City);
@@ -120,7 +121,7 @@ namespace NobatPlusAPI.Controllers
         [HttpPut("EditCity_Base")]
         public async Task<ActionResult<BitResultObject>> EditCity_Base(AddEditCityRequestBody requestBody)
         {
-            if (ModelState.IsValid)
+            if (!ModelState.IsValid)
             {
                 return BadRequest(requestBody);
             }
@@ -128,8 +129,8 @@ namespace NobatPlusAPI.Controllers
             {
                 UpdateDate = DateTime.Now,
                 ID = requestBody.ID,
-                JobTitle = requestBody.JobTitle,
-                SexTypeChecked = requestBody.SexTypeChecked,
+                CityName = requestBody.CityName,
+                CityParentID = requestBody.ParentId,
                 Description = requestBody.Description,
             };
             var result = await _CityRep.EditCityAsync(City);
@@ -158,7 +159,7 @@ namespace NobatPlusAPI.Controllers
         [HttpDelete("DeleteCity_Base")]
         public async Task<ActionResult<BitResultObject>> DeleteCity_Base(GetRowRequestBody requestBody)
         {
-            if (ModelState.IsValid)
+            if (!ModelState.IsValid)
             {
                 return BadRequest(requestBody);
             }
