@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using NobatPlusDATA.DataLayer;
 
@@ -11,9 +12,11 @@ using NobatPlusDATA.DataLayer;
 namespace NobatPlusDATA.Migrations
 {
     [DbContext(typeof(NobatPlusContext))]
-    partial class NobatPlusContextModelSnapshot : ModelSnapshot
+    [Migration("20240821120245_four")]
+    partial class four
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -51,6 +54,10 @@ namespace NobatPlusDATA.Migrations
                         .HasColumnType("datetime2");
 
                     b.Property<string>("Description")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("State")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime?>("UpdateDate")
@@ -886,7 +893,8 @@ namespace NobatPlusDATA.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("ID")
-                        .HasColumnType("int");
+                        .HasColumnType("int")
+                        .HasColumnName("ID");
 
                     b.Property<string>("LastName")
                         .IsRequired()

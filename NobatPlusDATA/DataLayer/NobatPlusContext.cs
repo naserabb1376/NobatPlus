@@ -3,6 +3,7 @@ using Domains;
 using Microsoft.EntityFrameworkCore;
 using NobatPlusDATA.Domain;
 using NobatPlusDATA.Tools;
+using NobatPlusDATA.Views;
 
 namespace NobatPlusDATA.DataLayer
 {
@@ -10,6 +11,7 @@ namespace NobatPlusDATA.DataLayer
     {
         public DbSet<Person> Persons { get; set; }
         public DbSet<Address> Addresses { get; set; }
+        public DbSet<City> Citys { get; set; }
         public DbSet<Customer> Customers { get; set; }
         public DbSet<Admin> Admins { get; set; }
         public DbSet<Stylist> Stylists { get; set; }
@@ -30,11 +32,12 @@ namespace NobatPlusDATA.DataLayer
         public DbSet<ServiceDiscount> ServiceDiscounts { get; set; }
         public DbSet<CustomerDiscount> CustomerDiscounts { get; set; }
         public DbSet<Log> Logs { get; set; }
+        public DbSet<V_Customer> V_Customers { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
             var configHelper = new ConfigurationHelper();
-            string _connectionString = configHelper.GetConnectionString("localdb");
+            string _connectionString = configHelper.GetConnectionString("publicdb");
             optionsBuilder.UseSqlServer(_connectionString);
         }
 
@@ -150,6 +153,17 @@ namespace NobatPlusDATA.DataLayer
                 .WithMany(s => s.Reviews)
                 .HasForeignKey(cd => cd.CustomerID)
                 .OnDelete(DeleteBehavior.NoAction);
+
+            modelBuilder.Entity<Address>()
+                .HasOne(cd => cd.City)
+                .WithMany(s => s.Addresses)
+                .HasForeignKey(cd => cd.CityID)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            // Map the entity to the view
+            modelBuilder.Entity<V_Customer>()
+                .HasNoKey()  // Views usually do not have a primary key
+                .ToView("V_Customer"); // Name of the view in the database
         }
     }
 }
