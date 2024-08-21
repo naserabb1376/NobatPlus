@@ -102,7 +102,7 @@ namespace NobatPlusAPI.Controllers
                 AddressLocationVerticalPoint = signupRequestBody.AddressLocationVerticalPoint,
                 AddressPostalCode = signupRequestBody.AddressPostalCode,
                 AddressStreet = signupRequestBody.AddressStreet,
-                State = signupRequestBody.State,
+
                 CreateDate = DateTime.Now,
             };
 

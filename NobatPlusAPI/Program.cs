@@ -1,4 +1,3 @@
-
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
@@ -57,7 +56,6 @@ namespace NobatPlusAPI
     });
             });
 
-
             #region ImportDbServices
 
             builder.Services.AddScoped<IAddressRep, AddressRep>();
@@ -83,8 +81,7 @@ namespace NobatPlusAPI
             builder.Services.AddScoped<IStylistRep, StylistRep>();
             builder.Services.AddScoped<IStylistServiceRep, StylistServiceRep>();
 
-            #endregion
-
+            #endregion ImportDbServices
 
             builder.Services.AddAuthentication(options =>
             {
@@ -109,8 +106,8 @@ namespace NobatPlusAPI
 
             var app = builder.Build();
 
-
             // Configure the HTTP request pipeline.
+
             #region Pipeline
 
             if (app.Environment.IsDevelopment())
@@ -129,9 +126,7 @@ namespace NobatPlusAPI
                 endpoints.MapControllers();
             });
 
-            #endregion
-
-
+            #endregion Pipeline
 
             app.Run();
         }
