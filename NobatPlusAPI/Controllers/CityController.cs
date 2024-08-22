@@ -82,7 +82,7 @@ namespace NobatPlusAPI.Controllers
         }
 
         [HttpPost("AddCity_Base")]
-        public async Task<ActionResult<BitResultObject>> AddCity_Base(AddEditCityRequestBody requestBody)
+        public async Task<ActionResult<BitResultObject>> AddCity_Base(AddEditCiyRequestBody requestBody)
         {
             if (!ModelState.IsValid)
             {
@@ -119,21 +119,31 @@ namespace NobatPlusAPI.Controllers
         }
 
         [HttpPut("EditCity_Base")]
-        public async Task<ActionResult<BitResultObject>> EditCity_Base(AddEditCityRequestBody requestBody)
+        public async Task<ActionResult<BitResultObject>> EditCity_Base(AddEditCiyRequestBody requestBody)
         {
+            var result = new BitResultObject();
             if (!ModelState.IsValid)
             {
                 return BadRequest(requestBody);
             }
+
+            var theRow = await _CityRep.GetCityByIdAsync(requestBody.ID);
+            if (!theRow.Status)
+            {
+                result.Status = theRow.Status;
+                result.ErrorMessage = theRow.ErrorMessage;
+            }
+
             City City = new City()
             {
-                UpdateDate = DateTime.Now,
+                CreateDate = theRow.Result.CreateDate,
+                UpdateDate = DateTime.Now.ToShamsi(),
                 ID = requestBody.ID,
                 CityName = requestBody.CityName,
                 CityParentID = requestBody.ParentId,
                 Description = requestBody.Description,
             };
-            var result = await _CityRep.EditCityAsync(City);
+            result = await _CityRep.EditCityAsync(City);
             if (result.Status)
             {
 

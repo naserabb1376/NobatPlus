@@ -6,7 +6,7 @@ namespace NobatPlusAPI.RequestObjects
 {
     public class GetCityListRequestBody:GetListRequestBody
     {
-        public long ParentId { get; set; } = 0;
+        public long ParentId { get; set; } = -1;
 
     }
 }

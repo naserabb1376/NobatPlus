@@ -10,7 +10,7 @@ namespace NobatPlusDATA.DataLayer.Repositories
 {
     public interface ICheckAvailabilityRep
     {
-        public Task<ListResultObject<CheckAvailability>> GetAllCheckAvailabilitiesAsync(long stylistId = -1, int pageIndex = 1, int pageSize = 20, string searchText = "");
+        public Task<ListResultObject<CheckAvailability>> GetAllCheckAvailabilitiesAsync(long stylistId = 0, int pageIndex = 1, int pageSize = 20, string searchText = "");
         public Task<RowResultObject<CheckAvailability>> GetCheckAvailabilityByIdAsync(long CheckAvailabilityId);
         public Task<BitResultObject> AddCheckAvailabilityAsync(CheckAvailability CheckAvailability);
         public Task<BitResultObject> EditCheckAvailabilityAsync(CheckAvailability CheckAvailability);

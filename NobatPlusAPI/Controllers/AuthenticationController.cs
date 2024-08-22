@@ -115,7 +115,7 @@ namespace NobatPlusAPI.Controllers
             BitResultObject result = new BitResultObject();
             var validUserName = await _loginRep.ExistLoginAsync(signupRequestBody.UserName,2);
 
-            if (validUserName.Status && !string.IsNullOrEmpty(validUserName.ErrorMessage))
+            if (validUserName.Status)
             {
                 result.Status = !validUserName.Status;
                 result.ErrorMessage = "نام کاربری تکراری است";
@@ -124,19 +124,28 @@ namespace NobatPlusAPI.Controllers
 
             var validPhoneNumber = await _loginRep.ExistLoginAsync(signupRequestBody.PhoneNumber, 3);
 
-            if (validPhoneNumber.Status && !string.IsNullOrEmpty(validPhoneNumber.ErrorMessage))
+            if (validPhoneNumber.Status)
             {
                 result.Status = !validPhoneNumber.Status;
                 result.ErrorMessage = "شماره تماس تکراری است";
                 return BadRequest(result);
             }
 
-            var validNaCode = await _loginRep.ExistLoginAsync(signupRequestBody.PhoneNumber, 4);
+            var validNaCode = await _loginRep.ExistLoginAsync(signupRequestBody.NaCode, 4);
 
-            if (validNaCode.Status && !string.IsNullOrEmpty(validNaCode.ErrorMessage))
+            if (validNaCode.Status)
             {
                 result.Status = !validNaCode.Status;
                 result.ErrorMessage = "کد ملی تکراری است";
+                return BadRequest(result);
+            }
+
+            var validEmail = await _loginRep.ExistLoginAsync(signupRequestBody.Email, 5);
+
+            if (validNaCode.Status)
+            {
+                result.Status = !validNaCode.Status;
+                result.ErrorMessage = "پست الکترونیک تکراری است";
                 return BadRequest(result);
             }
 
@@ -166,7 +175,7 @@ namespace NobatPlusAPI.Controllers
                     NaCode = signupRequestBody.NaCode,
                     Email = signupRequestBody.Email,
                     PhoneNumber = signupRequestBody.PhoneNumber,
-                    DateOfBirth = signupRequestBody.DateOfBirth.StringToDate(),
+                    DateOfBirth = signupRequestBody.DateOfBirth?.StringToDate(),
                     CreateDate = DateTime.Now.ToShamsi(),
                     UpdateDate = DateTime.Now.ToShamsi(),
                     AddressID = address.ID,

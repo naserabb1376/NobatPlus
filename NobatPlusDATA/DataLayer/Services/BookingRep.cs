@@ -152,7 +152,7 @@ namespace NobatPlusDATA.DataLayer.Services
             
         }
 
-        public async Task<ListResultObject<Booking>> GetBookingsOfServiceAsync(int ServiceManagementId, int cancelState = 0, int pageIndex = 1, int pageSize = 20, string searchText = "")
+        public async Task<ListResultObject<Booking>> GetBookingsOfServiceAsync(long ServiceManagementId, int cancelState = 0, int pageIndex = 1, int pageSize = 20, string searchText = "")
         {
             ListResultObject<Booking> results = new ListResultObject<Booking>();
             try

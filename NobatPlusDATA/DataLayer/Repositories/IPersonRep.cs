@@ -10,7 +10,7 @@ namespace NobatPlusDATA.DataLayer.Repositories
 {
     public interface IPersonRep
     {
-        public Task<ListResultObject<Person>> GetAllPersonsAsync(int pageIndex = 1, int pageSize = 20, string searchText = "");
+        public Task<ListResultObject<Person>> GetAllPersonsAsync(long cityId = 0,int pageIndex = 1, int pageSize = 20, string searchText = "");
         public Task<RowResultObject<Person>> GetPersonByIdAsync(long personId);
         public Task<BitResultObject> AddPersonAsync(Person person);
         public Task<BitResultObject> EditPersonAsync(Person person);

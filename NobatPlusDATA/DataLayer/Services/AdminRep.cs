@@ -73,13 +73,13 @@ namespace NobatPlusDATA.DataLayer.Services
             return result;
         }
 
-        public async Task<ListResultObject<Admin>> GetAllAdminsAsync(string role = "", int pageIndex = 1, int pageSize = 20, string searchText = "")
+        public async Task<ListResultObject<Admin>> GetAllAdminsAsync(string role = "",long cityId = 0, int pageIndex = 1, int pageSize = 20, string searchText = "")
         {
             ListResultObject<Admin> results = new ListResultObject<Admin>();
             try
             {
                 var query = _context.Admins
-                .Include(x => x.Person)
+                .Include(x => x.Person).ThenInclude(x => x.Address).ThenInclude(x => x.City)
                 .AsNoTracking()
                 .Where(x =>
                     (!string.IsNullOrEmpty(role) && x.Role == role) &&
@@ -90,6 +90,13 @@ namespace NobatPlusDATA.DataLayer.Services
                     (!string.IsNullOrEmpty(x.Person.Email) && x.Person.Email.Contains(searchText)) ||
                     (!string.IsNullOrEmpty(x.Person.Description) && x.Person.Description.Contains(searchText)) ||
                     (x.Person.DateOfBirth.HasValue && x.Person.DateOfBirth.Value.ToString().Contains(searchText)) ||
+                    (!string.IsNullOrEmpty(x.Person.Address.City.CityName.ToString()) && x.Person.Address.City.CityName.ToString().Contains(searchText)) ||
+                    (!string.IsNullOrEmpty(x.Person.Address.AddressLocationHorizentalPoint.ToString()) && x.Person.Address.AddressLocationHorizentalPoint.ToString().Contains(searchText)) ||
+                    (!string.IsNullOrEmpty(x.Person.Address.AddressLocationVerticalPoint.ToString()) && x.Person.Address.AddressLocationVerticalPoint.ToString().Contains(searchText)) ||
+                    (!string.IsNullOrEmpty(x.Person.Address.AddressPostalCode.ToString()) && x.Person.Address.AddressPostalCode.ToString().Contains(searchText)) ||
+                    //(!string.IsNullOrEmpty(x.State.ToString()) && x.State.ToString().Contains(searchText)) ||
+                    (!string.IsNullOrEmpty(x.Person.Address.Description.ToString()) && x.Person.Address.Description.ToString().Contains(searchText)) ||
+                    (!string.IsNullOrEmpty(x.Person.Address.AddressStreet.ToString()) && x.Person.Address.AddressStreet.ToString().Contains(searchText)) ||
                     (!string.IsNullOrEmpty(x.Description) && x.Description.Contains(searchText)) ||
                     (!string.IsNullOrEmpty(x.Role) && x.Role.Contains(searchText)) ||
                     (x.CreateDate.HasValue && x.CreateDate.Value.ToString().Contains(searchText)) ||
@@ -109,7 +116,7 @@ namespace NobatPlusDATA.DataLayer.Services
             return results;
         }
 
-        public async Task<ListResultObject<Admin>> GetAdminsOfDiscountAsync(long discountId, string role = "", int pageIndex = 1, int pageSize = 20, string searchText = "")
+        public async Task<ListResultObject<Admin>> GetAdminsOfDiscountAsync(long discountId, long cityId = 0, string role = "", int pageIndex = 1, int pageSize = 20, string searchText = "")
         {
             ListResultObject<Admin> results = new ListResultObject<Admin>();
             try
@@ -117,7 +124,7 @@ namespace NobatPlusDATA.DataLayer.Services
                 var query1 = _context.DiscountAssignments
                 .Where(bs => bs.DiscountId == discountId)
                 .Select(bs => bs.Admin)
-                .Include(x => x.Person)
+                .Include(x => x.Person).ThenInclude(x => x.Address).ThenInclude(x => x.City)
                 .AsNoTracking()
                 .Where(x =>
                     (!string.IsNullOrEmpty(role) && x.Role == role) &&
@@ -128,6 +135,13 @@ namespace NobatPlusDATA.DataLayer.Services
                     (!string.IsNullOrEmpty(x.Person.Email) && x.Person.Email.Contains(searchText)) ||
                     (!string.IsNullOrEmpty(x.Person.Description) && x.Person.Description.Contains(searchText)) ||
                     (x.Person.DateOfBirth.HasValue && x.Person.DateOfBirth.Value.ToString().Contains(searchText)) ||
+                    (!string.IsNullOrEmpty(x.Person.Address.City.CityName.ToString()) && x.Person.Address.City.CityName.ToString().Contains(searchText)) ||
+                    (!string.IsNullOrEmpty(x.Person.Address.AddressLocationHorizentalPoint.ToString()) && x.Person.Address.AddressLocationHorizentalPoint.ToString().Contains(searchText)) ||
+                    (!string.IsNullOrEmpty(x.Person.Address.AddressLocationVerticalPoint.ToString()) && x.Person.Address.AddressLocationVerticalPoint.ToString().Contains(searchText)) ||
+                    (!string.IsNullOrEmpty(x.Person.Address.AddressPostalCode.ToString()) && x.Person.Address.AddressPostalCode.ToString().Contains(searchText)) ||
+                    //(!string.IsNullOrEmpty(x.State.ToString()) && x.State.ToString().Contains(searchText)) ||
+                    (!string.IsNullOrEmpty(x.Person.Address.Description.ToString()) && x.Person.Address.Description.ToString().Contains(searchText)) ||
+                    (!string.IsNullOrEmpty(x.Person.Address.AddressStreet.ToString()) && x.Person.Address.AddressStreet.ToString().Contains(searchText)) ||
                     (!string.IsNullOrEmpty(x.Description) && x.Description.Contains(searchText)) ||
                     (!string.IsNullOrEmpty(x.Role) && x.Role.Contains(searchText)) ||
                     (x.CreateDate.HasValue && x.CreateDate.Value.ToString().Contains(searchText)) ||
@@ -138,7 +152,7 @@ namespace NobatPlusDATA.DataLayer.Services
                 var query2 = _context.ServiceDiscounts
                 .Where(bs => bs.DiscountId == discountId)
                 .Select(bs => bs.Admin)
-                .Include(x => x.Person)
+                .Include(x => x.Person).ThenInclude(x => x.Address).ThenInclude(x => x.City)
                 .AsNoTracking()
                 .Where(x =>
                     (!string.IsNullOrEmpty(role) && x.Role == role) &&
@@ -149,6 +163,14 @@ namespace NobatPlusDATA.DataLayer.Services
                     (!string.IsNullOrEmpty(x.Person.Email) && x.Person.Email.Contains(searchText)) ||
                     (!string.IsNullOrEmpty(x.Person.Description) && x.Person.Description.Contains(searchText)) ||
                     (x.Person.DateOfBirth.HasValue && x.Person.DateOfBirth.Value.ToString().Contains(searchText)) ||
+                    (!string.IsNullOrEmpty(x.Person.Address.City.CityName.ToString()) && x.Person.Address.City.CityName.ToString().Contains(searchText)) ||
+                    (!string.IsNullOrEmpty(x.Person.Address.AddressLocationHorizentalPoint.ToString()) && x.Person.Address.AddressLocationHorizentalPoint.ToString().Contains(searchText)) ||
+                    (!string.IsNullOrEmpty(x.Person.Address.AddressLocationVerticalPoint.ToString()) && x.Person.Address.AddressLocationVerticalPoint.ToString().Contains(searchText)) ||
+                    (!string.IsNullOrEmpty(x.Person.Address.AddressPostalCode.ToString()) && x.Person.Address.AddressPostalCode.ToString().Contains(searchText)) ||
+                    //(!string.IsNullOrEmpty(x.State.ToString()) && x.State.ToString().Contains(searchText)) ||
+                    (!string.IsNullOrEmpty(x.Person.Address.Description.ToString()) && x.Person.Address.Description.ToString().Contains(searchText)) ||
+                    (!string.IsNullOrEmpty(x.Person.Address.AddressStreet.ToString()) && x.Person.Address.AddressStreet.ToString().Contains(searchText)) ||
+
                     (!string.IsNullOrEmpty(x.Description) && x.Description.Contains(searchText)) ||
                     (!string.IsNullOrEmpty(x.Role) && x.Role.Contains(searchText)) ||
                     (x.CreateDate.HasValue && x.CreateDate.Value.ToString().Contains(searchText)) ||
@@ -157,6 +179,10 @@ namespace NobatPlusDATA.DataLayer.Services
                 ));
 
                 var query = query1.Union(query2);
+                if (cityId > 0)
+                {
+                    query = query.Where(x=> x.Person.Address.CityID == cityId);
+                }
                 results.TotalCount = query.Count();
                 results.PageCount = DbTools.GetPageCount(results.TotalCount, pageSize);
                 results.Results = await query.OrderByDescending(x => x.CreateDate)

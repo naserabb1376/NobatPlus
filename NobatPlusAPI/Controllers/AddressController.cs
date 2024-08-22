@@ -124,13 +124,25 @@ namespace NobatPlusAPI.Controllers
         [HttpPut("EditAddress_Base")]
         public async Task<ActionResult<BitResultObject>> EditAddress_Base(AddEditAddressRequestBody requestBody)
         {
+            var result = new BitResultObject();
             if (!ModelState.IsValid)
             {
                 return BadRequest(requestBody);
             }
+
+            var theRow = await _AddressRep.GetAddressByIdAsync(requestBody.ID);
+
+            if (!theRow.Status)
+            {
+                result.Status = theRow.Status;
+                result.ErrorMessage = theRow.ErrorMessage;
+            }
+
             Address Address = new Address()
             {
                 UpdateDate = DateTime.Now.ToShamsi(),
+                 ID = requestBody.ID,
+                 CreateDate = theRow.Result.CreateDate,
                 CityID = requestBody.CityID,
                 AddressLocationHorizentalPoint = requestBody.AddressLocationHorizentalPoint,
                 AddressLocationVerticalPoint = requestBody.AddressLocationVerticalPoint,
@@ -138,7 +150,7 @@ namespace NobatPlusAPI.Controllers
                 AddressStreet = requestBody.AddressStreet,
                 Description = requestBody.AddressDescription,
             };
-            var result = await _AddressRep.EditAddressAsync(Address);
+             result = await _AddressRep.EditAddressAsync(Address);
             if (result.Status)
             {
 
