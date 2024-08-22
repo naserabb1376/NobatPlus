@@ -91,6 +91,7 @@ namespace NobatPlusAPI.Controllers
             JobType jobType = new JobType()
             {
                 CreateDate = DateTime.Now.ToShamsi(),
+                UpdateDate = DateTime.Now.ToShamsi(),
                 JobTitle = requestBody.JobTitle,
                 SexTypeChecked = requestBody.SexTypeChecked,
                 Description = requestBody.Description,
@@ -121,19 +122,28 @@ namespace NobatPlusAPI.Controllers
         [HttpPut("EditJobType_Base")]
         public async Task<ActionResult<BitResultObject>> EditJobType_Base(AddEditJobTypeRequestBody requestBody)
         {
+            var result = new BitResultObject();
             if (ModelState.IsValid)
             {
                 return BadRequest(requestBody);
             }
+            var theRow = await _jobTypeRep.GetJobTypeByIdAsync(requestBody.ID);
+            if (!theRow.Status)
+            {
+                result.Status = theRow.Status;
+                result.ErrorMessage = theRow.ErrorMessage;
+            }
+
             JobType jobType = new JobType()
             {
+                CreateDate = theRow.Result.CreateDate,
                 UpdateDate = DateTime.Now.ToShamsi(),
                 ID = requestBody.ID,
                 JobTitle = requestBody.JobTitle,
                 SexTypeChecked = requestBody.SexTypeChecked,
                 Description = requestBody.Description,
             };
-            var result = await _jobTypeRep.EditJobTypeAsync(jobType);
+            result = await _jobTypeRep.EditJobTypeAsync(jobType);
             if (result.Status)
             {
 

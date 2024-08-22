@@ -75,14 +75,14 @@ namespace NobatPlusDATA.DataLayer.Services
             return result;
         }
 
-        public async Task<ListResultObject<CheckAvailability>> GetAllCheckAvailabilitiesAsync(long stylistId = -1, int pageIndex = 1, int pageSize = 20, string searchText = "")
+        public async Task<ListResultObject<CheckAvailability>> GetAllCheckAvailabilitiesAsync(long stylistId = 0, int pageIndex = 1, int pageSize = 20, string searchText = "")
         {
             ListResultObject<CheckAvailability> results = new ListResultObject<CheckAvailability>();
             try
             {
                 IQueryable<CheckAvailability> query;
 
-                if (stylistId < 0)
+                if (stylistId == 0)
                 {
                     query = _context.CheckAvailabilities
                         .AsNoTracking()

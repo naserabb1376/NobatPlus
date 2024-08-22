@@ -36,7 +36,7 @@ namespace NobatPlusDATA.DataLayer.Services
                 result.ErrorMessage = $"{ex.Message} - {ex.InnerException?.Message}";
             }
             return result;
-           
+
         }
 
         public async Task<BitResultObject> EditPersonAsync(Person person)
@@ -54,7 +54,7 @@ namespace NobatPlusDATA.DataLayer.Services
                 result.ErrorMessage = $"{ex.Message} - {ex.InnerException?.Message}";
             }
             return result;
-            
+
         }
 
         public async Task<BitResultObject> ExistPersonAsync(long personId)
@@ -62,7 +62,7 @@ namespace NobatPlusDATA.DataLayer.Services
             BitResultObject result = new BitResultObject();
             try
             {
-                result.Status =await _context.Persons
+                result.Status = await _context.Persons
                 .AsNoTracking()
                 .AnyAsync(x => x.ID == personId);
             }
@@ -72,27 +72,40 @@ namespace NobatPlusDATA.DataLayer.Services
                 result.ErrorMessage = $"{ex.Message} - {ex.InnerException?.Message}";
             }
             return result;
-            
+
         }
 
-        public async Task<ListResultObject<Person>> GetAllPersonsAsync(int pageIndex = 1, int pageSize = 20, string searchText = "")
+        public async Task<ListResultObject<Person>> GetAllPersonsAsync(long cityId = 0, int pageIndex = 1, int pageSize = 20, string searchText = "")
         {
             ListResultObject<Person> results = new ListResultObject<Person>();
             try
             {
-                var query = _context.Persons
-                .AsNoTracking()
-                .Where(x =>
+                IQueryable<Person> query = _context.Persons.Include(x => x.Address).ThenInclude(x => x.City).AsNoTracking(); ;
+
+                if (cityId > 0)
+                {
+                    query = query.Where(x=> x.Address.CityID == cityId );
+                }
+
+               query = query.Where(x =>
                     (!string.IsNullOrEmpty(x.FirstName) && x.FirstName.Contains(searchText)) ||
                     (!string.IsNullOrEmpty(x.LastName) && x.LastName.Contains(searchText)) ||
                     (!string.IsNullOrEmpty(x.NaCode) && x.NaCode.Contains(searchText)) ||
                     (!string.IsNullOrEmpty(x.PhoneNumber) && x.PhoneNumber.Contains(searchText)) ||
                     (!string.IsNullOrEmpty(x.Email) && x.Email.Contains(searchText)) ||
                     (!string.IsNullOrEmpty(x.Description) && x.Description.Contains(searchText)) ||
+                    (!string.IsNullOrEmpty(x.Address.City.CityName.ToString()) && x.Address.City.CityName.ToString().Contains(searchText)) ||
+                    (!string.IsNullOrEmpty(x.Address.AddressLocationHorizentalPoint.ToString()) && x.Address.AddressLocationHorizentalPoint.ToString().Contains(searchText)) ||
+                    (!string.IsNullOrEmpty(x.Address.AddressLocationVerticalPoint.ToString()) && x.Address.AddressLocationVerticalPoint.ToString().Contains(searchText)) ||
+                    (!string.IsNullOrEmpty(x.Address.AddressPostalCode.ToString()) && x.Address.AddressPostalCode.ToString().Contains(searchText)) ||
+                    //(!string.IsNullOrEmpty(x.State.ToString()) && x.State.ToString().Contains(searchText)) ||
+                    (!string.IsNullOrEmpty(x.Address.Description.ToString()) && x.Address.Description.ToString().Contains(searchText)) ||
+                    (!string.IsNullOrEmpty(x.Address.AddressStreet.ToString()) && x.Address.AddressStreet.ToString().Contains(searchText)) ||
                     (x.DateOfBirth.HasValue && x.DateOfBirth.Value.ToString().Contains(searchText)) ||
                     (x.CreateDate.HasValue && x.CreateDate.Value.ToString().Contains(searchText)) ||
                     (x.UpdateDate.HasValue && x.UpdateDate.Value.ToString().Contains(searchText))
                 );
+
                 results.TotalCount = query.Count();
                 results.PageCount = DbTools.GetPageCount(results.TotalCount, pageSize);
                 results.Results = await query.OrderByDescending(x => x.CreateDate)
@@ -105,7 +118,7 @@ namespace NobatPlusDATA.DataLayer.Services
                 results.ErrorMessage = $"{ex.Message} - {ex.InnerException?.Message}";
             }
             return results;
-            
+
         }
 
         public async Task<RowResultObject<Person>> GetPersonByIdAsync(long personId)
@@ -113,7 +126,7 @@ namespace NobatPlusDATA.DataLayer.Services
             RowResultObject<Person> result = new RowResultObject<Person>();
             try
             {
-                result.Result= await _context.Persons
+                result.Result = await _context.Persons
                 .AsNoTracking()
                 .SingleOrDefaultAsync(x => x.ID == personId);
             }
@@ -123,7 +136,7 @@ namespace NobatPlusDATA.DataLayer.Services
                 result.ErrorMessage = $"{ex.Message} - {ex.InnerException?.Message}";
             }
             return result;
-            
+
         }
 
         public async Task<BitResultObject> RemovePersonAsync(Person person)
@@ -141,7 +154,7 @@ namespace NobatPlusDATA.DataLayer.Services
                 result.ErrorMessage = $"{ex.Message} - {ex.InnerException?.Message}";
             }
             return result;
-           
+
         }
 
         public async Task<BitResultObject> RemovePersonAsync(long personId)
@@ -150,7 +163,7 @@ namespace NobatPlusDATA.DataLayer.Services
             try
             {
                 var person = await GetPersonByIdAsync(personId);
-                result= await RemovePersonAsync(person.Result);
+                result = await RemovePersonAsync(person.Result);
             }
             catch (Exception ex)
             {
@@ -158,7 +171,7 @@ namespace NobatPlusDATA.DataLayer.Services
                 result.ErrorMessage = $"{ex.Message} - {ex.InnerException?.Message}";
             }
             return result;
-            
+
         }
     }
 }

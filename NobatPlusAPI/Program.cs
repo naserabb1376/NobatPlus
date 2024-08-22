@@ -16,6 +16,18 @@ namespace NobatPlusAPI
 
             var key = Encoding.ASCII.GetBytes(builder.Configuration["Jwt:Key"]);
 
+            builder.Services.AddCors(options =>
+            {
+                options.AddPolicy("AllowAll",
+                builder =>
+                {
+                    builder.AllowAnyOrigin()
+                           .AllowAnyMethod()
+                           .AllowAnyHeader();
+                });
+            });
+
+
             // Add services to the container.
 
             builder.Services.AddControllers(options =>
@@ -117,6 +129,11 @@ namespace NobatPlusAPI
                 app.UseSwaggerUI();
             //}
             app.UseHttpsRedirection();
+
+            // ??????? ?? ????? "AllowAll" ???? ????? ?? ??? ??????????
+            app.UseCors("AllowAll");
+
+
             app.UseRouting();
             app.UseAuthentication();
             app.UseAuthorization();

@@ -75,12 +75,12 @@ namespace NobatPlusDATA.DataLayer.Services
             
         }
 
-        public async Task<ListResultObject<Stylist>> GetAllStylistsAsync(long parentId = 0, int pageIndex = 1, int pageSize = 20, string searchText = "")
+        public async Task<ListResultObject<Stylist>> GetAllStylistsAsync(long parentId = 0,long cityId = 0, int pageIndex = 1, int pageSize = 20, string searchText = "")
         {
             ListResultObject<Stylist> results = new ListResultObject<Stylist>();
             try
             {
-                IQueryable<Stylist> query = _context.Stylists.Include(x => x.Person).Include(x => x.JobType).AsNoTracking();
+                IQueryable<Stylist> query = _context.Stylists.Include(x => x.Person).ThenInclude(x => x.Address).ThenInclude(x => x.City).Include(x => x.JobType).AsNoTracking();
 
                 if (parentId < 0)
                 {
@@ -92,6 +92,13 @@ namespace NobatPlusDATA.DataLayer.Services
                         (!string.IsNullOrEmpty(x.Person.Email) && x.Person.Email.Contains(searchText)) ||
                         (!string.IsNullOrEmpty(x.Person.Description) && x.Person.Description.Contains(searchText)) ||
                         (x.Person.DateOfBirth.HasValue && x.Person.DateOfBirth.Value.ToString().Contains(searchText)) ||
+                        (!string.IsNullOrEmpty(x.Person.Address.City.CityName.ToString()) && x.Person.Address.City.CityName.ToString().Contains(searchText)) ||
+                        (!string.IsNullOrEmpty(x.Person.Address.AddressLocationHorizentalPoint.ToString()) && x.Person.Address.AddressLocationHorizentalPoint.ToString().Contains(searchText)) ||
+                        (!string.IsNullOrEmpty(x.Person.Address.AddressLocationVerticalPoint.ToString()) && x.Person.Address.AddressLocationVerticalPoint.ToString().Contains(searchText)) ||
+                        (!string.IsNullOrEmpty(x.Person.Address.AddressPostalCode.ToString()) && x.Person.Address.AddressPostalCode.ToString().Contains(searchText)) ||
+                        //(!string.IsNullOrEmpty(x.State.ToString()) && x.State.ToString().Contains(searchText)) ||
+                        (!string.IsNullOrEmpty(x.Person.Address.Description.ToString()) && x.Person.Address.Description.ToString().Contains(searchText)) ||
+                        (!string.IsNullOrEmpty(x.Person.Address.AddressStreet.ToString()) && x.Person.Address.AddressStreet.ToString().Contains(searchText)) ||
                         (!string.IsNullOrEmpty(x.JobType.JobTitle) && x.JobType.JobTitle.Contains(searchText)) ||
                         (x.CreateDate.HasValue && x.CreateDate.Value.ToString().Contains(searchText)) ||
                         (x.UpdateDate.HasValue && x.UpdateDate.Value.ToString().Contains(searchText)) ||
@@ -111,6 +118,13 @@ namespace NobatPlusDATA.DataLayer.Services
                          (!string.IsNullOrEmpty(x.Person.Email) && x.Person.Email.Contains(searchText)) ||
                          (!string.IsNullOrEmpty(x.Person.Description) && x.Person.Description.Contains(searchText)) ||
                          (x.Person.DateOfBirth.HasValue && x.Person.DateOfBirth.Value.ToString().Contains(searchText)) ||
+                        (!string.IsNullOrEmpty(x.Person.Address.City.CityName.ToString()) && x.Person.Address.City.CityName.ToString().Contains(searchText)) ||
+                        (!string.IsNullOrEmpty(x.Person.Address.AddressLocationHorizentalPoint.ToString()) && x.Person.Address.AddressLocationHorizentalPoint.ToString().Contains(searchText)) ||
+                        (!string.IsNullOrEmpty(x.Person.Address.AddressLocationVerticalPoint.ToString()) && x.Person.Address.AddressLocationVerticalPoint.ToString().Contains(searchText)) ||
+                        (!string.IsNullOrEmpty(x.Person.Address.AddressPostalCode.ToString()) && x.Person.Address.AddressPostalCode.ToString().Contains(searchText)) ||
+                        //(!string.IsNullOrEmpty(x.State.ToString()) && x.State.ToString().Contains(searchText)) ||
+                        (!string.IsNullOrEmpty(x.Person.Address.Description.ToString()) && x.Person.Address.Description.ToString().Contains(searchText)) ||
+                        (!string.IsNullOrEmpty(x.Person.Address.AddressStreet.ToString()) && x.Person.Address.AddressStreet.ToString().Contains(searchText)) ||
                          (!string.IsNullOrEmpty(x.JobType.JobTitle) && x.JobType.JobTitle.Contains(searchText)) ||
                          (x.CreateDate.HasValue && x.CreateDate.Value.ToString().Contains(searchText)) ||
                          (x.UpdateDate.HasValue && x.UpdateDate.Value.ToString().Contains(searchText)) ||
@@ -135,7 +149,7 @@ namespace NobatPlusDATA.DataLayer.Services
            
         }
 
-        public async Task<ListResultObject<Stylist>> GetStylistsOfServiceAsync(long serviceManagementId, int pageIndex = 1, int pageSize = 20, string searchText = "")
+        public async Task<ListResultObject<Stylist>> GetStylistsOfServiceAsync(long serviceManagementId,long cityId = 0, int pageIndex = 1, int pageSize = 20, string searchText = "")
         {
             ListResultObject<Stylist> results = new ListResultObject<Stylist>();
             try
@@ -143,7 +157,7 @@ namespace NobatPlusDATA.DataLayer.Services
                 var query = _context.StylistServices
                 .Where(bs => bs.ServiceManagementID == serviceManagementId)
                 .Select(bs => bs.Stylist)
-                .Include(x => x.Person)
+                .Include(x => x.Person).ThenInclude(x => x.Address).ThenInclude(x => x.City)
                 .Include(x => x.JobType)
                 .AsNoTracking()
                 .Where(x =>
@@ -155,6 +169,13 @@ namespace NobatPlusDATA.DataLayer.Services
                     (!string.IsNullOrEmpty(x.Person.Description) && x.Person.Description.Contains(searchText)) ||
                     (x.Person.DateOfBirth.HasValue && x.Person.DateOfBirth.Value.ToString().Contains(searchText)) ||
                     (!string.IsNullOrEmpty(x.JobType.JobTitle) && x.JobType.JobTitle.Contains(searchText)) ||
+                    (!string.IsNullOrEmpty(x.Person.Address.City.CityName.ToString()) && x.Person.Address.City.CityName.ToString().Contains(searchText)) ||
+                    (!string.IsNullOrEmpty(x.Person.Address.AddressLocationHorizentalPoint.ToString()) && x.Person.Address.AddressLocationHorizentalPoint.ToString().Contains(searchText)) ||
+                    (!string.IsNullOrEmpty(x.Person.Address.AddressLocationVerticalPoint.ToString()) && x.Person.Address.AddressLocationVerticalPoint.ToString().Contains(searchText)) ||
+                    (!string.IsNullOrEmpty(x.Person.Address.AddressPostalCode.ToString()) && x.Person.Address.AddressPostalCode.ToString().Contains(searchText)) ||
+                    //(!string.IsNullOrEmpty(x.State.ToString()) && x.State.ToString().Contains(searchText)) ||
+                    (!string.IsNullOrEmpty(x.Person.Address.Description.ToString()) && x.Person.Address.Description.ToString().Contains(searchText)) ||
+                    (!string.IsNullOrEmpty(x.Person.Address.AddressStreet.ToString()) && x.Person.Address.AddressStreet.ToString().Contains(searchText)) ||
                     (x.CreateDate.HasValue && x.CreateDate.Value.ToString().Contains(searchText)) ||
                     (x.UpdateDate.HasValue && x.UpdateDate.Value.ToString().Contains(searchText)) ||
                     (!string.IsNullOrEmpty(x.YearsOfExperience.ToString()) && x.YearsOfExperience.ToString().Contains(searchText)) ||
@@ -178,13 +199,13 @@ namespace NobatPlusDATA.DataLayer.Services
            
         }
 
-        public async Task<ListResultObject<Stylist>> GetStylistsOfJobTypeAsync(long JobTypeId, int pageIndex = 1, int pageSize = 20, string searchText = "")
+        public async Task<ListResultObject<Stylist>> GetStylistsOfJobTypeAsync(long JobTypeId,long cityId = 0, int pageIndex = 1, int pageSize = 20, string searchText = "")
         {
             ListResultObject<Stylist> results = new ListResultObject<Stylist>();
             try
             {
                 var query = _context.Stylists
-                .Include(x => x.Person)
+                .Include(x => x.Person).ThenInclude(x => x.Address).ThenInclude(x => x.City)
                 .Include(x => x.JobType)
                 .AsNoTracking()
                 .Where(x =>
@@ -196,6 +217,13 @@ namespace NobatPlusDATA.DataLayer.Services
                      (!string.IsNullOrEmpty(x.Person.Email) && x.Person.Email.Contains(searchText)) ||
                      (!string.IsNullOrEmpty(x.Person.Description) && x.Person.Description.Contains(searchText)) ||
                      (x.Person.DateOfBirth.HasValue && x.Person.DateOfBirth.Value.ToString().Contains(searchText)) ||
+                    (!string.IsNullOrEmpty(x.Person.Address.City.CityName.ToString()) && x.Person.Address.City.CityName.ToString().Contains(searchText)) ||
+                    (!string.IsNullOrEmpty(x.Person.Address.AddressLocationHorizentalPoint.ToString()) && x.Person.Address.AddressLocationHorizentalPoint.ToString().Contains(searchText)) ||
+                    (!string.IsNullOrEmpty(x.Person.Address.AddressLocationVerticalPoint.ToString()) && x.Person.Address.AddressLocationVerticalPoint.ToString().Contains(searchText)) ||
+                    (!string.IsNullOrEmpty(x.Person.Address.AddressPostalCode.ToString()) && x.Person.Address.AddressPostalCode.ToString().Contains(searchText)) ||
+                    //(!string.IsNullOrEmpty(x.State.ToString()) && x.State.ToString().Contains(searchText)) ||
+                    (!string.IsNullOrEmpty(x.Person.Address.Description.ToString()) && x.Person.Address.Description.ToString().Contains(searchText)) ||
+                    (!string.IsNullOrEmpty(x.Person.Address.AddressStreet.ToString()) && x.Person.Address.AddressStreet.ToString().Contains(searchText)) ||
                      (!string.IsNullOrEmpty(x.JobType.JobTitle) && x.JobType.JobTitle.Contains(searchText)) ||
                      (x.CreateDate.HasValue && x.CreateDate.Value.ToString().Contains(searchText)) ||
                      (x.UpdateDate.HasValue && x.UpdateDate.Value.ToString().Contains(searchText)) ||
@@ -220,7 +248,7 @@ namespace NobatPlusDATA.DataLayer.Services
       
         }
 
-        public async Task<ListResultObject<Stylist>> GetStylistsOfDiscountAsync(long DiscountId, int pageIndex = 1, int pageSize = 20, string searchText = "")
+        public async Task<ListResultObject<Stylist>> GetStylistsOfDiscountAsync(long DiscountId,long cityId = 0, int pageIndex = 1, int pageSize = 20, string searchText = "")
         {
             ListResultObject<Stylist> results = new ListResultObject<Stylist>();
             try
@@ -228,21 +256,21 @@ namespace NobatPlusDATA.DataLayer.Services
                 var discountAssignments = _context.DiscountAssignments
                .Where(bs => bs.DiscountId == DiscountId)
                .Select(bs => bs.Stylist)
-               .Include(x => x.Person)
+               .Include(x => x.Person).ThenInclude(x => x.Address).ThenInclude(x => x.City)
                .Include(x => x.JobType)
                .AsNoTracking();
 
                 var serviceDiscounts = _context.ServiceDiscounts
              .Where(bs => bs.DiscountId == DiscountId)
              .Select(bs => bs.Stylist)
-             .Include(x => x.Person)
+             .Include(x => x.Person).ThenInclude(x => x.Address).ThenInclude(x => x.City)
              .Include(x => x.JobType)
              .AsNoTracking();
 
                 var customerDiscounts = _context.CustomerDiscounts
                .Where(bs => bs.DiscountId == DiscountId)
                .Select(bs => bs.Stylist)
-               .Include(x => x.Person)
+               .Include(x => x.Person).ThenInclude(x => x.Address).ThenInclude(x => x.City)
                .Include(x => x.JobType)
                .AsNoTracking();
 
@@ -253,6 +281,13 @@ namespace NobatPlusDATA.DataLayer.Services
                     (!string.IsNullOrEmpty(x.Person.PhoneNumber) && x.Person.PhoneNumber.Contains(searchText)) ||
                     (!string.IsNullOrEmpty(x.Person.Email) && x.Person.Email.Contains(searchText)) ||
                     (!string.IsNullOrEmpty(x.Person.Description) && x.Person.Description.Contains(searchText)) ||
+                    (!string.IsNullOrEmpty(x.Person.Address.City.CityName.ToString()) && x.Person.Address.City.CityName.ToString().Contains(searchText)) ||
+                    (!string.IsNullOrEmpty(x.Person.Address.AddressLocationHorizentalPoint.ToString()) && x.Person.Address.AddressLocationHorizentalPoint.ToString().Contains(searchText)) ||
+                    (!string.IsNullOrEmpty(x.Person.Address.AddressLocationVerticalPoint.ToString()) && x.Person.Address.AddressLocationVerticalPoint.ToString().Contains(searchText)) ||
+                    (!string.IsNullOrEmpty(x.Person.Address.AddressPostalCode.ToString()) && x.Person.Address.AddressPostalCode.ToString().Contains(searchText)) ||
+                    //(!string.IsNullOrEmpty(x.State.ToString()) && x.State.ToString().Contains(searchText)) ||
+                    (!string.IsNullOrEmpty(x.Person.Address.Description.ToString()) && x.Person.Address.Description.ToString().Contains(searchText)) ||
+                    (!string.IsNullOrEmpty(x.Person.Address.AddressStreet.ToString()) && x.Person.Address.AddressStreet.ToString().Contains(searchText)) ||
                     (x.Person.DateOfBirth.HasValue && x.Person.DateOfBirth.Value.ToString().Contains(searchText)) ||
                     (!string.IsNullOrEmpty(x.JobType.JobTitle) && x.JobType.JobTitle.Contains(searchText)) ||
                     (x.CreateDate.HasValue && x.CreateDate.Value.ToString().Contains(searchText)) ||

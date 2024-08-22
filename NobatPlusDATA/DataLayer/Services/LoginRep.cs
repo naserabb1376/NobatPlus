@@ -137,6 +137,13 @@ namespace NobatPlusDATA.DataLayer.Services
              .AnyAsync(x => x.Person.NaCode == uniqueProperty);
                         }
                         break;
+                    case 5:
+                        {
+                            result.Status = await _context.Logins.Include(x => x.Person)
+             .AsNoTracking()
+             .AnyAsync(x => x.Person.Email == uniqueProperty);
+                        }
+                        break;
                 }
 
             }

@@ -156,16 +156,18 @@ namespace NobatPlusDATA.Tools
             return summary;
         }
 
-        public static DateTime StringToDate(this string stringDate)
+        public static DateTime? StringToDate(this string stringDate)
         {
+            if (string.IsNullOrEmpty(stringDate))return null;
             var arr = stringDate.Split('/');
             var date = new DateTime(int.Parse(arr[0]), int.Parse(arr[1]), int.Parse(arr[2]));
             return date;
         }
 
-        public static string DateToString(this DateTime date)
+        public static string DateToString(this DateTime? date)
         {
-            string stringDate = $"{date.Year}/{date.Month}/{date.Day} {date.Hour}:{date.Minute}";
+            if (date == null) return "";
+            string stringDate = $"{date?.Year}/{date?.Month}/{date?.Day} {date?.Hour}:{date?.Minute}";
             return stringDate;
         }
     }
