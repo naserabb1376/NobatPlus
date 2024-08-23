@@ -8,6 +8,7 @@ using Microsoft.IdentityModel.Tokens;
 using NobatPlusAPI.RequestObjects;
 using NobatPlusAPI.RequestObjects.Authenticate;
 using NobatPlusAPI.RequestObjects.JobType;
+using NobatPlusAPI.RequestObjects.Log;
 using NobatPlusAPI.RequestObjects.Public;
 using NobatPlusDATA.DataLayer.Repositories;
 using NobatPlusDATA.DataLayer.Services;
