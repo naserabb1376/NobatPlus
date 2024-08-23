@@ -17,6 +17,6 @@ namespace NobatPlusDATA.DataLayer.Repositories
         public Task<BitResultObject> EditRegisterAsync(Register Register);
         public Task<BitResultObject> RemoveRegisterAsync(Register Register);
         public Task<BitResultObject> RemoveRegisterAsync(long RegisterId);
-        public Task<BitResultObject> ExistRegisterAsync(long RegisterId);
+        public Task<BitResultObject> ExistRegisterAsync(long UniqueId, int SearchMode = 1);
     }
 }

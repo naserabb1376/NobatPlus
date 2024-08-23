@@ -5,9 +5,10 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
-using NobatPlusAPI.RequestObjects;
-using NobatPlusAPI.RequestObjects.Authenticate;
-using NobatPlusAPI.RequestObjects.Public;
+using NobatPlusAPI.Models;
+using NobatPlusAPI.Models.Address;
+using NobatPlusAPI.Models.Authenticate;
+using NobatPlusAPI.Models.Public;
 using NobatPlusDATA.DataLayer.Repositories;
 using NobatPlusDATA.DataLayer.Services;
 using NobatPlusDATA.Domain;
@@ -42,7 +43,7 @@ namespace NobatPlusAPI.Controllers
             {
                 return BadRequest(requestBody);
             }
-            var result = await _AddressRep.GetAllAddressesAsync(requestBody.PageIndex,requestBody.PageSize,requestBody.SearchText);
+            var result = await _AddressRep.GetAllAddressesAsync(requestBody.CityId,requestBody.PageIndex,requestBody.PageSize,requestBody.SearchText);
             if (result.Status)
             {
                 return Ok(result);

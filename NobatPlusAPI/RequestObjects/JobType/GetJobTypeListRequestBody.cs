@@ -1,11 +1,12 @@
 ﻿using Domain;
-using NobatPlusAPI.RequestObjects.Public;
+using NobatPlusAPI.Models.Public;
 using System.ComponentModel.DataAnnotations;
 
-namespace NobatPlusAPI.RequestObjects
+namespace NobatPlusAPI.Models.JobType
 {
     public class GetJobTypeListRequestBody:GetListRequestBody
     {
+        [Display(Name = "جنسیت")]
         public int SexTypeChecked { get; set; } = 0;
 
     }

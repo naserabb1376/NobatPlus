@@ -1,7 +1,7 @@
 ﻿using Domain;
 using System.ComponentModel.DataAnnotations;
 
-namespace NobatPlusAPI.RequestObjects.City
+namespace NobatPlusAPI.Models.City
 {
     public class AddEditCiyRequestBody
     {

@@ -1,7 +1,7 @@
 ﻿using Domain;
 using System.ComponentModel.DataAnnotations;
 
-namespace NobatPlusAPI.RequestObjects
+namespace NobatPlusAPI.Models.Address
 {
     public class AddEditAddressRequestBody
     {
@@ -9,6 +9,7 @@ namespace NobatPlusAPI.RequestObjects
 
         [Display(Name = "شهر یا استان")]
         [Required(ErrorMessage = "لطفا {0} را وارد کنید")]
+        [Range(1, long.MaxValue, ErrorMessage = "مقدار {0} باید بزرگتر از 0 باشد")]
         public long CityID { get; set; }
 
         [Display(Name = "خیابان")]

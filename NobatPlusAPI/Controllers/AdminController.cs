@@ -5,9 +5,10 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
-using NobatPlusAPI.RequestObjects;
-using NobatPlusAPI.RequestObjects.Authenticate;
-using NobatPlusAPI.RequestObjects.Public;
+using NobatPlusAPI.Models;
+using NobatPlusAPI.Models.Admin;
+using NobatPlusAPI.Models.Authenticate;
+using NobatPlusAPI.Models.Public;
 using NobatPlusDATA.DataLayer.Repositories;
 using NobatPlusDATA.DataLayer.Services;
 using NobatPlusDATA.Domain;
@@ -38,33 +39,23 @@ namespace NobatPlusAPI.Controllers
         [HttpPost("GetAllAdmins_Base")]
         public async Task<ActionResult<ListResultObject<Admin>>> GetAllAdmins_Base(GetAdminListRequestBody requestBody)
         {
+            ListResultObject<Admin> result = new ListResultObject<Admin>();
             if (!ModelState.IsValid)
             {
                 return BadRequest(requestBody);
             }
-            var result = await _AdminRep.GetAllAdminsAsync(requestBody.Role,requestBody.CityId,requestBody.PageIndex,requestBody.PageSize,requestBody.SearchText);
+            if (requestBody.DiscountId > 0)
+            {
+                result = await _AdminRep.GetAdminsOfDiscountAsync(requestBody.DiscountId,requestBody.CityId,requestBody.Role,requestBody.PageIndex, requestBody.PageSize, requestBody.SearchText);
+            }
+            else
+                result = await _AdminRep.GetAllAdminsAsync(requestBody.Role,requestBody.CityId,requestBody.PageIndex,requestBody.PageSize,requestBody.SearchText);
             if (result.Status)
             {
                 return Ok(result);
             }
             return BadRequest(result);
         }
-
-        [HttpPost("GetDiscountAdmins_Base")]
-        public async Task<ActionResult<ListResultObject<Admin>>> GetDiscountAdmins_Base(GetDiscountAdminListRequestBody requestBody)
-        {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(requestBody);
-            }
-            var result = await _AdminRep.GetAdminsOfDiscountAsync(requestBody.DiscountId,requestBody.CityId,requestBody.Role, requestBody.PageIndex, requestBody.PageSize, requestBody.SearchText);
-            if (result.Status)
-            {
-                return Ok(result);
-            }
-            return BadRequest(result);
-        }
-
 
         [HttpPost("GetAdminById_Base")]
         public async Task<ActionResult<ListResultObject<Admin>>> GetAdminById_Base(GetRowRequestBody requestBody)

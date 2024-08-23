@@ -58,14 +58,26 @@ namespace NobatPlusDATA.DataLayer.Services
             
         }
 
-        public async Task<BitResultObject> ExistRegisterAsync(long RegisterId)
+        public async Task<BitResultObject> ExistRegisterAsync(long UniqueId, int SearchMode = 1)
         {
             BitResultObject result = new BitResultObject();
             try
             {
-                result.Status = await _context.Registers
-                .AsNoTracking()
-                .AnyAsync(x => x.ID == RegisterId);
+                switch (SearchMode)
+                {
+                    default:
+                    case 1:
+               result.Status = await _context.Registers
+               .AsNoTracking()
+               .AnyAsync(x => x.ID == UniqueId);
+                        break;
+                    case 2:
+                        result.Status = await _context.Registers
+                        .AsNoTracking()
+                        .AnyAsync(x => x.PersonID == UniqueId);
+                        break;
+                }
+               
             }
             catch (Exception ex)
             {

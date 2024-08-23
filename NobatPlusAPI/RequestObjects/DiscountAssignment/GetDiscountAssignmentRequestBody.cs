@@ -1,8 +1,8 @@
 ﻿using Domain;
-using NobatPlusAPI.RequestObjects.Public;
+using NobatPlusAPI.Models.Public;
 using System.ComponentModel.DataAnnotations;
 
-namespace NobatPlusAPI.RequestObjects
+namespace NobatPlusAPI.Models.DiscountAssignment
 {
     public class GetDiscountAssignmentListRequestBody:GetListRequestBody
     {
