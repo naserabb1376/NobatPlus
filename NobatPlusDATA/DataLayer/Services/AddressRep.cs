@@ -72,14 +72,19 @@ namespace NobatPlusDATA.DataLayer.Services
             return result;
         }
 
-        public async Task<ListResultObject<Address>> GetAllAddressesAsync(int pageIndex = 1, int pageSize = 20, string searchText = "")
+        public async Task<ListResultObject<Address>> GetAllAddressesAsync(long CityId = 0, int pageIndex = 1, int pageSize = 20, string searchText = "")
         {
             ListResultObject<Address> results = new ListResultObject<Address>();
             try
             {
-                var query = _context.Addresses
-    .AsNoTracking().Include(x=> x.City)
-    .Where(x =>
+                var query = _context.Addresses.Include(x => x.City).AsNoTracking();
+
+                if (CityId > 0)
+                {
+                    query = query.Where(x=> x.CityID == CityId);
+                }
+    
+         query = query.Where(x =>
         (!string.IsNullOrEmpty(x.City.CityName.ToString()) && x.City.CityName.ToString().Contains(searchText)) ||
         (!string.IsNullOrEmpty(x.AddressLocationHorizentalPoint.ToString()) && x.AddressLocationHorizentalPoint.ToString().Contains(searchText)) ||
         (!string.IsNullOrEmpty(x.AddressLocationVerticalPoint.ToString()) && x.AddressLocationVerticalPoint.ToString().Contains(searchText)) ||

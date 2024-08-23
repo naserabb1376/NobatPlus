@@ -1,7 +1,7 @@
 ﻿using Domain;
 using System.ComponentModel.DataAnnotations;
 
-namespace NobatPlusAPI.RequestObjects
+namespace NobatPlusAPI.Models.Discount
 {
     public class AddEditDiscountRequestBody
     {
@@ -13,6 +13,7 @@ namespace NobatPlusAPI.RequestObjects
 
         [Display(Name = "میزان تخفیف")]
         [Required(ErrorMessage = "لطفا {0} را وارد کنید")]
+        [Range(1, int.MaxValue, ErrorMessage = "مقدار {0} باید بزرگتر از 0 باشد")]
         public int DiscountAmount { get; set; }
 
         [Display(Name = "تاریخ شروع")]

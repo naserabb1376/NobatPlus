@@ -1,7 +1,7 @@
 ﻿using Domain;
 using System.ComponentModel.DataAnnotations;
 
-namespace NobatPlusAPI.RequestObjects.Authenticate
+namespace NobatPlusAPI.Models.Authenticate
 {
     public class SignupRequestBody
     {

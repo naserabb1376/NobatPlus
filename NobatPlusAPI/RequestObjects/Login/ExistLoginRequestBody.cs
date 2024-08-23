@@ -1,13 +1,18 @@
 ﻿using Domain;
-using NobatPlusAPI.RequestObjects.Public;
+using NobatPlusAPI.Models.Public;
 using System.ComponentModel.DataAnnotations;
 
-namespace NobatPlusAPI.RequestObjects
+namespace NobatPlusAPI.Models.Login
 {
     public class ExistLoginRequestBody
     {
+        [Display(Name = "کلید جستجو")]
+        [Required(ErrorMessage = "لطفا {0} را وارد کنید")]
         public string UniqueProperty { get; set; }
-        public int SearchMode { get; set; }
+
+        [Display(Name = "روش جستجو")]
+        [Required(ErrorMessage = "لطفا {0} را وارد کنید")]
+        public int SearchMode { get; set; } = 1;
 
     }
 }

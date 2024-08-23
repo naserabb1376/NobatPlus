@@ -1,7 +1,7 @@
 ﻿using Domain;
 using System.ComponentModel.DataAnnotations;
 
-namespace NobatPlusAPI.RequestObjects.JobType
+namespace NobatPlusAPI.Models.JobType
 {
     public class AddEditJobTypeRequestBody
     {

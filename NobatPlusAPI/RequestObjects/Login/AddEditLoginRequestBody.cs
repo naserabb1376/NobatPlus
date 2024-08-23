@@ -1,7 +1,7 @@
 ﻿using Domain;
 using System.ComponentModel.DataAnnotations;
 
-namespace NobatPlusAPI.RequestObjects.Login
+namespace NobatPlusAPI.Models.Login
 {
     public class AddEditLoginRequestBody
     {
@@ -9,6 +9,7 @@ namespace NobatPlusAPI.RequestObjects.Login
 
         [Display(Name = "کد شخص")]
         [Required(ErrorMessage = "لطفا {0} را وارد کنید")]
+        [Range(1, long.MaxValue, ErrorMessage = "مقدار {0} باید بزرگتر از 0 باشد")]
         public long PersonID { get; set; }
 
         [Display(Name = "نام کاربری")]
