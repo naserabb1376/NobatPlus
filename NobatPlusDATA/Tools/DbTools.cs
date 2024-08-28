@@ -59,7 +59,8 @@ namespace NobatPlusDATA.Tools
         public static string ToShamsi(this string value) // use this word for use the method for all DateTime variables in project
         {
             var date = value.Split(' ')[0].Split('/');
-            DateTime dateTime = new DateTime(Convert.ToInt32(date[0]), Convert.ToInt32(date[1]), Convert.ToInt32(date[2]));
+            var time = value.Split(' ')[1].Split(':');
+            DateTime dateTime = new DateTime(Convert.ToInt32(date[0]), Convert.ToInt32(date[1]), Convert.ToInt32(date[2]), Convert.ToInt32(time[0]), Convert.ToInt32(time[1]), Convert.ToInt32(time[2]));
             PersianCalendar persianCalendar = new PersianCalendar();
             string shamsiDate = $"{persianCalendar.GetYear(dateTime)}/{persianCalendar.GetMonth(dateTime)}/{persianCalendar.GetDayOfMonth(dateTime)} {persianCalendar.GetHour(dateTime)}:{persianCalendar.GetMinute(dateTime)}:{persianCalendar.GetSecond(dateTime)}";
             return shamsiDate;
