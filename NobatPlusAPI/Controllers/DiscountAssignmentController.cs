@@ -110,7 +110,7 @@ namespace NobatPlusAPI.Controllers
                     LogTime = DateTime.Now.ToShamsi(),
                     ActionName = this.ControllerContext.RouteData.Values["action"].ToString(),
                 };
-                result = await _logRep.AddLogAsync(log);
+                await _logRep.AddLogAsync(log);
                 #endregion
 
                 return Ok(result);
