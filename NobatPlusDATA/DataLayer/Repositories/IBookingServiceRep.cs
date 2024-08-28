@@ -12,10 +12,10 @@ namespace NobatPlusDATA.DataLayer.Repositories
     {
         public Task<ListResultObject<BookingService>> GetAllBookingServicesAsync(int pageIndex = 1, int pageSize = 20, string searchText = "");
         public Task<RowResultObject<BookingService>> GetBookingServiceByIdAsync(long BookingId, long ServiceManagementId);
-        public Task<BitResultObject> AddBookingServiceAsync(BookingService BookingService);
-        public Task<BitResultObject> EditBookingServiceAsync(BookingService BookingService);
-        public Task<BitResultObject> RemoveBookingServiceAsync(BookingService BookingService);
-        public Task<BitResultObject> RemoveBookingServiceAsync(long BookingId, long ServiceManagementId);
+        public Task<BitResultObject> AddBookingServicesAsync(List<BookingService> bookingServices);
+        public Task<BitResultObject> EditBookingServicesAsync(List<BookingService> bookingServices);
+        public Task<BitResultObject> RemoveBookingServicesAsync(List<BookingService> bookingServices);
+        public Task<BitResultObject> RemoveBookingServicesAsync(List<(long BookingId, long ServiceManagementId)> bookingServiceIds);
         public Task<BitResultObject> ExistBookingServiceAsync(long BookingId, long ServiceManagementId);
     }
 }

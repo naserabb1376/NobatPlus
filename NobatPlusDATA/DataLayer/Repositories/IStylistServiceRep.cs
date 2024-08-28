@@ -12,10 +12,10 @@ namespace NobatPlusDATA.DataLayer.Repositories
     {
         public Task<ListResultObject<StylistService>> GetAllStylistServicesAsync(int pageIndex = 1, int pageSize = 20, string searchText = "");
         public Task<RowResultObject<StylistService>> GetStylistServiceByIdAsync(long StylistId, long ServiceManagementId);
-        public Task<BitResultObject> AddStylistServiceAsync(StylistService StylistService);
-        public Task<BitResultObject> EditStylistServiceAsync(StylistService StylistService);
-        public Task<BitResultObject> RemoveStylistServiceAsync(StylistService StylistService);
-        public Task<BitResultObject> RemoveStylistServiceAsync(long StylistId, long ServiceManagementId);
+        public Task<BitResultObject> AddStylistServicesAsync(List<StylistService> stylistServices);
+        public Task<BitResultObject> EditStylistServicesAsync(List<StylistService> stylistServices);
+        public Task<BitResultObject> RemoveStylistServicesAsync(List<StylistService> stylistServices);
+        public Task<BitResultObject> RemoveStylistServicesAsync(List<(long StylistId, long ServiceManagementId)> stylistServiceIds);
         public Task<BitResultObject> ExistStylistServiceAsync(long StylistId, long ServiceManagementId);
     }
 }

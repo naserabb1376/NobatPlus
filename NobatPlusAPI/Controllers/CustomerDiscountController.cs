@@ -81,14 +81,15 @@ namespace NobatPlusAPI.Controllers
             return BadRequest(result);
         }
 
-        [HttpPost("AddCustomerDiscount_Base")]
-        public async Task<ActionResult<BitResultObject>> AddCustomerDiscount_Base(AddEditCustomerDiscountRequestBody requestBody)
+        [HttpPost("AddCustomerDiscounts_Base")]
+        public async Task<ActionResult<BitResultObject>> AddCustomerDiscounts_Base(List<AddEditCustomerDiscountRequestBody> requestBodyList)
         {
-            if (ModelState.IsValid)
+            if (!ModelState.IsValid)
             {
-                return BadRequest(requestBody);
+                return BadRequest(requestBodyList);
             }
-            CustomerDiscount CustomerDiscount = new CustomerDiscount()
+
+            var customerDiscounts = requestBodyList.Select(requestBody => new CustomerDiscount
             {
                 CreateDate = DateTime.Now.ToShamsi(),
                 Description = requestBody.Description,
@@ -96,8 +97,9 @@ namespace NobatPlusAPI.Controllers
                 CustomerId = requestBody.CustomerId,
                 DiscountId = requestBody.DiscountId,
                 UpdateDate = DateTime.Now.ToShamsi(),
-            };
-            var result = await _CustomerDiscountRep.AddCustomerDiscountAsync(CustomerDiscount);
+            }).ToList();
+
+            var result = await _CustomerDiscountRep.AddCustomerDiscountsAsync(customerDiscounts);
             if (result.Status)
             {
                 #region AddLog
@@ -108,47 +110,50 @@ namespace NobatPlusAPI.Controllers
                     UpdateDate = DateTime.Now.ToShamsi(),
                     LogTime = DateTime.Now.ToShamsi(),
                     ActionName = this.ControllerContext.RouteData.Values["action"].ToString(),
-
                 };
                 result = await _logRep.AddLogAsync(log);
 
                 #endregion
 
-
                 return Ok(result);
             }
             return BadRequest(result);
         }
 
-        [HttpPut("EditCustomerDiscount_Base")]
-        public async Task<ActionResult<BitResultObject>> EditCustomerDiscount_Base(AddEditCustomerDiscountRequestBody requestBody)
+
+        [HttpPut("EditCustomerDiscounts_Base")]
+        public async Task<ActionResult<BitResultObject>> EditCustomerDiscounts_Base(List<AddEditCustomerDiscountRequestBody> requestBodyList)
         {
-            var result = new BitResultObject();
-            if (ModelState.IsValid)
+            if (!ModelState.IsValid)
             {
-                return BadRequest(requestBody);
-            }
-            var theRow = await _CustomerDiscountRep.GetCustomerDiscountByIdAsync(requestBody.ID);
-            if (!theRow.Status)
-            {
-                result.Status = theRow.Status;
-                result.ErrorMessage = theRow.ErrorMessage;
+                return BadRequest(requestBodyList);
             }
 
-            CustomerDiscount CustomerDiscount = new CustomerDiscount()
+            var resultList = new List<CustomerDiscount>();
+
+            foreach (var requestBody in requestBodyList)
             {
-                CreateDate = theRow.Result.CreateDate,
-                UpdateDate = DateTime.Now.ToShamsi(),
-                ID = requestBody.ID,
-                Description = requestBody.Description,
-                StylistId = requestBody.StylistId,
-                CustomerId = requestBody.CustomerId,
-                DiscountId = requestBody.DiscountId,
-            };
-            result = await _CustomerDiscountRep.EditCustomerDiscountAsync(CustomerDiscount);
+                var theRow = await _CustomerDiscountRep.GetCustomerDiscountByIdAsync(requestBody.ID);
+                if (!theRow.Status)
+                {
+                    return BadRequest(theRow);
+                }
+
+                resultList.Add(new CustomerDiscount
+                {
+                    CreateDate = theRow.Result.CreateDate,
+                    UpdateDate = DateTime.Now.ToShamsi(),
+                    ID = requestBody.ID,
+                    Description = requestBody.Description,
+                    StylistId = requestBody.StylistId,
+                    CustomerId = requestBody.CustomerId,
+                    DiscountId = requestBody.DiscountId,
+                });
+            }
+
+            var result = await _CustomerDiscountRep.EditCustomerDiscountsAsync(resultList);
             if (result.Status)
             {
-
                 #region AddLog
 
                 Log log = new Log()
@@ -157,7 +162,6 @@ namespace NobatPlusAPI.Controllers
                     UpdateDate = DateTime.Now.ToShamsi(),
                     LogTime = DateTime.Now.ToShamsi(),
                     ActionName = this.ControllerContext.RouteData.Values["action"].ToString(),
-
                 };
                 await _logRep.AddLogAsync(log);
 
@@ -168,17 +172,18 @@ namespace NobatPlusAPI.Controllers
             return BadRequest(result);
         }
 
-        [HttpDelete("DeleteCustomerDiscount_Base")]
-        public async Task<ActionResult<BitResultObject>> DeleteCustomerDiscount_Base(GetRowRequestBody requestBody)
+
+        [HttpDelete("DeleteCustomerDiscounts_Base")]
+        public async Task<ActionResult<BitResultObject>> DeleteCustomerDiscounts_Base(List<long> ids)
         {
-            if (ModelState.IsValid)
+            if (!ModelState.IsValid)
             {
-                return BadRequest(requestBody);
+                return BadRequest(ids);
             }
-            var result = await _CustomerDiscountRep.RemoveCustomerDiscountAsync(requestBody.ID);
+
+            var result = await _CustomerDiscountRep.RemoveCustomerDiscountsAsync(ids);
             if (result.Status)
             {
-
                 #region AddLog
 
                 Log log = new Log()
@@ -187,7 +192,6 @@ namespace NobatPlusAPI.Controllers
                     UpdateDate = DateTime.Now.ToShamsi(),
                     LogTime = DateTime.Now.ToShamsi(),
                     ActionName = this.ControllerContext.RouteData.Values["action"].ToString(),
-
                 };
                 await _logRep.AddLogAsync(log);
 
@@ -197,5 +201,6 @@ namespace NobatPlusAPI.Controllers
             }
             return BadRequest(result);
         }
+
     }
 }

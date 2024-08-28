@@ -84,19 +84,22 @@ namespace NobatPlusAPI.Controllers
             return BadRequest(result);
         }
 
-        [HttpPost("AddStylistService_Base")]
-        public async Task<ActionResult<BitResultObject>> AddStylistService_Base(GetStylistServiceRowRequestBody requestBody)
+        [HttpPost("AddStylistServices_Base")]
+        public async Task<ActionResult<BitResultObject>> AddStylistServices_Base(List<GetStylistServiceRowRequestBody> requestBodyList)
         {
             if (!ModelState.IsValid)
             {
-                return BadRequest(requestBody);
+                return BadRequest(requestBodyList);
             }
-            StylistService StylistService = new StylistService()
+
+            var stylistServices = requestBodyList.Select(requestBody => new StylistService()
             {
-               StylistID = requestBody.StylistID,
-               ServiceManagementID = requestBody.ServiceID,
-            };
-            var result = await _StylistServiceRep.AddStylistServiceAsync(StylistService);
+                StylistID = requestBody.StylistID,
+                ServiceManagementID = requestBody.ServiceID,
+            }).ToList();
+
+            var result = await _StylistServiceRep.AddStylistServicesAsync(stylistServices);
+
             if (result.Status)
             {
                 #region AddLog
@@ -107,44 +110,36 @@ namespace NobatPlusAPI.Controllers
                     UpdateDate = DateTime.Now.ToShamsi(),
                     LogTime = DateTime.Now.ToShamsi(),
                     ActionName = this.ControllerContext.RouteData.Values["action"].ToString(),
-
                 };
                 result = await _logRep.AddLogAsync(log);
 
                 #endregion
 
-
                 return Ok(result);
             }
+
             return BadRequest(result);
         }
 
-        [HttpPut("EditStylistService_Base")]
-        public async Task<ActionResult<BitResultObject>> EditStylistService_Base(GetStylistServiceRowRequestBody requestBody)
+
+        [HttpPut("EditStylistServices_Base")]
+        public async Task<ActionResult<BitResultObject>> EditStylistServices_Base(List<GetStylistServiceRowRequestBody> requestBodyList)
         {
-            var result = new BitResultObject();
             if (!ModelState.IsValid)
             {
-                return BadRequest(requestBody);
+                return BadRequest(requestBodyList);
             }
 
-            var theRow = await _StylistServiceRep.GetStylistServiceByIdAsync(requestBody.StylistID,requestBody.ServiceID);
-
-            if (!theRow.Status)
+            var stylistServices = requestBodyList.Select(requestBody => new StylistService()
             {
-                result.Status = theRow.Status;
-                result.ErrorMessage = theRow.ErrorMessage;
-            }
+                StylistID = requestBody.StylistID,
+                ServiceManagementID = requestBody.ServiceID,
+            }).ToList();
 
-            StylistService StylistService = new StylistService()
-            {
-               StylistID = requestBody.StylistID,
-               ServiceManagementID = requestBody.ServiceID,
-            };
-             result = await _StylistServiceRep.EditStylistServiceAsync(StylistService);
+            var result = await _StylistServiceRep.EditStylistServicesAsync(stylistServices);
+
             if (result.Status)
             {
-
                 #region AddLog
 
                 Log log = new Log()
@@ -153,7 +148,6 @@ namespace NobatPlusAPI.Controllers
                     UpdateDate = DateTime.Now.ToShamsi(),
                     LogTime = DateTime.Now.ToShamsi(),
                     ActionName = this.ControllerContext.RouteData.Values["action"].ToString(),
-
                 };
                 await _logRep.AddLogAsync(log);
 
@@ -161,20 +155,27 @@ namespace NobatPlusAPI.Controllers
 
                 return Ok(result);
             }
+
             return BadRequest(result);
         }
 
-        [HttpDelete("DeleteStylistService_Base")]
-        public async Task<ActionResult<BitResultObject>> DeleteStylistService_Base(GetStylistServiceRowRequestBody requestBody)
+
+        [HttpDelete("DeleteStylistServices_Base")]
+        public async Task<ActionResult<BitResultObject>> DeleteStylistServices_Base(List<GetStylistServiceRowRequestBody> requestBodyList)
         {
             if (!ModelState.IsValid)
             {
-                return BadRequest(requestBody);
+                return BadRequest(requestBodyList);
             }
-            var result = await _StylistServiceRep.RemoveStylistServiceAsync(requestBody.StylistID, requestBody.ServiceID);
+
+            var stylistServiceIds = requestBodyList
+                .Select(requestBody => (requestBody.StylistID, requestBody.ServiceID))
+                .ToList();
+
+            var result = await _StylistServiceRep.RemoveStylistServicesAsync(stylistServiceIds);
+
             if (result.Status)
             {
-
                 #region AddLog
 
                 Log log = new Log()
@@ -183,7 +184,6 @@ namespace NobatPlusAPI.Controllers
                     UpdateDate = DateTime.Now.ToShamsi(),
                     LogTime = DateTime.Now.ToShamsi(),
                     ActionName = this.ControllerContext.RouteData.Values["action"].ToString(),
-
                 };
                 await _logRep.AddLogAsync(log);
 
@@ -191,7 +191,9 @@ namespace NobatPlusAPI.Controllers
 
                 return Ok(result);
             }
+
             return BadRequest(result);
         }
+
     }
 }

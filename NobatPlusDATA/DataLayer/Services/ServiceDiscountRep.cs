@@ -22,14 +22,17 @@ namespace NobatPlusDATA.DataLayer.Services
             _context = DbTools.GetDbContext();
         }
 
-        public async Task<BitResultObject> AddServiceDiscountAsync(ServiceDiscount ServiceDiscount)
+        public async Task<BitResultObject> AddServiceDiscountsAsync(List<ServiceDiscount> serviceDiscounts)
         {
             BitResultObject result = new BitResultObject();
             try
             {
-                await _context.ServiceDiscounts.AddAsync(ServiceDiscount);
+                await _context.ServiceDiscounts.AddRangeAsync(serviceDiscounts);
                 await _context.SaveChangesAsync();
-                _context.Entry(ServiceDiscount).State = EntityState.Detached;
+                foreach (var serviceDiscount in serviceDiscounts)
+                {
+                    _context.Entry(serviceDiscount).State = EntityState.Detached;
+                }
             }
             catch (Exception ex)
             {
@@ -37,17 +40,20 @@ namespace NobatPlusDATA.DataLayer.Services
                 result.ErrorMessage = $"{ex.Message} - {ex.InnerException?.Message}";
             }
             return result;
-            
         }
 
-        public async Task<BitResultObject> EditServiceDiscountAsync(ServiceDiscount ServiceDiscount)
+
+        public async Task<BitResultObject> EditServiceDiscountsAsync(List<ServiceDiscount> serviceDiscounts)
         {
             BitResultObject result = new BitResultObject();
             try
             {
-                _context.ServiceDiscounts.Update(ServiceDiscount);
+                _context.ServiceDiscounts.UpdateRange(serviceDiscounts);
                 await _context.SaveChangesAsync();
-                _context.Entry(ServiceDiscount).State = EntityState.Detached;
+                foreach (var serviceDiscount in serviceDiscounts)
+                {
+                    _context.Entry(serviceDiscount).State = EntityState.Detached;
+                }
             }
             catch (Exception ex)
             {
@@ -55,8 +61,65 @@ namespace NobatPlusDATA.DataLayer.Services
                 result.ErrorMessage = $"{ex.Message} - {ex.InnerException?.Message}";
             }
             return result;
-           
         }
+
+
+        public async Task<BitResultObject> RemoveServiceDiscountsAsync(List<ServiceDiscount> serviceDiscounts)
+        {
+            BitResultObject result = new BitResultObject();
+            try
+            {
+                _context.ServiceDiscounts.RemoveRange(serviceDiscounts);
+                await _context.SaveChangesAsync();
+                foreach (var serviceDiscount in serviceDiscounts)
+                {
+                    _context.Entry(serviceDiscount).State = EntityState.Detached;
+                }
+            }
+            catch (Exception ex)
+            {
+                result.Status = false;
+                result.ErrorMessage = $"{ex.Message} - {ex.InnerException?.Message}";
+            }
+            return result;
+        }
+
+
+        public async Task<BitResultObject> RemoveServiceDiscountsAsync(List<long> serviceDiscountIds)
+        {
+            BitResultObject result = new BitResultObject();
+            try
+            {
+                var serviceDiscountsToRemove = new List<ServiceDiscount>();
+
+                foreach (var serviceDiscountId in serviceDiscountIds)
+                {
+                    var serviceDiscount = await GetServiceDiscountByIdAsync(serviceDiscountId);
+                    if (serviceDiscount.Result != null)
+                    {
+                        serviceDiscountsToRemove.Add(serviceDiscount.Result);
+                    }
+                }
+
+                if (serviceDiscountsToRemove.Any())
+                {
+                    result = await RemoveServiceDiscountsAsync(serviceDiscountsToRemove);
+                }
+                else
+                {
+                    result.Status = false;
+                    result.ErrorMessage = "No matching service discounts found to remove.";
+                }
+            }
+            catch (Exception ex)
+            {
+                result.Status = false;
+                result.ErrorMessage = $"{ex.Message} - {ex.InnerException?.Message}";
+            }
+            return result;
+        }
+
+
 
         public async Task<BitResultObject> ExistServiceDiscountAsync(long ServiceDiscountId)
         {
@@ -145,41 +208,6 @@ namespace NobatPlusDATA.DataLayer.Services
                 result.Result = await _context.ServiceDiscounts
                 .AsNoTracking()
                 .SingleOrDefaultAsync(x => x.ID == ServiceDiscountId);
-            }
-            catch (Exception ex)
-            {
-                result.Status = false;
-                result.ErrorMessage = $"{ex.Message} - {ex.InnerException?.Message}";
-            }
-            return result;
-            
-        }
-
-        public async Task<BitResultObject> RemoveServiceDiscountAsync(ServiceDiscount ServiceDiscount)
-        {
-            BitResultObject result = new BitResultObject();
-            try
-            {
-                _context.ServiceDiscounts.Remove(ServiceDiscount);
-                await _context.SaveChangesAsync();
-                _context.Entry(ServiceDiscount).State = EntityState.Detached;
-            }
-            catch (Exception ex)
-            {
-                result.Status = false;
-                result.ErrorMessage = $"{ex.Message} - {ex.InnerException?.Message}";
-            }
-            return result;
-           
-        }
-
-        public async Task<BitResultObject> RemoveServiceDiscountAsync(long ServiceDiscountId)
-        {
-            BitResultObject result = new BitResultObject();
-            try
-            {
-                var serviceDiscount = await GetServiceDiscountByIdAsync(ServiceDiscountId);
-                result = await RemoveServiceDiscountAsync(serviceDiscount.Result);
             }
             catch (Exception ex)
             {
