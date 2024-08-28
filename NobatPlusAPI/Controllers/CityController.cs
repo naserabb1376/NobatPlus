@@ -94,6 +94,7 @@ namespace NobatPlusAPI.Controllers
                 CityName = requestBody.CityName,
                 CityParentID = requestBody.ParentId,
                 Description = requestBody.Description,
+                UpdateDate = DateTime.Now.ToShamsi(),
             };
             var result = await _CityRep.AddCityAsync(City);
             if (result.Status)
