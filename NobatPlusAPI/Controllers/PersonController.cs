@@ -138,7 +138,7 @@ namespace NobatPlusAPI.Controllers
                     ActionName = this.ControllerContext.RouteData.Values["action"].ToString(),
 
                 };
-                result = await _logRep.AddLogAsync(log);
+               await _logRep.AddLogAsync(log);
 
                 #endregion
 
@@ -196,7 +196,7 @@ namespace NobatPlusAPI.Controllers
                     PhoneNumber = requestBody.PhoneNumber,
                     Description = requestBody.Description,
                 };
-                result = await _PersonRep.AddPersonAsync(Person);
+                result = await _PersonRep.EditPersonAsync(Person);
             }
 
             if (result.Status)
@@ -255,7 +255,7 @@ namespace NobatPlusAPI.Controllers
                     ActionName = this.ControllerContext.RouteData.Values["action"].ToString(),
 
                 };
-                result = await _logRep.AddLogAsync(log);
+                await _logRep.AddLogAsync(log);
 
                 #endregion
 

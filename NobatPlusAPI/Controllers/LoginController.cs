@@ -127,7 +127,7 @@ namespace NobatPlusAPI.Controllers
                     ActionName = this.ControllerContext.RouteData.Values["action"].ToString(),
 
                 };
-                result = await _logRep.AddLogAsync(log);
+                await _logRep.AddLogAsync(log);
 
                 #endregion
 
