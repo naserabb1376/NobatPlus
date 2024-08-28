@@ -29,6 +29,7 @@ namespace NobatPlusDATA.DataLayer.Services
             {
                 await _context.JobTypes.AddAsync(JobType);
                 await _context.SaveChangesAsync();
+                result.ID = JobType.ID;
                 _context.Entry(JobType).State = EntityState.Detached;
             }
             catch (Exception ex)
@@ -47,6 +48,7 @@ namespace NobatPlusDATA.DataLayer.Services
             {
                 _context.JobTypes.Update(JobType);
                 await _context.SaveChangesAsync();
+                result.ID = JobType.ID;
                 _context.Entry(JobType).State = EntityState.Detached;
             }
             catch (Exception ex)
@@ -66,6 +68,7 @@ namespace NobatPlusDATA.DataLayer.Services
                 result.Status = await _context.JobTypes
                 .AsNoTracking()
                 .AnyAsync(x => x.ID == JobTypeId);
+                result.ID = JobTypeId;
             }
             catch (Exception ex)
             {
@@ -133,6 +136,7 @@ namespace NobatPlusDATA.DataLayer.Services
             {
                 _context.JobTypes.Remove(JobType);
                 await _context.SaveChangesAsync();
+                result.ID = JobType.ID;
                 _context.Entry(JobType).State = EntityState.Detached;
             }
             catch (Exception ex)

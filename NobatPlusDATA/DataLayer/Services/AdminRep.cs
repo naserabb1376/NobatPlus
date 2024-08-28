@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
+using System.Net;
 using System.Reflection.Metadata;
 using System.Text;
 using System.Threading.Tasks;
@@ -30,6 +31,7 @@ namespace NobatPlusDATA.DataLayer.Services
             {
                 await _context.Admins.AddAsync(admin);
                 await _context.SaveChangesAsync();
+                result.ID = admin.ID;
                 _context.Entry(admin).State = EntityState.Detached;
             }
             catch (Exception ex)
@@ -48,6 +50,7 @@ namespace NobatPlusDATA.DataLayer.Services
             {
                 _context.Admins.Update(admin);
                 await _context.SaveChangesAsync();
+                result.ID = admin.ID;
                 _context.Entry(admin).State = EntityState.Detached;
             }
             catch (Exception ex)
@@ -64,6 +67,7 @@ namespace NobatPlusDATA.DataLayer.Services
             try
             {
                 result.Status = await _context.Admins.AsNoTracking().AnyAsync(x => x.ID == adminId);
+                result.ID = adminId;
             }
             catch (Exception ex)
             {
@@ -221,6 +225,7 @@ namespace NobatPlusDATA.DataLayer.Services
             {
                 _context.Admins.Remove(admin);
                 await _context.SaveChangesAsync();
+                result.ID = admin.ID;
                 _context.Entry(admin).State = EntityState.Detached;
             }
             catch (Exception ex)

@@ -29,6 +29,7 @@ namespace NobatPlusDATA.DataLayer.Services
             {
                 await _context.Reviews.AddAsync(Review);
                 await _context.SaveChangesAsync();
+                result.ID = Review.ID;
                 _context.Entry(Review).State = EntityState.Detached;
             }
             catch (Exception ex)
@@ -47,6 +48,7 @@ namespace NobatPlusDATA.DataLayer.Services
             {
                 _context.Reviews.Update(Review);
                 await _context.SaveChangesAsync();
+                result.ID = Review.ID;
                 _context.Entry(Review).State = EntityState.Detached;
             }
             catch (Exception ex)
@@ -66,6 +68,7 @@ namespace NobatPlusDATA.DataLayer.Services
                 result.Status = await _context.Reviews
                 .AsNoTracking()
                 .AnyAsync(x => x.ID == ReviewId);
+                result.ID = ReviewId;
             }
             catch (Exception ex)
             {
@@ -150,6 +153,7 @@ namespace NobatPlusDATA.DataLayer.Services
             {
                 _context.Reviews.Remove(Review);
                 await _context.SaveChangesAsync();
+                result.ID = Review.ID;
                 _context.Entry(Review).State = EntityState.Detached;
             }
             catch (Exception ex)

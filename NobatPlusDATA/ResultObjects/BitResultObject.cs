@@ -10,5 +10,6 @@ namespace NobatPlusDATA.ResultObjects
     {
         public bool Status { get; set; } = true;
         public string ErrorMessage { get; set; } = "";
+        public long ID { get; set; } = 0;
     }
 }

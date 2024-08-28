@@ -29,6 +29,7 @@ namespace NobatPlusDATA.DataLayer.Services
             {
                 await _context.CheckAvailabilities.AddAsync(CheckAvailability);
                 await _context.SaveChangesAsync();
+                result.ID = CheckAvailability.ID;
                 _context.Entry(CheckAvailability).State = EntityState.Detached;
             }
             catch (Exception ex)
@@ -47,6 +48,7 @@ namespace NobatPlusDATA.DataLayer.Services
             {
                 _context.CheckAvailabilities.Update(CheckAvailability);
                 await _context.SaveChangesAsync();
+                result.ID = CheckAvailability.ID;
                 _context.Entry(CheckAvailability).State = EntityState.Detached;
             }
             catch (Exception ex)
@@ -66,6 +68,7 @@ namespace NobatPlusDATA.DataLayer.Services
                 result.Status = await _context.CheckAvailabilities
                 .AsNoTracking()
                 .AnyAsync(x => x.ID == CheckAvailabilityId);
+                result.ID = CheckAvailabilityId;
             }
             catch (Exception ex)
             {
@@ -157,6 +160,7 @@ namespace NobatPlusDATA.DataLayer.Services
             {
                 _context.CheckAvailabilities.Remove(CheckAvailability);
                 await _context.SaveChangesAsync();
+                result.ID = CheckAvailability.ID;
                 _context.Entry(CheckAvailability).State = EntityState.Detached;
             }
             catch (Exception ex)

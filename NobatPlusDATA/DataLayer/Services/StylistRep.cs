@@ -30,6 +30,7 @@ namespace NobatPlusDATA.DataLayer.Services
             {
                 await _context.Stylists.AddAsync(Stylist);
                 await _context.SaveChangesAsync();
+                result.ID = Stylist.ID;
                 _context.Entry(Stylist).State = EntityState.Detached;
             }
             catch (Exception ex)
@@ -48,6 +49,7 @@ namespace NobatPlusDATA.DataLayer.Services
             {
                 _context.Stylists.Update(Stylist);
                 await _context.SaveChangesAsync();
+                result.ID = Stylist.ID;
                 _context.Entry(Stylist).State = EntityState.Detached;
             }
             catch (Exception ex)
@@ -65,6 +67,7 @@ namespace NobatPlusDATA.DataLayer.Services
             try
             {
                 result.Status = await _context.Stylists.AnyAsync(x => x.ID == StylistId);
+                result.ID = StylistId;
             }
             catch (Exception ex)
             {
@@ -336,6 +339,7 @@ namespace NobatPlusDATA.DataLayer.Services
             {
                 _context.Stylists.Remove(Stylist);
                 await _context.SaveChangesAsync();
+                result.ID = Stylist.ID;
                 _context.Entry(Stylist).State = EntityState.Detached;
             }
             catch (Exception ex)

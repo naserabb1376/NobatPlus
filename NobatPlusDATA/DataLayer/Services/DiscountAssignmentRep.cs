@@ -1,5 +1,6 @@
 ﻿using Domain;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage;
 using NobatPlusDATA.DataLayer.Repositories;
 using NobatPlusDATA.Domain;
 using NobatPlusDATA.ResultObjects;
@@ -29,6 +30,7 @@ namespace NobatPlusDATA.DataLayer.Services
             {
                 await _context.DiscountAssignments.AddRangeAsync(DiscountAssignments);
                 await _context.SaveChangesAsync();
+                result.ID = DiscountAssignments.FirstOrDefault().ID;
                 foreach (var discountAssignment in DiscountAssignments)
                 {
                     _context.Entry(discountAssignment).State = EntityState.Detached;
@@ -50,6 +52,7 @@ namespace NobatPlusDATA.DataLayer.Services
             {
                 _context.DiscountAssignments.UpdateRange(DiscountAssignments);
                 await _context.SaveChangesAsync();
+                result.ID = DiscountAssignments.FirstOrDefault().ID;
                 foreach (var discountAssignment in DiscountAssignments)
                 {
                     _context.Entry(discountAssignment).State = EntityState.Detached;
@@ -71,6 +74,7 @@ namespace NobatPlusDATA.DataLayer.Services
             {
                 _context.DiscountAssignments.RemoveRange(discountAssignments);
                 await _context.SaveChangesAsync();
+                result.ID = discountAssignments.FirstOrDefault().ID;
                 foreach (var discountAssignment in discountAssignments)
                 {
                     _context.Entry(discountAssignment).State = EntityState.Detached;
@@ -128,6 +132,7 @@ namespace NobatPlusDATA.DataLayer.Services
                 result.Status = await _context.DiscountAssignments
                 .AsNoTracking()
                 .AnyAsync(x => x.ID == DiscountAssignmentId);
+                result.ID = DiscountAssignmentId;
             }
             catch (Exception ex)
             {

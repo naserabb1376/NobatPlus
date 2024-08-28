@@ -29,6 +29,7 @@ namespace NobatPlusDATA.DataLayer.Services
             {
                 await _context.ServiceDiscounts.AddRangeAsync(serviceDiscounts);
                 await _context.SaveChangesAsync();
+                result.ID = serviceDiscounts.FirstOrDefault().ID;
                 foreach (var serviceDiscount in serviceDiscounts)
                 {
                     _context.Entry(serviceDiscount).State = EntityState.Detached;
@@ -50,6 +51,7 @@ namespace NobatPlusDATA.DataLayer.Services
             {
                 _context.ServiceDiscounts.UpdateRange(serviceDiscounts);
                 await _context.SaveChangesAsync();
+                result.ID = serviceDiscounts.FirstOrDefault().ID;
                 foreach (var serviceDiscount in serviceDiscounts)
                 {
                     _context.Entry(serviceDiscount).State = EntityState.Detached;
@@ -71,6 +73,7 @@ namespace NobatPlusDATA.DataLayer.Services
             {
                 _context.ServiceDiscounts.RemoveRange(serviceDiscounts);
                 await _context.SaveChangesAsync();
+                result.ID = serviceDiscounts.FirstOrDefault().ID;
                 foreach (var serviceDiscount in serviceDiscounts)
                 {
                     _context.Entry(serviceDiscount).State = EntityState.Detached;
@@ -129,6 +132,7 @@ namespace NobatPlusDATA.DataLayer.Services
                 result.Status = await _context.ServiceDiscounts
                 .AsNoTracking()
                 .AnyAsync(x => x.ID == ServiceDiscountId);
+                result.ID = ServiceDiscountId;
             }
             catch (Exception ex)
             {
