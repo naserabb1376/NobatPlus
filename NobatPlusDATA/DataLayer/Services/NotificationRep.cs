@@ -1,4 +1,5 @@
 ﻿using Domain;
+using Domains;
 using Microsoft.EntityFrameworkCore;
 using NobatPlusDATA.DataLayer.Repositories;
 using NobatPlusDATA.Domain;
@@ -29,6 +30,7 @@ namespace NobatPlusDATA.DataLayer.Services
             {
                 await _context.Notifications.AddAsync(Notification);
                 await _context.SaveChangesAsync();
+                result.ID = Notification.ID;
                 _context.Entry(Notification).State = EntityState.Detached;
             }
             catch (Exception ex)
@@ -47,6 +49,7 @@ namespace NobatPlusDATA.DataLayer.Services
             {
                 _context.Notifications.Update(Notification);
                 await _context.SaveChangesAsync();
+                result.ID = Notification.ID;
                 _context.Entry(Notification).State = EntityState.Detached;
             }
             catch (Exception ex)
@@ -66,6 +69,7 @@ namespace NobatPlusDATA.DataLayer.Services
                 result.Status = await _context.Notifications
                 .AsNoTracking()
                 .AnyAsync(x => x.ID == NotificationId);
+                result.ID = NotificationId;
             }
             catch (Exception ex)
             {
@@ -166,6 +170,7 @@ namespace NobatPlusDATA.DataLayer.Services
             {
                 _context.Notifications.Remove(Notification);
                 await _context.SaveChangesAsync();
+                result.ID = Notification.ID;
                 _context.Entry(Notification).State = EntityState.Detached;
             }
             catch (Exception ex)

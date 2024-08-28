@@ -27,10 +27,10 @@ namespace NobatPlusDATA.Tools
 
         public static NobatPlusContext GetDbContext()
         {
-            if (_context == null)
-            {
-                _context = new NobatPlusContext();
-            }
+            //if (_context == null)
+            //{
+            _context = new NobatPlusContext();
+            //}
             return _context;
         }
 

@@ -29,6 +29,7 @@ namespace NobatPlusDATA.DataLayer.Services
             {
                 await _context.PaymentHistories.AddAsync(PaymentHistory);
                 await _context.SaveChangesAsync();
+                result.ID = PaymentHistory.ID;
                 _context.Entry(PaymentHistory).State = EntityState.Detached;
             }
             catch (Exception ex)
@@ -47,6 +48,7 @@ namespace NobatPlusDATA.DataLayer.Services
             {
                 _context.PaymentHistories.Update(PaymentHistory);
                 await _context.SaveChangesAsync();
+                result.ID = PaymentHistory.ID;
                 _context.Entry(PaymentHistory).State = EntityState.Detached;
             }
             catch (Exception ex)
@@ -66,6 +68,7 @@ namespace NobatPlusDATA.DataLayer.Services
                 result.Status = await _context.PaymentHistories
                 .AsNoTracking()
                 .AnyAsync(x => x.ID == PaymentHistoryId);
+                result.ID = PaymentHistoryId;
             }
             catch (Exception ex)
             {
@@ -152,6 +155,7 @@ namespace NobatPlusDATA.DataLayer.Services
             {
                 _context.PaymentHistories.Remove(PaymentHistory);
                 await _context.SaveChangesAsync();
+                result.ID = PaymentHistory.ID;
                 _context.Entry(PaymentHistory).State = EntityState.Detached;
             }
             catch (Exception ex)

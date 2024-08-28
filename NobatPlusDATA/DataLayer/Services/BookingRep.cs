@@ -29,6 +29,7 @@ namespace NobatPlusDATA.DataLayer.Services
             {
                 await _context.Bookings.AddAsync(Booking);
                 await _context.SaveChangesAsync();
+                result.ID = Booking.ID;
                 _context.Entry(Booking).State = EntityState.Detached;
             }
             catch (Exception ex)
@@ -47,6 +48,7 @@ namespace NobatPlusDATA.DataLayer.Services
             {
                 _context.Bookings.Update(Booking);
                 await _context.SaveChangesAsync();
+                result.ID = Booking.ID;
                 _context.Entry(Booking).State = EntityState.Detached;
             }
             catch (Exception ex)
@@ -64,6 +66,7 @@ namespace NobatPlusDATA.DataLayer.Services
             try
             {
                 result.Status = await _context.Bookings.AsNoTracking().AnyAsync(x => x.ID == BookingId);
+                result.ID = BookingId;
             }
             catch (Exception ex)
             {
@@ -261,6 +264,7 @@ namespace NobatPlusDATA.DataLayer.Services
             {
                 _context.Bookings.Remove(Booking);
                 await _context.SaveChangesAsync();
+                result.ID = Booking.ID;
                 _context.Entry(Booking).State = EntityState.Detached;
             }
             catch (Exception ex)

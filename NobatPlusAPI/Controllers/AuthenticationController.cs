@@ -249,6 +249,9 @@ namespace NobatPlusAPI.Controllers
                                 #endregion
 
                             }
+
+                            result.ID = person.ID;
+
                             return Ok(result);
                         }
                     }

@@ -28,6 +28,7 @@ namespace NobatPlusDATA.DataLayer.Services
             {
                 await _context.StylistServices.AddRangeAsync(stylistServices);
                 await _context.SaveChangesAsync();
+                result.ID = stylistServices.FirstOrDefault().ServiceManagementID;
                 foreach (var stylistService in stylistServices)
                 {
                     _context.Entry(stylistService).State = EntityState.Detached;
@@ -48,6 +49,7 @@ namespace NobatPlusDATA.DataLayer.Services
             {
                 _context.StylistServices.UpdateRange(stylistServices);
                 await _context.SaveChangesAsync();
+                result.ID = stylistServices.FirstOrDefault().ServiceManagementID;
                 foreach (var stylistService in stylistServices)
                 {
                     _context.Entry(stylistService).State = EntityState.Detached;
@@ -68,6 +70,7 @@ namespace NobatPlusDATA.DataLayer.Services
             {
                 _context.StylistServices.RemoveRange(stylistServices);
                 await _context.SaveChangesAsync();
+                result.ID = stylistServices.FirstOrDefault().ServiceManagementID;
                 foreach (var stylistService in stylistServices)
                 {
                     _context.Entry(stylistService).State = EntityState.Detached;
@@ -123,6 +126,7 @@ namespace NobatPlusDATA.DataLayer.Services
             try
             {
                 result.Status = await _context.StylistServices.AnyAsync(x => x.StylistID == StylistId && x.ServiceManagementID == ServiceManagementId);
+                result.ID = ServiceManagementId;
             }
             catch (Exception ex)
             {

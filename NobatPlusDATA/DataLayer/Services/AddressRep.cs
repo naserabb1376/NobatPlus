@@ -30,6 +30,7 @@ namespace NobatPlusDATA.DataLayer.Services
             {
                 await _context.Addresses.AddAsync(address);
                 await _context.SaveChangesAsync();
+                result.ID = address.ID;
                 _context.Entry(address).State = EntityState.Detached;
             }
             catch (Exception ex)
@@ -48,6 +49,7 @@ namespace NobatPlusDATA.DataLayer.Services
                 _context.Addresses.Update(address);
                 await _context.SaveChangesAsync();
                 _context.Entry(address).State = EntityState.Detached;
+                result.ID = address.ID;
             }
             catch (Exception ex)
             {
@@ -63,6 +65,7 @@ namespace NobatPlusDATA.DataLayer.Services
             try
             {
                 result.Status = await _context.Addresses.AsNoTracking().AnyAsync(x => x.ID == addressId);
+                result.ID = addressId;
             }
             catch (Exception ex)
             {
@@ -151,6 +154,7 @@ namespace NobatPlusDATA.DataLayer.Services
             {
                 _context.Addresses.Remove(address);
                 await _context.SaveChangesAsync();
+                result.ID = address.ID;
                 _context.Entry(address).State = EntityState.Detached;
             }
             catch (Exception ex)
