@@ -21,14 +21,17 @@ namespace NobatPlusDATA.DataLayer.Services
             _context = DbTools.GetDbContext();
         }
 
-        public async Task<BitResultObject> AddStylistServiceAsync(StylistService StylistService)
+        public async Task<BitResultObject> AddStylistServicesAsync(List<StylistService> stylistServices)
         {
             BitResultObject result = new BitResultObject();
             try
             {
-                await _context.StylistServices.AddAsync(StylistService);
+                await _context.StylistServices.AddRangeAsync(stylistServices);
                 await _context.SaveChangesAsync();
-                _context.Entry(StylistService).State = EntityState.Detached;
+                foreach (var stylistService in stylistServices)
+                {
+                    _context.Entry(stylistService).State = EntityState.Detached;
+                }
             }
             catch (Exception ex)
             {
@@ -36,17 +39,19 @@ namespace NobatPlusDATA.DataLayer.Services
                 result.ErrorMessage = $"{ex.Message} - {ex.InnerException?.Message}";
             }
             return result;
-            
         }
 
-        public async Task<BitResultObject> EditStylistServiceAsync(StylistService StylistService)
+        public async Task<BitResultObject> EditStylistServicesAsync(List<StylistService> stylistServices)
         {
             BitResultObject result = new BitResultObject();
             try
             {
-                _context.StylistServices.Update(StylistService);
+                _context.StylistServices.UpdateRange(stylistServices);
                 await _context.SaveChangesAsync();
-                _context.Entry(StylistService).State = EntityState.Detached;
+                foreach (var stylistService in stylistServices)
+                {
+                    _context.Entry(stylistService).State = EntityState.Detached;
+                }
             }
             catch (Exception ex)
             {
@@ -54,8 +59,63 @@ namespace NobatPlusDATA.DataLayer.Services
                 result.ErrorMessage = $"{ex.Message} - {ex.InnerException?.Message}";
             }
             return result;
-           
         }
+
+        public async Task<BitResultObject> RemoveStylistServicesAsync(List<StylistService> stylistServices)
+        {
+            BitResultObject result = new BitResultObject();
+            try
+            {
+                _context.StylistServices.RemoveRange(stylistServices);
+                await _context.SaveChangesAsync();
+                foreach (var stylistService in stylistServices)
+                {
+                    _context.Entry(stylistService).State = EntityState.Detached;
+                }
+            }
+            catch (Exception ex)
+            {
+                result.Status = false;
+                result.ErrorMessage = $"{ex.Message} - {ex.InnerException?.Message}";
+            }
+            return result;
+        }
+
+        public async Task<BitResultObject> RemoveStylistServicesAsync(List<(long StylistId, long ServiceManagementId)> stylistServiceIds)
+        {
+            BitResultObject result = new BitResultObject();
+            try
+            {
+                var stylistServicesToRemove = new List<StylistService>();
+
+                foreach (var (stylistId, serviceManagementId) in stylistServiceIds)
+                {
+                    var stylistService = await GetStylistServiceByIdAsync(stylistId, serviceManagementId);
+                    if (stylistService.Result != null)
+                    {
+                        stylistServicesToRemove.Add(stylistService.Result);
+                    }
+                }
+
+                if (stylistServicesToRemove.Any())
+                {
+                    result = await RemoveStylistServicesAsync(stylistServicesToRemove);
+                }
+                else
+                {
+                    result.Status = false;
+                    result.ErrorMessage = "No matching stylist services found to remove.";
+                }
+            }
+            catch (Exception ex)
+            {
+                result.Status = false;
+                result.ErrorMessage = $"{ex.Message} - {ex.InnerException?.Message}";
+            }
+            return result;
+        }
+
+
 
         public async Task<BitResultObject> ExistStylistServiceAsync(long StylistId, long ServiceManagementId)
         {
@@ -124,41 +184,6 @@ namespace NobatPlusDATA.DataLayer.Services
             }
             return result;
            
-        }
-
-        public async Task<BitResultObject> RemoveStylistServiceAsync(StylistService StylistService)
-        {
-            BitResultObject result = new BitResultObject();
-            try
-            {
-                _context.StylistServices.Remove(StylistService);
-                await _context.SaveChangesAsync();
-                _context.Entry(StylistService).State = EntityState.Detached;
-            }
-            catch (Exception ex)
-            {
-                result.Status = false;
-                result.ErrorMessage = $"{ex.Message} - {ex.InnerException?.Message}";
-            }
-            return result;
-           
-        }
-
-        public async Task<BitResultObject> RemoveStylistServiceAsync(long StylistId, long ServiceManagementId)
-        {
-            BitResultObject result = new BitResultObject();
-            try
-            {
-                var stylistService = await GetStylistServiceByIdAsync(StylistId, ServiceManagementId);
-                result = await RemoveStylistServiceAsync(stylistService.Result);
-            }
-            catch (Exception ex)
-            {
-                result.Status = false;
-                result.ErrorMessage = $"{ex.Message} - {ex.InnerException?.Message}";
-            }
-            return result;
-          
         }
     }
 }

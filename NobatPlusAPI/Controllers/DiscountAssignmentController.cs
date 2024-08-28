@@ -81,14 +81,15 @@ namespace NobatPlusAPI.Controllers
             return BadRequest(result);
         }
 
-        [HttpPost("AddDiscountAssignment_Base")]
-        public async Task<ActionResult<BitResultObject>> AddDiscountAssignment_Base(AddEditDiscountAssignmentRequestBody requestBody)
+        [HttpPost("AddDiscountAssignments_Base")]
+        public async Task<ActionResult<BitResultObject>> AddDiscountAssignments_Base(List<AddEditDiscountAssignmentRequestBody> requestBodies)
         {
-            if (ModelState.IsValid)
+            if (!ModelState.IsValid)
             {
-                return BadRequest(requestBody);
+                return BadRequest(requestBodies);
             }
-            DiscountAssignment DiscountAssignment = new DiscountAssignment()
+
+            var discountAssignments = requestBodies.Select(requestBody => new DiscountAssignment()
             {
                 CreateDate = DateTime.Now.ToShamsi(),
                 Description = requestBody.Description,
@@ -96,71 +97,70 @@ namespace NobatPlusAPI.Controllers
                 AdminId = requestBody.AdminId,
                 DiscountId = requestBody.DiscountId,
                 UpdateDate = DateTime.Now.ToShamsi(),
-            };
-            var result = await _DiscountAssignmentRep.AddDiscountAssignmentAsync(DiscountAssignment);
+            }).ToList();
+
+            var result = await _DiscountAssignmentRep.AddDiscountAssignmentsAsync(discountAssignments);
             if (result.Status)
             {
                 #region AddLog
-
                 Log log = new Log()
                 {
                     CreateDate = DateTime.Now.ToShamsi(),
                     UpdateDate = DateTime.Now.ToShamsi(),
                     LogTime = DateTime.Now.ToShamsi(),
                     ActionName = this.ControllerContext.RouteData.Values["action"].ToString(),
-
                 };
                 result = await _logRep.AddLogAsync(log);
-
                 #endregion
-
 
                 return Ok(result);
             }
             return BadRequest(result);
         }
 
-        [HttpPut("EditDiscountAssignment_Base")]
-        public async Task<ActionResult<BitResultObject>> EditDiscountAssignment_Base(AddEditDiscountAssignmentRequestBody requestBody)
+
+        [HttpPut("EditDiscountAssignments_Base")]
+        public async Task<ActionResult<BitResultObject>> EditDiscountAssignments_Base(List<AddEditDiscountAssignmentRequestBody> requestBodies)
         {
-            var result = new BitResultObject();
-            if (ModelState.IsValid)
+            if (!ModelState.IsValid)
             {
-                return BadRequest(requestBody);
-            }
-            var theRow = await _DiscountAssignmentRep.GetDiscountAssignmentByIdAsync(requestBody.ID);
-            if (!theRow.Status)
-            {
-                result.Status = theRow.Status;
-                result.ErrorMessage = theRow.ErrorMessage;
+                return BadRequest(requestBodies);
             }
 
-            DiscountAssignment DiscountAssignment = new DiscountAssignment()
+            var discountAssignments = new List<DiscountAssignment>();
+
+            foreach (var requestBody in requestBodies)
             {
-                CreateDate = theRow.Result.CreateDate,
-                UpdateDate = DateTime.Now.ToShamsi(),
-                ID = requestBody.ID,
-                Description = requestBody.Description,
-                StylistId = requestBody.StylistId,
-                AdminId = requestBody.AdminId,
-                DiscountId = requestBody.DiscountId,
-            };
-            result = await _DiscountAssignmentRep.EditDiscountAssignmentAsync(DiscountAssignment);
+                var theRow = await _DiscountAssignmentRep.GetDiscountAssignmentByIdAsync(requestBody.ID);
+                if (!theRow.Status)
+                {
+                    return BadRequest(theRow);
+                }
+
+                discountAssignments.Add(new DiscountAssignment()
+                {
+                    CreateDate = theRow.Result.CreateDate,
+                    UpdateDate = DateTime.Now.ToShamsi(),
+                    ID = requestBody.ID,
+                    Description = requestBody.Description,
+                    StylistId = requestBody.StylistId,
+                    AdminId = requestBody.AdminId,
+                    DiscountId = requestBody.DiscountId,
+                });
+            }
+
+            var result = await _DiscountAssignmentRep.EditDiscountAssignmentsAsync(discountAssignments);
             if (result.Status)
             {
-
                 #region AddLog
-
                 Log log = new Log()
                 {
                     CreateDate = DateTime.Now.ToShamsi(),
                     UpdateDate = DateTime.Now.ToShamsi(),
                     LogTime = DateTime.Now.ToShamsi(),
                     ActionName = this.ControllerContext.RouteData.Values["action"].ToString(),
-
                 };
                 await _logRep.AddLogAsync(log);
-
                 #endregion
 
                 return Ok(result);
@@ -168,34 +168,35 @@ namespace NobatPlusAPI.Controllers
             return BadRequest(result);
         }
 
-        [HttpDelete("DeleteDiscountAssignment_Base")]
-        public async Task<ActionResult<BitResultObject>> DeleteDiscountAssignment_Base(GetRowRequestBody requestBody)
+
+        [HttpDelete("DeleteDiscountAssignments_Base")]
+        public async Task<ActionResult<BitResultObject>> DeleteDiscountAssignments_Base(List<GetRowRequestBody> requestBodies)
         {
-            if (ModelState.IsValid)
+            if (!ModelState.IsValid)
             {
-                return BadRequest(requestBody);
+                return BadRequest(requestBodies);
             }
-            var result = await _DiscountAssignmentRep.RemoveDiscountAssignmentAsync(requestBody.ID);
+
+            var discountAssignmentIds = requestBodies.Select(rb => rb.ID).ToList();
+            var result = await _DiscountAssignmentRep.RemoveDiscountAssignmentsAsync(discountAssignmentIds);
+
             if (result.Status)
             {
-
                 #region AddLog
-
                 Log log = new Log()
                 {
                     CreateDate = DateTime.Now.ToShamsi(),
                     UpdateDate = DateTime.Now.ToShamsi(),
                     LogTime = DateTime.Now.ToShamsi(),
                     ActionName = this.ControllerContext.RouteData.Values["action"].ToString(),
-
                 };
                 await _logRep.AddLogAsync(log);
-
                 #endregion
 
                 return Ok(result);
             }
             return BadRequest(result);
         }
+
     }
 }

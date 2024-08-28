@@ -22,14 +22,17 @@ namespace NobatPlusDATA.DataLayer.Services
             _context = DbTools.GetDbContext();
         }
 
-        public async Task<BitResultObject> AddDiscountAssignmentAsync(DiscountAssignment DiscountAssignment)
+        public async Task<BitResultObject> AddDiscountAssignmentsAsync(List<DiscountAssignment> DiscountAssignments)
         {
             BitResultObject result = new BitResultObject();
             try
             {
-                await _context.DiscountAssignments.AddAsync(DiscountAssignment);
+                await _context.DiscountAssignments.AddRangeAsync(DiscountAssignments);
                 await _context.SaveChangesAsync();
-                _context.Entry(DiscountAssignment).State = EntityState.Detached;
+                foreach (var discountAssignment in DiscountAssignments)
+                {
+                    _context.Entry(discountAssignment).State = EntityState.Detached;
+                }
             }
             catch (Exception ex)
             {
@@ -37,17 +40,20 @@ namespace NobatPlusDATA.DataLayer.Services
                 result.ErrorMessage = $"{ex.Message} - {ex.InnerException?.Message}";
             }
             return result;
-            
         }
 
-        public async Task<BitResultObject> EditDiscountAssignmentAsync(DiscountAssignment DiscountAssignment)
+
+        public async Task<BitResultObject> EditDiscountAssignmentsAsync(List<DiscountAssignment> DiscountAssignments)
         {
             BitResultObject result = new BitResultObject();
             try
             {
-                _context.DiscountAssignments.Update(DiscountAssignment);
+                _context.DiscountAssignments.UpdateRange(DiscountAssignments);
                 await _context.SaveChangesAsync();
-                _context.Entry(DiscountAssignment).State = EntityState.Detached;
+                foreach (var discountAssignment in DiscountAssignments)
+                {
+                    _context.Entry(discountAssignment).State = EntityState.Detached;
+                }
             }
             catch (Exception ex)
             {
@@ -55,8 +61,64 @@ namespace NobatPlusDATA.DataLayer.Services
                 result.ErrorMessage = $"{ex.Message} - {ex.InnerException?.Message}";
             }
             return result;
-            
         }
+
+
+        public async Task<BitResultObject> RemoveDiscountAssignmentsAsync(List<DiscountAssignment> discountAssignments)
+        {
+            BitResultObject result = new BitResultObject();
+            try
+            {
+                _context.DiscountAssignments.RemoveRange(discountAssignments);
+                await _context.SaveChangesAsync();
+                foreach (var discountAssignment in discountAssignments)
+                {
+                    _context.Entry(discountAssignment).State = EntityState.Detached;
+                }
+            }
+            catch (Exception ex)
+            {
+                result.Status = false;
+                result.ErrorMessage = $"{ex.Message} - {ex.InnerException?.Message}";
+            }
+            return result;
+        }
+
+        public async Task<BitResultObject> RemoveDiscountAssignmentsAsync(List<long> discountAssignmentIds)
+        {
+            BitResultObject result = new BitResultObject();
+            try
+            {
+                var discountAssignmentsToRemove = new List<DiscountAssignment>();
+
+                foreach (var discountAssignmentId in discountAssignmentIds)
+                {
+                    var discountAssignment = await GetDiscountAssignmentByIdAsync(discountAssignmentId);
+                    if (discountAssignment.Result != null)
+                    {
+                        discountAssignmentsToRemove.Add(discountAssignment.Result);
+                    }
+                }
+
+                if (discountAssignmentsToRemove.Any())
+                {
+                    result = await RemoveDiscountAssignmentsAsync(discountAssignmentsToRemove);
+                }
+                else
+                {
+                    result.Status = false;
+                    result.ErrorMessage = "No matching discount assignments found to remove.";
+                }
+            }
+            catch (Exception ex)
+            {
+                result.Status = false;
+                result.ErrorMessage = $"{ex.Message} - {ex.InnerException?.Message}";
+            }
+            return result;
+        }
+
+
 
         public async Task<BitResultObject> ExistDiscountAssignmentAsync(long DiscountAssignmentId)
         {
@@ -191,39 +253,6 @@ namespace NobatPlusDATA.DataLayer.Services
             
         }
 
-        public async Task<BitResultObject> RemoveDiscountAssignmentAsync(DiscountAssignment DiscountAssignment)
-        {
-            BitResultObject result = new BitResultObject();
-            try
-            {
-                _context.DiscountAssignments.Remove(DiscountAssignment);
-                await _context.SaveChangesAsync();
-                _context.Entry(DiscountAssignment).State = EntityState.Detached;
-            }
-            catch (Exception ex)
-            {
-                result.Status = false;
-                result.ErrorMessage = $"{ex.Message} - {ex.InnerException?.Message}";
-            }
-            return result;
-            
-        }
-
-        public async Task<BitResultObject> RemoveDiscountAssignmentAsync(long DiscountAssignmentId)
-        {
-            BitResultObject result = new BitResultObject();
-            try
-            {
-                var DiscountAssignment = await GetDiscountAssignmentByIdAsync(DiscountAssignmentId);
-                result = await RemoveDiscountAssignmentAsync(DiscountAssignment.Result);
-            }
-            catch (Exception ex)
-            {
-                result.Status = false;
-                result.ErrorMessage = $"{ex.Message} - {ex.InnerException?.Message}";
-            }
-            return result;
-           
-        }
+       
     }
 }

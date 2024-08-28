@@ -81,14 +81,15 @@ namespace NobatPlusAPI.Controllers
             return BadRequest(result);
         }
 
-        [HttpPost("AddServiceDiscount_Base")]
-        public async Task<ActionResult<BitResultObject>> AddServiceDiscount_Base(AddEditServiceDiscountRequestBody requestBody)
+        [HttpPost("AddServiceDiscounts_Base")]
+        public async Task<ActionResult<BitResultObject>> AddServiceDiscounts_Base(List<AddEditServiceDiscountRequestBody> requestBodies)
         {
-            if (ModelState.IsValid)
+            if (!ModelState.IsValid)
             {
-                return BadRequest(requestBody);
+                return BadRequest(requestBodies);
             }
-            ServiceDiscount ServiceDiscount = new ServiceDiscount()
+
+            var serviceDiscounts = requestBodies.Select(requestBody => new ServiceDiscount
             {
                 CreateDate = DateTime.Now.ToShamsi(),
                 UpdateDate = DateTime.Now.ToShamsi(),
@@ -96,70 +97,79 @@ namespace NobatPlusAPI.Controllers
                 AdminId = requestBody.AdminID,
                 ServiceManagementId = requestBody.ServiceID,
                 StylistId = requestBody.StylistID,
-                Description = requestBody.Description,
-            };
-            var result = await _ServiceDiscountRep.AddServiceDiscountAsync(ServiceDiscount);
+                Description = requestBody.Description
+            }).ToList();
+
+            var result = await _ServiceDiscountRep.AddServiceDiscountsAsync(serviceDiscounts);
             if (result.Status)
             {
                 #region AddLog
 
-                Log log = new Log()
+                Log log = new Log
                 {
                     CreateDate = DateTime.Now.ToShamsi(),
                     UpdateDate = DateTime.Now.ToShamsi(),
                     LogTime = DateTime.Now.ToShamsi(),
                     ActionName = this.ControllerContext.RouteData.Values["action"].ToString(),
-
                 };
                 result = await _logRep.AddLogAsync(log);
 
                 #endregion
 
-
                 return Ok(result);
             }
+
             return BadRequest(result);
         }
 
-        [HttpPut("EditServiceDiscount_Base")]
-        public async Task<ActionResult<BitResultObject>> EditServiceDiscount_Base(AddEditServiceDiscountRequestBody requestBody)
+
+        [HttpPut("EditServiceDiscounts_Base")]
+        public async Task<ActionResult<BitResultObject>> EditServiceDiscounts_Base(List<AddEditServiceDiscountRequestBody> requestBodies)
         {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(requestBodies);
+            }
+
             var result = new BitResultObject();
-            if (ModelState.IsValid)
+            var serviceDiscounts = new List<ServiceDiscount>();
+
+            foreach (var requestBody in requestBodies)
             {
-                return BadRequest(requestBody);
-            }
-            var theRow = await _ServiceDiscountRep.GetServiceDiscountByIdAsync(requestBody.ID);
-            if (!theRow.Status)
-            {
-                result.Status = theRow.Status;
-                result.ErrorMessage = theRow.ErrorMessage;
+                var theRow = await _ServiceDiscountRep.GetServiceDiscountByIdAsync(requestBody.ID);
+                if (!theRow.Status)
+                {
+                    result.Status = theRow.Status;
+                    result.ErrorMessage = theRow.ErrorMessage;
+                    return BadRequest(result);
+                }
+
+                var serviceDiscount = new ServiceDiscount
+                {
+                    CreateDate = theRow.Result.CreateDate,
+                    UpdateDate = DateTime.Now.ToShamsi(),
+                    ID = requestBody.ID,
+                    DiscountId = requestBody.DiscountID,
+                    AdminId = requestBody.AdminID,
+                    ServiceManagementId = requestBody.ServiceID,
+                    StylistId = requestBody.StylistID,
+                    Description = requestBody.Description
+                };
+
+                serviceDiscounts.Add(serviceDiscount);
             }
 
-            ServiceDiscount ServiceDiscount = new ServiceDiscount()
-            {
-                CreateDate = theRow.Result.CreateDate,
-                UpdateDate = DateTime.Now.ToShamsi(),
-                ID = requestBody.ID,
-                DiscountId = requestBody.DiscountID,
-                AdminId = requestBody.AdminID,
-                ServiceManagementId = requestBody.ServiceID,
-                StylistId = requestBody.StylistID,
-                Description = requestBody.Description,
-            };
-            result = await _ServiceDiscountRep.EditServiceDiscountAsync(ServiceDiscount);
+            result = await _ServiceDiscountRep.EditServiceDiscountsAsync(serviceDiscounts);
             if (result.Status)
             {
-
                 #region AddLog
 
-                Log log = new Log()
+                Log log = new Log
                 {
                     CreateDate = DateTime.Now.ToShamsi(),
                     UpdateDate = DateTime.Now.ToShamsi(),
                     LogTime = DateTime.Now.ToShamsi(),
                     ActionName = this.ControllerContext.RouteData.Values["action"].ToString(),
-
                 };
                 await _logRep.AddLogAsync(log);
 
@@ -167,29 +177,29 @@ namespace NobatPlusAPI.Controllers
 
                 return Ok(result);
             }
+
             return BadRequest(result);
         }
 
-        [HttpDelete("DeleteServiceDiscount_Base")]
-        public async Task<ActionResult<BitResultObject>> DeleteServiceDiscount_Base(GetRowRequestBody requestBody)
+        [HttpDelete("DeleteServiceDiscounts_Base")]
+        public async Task<ActionResult<BitResultObject>> DeleteServiceDiscounts_Base(List<long> ids)
         {
-            if (ModelState.IsValid)
+            if (!ModelState.IsValid)
             {
-                return BadRequest(requestBody);
+                return BadRequest(ids);
             }
-            var result = await _ServiceDiscountRep.RemoveServiceDiscountAsync(requestBody.ID);
+
+            var result = await _ServiceDiscountRep.RemoveServiceDiscountsAsync(ids);
             if (result.Status)
             {
-
                 #region AddLog
 
-                Log log = new Log()
+                Log log = new Log
                 {
                     CreateDate = DateTime.Now.ToShamsi(),
                     UpdateDate = DateTime.Now.ToShamsi(),
                     LogTime = DateTime.Now.ToShamsi(),
                     ActionName = this.ControllerContext.RouteData.Values["action"].ToString(),
-
                 };
                 await _logRep.AddLogAsync(log);
 
@@ -197,7 +207,9 @@ namespace NobatPlusAPI.Controllers
 
                 return Ok(result);
             }
+
             return BadRequest(result);
         }
+
     }
 }

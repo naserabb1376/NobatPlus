@@ -84,19 +84,22 @@ namespace NobatPlusAPI.Controllers
             return BadRequest(result);
         }
 
-        [HttpPost("AddBookingService_Base")]
-        public async Task<ActionResult<BitResultObject>> AddBookingService_Base(GetBookingServiceRowRequestBody requestBody)
+        [HttpPost("AddBookingServices_Base")]
+        public async Task<ActionResult<BitResultObject>> AddBookingServices_Base(List<GetBookingServiceRowRequestBody> requestBodies)
         {
             if (!ModelState.IsValid)
             {
-                return BadRequest(requestBody);
+                return BadRequest(requestBodies);
             }
-            BookingService BookingService = new BookingService()
+
+            var bookingServices = requestBodies.Select(requestBody => new BookingService
             {
-               BookingID = requestBody.BookingID,
-               ServiceManagementID = requestBody.ServiceID,
-            };
-            var result = await _BookingServiceRep.AddBookingServiceAsync(BookingService);
+                BookingID = requestBody.BookingID,
+                ServiceManagementID = requestBody.ServiceID,
+            }).ToList();
+
+            var result = await _BookingServiceRep.AddBookingServicesAsync(bookingServices);
+
             if (result.Status)
             {
                 #region AddLog
@@ -107,44 +110,36 @@ namespace NobatPlusAPI.Controllers
                     UpdateDate = DateTime.Now.ToShamsi(),
                     LogTime = DateTime.Now.ToShamsi(),
                     ActionName = this.ControllerContext.RouteData.Values["action"].ToString(),
-
                 };
                 result = await _logRep.AddLogAsync(log);
 
                 #endregion
 
-
                 return Ok(result);
             }
+
             return BadRequest(result);
         }
 
-        [HttpPut("EditBookingService_Base")]
-        public async Task<ActionResult<BitResultObject>> EditBookingService_Base(GetBookingServiceRowRequestBody requestBody)
+
+        [HttpPut("EditBookingServices_Base")]
+        public async Task<ActionResult<BitResultObject>> EditBookingServices_Base(List<GetBookingServiceRowRequestBody> requestBodies)
         {
-            var result = new BitResultObject();
             if (!ModelState.IsValid)
             {
-                return BadRequest(requestBody);
+                return BadRequest(requestBodies);
             }
 
-            var theRow = await _BookingServiceRep.GetBookingServiceByIdAsync(requestBody.BookingID,requestBody.ServiceID);
-
-            if (!theRow.Status)
+            var bookingServices = requestBodies.Select(requestBody => new BookingService
             {
-                result.Status = theRow.Status;
-                result.ErrorMessage = theRow.ErrorMessage;
-            }
+                BookingID = requestBody.BookingID,
+                ServiceManagementID = requestBody.ServiceID,
+            }).ToList();
 
-            BookingService BookingService = new BookingService()
-            {
-               BookingID = requestBody.BookingID,
-               ServiceManagementID = requestBody.ServiceID,
-            };
-             result = await _BookingServiceRep.EditBookingServiceAsync(BookingService);
+            var result = await _BookingServiceRep.EditBookingServicesAsync(bookingServices);
+
             if (result.Status)
             {
-
                 #region AddLog
 
                 Log log = new Log()
@@ -153,7 +148,6 @@ namespace NobatPlusAPI.Controllers
                     UpdateDate = DateTime.Now.ToShamsi(),
                     LogTime = DateTime.Now.ToShamsi(),
                     ActionName = this.ControllerContext.RouteData.Values["action"].ToString(),
-
                 };
                 await _logRep.AddLogAsync(log);
 
@@ -161,20 +155,26 @@ namespace NobatPlusAPI.Controllers
 
                 return Ok(result);
             }
+
             return BadRequest(result);
         }
 
-        [HttpDelete("DeleteBookingService_Base")]
-        public async Task<ActionResult<BitResultObject>> DeleteBookingService_Base(GetBookingServiceRowRequestBody requestBody)
+
+        [HttpDelete("DeleteBookingServices_Base")]
+        public async Task<ActionResult<BitResultObject>> DeleteBookingServices_Base(List<GetBookingServiceRowRequestBody> requestBodies)
         {
             if (!ModelState.IsValid)
             {
-                return BadRequest(requestBody);
+                return BadRequest(requestBodies);
             }
-            var result = await _BookingServiceRep.RemoveBookingServiceAsync(requestBody.BookingID, requestBody.ServiceID);
+
+            var bookingServiceIds = requestBodies.Select(requestBody =>
+                (requestBody.BookingID, requestBody.ServiceID)).ToList();
+
+            var result = await _BookingServiceRep.RemoveBookingServicesAsync(bookingServiceIds);
+
             if (result.Status)
             {
-
                 #region AddLog
 
                 Log log = new Log()
@@ -183,7 +183,6 @@ namespace NobatPlusAPI.Controllers
                     UpdateDate = DateTime.Now.ToShamsi(),
                     LogTime = DateTime.Now.ToShamsi(),
                     ActionName = this.ControllerContext.RouteData.Values["action"].ToString(),
-
                 };
                 await _logRep.AddLogAsync(log);
 
@@ -191,7 +190,9 @@ namespace NobatPlusAPI.Controllers
 
                 return Ok(result);
             }
+
             return BadRequest(result);
         }
+
     }
 }

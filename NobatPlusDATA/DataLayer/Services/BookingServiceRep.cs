@@ -21,14 +21,18 @@ namespace NobatPlusDATA.DataLayer.Services
             _context = DbTools.GetDbContext();
         }
 
-        public async Task<BitResultObject> AddBookingServiceAsync(BookingService BookingService)
+
+        public async Task<BitResultObject> AddBookingServicesAsync(List<BookingService> bookingServices)
         {
             BitResultObject result = new BitResultObject();
             try
             {
-                await _context.BookingServices.AddAsync(BookingService);
+                await _context.BookingServices.AddRangeAsync(bookingServices);
                 await _context.SaveChangesAsync();
-                _context.Entry(BookingService).State = EntityState.Detached;
+                foreach (var bookingService in bookingServices)
+                {
+                    _context.Entry(bookingService).State = EntityState.Detached;
+                }
             }
             catch (Exception ex)
             {
@@ -36,17 +40,19 @@ namespace NobatPlusDATA.DataLayer.Services
                 result.ErrorMessage = $"{ex.Message} - {ex.InnerException?.Message}";
             }
             return result;
-            
         }
 
-        public async Task<BitResultObject> EditBookingServiceAsync(BookingService BookingService)
+        public async Task<BitResultObject> EditBookingServicesAsync(List<BookingService> bookingServices)
         {
             BitResultObject result = new BitResultObject();
             try
             {
-                _context.BookingServices.Update(BookingService);
+                _context.BookingServices.UpdateRange(bookingServices);
                 await _context.SaveChangesAsync();
-                _context.Entry(BookingService).State = EntityState.Detached;
+                foreach (var bookingService in bookingServices)
+                {
+                    _context.Entry(bookingService).State = EntityState.Detached;
+                }
             }
             catch (Exception ex)
             {
@@ -54,8 +60,63 @@ namespace NobatPlusDATA.DataLayer.Services
                 result.ErrorMessage = $"{ex.Message} - {ex.InnerException?.Message}";
             }
             return result;
-           
         }
+
+        public async Task<BitResultObject> RemoveBookingServicesAsync(List<BookingService> bookingServices)
+        {
+            BitResultObject result = new BitResultObject();
+            try
+            {
+                _context.BookingServices.RemoveRange(bookingServices);
+                await _context.SaveChangesAsync();
+                foreach (var bookingService in bookingServices)
+                {
+                    _context.Entry(bookingService).State = EntityState.Detached;
+                }
+            }
+            catch (Exception ex)
+            {
+                result.Status = false;
+                result.ErrorMessage = $"{ex.Message} - {ex.InnerException?.Message}";
+            }
+            return result;
+        }
+
+
+        public async Task<BitResultObject> RemoveBookingServicesAsync(List<(long BookingId, long ServiceManagementId)> bookingServiceIds)
+        {
+            BitResultObject result = new BitResultObject();
+            try
+            {
+                var bookingServicesToRemove = new List<BookingService>();
+
+                foreach (var (bookingId, serviceManagementId) in bookingServiceIds)
+                {
+                    var bookingService = await GetBookingServiceByIdAsync(bookingId, serviceManagementId);
+                    if (bookingService.Result != null)
+                    {
+                        bookingServicesToRemove.Add(bookingService.Result);
+                    }
+                }
+
+                if (bookingServicesToRemove.Any())
+                {
+                    result = await RemoveBookingServicesAsync(bookingServicesToRemove);
+                }
+                else
+                {
+                    result.Status = false;
+                    result.ErrorMessage = "No matching booking services found to remove.";
+                }
+            }
+            catch (Exception ex)
+            {
+                result.Status = false;
+                result.ErrorMessage = $"{ex.Message} - {ex.InnerException?.Message}";
+            }
+            return result;
+        }
+
 
         public async Task<BitResultObject> ExistBookingServiceAsync(long BookingId, long ServiceManagementId)
         {
@@ -128,39 +189,7 @@ namespace NobatPlusDATA.DataLayer.Services
            
         }
 
-        public async Task<BitResultObject> RemoveBookingServiceAsync(BookingService BookingService)
-        {
-            BitResultObject result = new BitResultObject();
-            try
-            {
-                _context.BookingServices.Remove(BookingService);
-                await _context.SaveChangesAsync();
-                _context.Entry(BookingService).State = EntityState.Detached;
-            }
-            catch (Exception ex)
-            {
-                result.Status = false;
-                result.ErrorMessage = $"{ex.Message} - {ex.InnerException?.Message}";
-            }
-            return result;
-            
-        }
+       
 
-        public async Task<BitResultObject> RemoveBookingServiceAsync(long BookingId, long ServiceManagementId)
-        {
-            BitResultObject result = new BitResultObject();
-            try
-            {
-                var BookingService = await GetBookingServiceByIdAsync(BookingId, ServiceManagementId);
-                result = await RemoveBookingServiceAsync(BookingService.Result);
-            }
-            catch (Exception ex)
-            {
-                result.Status = false;
-                result.ErrorMessage = $"{ex.Message} - {ex.InnerException?.Message}";
-            }
-            return result;
-            
-        }
     }
 }
