@@ -16,6 +16,7 @@ namespace NobatPlusAPI.Models.Authenticate
         [ConditionalRegularExpression("LoginType", @"^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{6,20}$", ErrorMessage = "رمز عبور باید شامل حرف و عدد باشد")]
         [Required(ErrorMessage = "لطفا {0} را وارد کنید")]
         public string Password { get; set; }
+        public string CaptchaCode { get; set; }
         public int LoginType { get; set; } = 1;
     }
 }
