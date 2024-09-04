@@ -10,9 +10,14 @@ using NobatPlusDATA.DataLayer.Repositories;
 using NobatPlusDATA.Domain;
 using NobatPlusDATA.ResultObjects;
 using NobatPlusDATA.Tools;
+using SixLabors.Fonts;
+using SixLabors.ImageSharp.PixelFormats;
+using SixLabors.ImageSharp;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
+using SixLabors.ImageSharp.Processing;
+using SixLabors.ImageSharp.Drawing.Processing;
 
 namespace NobatPlusAPI.Controllers
 {
@@ -48,6 +53,16 @@ namespace NobatPlusAPI.Controllers
             string tokenString = "";
             RowResultObject<string> result = new RowResultObject<string>();
             RowResultObject<Login> authenticateResult = new RowResultObject<Login>();
+
+            var storedCaptchaCode = HttpContext.Session.GetString("CaptchaCode");
+
+            if (storedCaptchaCode == null || authenticationRequestBody.CaptchaCode != storedCaptchaCode)
+            {
+                result.Status = false;
+                result.ErrorMessage = "کد کپچا نادرست است.";
+                return BadRequest(result);
+            }
+
 
             switch (authenticationRequestBody.LoginType)
             {
@@ -135,6 +150,54 @@ namespace NobatPlusAPI.Controllers
                 return Ok(result);
             }
             return BadRequest(result);
+        }
+
+        [HttpPost("GenerateCaptchaImage")]
+        public async Task<ActionResult> GenerateCaptchaImage()
+        {
+            // ایجاد کد کپچا
+            var captchaCode = Guid.NewGuid().ToString().Substring(0, 5);
+
+            // ذخیره کد کپچا در session
+            HttpContext.Session.SetString("CaptchaCode", captchaCode);
+
+            // تنظیمات تصویر کپچا
+            int width = 150;
+            int height = 50;
+            var font = SystemFonts.CreateFont("Arial", 25, FontStyle.Bold);
+            using (var image = new Image<Rgba32>(width, height))
+            {
+                // رنگ پس زمینه
+                image.Mutate(ctx => ctx.Fill(Color.White));
+
+                // افزودن نویز به پس زمینه
+                var random = new Random();
+                for (int i = 0; i < 50; i++)
+                {
+                    image.Mutate(ctx => ctx.DrawLine(Color.LightGray, 1,
+                        new PointF(random.Next(width), random.Next(height)),
+                        new PointF(random.Next(width), random.Next(height))));
+                }
+
+                // افزودن متن کپچا
+                image.Mutate(ctx => ctx.DrawText(captchaCode, font, Color.Black, new PointF(20, 10)));
+
+                // افزودن نویز روی متن
+                for (int i = 0; i < 10; i++)
+                {
+                    image.Mutate(ctx => ctx.DrawLine(Color.Black, 1,
+                        new PointF(random.Next(width), random.Next(height)),
+                        new PointF(random.Next(width), random.Next(height))));
+                }
+
+                // تبدیل تصویر به فرمت باینری
+                using (var ms = new MemoryStream())
+                {
+                    image.SaveAsPng(ms);
+                    var byteArray = ms.ToArray();
+                    return File(byteArray, "image/png");
+                }
+            }
         }
 
         [HttpPost("Signup")]

@@ -16,6 +16,10 @@ namespace NobatPlusAPI
 
             var key = Encoding.ASCII.GetBytes(builder.Configuration["Jwt:Key"]);
 
+            builder.Services.AddDistributedMemoryCache();
+
+            builder.Services.AddSession();
+
             builder.Services.AddCors(options =>
             {
                 options.AddPolicy("AllowAll",
@@ -117,6 +121,7 @@ namespace NobatPlusAPI
       };
   });
 
+
             var app = builder.Build();
 
             // Configure the HTTP request pipeline.
@@ -126,12 +131,19 @@ namespace NobatPlusAPI
             //if (app.Environment.IsDevelopment())
             //{
                 app.UseSwagger();
-                app.UseSwaggerUI();
+            app.UseSwaggerUI(c =>
+            {
+                c.DocExpansion(Swashbuckle.AspNetCore.SwaggerUI.DocExpansion.None);
+            });  
+            
             //}
             app.UseHttpsRedirection();
 
-            // ??????? ?? ????? "AllowAll" ???? ????? ?? ??? ??????????
             app.UseCors("AllowAll");
+
+
+            app.UseSession();
+
 
 
             app.UseRouting();
