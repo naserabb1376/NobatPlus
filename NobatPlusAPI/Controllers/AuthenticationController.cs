@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 using NobatPlusAPI.Models.Authenticate;
+using NobatPlusAPI.Tools;
 using NobatPlusDATA.DataLayer.Repositories;
 using NobatPlusDATA.Domain;
 using NobatPlusDATA.ResultObjects;
@@ -44,13 +45,45 @@ namespace NobatPlusAPI.Controllers
         [HttpPost("Authenticate")]
         public async Task<ActionResult<RowResultObject<string>>> Authenticate(AuthenticationRequestBody authenticationRequestBody)
         {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(authenticationRequestBody);
-            }
             string tokenString = "";
             RowResultObject<string> result = new RowResultObject<string>();
-            var authenticateResult = await _loginRep.AuthenticateAsync(authenticationRequestBody.UserName, authenticationRequestBody.Password);
+            RowResultObject<Login> authenticateResult = new RowResultObject<Login>();
+
+            switch (authenticationRequestBody.LoginType)
+            {
+                default:
+                case 1:
+                    {
+                        if (!ModelState.IsValid)
+                        {
+                            return BadRequest(authenticationRequestBody);
+                        }
+                        authenticateResult = await _loginRep.AuthenticateAsync(authenticationRequestBody.UserName, authenticationRequestBody.Password,authenticationRequestBody.LoginType);
+                    }
+                    break;
+                case 2:
+                    {
+                        var validPhoneNumber = await _loginRep.ExistLoginAsync(authenticationRequestBody.UserName, 3);
+                        if (!validPhoneNumber.Status && string.IsNullOrEmpty(validPhoneNumber.ErrorMessage))
+                        {
+                            result.Status = validPhoneNumber.Status;
+                            result.ErrorMessage = "شماره تماس نامعتبر است";
+                            return BadRequest(result);
+                        }
+                        bool validCode = await ToolBox.CheckCode(authenticationRequestBody.UserName,authenticationRequestBody.Password);
+                        if (validCode)
+                        {
+                            authenticateResult = await _loginRep.AuthenticateAsync(authenticationRequestBody.UserName, authenticationRequestBody.Password,authenticationRequestBody.LoginType);
+                        }
+                        else
+                        {
+                            result.Status = validCode;
+                            result.ErrorMessage = "کد تایید نامعتبر است";
+                            return BadRequest(result);
+                        }
+                    }
+                    break;
+            }
 
             if (authenticateResult.Status)
             {
@@ -259,5 +292,96 @@ namespace NobatPlusAPI.Controllers
             }
             return BadRequest(result);
         }
+
+        [HttpPost("SendCode")]
+        public async Task<ActionResult<BitResultObject>> SendCode(SendCodeRequestBody sendCodeRequestBody)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(sendCodeRequestBody);
+            }
+
+            BitResultObject result = new BitResultObject();
+
+            var validPhoneNumber = await _loginRep.ExistLoginAsync(sendCodeRequestBody.PhoneNumber, 3);
+            if (sendCodeRequestBody.Exists)
+            {
+                if (!validPhoneNumber.Status && string.IsNullOrEmpty(validPhoneNumber.ErrorMessage))
+                {
+                    result.Status = validPhoneNumber.Status;
+                    result.ErrorMessage = "شماره تماس نامعتبر است";
+                    return BadRequest(result);
+                }
+            }
+
+            else
+            {
+                if (validPhoneNumber.Status)
+                {
+                    result.Status = !validPhoneNumber.Status;
+                    result.ErrorMessage = "شماره تماس تکراری است";
+                    return BadRequest(result);
+                }
+            }
+
+
+            result.Status =  await ToolBox.SendCode(sendCodeRequestBody.PhoneNumber);
+
+            if (result.Status)
+            {
+                result.ErrorMessage = $"کد تایید ارسال شد";
+                return Ok(result);
+            }
+            result.ErrorMessage = $"در ارسال کد مشکلی بوجود آمد";
+
+            return BadRequest(result);
+        }
+
+        [HttpPost("CheckCode")]
+        public async Task<ActionResult<BitResultObject>> CheckCode(CheckCodeRequestBody checkCodeRequestBody)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(checkCodeRequestBody);
+            }
+
+            BitResultObject result = new BitResultObject();
+
+            var validPhoneNumber = await _loginRep.ExistLoginAsync(checkCodeRequestBody.PhoneNumber, 3);
+            if (checkCodeRequestBody.Exists)
+            {
+                if (!validPhoneNumber.Status && string.IsNullOrEmpty(validPhoneNumber.ErrorMessage))
+                {
+                    result.Status = validPhoneNumber.Status;
+                    result.ErrorMessage = "شماره تماس نامعتبر است";
+                    return BadRequest(result);
+                }
+            }
+
+            else
+            {
+                if (validPhoneNumber.Status)
+                {
+                    result.Status = !validPhoneNumber.Status;
+                    result.ErrorMessage = "شماره تماس تکراری است";
+                    return BadRequest(result);
+                }
+            }
+
+
+            result.Status = await ToolBox.CheckCode(checkCodeRequestBody.PhoneNumber,checkCodeRequestBody.VerifyCode);
+
+            if (result.Status)
+            {
+                result.ErrorMessage = $"کد تایید صحیح است";
+                return Ok(result);
+            }
+            else 
+            {
+                result.ErrorMessage = $"کد تایید صحیح نیست";
+                return BadRequest(result);
+            }
+        }
+
     }
 }

@@ -12,5 +12,6 @@ namespace NobatPlusAPI.Models.Login
         [Display(Name = "کلمه عبور")]
         [Required(ErrorMessage = "لطفا {0} را وارد کنید")]
         public string Password { get; set; }
+        public int AuthenticateType { get; set; } = 1;
     }
 }

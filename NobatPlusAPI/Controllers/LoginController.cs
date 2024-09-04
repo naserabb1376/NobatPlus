@@ -73,7 +73,7 @@ namespace NobatPlusAPI.Controllers
             {
                 return BadRequest(requestBody);
             }
-            var result = await _LoginRep.AuthenticateAsync(requestBody.Username,requestBody.Password);
+            var result = await _LoginRep.AuthenticateAsync(requestBody.Username,requestBody.Password,requestBody.AuthenticateType);
             if (result.Status)
             {
                 return Ok(result);

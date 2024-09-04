@@ -41,39 +41,80 @@ namespace NobatPlusDATA.DataLayer.Services
 
         }
 
-        public async Task<RowResultObject<Login>> AuthenticateAsync(string userName, string password)
+        public async Task<RowResultObject<Login>> AuthenticateAsync(string userName, string password, int authenticateType = 1)
         {
             RowResultObject<Login> result = new RowResultObject<Login>();
             try
             {
-                result.Status = await _context.Logins
-                .AsNoTracking()
-                .AnyAsync(x => x.Username == userName && x.PasswordHash == password.ToHash());
-                if (result.Status)
+                switch (authenticateType)
                 {
-                    var loginRow = await _context.Logins
-                .AsNoTracking().Include(x => x.Person)
-                .SingleOrDefaultAsync(x => x.Username == userName && x.PasswordHash == password.ToHash());
-                    loginRow.LastLoginDate = DateTime.Now.ToShamsi();
-                    loginRow.UpdateDate = DateTime.Now.ToShamsi();
-                    var updateRow = await EditLoginAsync(loginRow);
-                    if (updateRow.Status)
-                    {
-                        result.Result = loginRow;
-                        result.ErrorMessage = $"احراز هویت موفق بود";
-                    }
-                    else
-                    {
-                        result.Status = updateRow.Status;
-                        result.ErrorMessage = updateRow.ErrorMessage;
+                    default:
+                        case 1:
+                        {
+                            result.Status = await _context.Logins
+               .AsNoTracking()
+               .AnyAsync(x => x.Username == userName && x.PasswordHash == password.ToHash());
+                            if (result.Status)
+                            {
+                                var loginRow = await _context.Logins
+                            .AsNoTracking().Include(x => x.Person)
+                            .SingleOrDefaultAsync(x => x.Username == userName && x.PasswordHash == password.ToHash());
+                                loginRow.LastLoginDate = DateTime.Now.ToShamsi();
+                                loginRow.UpdateDate = DateTime.Now.ToShamsi();
+                                var updateRow = await EditLoginAsync(loginRow);
+                                if (updateRow.Status)
+                                {
+                                    result.Result = loginRow;
+                                    result.ErrorMessage = $"احراز هویت موفق بود";
+                                }
+                                else
+                                {
+                                    result.Status = updateRow.Status;
+                                    result.ErrorMessage = updateRow.ErrorMessage;
 
-                    }
+                                }
 
+                            }
+                            else
+                            {
+                                result.ErrorMessage = $"احراز هویت ناموفق بود";
+                            }
+                        }
+                        break;
+                    case 2:
+                        {
+                            result.Status = await _context.Logins.Include(x=> x.Person)
+               .AsNoTracking()
+               .AnyAsync(x => x.Person.PhoneNumber == userName);
+                            if (result.Status)
+                            {
+                                var loginRow = await _context.Logins.Include(x => x.Person)
+               .AsNoTracking()
+               .SingleOrDefaultAsync(x => x.Person.PhoneNumber == userName);
+                                loginRow.LastLoginDate = DateTime.Now.ToShamsi();
+                                loginRow.UpdateDate = DateTime.Now.ToShamsi();
+                                var updateRow = await EditLoginAsync(loginRow);
+                                if (updateRow.Status)
+                                {
+                                    result.Result = loginRow;
+                                    result.ErrorMessage = $"احراز هویت موفق بود";
+                                }
+                                else
+                                {
+                                    result.Status = updateRow.Status;
+                                    result.ErrorMessage = updateRow.ErrorMessage;
+
+                                }
+
+                            }
+                            else
+                            {
+                                result.ErrorMessage = $"احراز هویت ناموفق بود";
+                            }
+                        }
+                        break;
                 }
-                else
-                {
-                    result.ErrorMessage = $"احراز هویت ناموفق بود";
-                }
+               
             }
             catch (Exception ex)
             {
