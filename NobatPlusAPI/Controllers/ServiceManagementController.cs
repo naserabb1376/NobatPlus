@@ -40,7 +40,7 @@ namespace NobatPlusAPI.Controllers
         public async Task<ActionResult<ListResultObject<ServiceManagement>>> GetAllServiceManagements_Base(GetServiceManagementListRequestBody requestBody)
         {
             ListResultObject<ServiceManagement> result = new ListResultObject<ServiceManagement>();
-            if (ModelState.IsValid)
+            if (!ModelState.IsValid)
             {
                 return BadRequest(requestBody);
             }
@@ -68,7 +68,7 @@ namespace NobatPlusAPI.Controllers
         [HttpPost("GetServiceManagementById_Base")]
         public async Task<ActionResult<ListResultObject<ServiceManagement>>> GetServiceManagementById_Base(GetRowRequestBody requestBody)
         {
-            if (ModelState.IsValid)
+            if (!ModelState.IsValid)
             {
                 return BadRequest(requestBody);
             }
@@ -83,7 +83,7 @@ namespace NobatPlusAPI.Controllers
         [HttpPost("ExistServiceManagement_Base")]
         public async Task<ActionResult<BitResultObject>> ExistServiceManagement_Base(GetRowRequestBody requestBody)
         {
-            if (ModelState.IsValid)
+            if (!ModelState.IsValid)
             {
                 return BadRequest(requestBody);
             }
@@ -98,7 +98,7 @@ namespace NobatPlusAPI.Controllers
         [HttpPost("AddServiceManagement_Base")]
         public async Task<ActionResult<BitResultObject>> AddServiceManagement_Base(AddEditServiceManagementRequestBody requestBody)
         {
-            if (ModelState.IsValid)
+            if (!ModelState.IsValid)
             {
                 return BadRequest(requestBody);
             }
@@ -139,7 +139,7 @@ namespace NobatPlusAPI.Controllers
         public async Task<ActionResult<BitResultObject>> EditServiceManagement_Base(AddEditServiceManagementRequestBody requestBody)
         {
             var result = new BitResultObject();
-            if (ModelState.IsValid)
+            if (!ModelState.IsValid)
             {
                 return BadRequest(requestBody);
             }
@@ -187,7 +187,7 @@ namespace NobatPlusAPI.Controllers
         [HttpDelete("DeleteServiceManagement_Base")]
         public async Task<ActionResult<BitResultObject>> DeleteServiceManagement_Base(GetRowRequestBody requestBody)
         {
-            if (ModelState.IsValid)
+            if (!ModelState.IsValid)
             {
                 return BadRequest(requestBody);
             }

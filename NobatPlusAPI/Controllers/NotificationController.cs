@@ -39,7 +39,7 @@ namespace NobatPlusAPI.Controllers
         [HttpPost("GetAllNotifications_Base")]
         public async Task<ActionResult<ListResultObject<Notification>>> GetAllNotifications_Base(GetNotificationListRequestBody requestBody)
         {
-            if (ModelState.IsValid)
+            if (!ModelState.IsValid)
             {
                 return BadRequest(requestBody);
             }
@@ -54,7 +54,7 @@ namespace NobatPlusAPI.Controllers
         [HttpPost("GetNotificationById_Base")]
         public async Task<ActionResult<ListResultObject<Notification>>> GetNotificationById_Base(GetRowRequestBody requestBody)
         {
-            if (ModelState.IsValid)
+            if (!ModelState.IsValid)
             {
                 return BadRequest(requestBody);
             }
@@ -69,7 +69,7 @@ namespace NobatPlusAPI.Controllers
         [HttpPost("ExistNotification_Base")]
         public async Task<ActionResult<BitResultObject>> ExistNotification_Base(GetRowRequestBody requestBody)
         {
-            if (ModelState.IsValid)
+            if (!ModelState.IsValid)
             {
                 return BadRequest(requestBody);
             }
@@ -84,7 +84,7 @@ namespace NobatPlusAPI.Controllers
         [HttpPost("AddNotification_Base")]
         public async Task<ActionResult<BitResultObject>> AddNotification_Base(AddEditNotificationRequestBody requestBody)
         {
-            if (ModelState.IsValid)
+            if (!ModelState.IsValid)
             {
                 return BadRequest(requestBody);
             }
@@ -124,7 +124,7 @@ namespace NobatPlusAPI.Controllers
         public async Task<ActionResult<BitResultObject>> EditNotification_Base(AddEditNotificationRequestBody requestBody)
         {
             var result = new BitResultObject();
-            if (ModelState.IsValid)
+            if (!ModelState.IsValid)
             {
                 return BadRequest(requestBody);
             }
@@ -171,7 +171,7 @@ namespace NobatPlusAPI.Controllers
         [HttpDelete("DeleteNotification_Base")]
         public async Task<ActionResult<BitResultObject>> DeleteNotification_Base(GetRowRequestBody requestBody)
         {
-            if (ModelState.IsValid)
+            if (!ModelState.IsValid)
             {
                 return BadRequest(requestBody);
             }

@@ -41,7 +41,7 @@ namespace NobatPlusAPI.Controllers
         [HttpPost("GetAllPersons_Base")]
         public async Task<ActionResult<ListResultObject<Person>>> GetAllPersons_Base(GetPersonListRequestBody requestBody)
         {
-            if (ModelState.IsValid)
+            if (!ModelState.IsValid)
             {
                 return BadRequest(requestBody);
             }
@@ -56,7 +56,7 @@ namespace NobatPlusAPI.Controllers
         [HttpPost("GetPersonById_Base")]
         public async Task<ActionResult<ListResultObject<Person>>> GetPersonById_Base(GetRowRequestBody requestBody)
         {
-            if (ModelState.IsValid)
+            if (!ModelState.IsValid)
             {
                 return BadRequest(requestBody);
             }
@@ -71,7 +71,7 @@ namespace NobatPlusAPI.Controllers
         [HttpPost("ExistPerson_Base")]
         public async Task<ActionResult<BitResultObject>> ExistPerson_Base(GetRowRequestBody requestBody)
         {
-            if (ModelState.IsValid)
+            if (!ModelState.IsValid)
             {
                 return BadRequest(requestBody);
             }
@@ -88,7 +88,7 @@ namespace NobatPlusAPI.Controllers
         public async Task<ActionResult<BitResultObject>> AddPerson(AddEditPersonProRequestBody requestBody)
         {
             BitResultObject result = new BitResultObject();
-            if (ModelState.IsValid)
+            if (!ModelState.IsValid)
             {
                 return BadRequest(requestBody);
             }
@@ -153,7 +153,7 @@ namespace NobatPlusAPI.Controllers
         public async Task<ActionResult<BitResultObject>> EditPerson(AddEditPersonProRequestBody requestBody)
         {
             var result = new BitResultObject();
-            if (ModelState.IsValid)
+            if (!ModelState.IsValid)
             {
                 return BadRequest(requestBody);
             }
@@ -225,7 +225,7 @@ namespace NobatPlusAPI.Controllers
         [HttpPost("AddPerson_Base")]
         public async Task<ActionResult<BitResultObject>> AddPerson_Base(AddEditPersonRequestBody requestBody)
         {
-            if (ModelState.IsValid)
+            if (!ModelState.IsValid)
             {
                 return BadRequest(requestBody);
             }
@@ -269,7 +269,7 @@ namespace NobatPlusAPI.Controllers
         public async Task<ActionResult<BitResultObject>> EditPerson_Base(AddEditPersonRequestBody requestBody)
         {
             var result = new BitResultObject();
-            if (ModelState.IsValid)
+            if (!ModelState.IsValid)
             {
                 return BadRequest(requestBody);
             }
@@ -320,7 +320,7 @@ namespace NobatPlusAPI.Controllers
         [HttpDelete("DeletePerson_Base")]
         public async Task<ActionResult<BitResultObject>> DeletePerson_Base(GetRowRequestBody requestBody)
         {
-            if (ModelState.IsValid)
+            if (!ModelState.IsValid)
             {
                 return BadRequest(requestBody);
             }

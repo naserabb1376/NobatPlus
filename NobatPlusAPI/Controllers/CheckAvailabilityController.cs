@@ -39,7 +39,7 @@ namespace NobatPlusAPI.Controllers
         [HttpPost("GetAllCheckAvailabilities_Base")]
         public async Task<ActionResult<ListResultObject<CheckAvailability>>> GetAllCheckAvailabilities_Base(GetCheckAvailabilityListRequestBody requestBody)
         {
-            if (ModelState.IsValid)
+            if (!ModelState.IsValid)
             {
                 return BadRequest(requestBody);
             }
@@ -54,7 +54,7 @@ namespace NobatPlusAPI.Controllers
         [HttpPost("GetCheckAvailabilityById_Base")]
         public async Task<ActionResult<ListResultObject<CheckAvailability>>> GetCheckAvailabilityById_Base(GetRowRequestBody requestBody)
         {
-            if (ModelState.IsValid)
+            if (!ModelState.IsValid)
             {
                 return BadRequest(requestBody);
             }
@@ -69,7 +69,7 @@ namespace NobatPlusAPI.Controllers
         [HttpPost("ExistCheckAvailability_Base")]
         public async Task<ActionResult<BitResultObject>> ExistCheckAvailability_Base(GetRowRequestBody requestBody)
         {
-            if (ModelState.IsValid)
+            if (!ModelState.IsValid)
             {
                 return BadRequest(requestBody);
             }
@@ -84,7 +84,7 @@ namespace NobatPlusAPI.Controllers
         [HttpPost("AddCheckAvailability_Base")]
         public async Task<ActionResult<BitResultObject>> AddCheckAvailability_Base(AddEditCheckAvailabilityRequestBody requestBody)
         {
-            if (ModelState.IsValid)
+            if (!ModelState.IsValid)
             {
                 return BadRequest(requestBody);
             }
@@ -124,7 +124,7 @@ namespace NobatPlusAPI.Controllers
         public async Task<ActionResult<BitResultObject>> EditCheckAvailability_Base(AddEditCheckAvailabilityRequestBody requestBody)
         {
             var result = new BitResultObject();
-            if (ModelState.IsValid)
+            if (!ModelState.IsValid)
             {
                 return BadRequest(requestBody);
             }
@@ -171,7 +171,7 @@ namespace NobatPlusAPI.Controllers
         [HttpDelete("DeleteCheckAvailability_Base")]
         public async Task<ActionResult<BitResultObject>> DeleteCheckAvailability_Base(GetRowRequestBody requestBody)
         {
-            if (ModelState.IsValid)
+            if (!ModelState.IsValid)
             {
                 return BadRequest(requestBody);
             }

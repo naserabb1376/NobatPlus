@@ -38,7 +38,7 @@ namespace NobatPlusAPI.Controllers
         [HttpPost("GetAllLogs_Base")]
         public async Task<ActionResult<ListResultObject<Log>>> GetAllLogs_Base(GetLogListRequestBody requestBody)
         {
-            if (ModelState.IsValid)
+            if (!ModelState.IsValid)
             {
                 return BadRequest(requestBody);
             }
@@ -53,7 +53,7 @@ namespace NobatPlusAPI.Controllers
         [HttpPost("GetLogById_Base")]
         public async Task<ActionResult<ListResultObject<Log>>> GetLogById_Base(GetRowRequestBody requestBody)
         {
-            if (ModelState.IsValid)
+            if (!ModelState.IsValid)
             {
                 return BadRequest(requestBody);
             }
@@ -68,7 +68,7 @@ namespace NobatPlusAPI.Controllers
         [HttpPost("ExistLog_Base")]
         public async Task<ActionResult<BitResultObject>> ExistLog_Base(GetRowRequestBody requestBody)
         {
-            if (ModelState.IsValid)
+            if (!ModelState.IsValid)
             {
                 return BadRequest(requestBody);
             }
@@ -83,7 +83,7 @@ namespace NobatPlusAPI.Controllers
         [HttpPost("AddLog_Base")]
         public async Task<ActionResult<BitResultObject>> AddLog_Base(AddEditLogRequestBody requestBody)
         {
-            if (ModelState.IsValid)
+            if (!ModelState.IsValid)
             {
                 return BadRequest(requestBody);
             }
@@ -107,7 +107,7 @@ namespace NobatPlusAPI.Controllers
         public async Task<ActionResult<BitResultObject>> EditLog_Base(AddEditLogRequestBody requestBody)
         {
             var result = new BitResultObject();
-            if (ModelState.IsValid)
+            if (!ModelState.IsValid)
             {
                 return BadRequest(requestBody);
             }
@@ -139,7 +139,7 @@ namespace NobatPlusAPI.Controllers
         [HttpDelete("DeleteLog_Base")]
         public async Task<ActionResult<BitResultObject>> DeleteLog_Base(GetRowRequestBody requestBody)
         {
-            if (ModelState.IsValid)
+            if (!ModelState.IsValid)
             {
                 return BadRequest(requestBody);
             }
