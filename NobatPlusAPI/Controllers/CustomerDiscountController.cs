@@ -39,7 +39,7 @@ namespace NobatPlusAPI.Controllers
         [HttpPost("GetAllCustomerDiscounts_Base")]
         public async Task<ActionResult<ListResultObject<CustomerDiscount>>> GetAllCustomerDiscounts_Base(GetCustomerDiscountListRequestBody requestBody)
         {
-            if (ModelState.IsValid)
+            if (!ModelState.IsValid)
             {
                 return BadRequest(requestBody);
             }
@@ -54,7 +54,7 @@ namespace NobatPlusAPI.Controllers
         [HttpPost("GetCustomerDiscountById_Base")]
         public async Task<ActionResult<ListResultObject<CustomerDiscount>>> GetCustomerDiscountById_Base(GetRowRequestBody requestBody)
         {
-            if (ModelState.IsValid)
+            if (!ModelState.IsValid)
             {
                 return BadRequest(requestBody);
             }
@@ -69,7 +69,7 @@ namespace NobatPlusAPI.Controllers
         [HttpPost("ExistCustomerDiscount_Base")]
         public async Task<ActionResult<BitResultObject>> ExistCustomerDiscount_Base(GetRowRequestBody requestBody)
         {
-            if (ModelState.IsValid)
+            if (!ModelState.IsValid)
             {
                 return BadRequest(requestBody);
             }

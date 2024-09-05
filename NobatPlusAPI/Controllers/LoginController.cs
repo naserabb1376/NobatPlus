@@ -39,7 +39,7 @@ namespace NobatPlusAPI.Controllers
         [HttpPost("GetAllLogins_Base")]
         public async Task<ActionResult<ListResultObject<Login>>> GetAllLogins_Base(GetLoginListRequestBody requestBody)
         {
-            if (ModelState.IsValid)
+            if (!ModelState.IsValid)
             {
                 return BadRequest(requestBody);
             }
@@ -54,7 +54,7 @@ namespace NobatPlusAPI.Controllers
         [HttpPost("GetLoginById_Base")]
         public async Task<ActionResult<ListResultObject<Login>>> GetLoginById_Base(GetRowRequestBody requestBody)
         {
-            if (ModelState.IsValid)
+            if (!ModelState.IsValid)
             {
                 return BadRequest(requestBody);
             }
@@ -69,7 +69,7 @@ namespace NobatPlusAPI.Controllers
         [HttpPost("Authenticate_Base")]
         public async Task<ActionResult<ListResultObject<Login>>> Authenticate_Base(AuthenticateRequestBody requestBody)
         {
-            if (ModelState.IsValid)
+            if (!ModelState.IsValid)
             {
                 return BadRequest(requestBody);
             }
@@ -83,9 +83,10 @@ namespace NobatPlusAPI.Controllers
 
 
         [HttpPost("ExistLogin_Base")]
+        [AllowAnonymous]
         public async Task<ActionResult<BitResultObject>> ExistLogin_Base(ExistLoginRequestBody requestBody)
         {
-            if (ModelState.IsValid)
+            if (!ModelState.IsValid)
             {
                 return BadRequest(requestBody);
             }
@@ -100,7 +101,7 @@ namespace NobatPlusAPI.Controllers
         [HttpPost("AddLogin_Base")]
         public async Task<ActionResult<BitResultObject>> AddLogin_Base(AddEditLoginRequestBody requestBody)
         {
-            if (ModelState.IsValid)
+            if (!ModelState.IsValid)
             {
                 return BadRequest(requestBody);
             }
@@ -141,7 +142,7 @@ namespace NobatPlusAPI.Controllers
         public async Task<ActionResult<BitResultObject>> EditLogin_Base(AddEditLoginRequestBody requestBody)
         {
             var result = new BitResultObject();
-            if (ModelState.IsValid)
+            if (!ModelState.IsValid)
             {
                 return BadRequest(requestBody);
             }
@@ -190,7 +191,7 @@ namespace NobatPlusAPI.Controllers
         [HttpDelete("DeleteLogin_Base")]
         public async Task<ActionResult<BitResultObject>> DeleteLogin_Base(GetRowRequestBody requestBody)
         {
-            if (ModelState.IsValid)
+            if (!ModelState.IsValid)
             {
                 return BadRequest(requestBody);
             }

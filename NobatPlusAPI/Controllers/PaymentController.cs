@@ -39,7 +39,7 @@ namespace NobatPlusAPI.Controllers
         [HttpPost("GetAllPayments_Base")]
         public async Task<ActionResult<ListResultObject<Payment>>> GetAllPayments_Base(GetPaymentListRequestBody requestBody)
         {
-            if (ModelState.IsValid)
+            if (!ModelState.IsValid)
             {
                 return BadRequest(requestBody);
             }
@@ -54,7 +54,7 @@ namespace NobatPlusAPI.Controllers
         [HttpPost("GetPaymentById_Base")]
         public async Task<ActionResult<ListResultObject<Payment>>> GetPaymentById_Base(GetRowRequestBody requestBody)
         {
-            if (ModelState.IsValid)
+            if (!ModelState.IsValid)
             {
                 return BadRequest(requestBody);
             }
@@ -69,7 +69,7 @@ namespace NobatPlusAPI.Controllers
         [HttpPost("ExistPayment_Base")]
         public async Task<ActionResult<BitResultObject>> ExistPayment_Base(GetRowRequestBody requestBody)
         {
-            if (ModelState.IsValid)
+            if (!ModelState.IsValid)
             {
                 return BadRequest(requestBody);
             }
@@ -84,7 +84,7 @@ namespace NobatPlusAPI.Controllers
         [HttpPost("AddPayment_Base")]
         public async Task<ActionResult<BitResultObject>> AddPayment_Base(AddEditPaymentRequestBody requestBody)
         {
-            if (ModelState.IsValid)
+            if (!ModelState.IsValid)
             {
                 return BadRequest(requestBody);
             }
@@ -125,7 +125,7 @@ namespace NobatPlusAPI.Controllers
         public async Task<ActionResult<BitResultObject>> EditPayment_Base(AddEditPaymentRequestBody requestBody)
         {
             var result = new BitResultObject();
-            if (ModelState.IsValid)
+            if (!ModelState.IsValid)
             {
                 return BadRequest(requestBody);
             }
@@ -173,7 +173,7 @@ namespace NobatPlusAPI.Controllers
         [HttpDelete("DeletePayment_Base")]
         public async Task<ActionResult<BitResultObject>> DeletePayment_Base(GetRowRequestBody requestBody)
         {
-            if (ModelState.IsValid)
+            if (!ModelState.IsValid)
             {
                 return BadRequest(requestBody);
             }

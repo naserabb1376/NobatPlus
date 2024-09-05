@@ -40,7 +40,7 @@ namespace NobatPlusAPI.Controllers
         public async Task<ActionResult<ListResultObject<Stylist>>> GetAllStylists_Base(GetStylistListRequestBody requestBody)
         {
             ListResultObject<Stylist> result = new ListResultObject<Stylist>();
-            if (ModelState.IsValid)
+            if (!ModelState.IsValid)
             {
                 return BadRequest(requestBody);
             }
@@ -68,7 +68,7 @@ namespace NobatPlusAPI.Controllers
         [HttpPost("GetStylistById_Base")]
         public async Task<ActionResult<ListResultObject<Stylist>>> GetStylistById_Base(GetRowRequestBody requestBody)
         {
-            if (ModelState.IsValid)
+            if (!ModelState.IsValid)
             {
                 return BadRequest(requestBody);
             }
@@ -83,7 +83,7 @@ namespace NobatPlusAPI.Controllers
         [HttpPost("ExistStylist_Base")]
         public async Task<ActionResult<BitResultObject>> ExistStylist_Base(GetRowRequestBody requestBody)
         {
-            if (ModelState.IsValid)
+            if (!ModelState.IsValid)
             {
                 return BadRequest(requestBody);
             }
@@ -98,7 +98,7 @@ namespace NobatPlusAPI.Controllers
         [HttpPost("AddStylist_Base")]
         public async Task<ActionResult<BitResultObject>> AddStylist_Base(AddEditStylistRequestBody requestBody)
         {
-            if (ModelState.IsValid)
+            if (!ModelState.IsValid)
             {
                 return BadRequest(requestBody);
             }
@@ -140,7 +140,7 @@ namespace NobatPlusAPI.Controllers
         public async Task<ActionResult<BitResultObject>> EditStylist_Base(AddEditStylistRequestBody requestBody)
         {
             var result = new BitResultObject();
-            if (ModelState.IsValid)
+            if (!ModelState.IsValid)
             {
                 return BadRequest(requestBody);
             }
@@ -189,7 +189,7 @@ namespace NobatPlusAPI.Controllers
         [HttpDelete("DeleteStylist_Base")]
         public async Task<ActionResult<BitResultObject>> DeleteStylist_Base(GetRowRequestBody requestBody)
         {
-            if (ModelState.IsValid)
+            if (!ModelState.IsValid)
             {
                 return BadRequest(requestBody);
             }

@@ -39,7 +39,7 @@ namespace NobatPlusAPI.Controllers
         [HttpPost("GetAllDiscountAssignments_Base")]
         public async Task<ActionResult<ListResultObject<DiscountAssignment>>> GetAllDiscountAssignments_Base(GetDiscountAssignmentListRequestBody requestBody)
         {
-            if (ModelState.IsValid)
+            if (!ModelState.IsValid)
             {
                 return BadRequest(requestBody);
             }
@@ -54,7 +54,7 @@ namespace NobatPlusAPI.Controllers
         [HttpPost("GetDiscountAssignmentById_Base")]
         public async Task<ActionResult<ListResultObject<DiscountAssignment>>> GetDiscountAssignmentById_Base(GetRowRequestBody requestBody)
         {
-            if (ModelState.IsValid)
+            if (!ModelState.IsValid)
             {
                 return BadRequest(requestBody);
             }
@@ -69,7 +69,7 @@ namespace NobatPlusAPI.Controllers
         [HttpPost("ExistDiscountAssignment_Base")]
         public async Task<ActionResult<BitResultObject>> ExistDiscountAssignment_Base(GetRowRequestBody requestBody)
         {
-            if (ModelState.IsValid)
+            if (!ModelState.IsValid)
             {
                 return BadRequest(requestBody);
             }

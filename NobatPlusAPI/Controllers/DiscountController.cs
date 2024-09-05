@@ -40,7 +40,7 @@ namespace NobatPlusAPI.Controllers
         [HttpPost("GetAllDiscounts_Base")]
         public async Task<ActionResult<ListResultObject<Discount>>> GetAllDiscounts_Base(GetDiscountListRequestBody requestBody)
         {
-            if (ModelState.IsValid)
+            if (!ModelState.IsValid)
             {
                 return BadRequest(requestBody);
             }
@@ -55,7 +55,7 @@ namespace NobatPlusAPI.Controllers
         [HttpPost("GetDiscountById_Base")]
         public async Task<ActionResult<ListResultObject<Discount>>> GetDiscountById_Base(GetRowRequestBody requestBody)
         {
-            if (ModelState.IsValid)
+            if (!ModelState.IsValid)
             {
                 return BadRequest(requestBody);
             }
@@ -70,7 +70,7 @@ namespace NobatPlusAPI.Controllers
         [HttpPost("ExistDiscount_Base")]
         public async Task<ActionResult<BitResultObject>> ExistDiscount_Base(GetRowRequestBody requestBody)
         {
-            if (ModelState.IsValid)
+            if (!ModelState.IsValid)
             {
                 return BadRequest(requestBody);
             }
@@ -85,7 +85,7 @@ namespace NobatPlusAPI.Controllers
         [HttpPost("AddDiscount_Base")]
         public async Task<ActionResult<BitResultObject>> AddDiscount_Base(AddEditDiscountRequestBody requestBody)
         {
-            if (ModelState.IsValid)
+            if (!ModelState.IsValid)
             {
                 return BadRequest(requestBody);
             }
@@ -126,7 +126,7 @@ namespace NobatPlusAPI.Controllers
         public async Task<ActionResult<BitResultObject>> EditDiscount_Base(AddEditDiscountRequestBody requestBody)
         {
             var result = new BitResultObject();
-            if (ModelState.IsValid)
+            if (!ModelState.IsValid)
             {
                 return BadRequest(requestBody);
             }
@@ -174,7 +174,7 @@ namespace NobatPlusAPI.Controllers
         [HttpDelete("DeleteDiscount_Base")]
         public async Task<ActionResult<BitResultObject>> DeleteDiscount_Base(GetRowRequestBody requestBody)
         {
-            if (ModelState.IsValid)
+            if (!ModelState.IsValid)
             {
                 return BadRequest(requestBody);
             }

@@ -39,7 +39,7 @@ namespace NobatPlusAPI.Controllers
         [HttpPost("GetAllRegisters_Base")]
         public async Task<ActionResult<ListResultObject<Register>>> GetAllRegisters_Base(GetRegisterListRequestBody requestBody)
         {
-            if (ModelState.IsValid)
+            if (!ModelState.IsValid)
             {
                 return BadRequest(requestBody);
             }
@@ -54,7 +54,7 @@ namespace NobatPlusAPI.Controllers
         [HttpPost("GetRegisterById_Base")]
         public async Task<ActionResult<ListResultObject<Register>>> GetRegisterById_Base(GetRowRequestBody requestBody)
         {
-            if (ModelState.IsValid)
+            if (!ModelState.IsValid)
             {
                 return BadRequest(requestBody);
             }
@@ -69,7 +69,7 @@ namespace NobatPlusAPI.Controllers
         [HttpPost("ExistRegister_Base")]
         public async Task<ActionResult<BitResultObject>> ExistRegister_Base(ExistRegisterRequestBody requestBody)
         {
-            if (ModelState.IsValid)
+            if (!ModelState.IsValid)
             {
                 return BadRequest(requestBody);
             }
@@ -84,7 +84,7 @@ namespace NobatPlusAPI.Controllers
         [HttpPost("AddRegister_Base")]
         public async Task<ActionResult<BitResultObject>> AddRegister_Base(AddEditRegisterRequestBody requestBody)
         {
-            if (ModelState.IsValid)
+            if (!ModelState.IsValid)
             {
                 return BadRequest(requestBody);
             }
@@ -123,7 +123,7 @@ namespace NobatPlusAPI.Controllers
         public async Task<ActionResult<BitResultObject>> EditRegister_Base(AddEditRegisterRequestBody requestBody)
         {
             var result = new BitResultObject();
-            if (ModelState.IsValid)
+            if (!ModelState.IsValid)
             {
                 return BadRequest(requestBody);
             }
@@ -169,7 +169,7 @@ namespace NobatPlusAPI.Controllers
         [HttpDelete("DeleteRegister_Base")]
         public async Task<ActionResult<BitResultObject>> DeleteRegister_Base(GetRowRequestBody requestBody)
         {
-            if (ModelState.IsValid)
+            if (!ModelState.IsValid)
             {
                 return BadRequest(requestBody);
             }
