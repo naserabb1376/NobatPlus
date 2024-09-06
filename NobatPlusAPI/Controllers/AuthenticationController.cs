@@ -98,6 +98,11 @@ namespace NobatPlusAPI.Controllers
                         }
                     }
                     break;
+                case 3:
+                    {
+                        authenticateResult = await _loginRep.AuthenticateAsync(authenticationRequestBody.UserName, authenticationRequestBody.Password, authenticationRequestBody.LoginType);
+                    }
+                    break;
             }
 
             if (authenticateResult.Status)
