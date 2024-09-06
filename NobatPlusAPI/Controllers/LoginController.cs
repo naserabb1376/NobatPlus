@@ -109,7 +109,7 @@ namespace NobatPlusAPI.Controllers
             {
                 CreateDate = DateTime.Now.ToShamsi(),
                 UpdateDate = DateTime.Now.ToShamsi(),
-                LastLoginDate = requestBody.LastLoginDate,
+                LastLoginDate = requestBody.LastLoginDate ?? DateTime.Now.ToShamsi(),
                 PersonID = requestBody.PersonID,
                 Username = requestBody.Username,
                 PasswordHash = requestBody.Password.ToHash(),
@@ -157,7 +157,7 @@ namespace NobatPlusAPI.Controllers
             {
                 CreateDate = theRow.Result.CreateDate,
                 UpdateDate = DateTime.Now.ToShamsi(),
-                LastLoginDate = requestBody.LastLoginDate,
+                LastLoginDate = requestBody.LastLoginDate ?? DateTime.Now.ToShamsi(),
                 PersonID = requestBody.PersonID,
                 Username = requestBody.Username,
                 PasswordHash = requestBody.Password.ToHash(),
