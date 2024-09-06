@@ -21,7 +21,6 @@ namespace NobatPlusAPI.Models.Login
         public string Password { get; set; }
 
         [Display(Name = "تاریخ ورود")]
-        [Required(ErrorMessage = "لطفا {0} را وارد کنید")]
         public DateTime? LastLoginDate { get; set; }
         public string? Description { get; set; }
     }
