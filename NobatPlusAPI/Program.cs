@@ -27,7 +27,9 @@ namespace NobatPlusAPI
                 {
                     builder.AllowAnyOrigin()
                            .AllowAnyMethod()
-                           .AllowAnyHeader();
+                           .AllowAnyHeader()
+                           //.AllowCredentials()
+                           ;
                 });
             });
 
