@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Authentication.JwtBearer;
+﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using NobatPlusDATA.DataLayer.Repositories;
@@ -22,13 +22,12 @@ namespace NobatPlusAPI
 
             builder.Services.AddCors(options =>
             {
-                options.AddPolicy("AllowAll",
-                builder =>
+                options.AddPolicy("DynamicCORS", policy =>
                 {
-                    builder.AllowAnyOrigin()
-                           .AllowAnyMethod()
-                           .AllowAnyHeader()
-                           .AllowCredentials();
+                    policy.AllowAnyMethod()
+                          .AllowAnyHeader()
+                          .SetIsOriginAllowed(origin => true)  // اجازه به همه دامنه‌ها
+                          .AllowCredentials();
                 });
             });
 
@@ -140,7 +139,7 @@ namespace NobatPlusAPI
             //}
             app.UseHttpsRedirection();
 
-            app.UseCors("AllowAll");
+            app.UseCors("DynamicCORS");
 
 
             app.UseSession();
