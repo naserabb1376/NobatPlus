@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using Newtonsoft.Json;
 using NobatPlusDATA.DataLayer.Repositories;
 using NobatPlusDATA.DataLayer.Services;
 using System.Globalization;
@@ -12,36 +13,41 @@ namespace NobatPlusAPI
     {
         public static void Main(string[] args)
         {
+            string corsPolicy = "AllowSpecificOrigin";
+
             var builder = WebApplication.CreateBuilder(args);
+
+            var clientUrls = JsonConvert.DeserializeObject<List<string>>(builder.Configuration["clients:Urls"]).ToArray();
 
             var key = Encoding.ASCII.GetBytes(builder.Configuration["Jwt:Key"]);
 
             builder.Services.AddDistributedMemoryCache();
 
-            builder.Services.AddSession();
+            builder.Services.AddSession(options =>
+            {
+                options.Cookie.SameSite = SameSiteMode.None;  // اجازه ارسال کوکی‌ها در درخواست‌های cross-origin
+                options.Cookie.SecurePolicy = CookieSecurePolicy.Always;  // اگر HTTPS فعال است
+            });
+            builder.Services.AddCors(options =>
+            {
+                options.AddPolicy(corsPolicy, builder =>
+                    builder.WithOrigins(clientUrls) // اضافه کردن localhost و آی‌پی لوکال
+                           .AllowCredentials()
+                           .AllowAnyHeader()
+                           .AllowAnyMethod());
+            });
+
 
             //builder.Services.AddCors(options =>
             //{
-            //    options.AddPolicy("DynamicCORS", policy =>
+            //    options.AddPolicy("AllowAll",
+            //    builder =>
             //    {
-            //        policy.AllowAnyMethod()
-            //              .AllowAnyHeader()
-            //              .SetIsOriginAllowed(origin => true)  // اجازه به همه دامنه‌ها
-            //              .AllowCredentials();
+            //        builder.AllowAnyOrigin()
+            //               .AllowAnyMethod()
+            //               .AllowAnyHeader();
             //    });
             //});
-
-
-            builder.Services.AddCors(options =>
-            {
-                options.AddPolicy("AllowAll",
-                builder =>
-                {
-                    builder.AllowAnyOrigin()
-                           .AllowAnyMethod()
-                           .AllowAnyHeader();
-                });
-            });
 
 
             // Add services to the container.
@@ -153,7 +159,7 @@ namespace NobatPlusAPI
 
             //app.UseCors("DynamicCORS");
 
-            app.UseCors("AllowAll");
+            app.UseCors(corsPolicy);
 
 
             app.UseSession();

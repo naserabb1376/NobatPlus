@@ -56,6 +56,22 @@ namespace NobatPlusAPI.Controllers
 
             var storedCaptchaCode = HttpContext.Session.GetString("CaptchaCode");
 
+
+            try
+            {
+                var authLog = new StringBuilder();
+
+                authLog.AppendLine(authenticationRequestBody.UserName);
+                authLog.AppendLine(authenticationRequestBody.CaptchaCode);
+                authLog.AppendLine(storedCaptchaCode);
+
+                ToolBox.SaveLog(authLog.ToString());
+
+            }
+            catch (Exception ex)
+            {
+
+            }
             if (storedCaptchaCode == null || authenticationRequestBody.CaptchaCode != storedCaptchaCode)
             {
                 result.Status = false;
