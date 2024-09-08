@@ -20,14 +20,26 @@ namespace NobatPlusAPI
 
             builder.Services.AddSession();
 
+            //builder.Services.AddCors(options =>
+            //{
+            //    options.AddPolicy("DynamicCORS", policy =>
+            //    {
+            //        policy.AllowAnyMethod()
+            //              .AllowAnyHeader()
+            //              .SetIsOriginAllowed(origin => true)  // اجازه به همه دامنه‌ها
+            //              .AllowCredentials();
+            //    });
+            //});
+
+
             builder.Services.AddCors(options =>
             {
-                options.AddPolicy("DynamicCORS", policy =>
+                options.AddPolicy("AllowAll",
+                builder =>
                 {
-                    policy.AllowAnyMethod()
-                          .AllowAnyHeader()
-                          .SetIsOriginAllowed(origin => true)  // اجازه به همه دامنه‌ها
-                          .AllowCredentials();
+                    builder.AllowAnyOrigin()
+                           .AllowAnyMethod()
+                           .AllowAnyHeader();
                 });
             });
 
@@ -139,7 +151,9 @@ namespace NobatPlusAPI
             //}
             app.UseHttpsRedirection();
 
-            app.UseCors("DynamicCORS");
+            //app.UseCors("DynamicCORS");
+
+            app.UseCors("AllowAll");
 
 
             app.UseSession();

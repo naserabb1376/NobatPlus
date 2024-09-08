@@ -1,4 +1,5 @@
-﻿using VerifyCodeSMSService;
+﻿using System.Text;
+using VerifyCodeSMSService;
 
 namespace NobatPlusAPI.Tools
 {
@@ -55,5 +56,15 @@ namespace NobatPlusAPI.Tools
             }
             return currect;
         }
+
+        public static void SaveLog(object log)
+        {
+            StringBuilder sb = new StringBuilder();
+            sb.AppendLine($"{log.ToString()}");
+            sb.AppendLine(DateTime.Now.ToShortTimeString());
+            sb.AppendLine($"--------------------------------");
+            System.IO.File.AppendAllText(Path.Combine(Directory.GetCurrentDirectory(),"log.txt"), sb.ToString(),Encoding.UTF8);
+        }
+
     }
 }
