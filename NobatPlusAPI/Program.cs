@@ -16,18 +16,26 @@ namespace NobatPlusAPI
             var builder = WebApplication.CreateBuilder(args);
 
             var corsPolicy = builder.Configuration["cors:policy"].ToString();
+            var cookiesecurity = builder.Configuration["cors:cookiesecurity"].ToString();
 
             var allowedOrigins = builder.Configuration.GetSection("cors:allowedOrigins").Get<List<string>>().ToArray();
 
             var key = Encoding.ASCII.GetBytes(builder.Configuration["Jwt:Key"]);
 
             builder.Services.AddDistributedMemoryCache();
-
-            builder.Services.AddSession(options =>
+            if (cookiesecurity == "default")
             {
-                options.Cookie.SameSite = SameSiteMode.None;  // اجازه ارسال کوکی‌ها در درخواست‌های cross-origin
-                options.Cookie.SecurePolicy = CookieSecurePolicy.Always;  // اگر HTTPS فعال است
-            });
+                builder.Services.AddSession();
+            }
+            else
+            {
+                builder.Services.AddSession(options =>
+                {
+                    options.Cookie.SameSite = SameSiteMode.None;  // اجازه ارسال کوکی‌ها در درخواست‌های cross-origin
+                    options.Cookie.SecurePolicy = (CookieSecurePolicy)int.Parse(cookiesecurity);  // اگر HTTPS فعال است
+                });
+            }
+
             builder.Services.AddCors(options =>
             {
               
