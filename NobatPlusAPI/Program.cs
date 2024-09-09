@@ -13,11 +13,11 @@ namespace NobatPlusAPI
     {
         public static void Main(string[] args)
         {
-            string corsPolicy = "AllowSpecificOrigin";
-
             var builder = WebApplication.CreateBuilder(args);
 
-            var clientUrls = JsonConvert.DeserializeObject<List<string>>(builder.Configuration["clients:Urls"]).ToArray();
+            var corsPolicy = builder.Configuration["cors:policy"].ToString();
+
+            var allowedOrigins = builder.Configuration.GetSection("cors:allowedOrigins").Get<List<string>>().ToArray();
 
             var key = Encoding.ASCII.GetBytes(builder.Configuration["Jwt:Key"]);
 
@@ -30,24 +30,26 @@ namespace NobatPlusAPI
             });
             builder.Services.AddCors(options =>
             {
-                options.AddPolicy(corsPolicy, builder =>
-                    builder.WithOrigins(clientUrls) // اضافه کردن localhost و آی‌پی لوکال
+              
+                if (corsPolicy == "AllowAll")
+                {
+                    options.AddPolicy(corsPolicy,builder =>
+                {
+                    builder.AllowAnyOrigin()
+                           .AllowAnyMethod()
+                           .AllowAnyHeader();
+                });
+                }
+                else
+                {
+                    options.AddPolicy(corsPolicy, builder =>
+                    builder.WithOrigins(allowedOrigins) // اضافه کردن localhost و آی‌پی لوکال
                            .AllowCredentials()
                            .AllowAnyHeader()
                            .AllowAnyMethod());
+
+                }
             });
-
-
-            //builder.Services.AddCors(options =>
-            //{
-            //    options.AddPolicy("AllowAll",
-            //    builder =>
-            //    {
-            //        builder.AllowAnyOrigin()
-            //               .AllowAnyMethod()
-            //               .AllowAnyHeader();
-            //    });
-            //});
 
 
             // Add services to the container.
@@ -148,12 +150,12 @@ namespace NobatPlusAPI
 
             //if (app.Environment.IsDevelopment())
             //{
-                app.UseSwagger();
+            app.UseSwagger();
             app.UseSwaggerUI(c =>
             {
                 c.DocExpansion(Swashbuckle.AspNetCore.SwaggerUI.DocExpansion.None);
-            });  
-            
+            });
+
             //}
             app.UseHttpsRedirection();
 
