@@ -75,7 +75,7 @@ namespace NobatPlusAPI.Controllers
                 result.Result = "";
                 return BadRequest(result);
             }
-            if (storedCaptchaCode == null || authenticationRequestBody.CaptchaCode != storedCaptchaCode)
+            if ((authenticationRequestBody.LoginType != 3) && (storedCaptchaCode == null || authenticationRequestBody.CaptchaCode != storedCaptchaCode))
             {
                 result.Status = false;
                 result.ErrorMessage = "کد کپچا نادرست است.";

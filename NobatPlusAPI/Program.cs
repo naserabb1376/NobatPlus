@@ -31,6 +31,8 @@ namespace NobatPlusAPI
             {
                 builder.Services.AddSession(options =>
                 {
+                    options.Cookie.HttpOnly = true; // امنیت بیشتر برای کوکی‌ها
+                    options.Cookie.IsEssential = true; // ضروری بودن کوکی برای عملکرد Session
                     options.Cookie.SameSite = SameSiteMode.None;  // اجازه ارسال کوکی‌ها در درخواست‌های cross-origin
                     options.Cookie.SecurePolicy = (CookieSecurePolicy)int.Parse(cookiesecurity);  // اگر HTTPS فعال است
                 });
