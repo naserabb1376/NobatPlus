@@ -61,16 +61,19 @@ namespace NobatPlusAPI.Controllers
             {
                 var authLog = new StringBuilder();
 
-                authLog.AppendLine(authenticationRequestBody.UserName);
-                authLog.AppendLine(authenticationRequestBody.CaptchaCode);
-                authLog.AppendLine(storedCaptchaCode);
+                authLog.AppendLine($"userName: {authenticationRequestBody.UserName}");
+                authLog.AppendLine($"CaptchaCode: {authenticationRequestBody.CaptchaCode}");
+                authLog.AppendLine($"StoredCaptchaCode: {storedCaptchaCode}");
 
                 ToolBox.SaveLog(authLog.ToString());
 
             }
             catch (Exception ex)
             {
-
+                result.Status = false;
+                result.ErrorMessage =$"{ex.Message}\n{ex.InnerException?.Message}";
+                result.Result = "";
+                return BadRequest(result);
             }
             if (storedCaptchaCode == null || authenticationRequestBody.CaptchaCode != storedCaptchaCode)
             {

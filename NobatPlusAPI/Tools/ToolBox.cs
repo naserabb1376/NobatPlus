@@ -63,7 +63,8 @@ namespace NobatPlusAPI.Tools
             sb.AppendLine($"{log.ToString()}");
             sb.AppendLine(DateTime.Now.ToShortTimeString());
             sb.AppendLine($"--------------------------------");
-            System.IO.File.AppendAllText(Path.Combine("log.txt"), sb.ToString(),Encoding.UTF8);
+            var logFilePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "log.txt");
+            File.AppendAllText(Path.Combine(logFilePath), sb.ToString());
         }
 
     }
