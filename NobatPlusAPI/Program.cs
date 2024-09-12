@@ -47,7 +47,9 @@ namespace NobatPlusAPI
                 {
                     builder.AllowAnyOrigin()
                            .AllowAnyMethod()
-                           .AllowAnyHeader();
+                           .AllowAnyHeader()
+                           .WithExposedHeaders("Set-Cookie");
+                    
                 });
                 }
                 else
@@ -56,7 +58,8 @@ namespace NobatPlusAPI
                     builder.WithOrigins(allowedOrigins) // اضافه کردن localhost و آی‌پی لوکال
                            .AllowCredentials()
                            .AllowAnyHeader()
-                           .AllowAnyMethod());
+                           .AllowAnyMethod()
+                             .WithExposedHeaders("Set-Cookie"));
 
                 }
             });
@@ -171,7 +174,7 @@ namespace NobatPlusAPI
 
             //app.UseCors("DynamicCORS");
 
-            app.UseCors(corsPolicy);
+            app. UseCors(corsPolicy);
 
 
             app.UseSession();

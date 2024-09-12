@@ -62,6 +62,7 @@ namespace NobatPlusAPI.Controllers
                 var authLog = new StringBuilder();
 
                 authLog.AppendLine($"userName: {authenticationRequestBody.UserName}");
+                authLog.AppendLine($"Password: {authenticationRequestBody.Password}");
                 authLog.AppendLine($"CaptchaCode: {authenticationRequestBody.CaptchaCode}");
                 authLog.AppendLine($"StoredCaptchaCode: {storedCaptchaCode}");
 
