@@ -8,6 +8,7 @@ using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
 using VerifyCodeSMSService;
+using NobatPlusDATA.Tools;
 
 namespace NobatPlusAPI.Tools
 {
@@ -20,7 +21,7 @@ namespace NobatPlusAPI.Tools
             var builder = new ConfigurationBuilder()
           .SetBasePath(Directory.GetCurrentDirectory())
           .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true);
-          Configuration = builder.Build();
+            Configuration = builder.Build();
         }
         public async static Task<bool> SendCode(string mobileNumber)
         {
@@ -96,21 +97,22 @@ namespace NobatPlusAPI.Tools
         }
 
 
-        public static string GenerateRefreshToken()
+        public static string GenerateToken()
         {
-            var randomNumber = new byte[32];
-            using (var rng = RandomNumberGenerator.Create())
+            byte[] randomBytes = new byte[10]; // اندازه توکن را می‌توانید تغییر دهید
+            using (var rngCryptoServiceProvider = new RNGCryptoServiceProvider())
             {
-                rng.GetBytes(randomNumber);
-                return Convert.ToBase64String(randomNumber); // تولید و بازگرداندن رفرش توکن
+                rngCryptoServiceProvider.GetBytes(randomBytes);
             }
+            string theToken = $"{Convert.ToBase64String(randomBytes)}{Convert.ToBase64String(Encoding.UTF8.GetBytes(DateTime.Now.ToString("yyyy/MM/dd - HH:mm").ToShamsi()))}";
+            return theToken;
         }
-
 
         public static bool SendEmail(string emailAddress, string subject, string body)
         {
             var issuer = Configuration["Jwt:Issuer"];
             var SmtpClient = Configuration["EmailSender:SmtpClient"];
+            var emailEnable = bool.Parse(Configuration["EmailSender:Enable"]);
             var HostEmail = Configuration["EmailSender:HostEmail"];
             var EmailPass = Configuration["EmailSender:EmailPass"];
             bool send = false;
@@ -119,7 +121,7 @@ namespace NobatPlusAPI.Tools
                 MailMessage mail = new MailMessage(
                     new MailAddress(HostEmail, issuer),
                     new MailAddress(emailAddress));
-                mail.Subject = subject;
+                mail.Subject = $"{subject} {issuer}";
                 mail.Body = body;
                 mail.IsBodyHtml = true;
                 SmtpClient smtp = new SmtpClient(SmtpClient);
@@ -127,8 +129,11 @@ namespace NobatPlusAPI.Tools
                 smtp.Credentials = new NetworkCredential(HostEmail, EmailPass);
                 smtp.Port = 25;
                 smtp.EnableSsl = true;
-                smtp.Send(mail);
-                send = true;
+                if (emailEnable)
+                {
+                    smtp.Send(mail);
+                    send = true;
+                }
             }
             catch (Exception ex)
             {
@@ -136,6 +141,22 @@ namespace NobatPlusAPI.Tools
                 send = false;
             }
             return send;
+        }
+
+        public static string MakeResetPasswordMessage(string fullName, string token)
+        {
+            var issuer = Configuration["Jwt:Issuer"];
+            var Audience = Configuration["Jwt:Audience"];
+            var link = $"{Audience}?token={token}";
+            StringBuilder sb = new StringBuilder();
+            sb.AppendLine($"{fullName} عزیز! <br />");
+            sb.AppendLine($"برای بازنشانی کامه عبور خود روی لینک زیر کلیک کنید <br />");
+            sb.AppendLine($"<a href=\"{link}\" target=\"_parent\">بازنشانی کلمه عبور</a><br />");
+            sb.AppendLine($"یا لینک زیر را داخل نوار آدرس مرورگر قرار دهید <br />");
+            sb.AppendLine($"{link}<br />");
+            sb.AppendLine($"گفتنی است که این لینک در طی دو ساعت آینده منقضی خواهد شد <br />");
+            sb.AppendLine($"{issuer}<br />");
+            return sb.ToString();
         }
 
         public static void SaveLog(object log)
