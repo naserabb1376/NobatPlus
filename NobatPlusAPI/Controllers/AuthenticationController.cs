@@ -48,10 +48,10 @@ namespace NobatPlusAPI.Controllers
         }
 
         [HttpPost("Authenticate")]
-        public async Task<ActionResult<RowResultObject<string>>> Authenticate(AuthenticationRequestBody authenticationRequestBody)
+        public async Task<ActionResult<RowResultObject<AuthenticationResultBody>>> Authenticate(AuthenticationRequestBody authenticationRequestBody)
         {
             string tokenString = "";
-            RowResultObject<string> result = new RowResultObject<string>();
+            RowResultObject<AuthenticationResultBody> result = new RowResultObject<AuthenticationResultBody>();
             RowResultObject<Login> authenticateResult = new RowResultObject<Login>();
 
             var storedCaptchaCode = HttpContext.Session.GetString("CaptchaCode");
@@ -73,7 +73,6 @@ namespace NobatPlusAPI.Controllers
             {
                 result.Status = false;
                 result.ErrorMessage =$"{ex.Message}\n{ex.InnerException?.Message}";
-                result.Result = "";
                 return BadRequest(result);
             }
             if ((storedCaptchaCode == null || authenticationRequestBody.CaptchaCode != storedCaptchaCode))
@@ -155,7 +154,13 @@ namespace NobatPlusAPI.Controllers
 
             result.Status = authenticateResult.Status;
             result.ErrorMessage = authenticateResult.ErrorMessage;
-            result.Result = tokenString;
+            result.Result = new AuthenticationResultBody()
+            {
+                RefreshToken = "",
+                Token = tokenString,
+                PersonId = authenticateResult.Result.PersonID,
+                FullName = $"{authenticateResult.Result.Person.FirstName} {authenticateResult.Result.Person.LastName}"
+            };
             if (result.Status)
             {
                 #region AddLog
