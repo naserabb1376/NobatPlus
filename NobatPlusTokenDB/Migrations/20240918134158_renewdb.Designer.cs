@@ -5,15 +5,15 @@ using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-using NobatPlusDATA.DataLayer;
+using NobatPlusTokenDB.DataLayer;
 
 #nullable disable
 
 namespace NobatPlusTokenDB.Migrations
 {
     [DbContext(typeof(RefreshTokenDBContext))]
-    [Migration("20240918095606_tokensetting")]
-    partial class tokensetting
+    [Migration("20240918134158_renewdb")]
+    partial class renewdb
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -27,11 +27,11 @@ namespace NobatPlusTokenDB.Migrations
 
             modelBuilder.Entity("Domain.RefreshToken", b =>
                 {
-                    b.Property<int>("ID")
+                    b.Property<long>("ID")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
+                        .HasColumnType("bigint");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ID"));
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("ID"));
 
                     b.Property<DateTime>("CreatedDate")
                         .HasColumnType("datetime2");
@@ -53,8 +53,8 @@ namespace NobatPlusTokenDB.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("UserId")
-                        .HasColumnType("int");
+                    b.Property<long>("UserId")
+                        .HasColumnType("bigint");
 
                     b.HasKey("ID");
 

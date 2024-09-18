@@ -6,7 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Domain;
 
-namespace NobatPlusDATA.DataLayer
+namespace NobatPlusTokenDB.DataLayer
 {
     public class RefreshTokenDBContext : DbContext
     {

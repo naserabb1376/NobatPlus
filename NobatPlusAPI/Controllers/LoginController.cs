@@ -52,13 +52,13 @@ namespace NobatPlusAPI.Controllers
         }
 
         [HttpPost("GetLoginById_Base")]
-        public async Task<ActionResult<ListResultObject<Login>>> GetLoginById_Base(GetRowRequestBody requestBody)
+        public async Task<ActionResult<ListResultObject<Login>>> GetLoginById_Base(GetLoginRowRequestBody requestBody)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(requestBody);
             }
-            var result = await _LoginRep.GetLoginByIdAsync(requestBody.ID);
+            var result = await _LoginRep.GetLoginByIdAsync(requestBody.ID,requestBody.SearchMode);
             if (result.Status)
             {
                 return Ok(result);
@@ -146,7 +146,7 @@ namespace NobatPlusAPI.Controllers
             {
                 return BadRequest(requestBody);
             }
-            var theRow = await _LoginRep.GetLoginByIdAsync(requestBody.ID);
+            var theRow = await _LoginRep.GetLoginByIdAsync(requestBody.ID,1);
             if (!theRow.Status)
             {
                 result.Status = theRow.Status;

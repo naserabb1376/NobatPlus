@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-using NobatPlusDATA.DataLayer;
+using NobatPlusTokenDB.DataLayer;
 
 #nullable disable
 
@@ -24,11 +24,11 @@ namespace NobatPlusTokenDB.Migrations
 
             modelBuilder.Entity("Domain.RefreshToken", b =>
                 {
-                    b.Property<int>("ID")
+                    b.Property<long>("ID")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
+                        .HasColumnType("bigint");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ID"));
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("ID"));
 
                     b.Property<DateTime>("CreatedDate")
                         .HasColumnType("datetime2");
@@ -50,8 +50,8 @@ namespace NobatPlusTokenDB.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("UserId")
-                        .HasColumnType("int");
+                    b.Property<long>("UserId")
+                        .HasColumnType("bigint");
 
                     b.HasKey("ID");
 

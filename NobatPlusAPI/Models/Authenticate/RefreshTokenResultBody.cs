@@ -3,11 +3,9 @@ using System.ComponentModel.DataAnnotations;
 
 namespace NobatPlusAPI.Models.Authenticate
 {
-    public class AuthenticationResultBody
+    public class RefreshTokenResultBody
     {
-        public long PersonId { get; set; }
-        public string FullName { get; set; }
-        public string AccessToken { get; set; }
         public string RefreshToken { get; set; }
+        public string AccessToken { get; set; }
     }
 }

@@ -3,11 +3,10 @@ using System.ComponentModel.DataAnnotations;
 
 namespace NobatPlusAPI.Models.Authenticate
 {
-    public class AuthenticationResultBody
+    public class RefreshTokenRequestBody
     {
-        public long PersonId { get; set; }
-        public string FullName { get; set; }
-        public string AccessToken { get; set; }
+        [Display(Name = "رفرش توکن")]
+        [Required(ErrorMessage = "لطفا {0} را وارد کنید")]
         public string RefreshToken { get; set; }
     }
 }
