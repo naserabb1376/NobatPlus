@@ -4,6 +4,8 @@ using Microsoft.OpenApi.Models;
 using Newtonsoft.Json;
 using NobatPlusDATA.DataLayer.Repositories;
 using NobatPlusDATA.DataLayer.Services;
+using Repositories;
+using Services;
 using System.Globalization;
 using System.Text;
 
@@ -130,6 +132,7 @@ namespace NobatPlusAPI
             builder.Services.AddScoped<IServiceManagementRep, ServiceManagementRep>();
             builder.Services.AddScoped<IStylistRep, StylistRep>();
             builder.Services.AddScoped<IStylistServiceRep, StylistServiceRep>();
+            builder.Services.AddScoped<ITokenRep, TokenRep>();
 
             #endregion ImportDbServices
 
