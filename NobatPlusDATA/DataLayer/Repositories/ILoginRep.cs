@@ -11,7 +11,7 @@ namespace NobatPlusDATA.DataLayer.Repositories
     public interface ILoginRep
     {
         public Task<ListResultObject<Login>> GetAllLoginsAsync(long personId = 0, int pageIndex = 1, int pageSize = 20, string searchText = "");
-        public Task<RowResultObject<Login>> GetLoginByIdAsync(long LoginId);
+        public Task<RowResultObject<Login>> GetLoginByIdAsync(long LoginId,int searchMode);
         public Task<BitResultObject> AddLoginAsync(Login Login);
         public Task<RowResultObject<Login>> AuthenticateAsync(string userName,string password,int authenticateType = 1);
         public Task<BitResultObject> EditLoginAsync(Login Login);

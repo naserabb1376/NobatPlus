@@ -14,9 +14,12 @@ namespace Repositories
 
         public Task<RowResultObject<RefreshToken>> GetRefreshTokenByIdAsync(long RefreshTokenId);
 
+        public Task<RowResultObject<RefreshToken>> FindTokenAsync(string Token,string type, bool status = true);
+
         public Task<BitResultObject> AddRefreshTokenAsync(RefreshToken RefreshToken);
 
         public Task<BitResultObject> EditRefreshTokenAsync(RefreshToken RefreshToken);
+        public Task<BitResultObject> MakeTokenExpireAsync(long TokenId);
 
         public Task<BitResultObject> RemoveRefreshTokenAsync(RefreshToken RefreshToken);
 

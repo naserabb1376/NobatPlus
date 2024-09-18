@@ -49,7 +49,7 @@ namespace NobatPlusDATA.DataLayer.Services
                 switch (authenticateType)
                 {
                     default:
-                        case 1:
+                    case 1:
                         {
                             result.Status = await _context.Logins
                .AsNoTracking()
@@ -83,7 +83,7 @@ namespace NobatPlusDATA.DataLayer.Services
                         break;
                     case 2:
                         {
-                            result.Status = await _context.Logins.Include(x=> x.Person)
+                            result.Status = await _context.Logins.Include(x => x.Person)
                .AsNoTracking()
                .AnyAsync(x => x.Person.PhoneNumber == userName);
                             if (result.Status)
@@ -146,7 +146,7 @@ namespace NobatPlusDATA.DataLayer.Services
                         }
                         break;
                 }
-               
+
             }
             catch (Exception ex)
             {
@@ -177,7 +177,7 @@ namespace NobatPlusDATA.DataLayer.Services
 
         public async Task<BitResultObject> ExistLoginAsync(string uniqueProperty, int searchMode = 1)
         {
-            BitResultObject result = new BitResultObject();
+            BitResultObject result = new BitResultObject() { Status = false };
             try
             {
                 switch (searchMode)
@@ -186,39 +186,75 @@ namespace NobatPlusDATA.DataLayer.Services
                     case 1:
                         {
                             long LoginId = long.Parse(uniqueProperty);
-                            result.Status = await _context.Logins
+                            var login = await _context.Logins
                 .AsNoTracking()
-                .AnyAsync(x => x.ID == LoginId);
-                          result.ID = LoginId;
-
+                .FirstOrDefaultAsync(x => x.ID == LoginId);
+                            if (login != null)
+                            {
+                                result.Status = true;
+                                result.ID = login.ID;
+                            }
                         }
                         break;
                     case 2:
                         {
-                            result.Status = await _context.Logins
-             .AsNoTracking()
-             .AnyAsync(x => x.Username == uniqueProperty);
+                            var login = await _context.Logins
+               .AsNoTracking()
+               .FirstOrDefaultAsync(x => x.Username == uniqueProperty);
+                            if (login != null)
+                            {
+                                result.Status = true;
+                                result.ID = login.ID;
+                            }
                         }
                         break;
                     case 3:
                         {
-                            result.Status = await _context.Logins.Include(x => x.Person)
-             .AsNoTracking()
-             .AnyAsync(x => x.Person.PhoneNumber == uniqueProperty);
+                            var login = await _context.Logins.Include(x=> x.Person)
+               .AsNoTracking()
+               .FirstOrDefaultAsync(x => x.Person.PhoneNumber == uniqueProperty);
+                            if (login != null)
+                            {
+                                result.Status = true;
+                                result.ID = login.ID;
+                            }
                         }
                         break;
                     case 4:
                         {
-                            result.Status = await _context.Logins.Include(x => x.Person)
-             .AsNoTracking()
-             .AnyAsync(x => x.Person.NaCode == uniqueProperty);
+                            var login = await _context.Logins.Include(x => x.Person)
+              .AsNoTracking()
+              .FirstOrDefaultAsync(x => x.Person.NaCode == uniqueProperty);
+                            if (login != null)
+                            {
+                                result.Status = true;
+                                result.ID = login.ID;
+                            }
                         }
                         break;
                     case 5:
                         {
-                            result.Status = await _context.Logins.Include(x => x.Person)
-             .AsNoTracking()
-             .AnyAsync(x => x.Person.Email == uniqueProperty);
+                            var login = await _context.Logins.Include(x => x.Person)
+               .AsNoTracking()
+               .FirstOrDefaultAsync(x => x.Person.Email == uniqueProperty);
+                            if (login != null)
+                            {
+                                result.Status = true;
+                                result.ID = login.ID;
+                            }
+                        }
+                        break;
+                    case 6:
+                        {
+                            long LoginId = long.Parse(uniqueProperty);
+                            var login = await _context.Logins
+                .AsNoTracking()
+                .FirstOrDefaultAsync(x => x.PersonID == LoginId);
+                            if (login != null)
+                            {
+                                result.Status = true;
+                                result.ID = login.ID;
+                            }
                         }
                         break;
                 }
@@ -299,14 +335,29 @@ namespace NobatPlusDATA.DataLayer.Services
 
         }
 
-        public async Task<RowResultObject<Login>> GetLoginByIdAsync(long LoginId)
+        public async Task<RowResultObject<Login>> GetLoginByIdAsync(long LoginId, int searchMode)
         {
             RowResultObject<Login> result = new RowResultObject<Login>();
             try
             {
-                result.Result = await _context.Logins
-                .AsNoTracking()
-                .SingleOrDefaultAsync(x => x.ID == LoginId);
+                switch (searchMode)
+                {
+                    default:
+                    case 1:
+                        {
+                            result.Result = await _context.Logins.Include(x=> x.Person)
+                                            .AsNoTracking()
+                                            .SingleOrDefaultAsync(x => x.ID == LoginId);
+                        }
+                        break;
+                    case 2:
+                        {
+                            result.Result = await _context.Logins.Include(x => x.Person)
+                                            .AsNoTracking()
+                                            .SingleOrDefaultAsync(x => x.PersonID == LoginId);
+                        }
+                        break;
+                }
             }
             catch (Exception ex)
             {
@@ -341,7 +392,7 @@ namespace NobatPlusDATA.DataLayer.Services
             BitResultObject result = new BitResultObject();
             try
             {
-                var Login = await GetLoginByIdAsync(LoginId);
+                var Login = await GetLoginByIdAsync(LoginId,1);
                 result = await RemoveLoginAsync(Login.Result);
             }
             catch (Exception ex)
