@@ -3,9 +3,11 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.8.34330.188
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NobatPlusAPI", "NobatPlusAPI\NobatPlusAPI.csproj", "{027CE13E-3B74-4782-ACDF-5AE633E7983A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NobatPlusAPI", "NobatPlusAPI\NobatPlusAPI.csproj", "{027CE13E-3B74-4782-ACDF-5AE633E7983A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NobatPlusDATA", "NobatPlusDATA\NobatPlusDATA.csproj", "{8EA17B2F-CCDA-4823-B689-6B2154516113}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NobatPlusDATA", "NobatPlusDATA\NobatPlusDATA.csproj", "{8EA17B2F-CCDA-4823-B689-6B2154516113}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NobatPlusTokenDB", "NobatPlusTokenDB\NobatPlusTokenDB.csproj", "{AF2AB87B-133C-4EB6-82A3-CCB784531F02}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -21,6 +23,10 @@ Global
 		{8EA17B2F-CCDA-4823-B689-6B2154516113}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8EA17B2F-CCDA-4823-B689-6B2154516113}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{8EA17B2F-CCDA-4823-B689-6B2154516113}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AF2AB87B-133C-4EB6-82A3-CCB784531F02}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AF2AB87B-133C-4EB6-82A3-CCB784531F02}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AF2AB87B-133C-4EB6-82A3-CCB784531F02}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AF2AB87B-133C-4EB6-82A3-CCB784531F02}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

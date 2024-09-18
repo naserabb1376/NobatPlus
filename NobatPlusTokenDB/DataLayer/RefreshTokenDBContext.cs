@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using NobatPlusDATA.Domain;
+using Domain;
 
 namespace NobatPlusDATA.DataLayer
 {
@@ -14,8 +14,10 @@ namespace NobatPlusDATA.DataLayer
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
+            var configHelper = new ConfigurationHelper();
+            string _connectionString = configHelper.GetConnectionString("Tokenpublicdb");
+            optionsBuilder.UseSqlServer(_connectionString);
             // تنظیمات دیتابیس
-            optionsBuilder.UseSqlServer("Server=your_server;Database=RefreshTokenDB;Trusted_Connection=True;");
         }
     }
 }
