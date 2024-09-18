@@ -85,7 +85,7 @@ namespace Services
             {
                 result.Result = await _context.RefreshTokens
                 .AsNoTracking()
-                .SingleOrDefaultAsync(x => x.Token == Token && x.Type == type && x.Status == status);
+                .SingleOrDefaultAsync(x => x.Token == Token && x.Type == type && x.Status == status && x.ExpiryDate > DateTime.Now.ToShamsi());
             }
             catch (Exception ex)
             {

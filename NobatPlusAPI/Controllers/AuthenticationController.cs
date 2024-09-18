@@ -20,6 +20,7 @@ using SixLabors.ImageSharp.Processing;
 using SixLabors.ImageSharp.Drawing.Processing;
 using Repositories;
 using Microsoft.AspNetCore.Http.HttpResults;
+using Azure.Core;
 
 namespace NobatPlusAPI.Controllers
 {
@@ -105,7 +106,7 @@ namespace NobatPlusAPI.Controllers
 
                 if (authenticateResult.Status)
                 {
-                    var refreshToken = ToolBox.GenerateRefreshToken(); // تولید رفرش توکن
+                    var refreshToken = ToolBox.GenerateToken(); // تولید رفرش توکن
                     var accessToken = ToolBox.GenerateAccessToken(authenticateResult.Result); // تولید رفرش توکن
                     var refreshTokenExpiryDate = DateTime.Now.ToShamsi().AddDays(30); // تنظیم تاریخ انقضای رفرش توکن برای 30 روز
 
@@ -226,7 +227,7 @@ namespace NobatPlusAPI.Controllers
 
             var refreshTokenRecord = await _tokenRep.FindTokenAsync(requestBody.RefreshToken, "RefreshToken");
 
-            if (refreshTokenRecord == null || refreshTokenRecord.Result.ExpiryDate <= DateTime.Now.ToShamsi())
+            if (refreshTokenRecord == null)
             {
                 result.ErrorMessage = "رفرش توکن نامعتبر است";
                 result.Status = false;
@@ -238,7 +239,7 @@ namespace NobatPlusAPI.Controllers
             if (expireTokenResult.Status)
             {
                 var login = await _loginRep.GetLoginByIdAsync(refreshTokenRecord.Result.UserId, 2);
-                var refreshToken = ToolBox.GenerateRefreshToken(); // تولید رفرش توکن
+                var refreshToken = ToolBox.GenerateToken(); // تولید رفرش توکن
                 var accessToken = ToolBox.GenerateAccessToken(login.Result); // تولید رفرش توکن
                 var refreshTokenExpiryDate = DateTime.Now.ToShamsi().AddDays(30); // تنظیم تاریخ انقضای رفرش توکن برای 30 روز
 
@@ -534,7 +535,6 @@ namespace NobatPlusAPI.Controllers
             }
         }
 
-
         [HttpPost("ForgotPassword")]
         public async Task<ActionResult<RowResultObject<string>>> ForgotPassword(ForgotPasswordRequestBody requestBody)
         {
@@ -544,7 +544,7 @@ namespace NobatPlusAPI.Controllers
             }
             RowResultObject<string> result = new RowResultObject<string>();
 
-            var resetToken = ToolBox.GenerateRefreshToken(); // تولید رفرش توکن
+            var resetToken = ToolBox.GenerateToken(); // تولید رفرش توکن
             var resetTokenExpiryDate = DateTime.Now.ToShamsi().AddHours(2);
 
             var existLogin = await _loginRep.ExistLoginAsync(requestBody.Email,5);
@@ -552,61 +552,115 @@ namespace NobatPlusAPI.Controllers
             if (existLogin.Status)
             {
                 var login = await _loginRep.GetLoginByIdAsync(existLogin.ID,1);
+                if (login.Status)
+                {
+
+                    var newresetTokenRecord = new RefreshToken
+                    {
+                        UserId = login.Result.PersonID,
+                        Token = resetToken, // ذخیره رفرش توکن
+                        Type = "ResetPassword", // نوع: ResetPassword
+                        Status = true,
+                        CreatedDate = DateTime.Now.ToShamsi(),
+                        ExpiryDate = resetTokenExpiryDate // تاریخ انقضا
+                    };
+
+                    var saverefreshToken = await _tokenRep.AddRefreshTokenAsync(newresetTokenRecord);
+
+                    if (saverefreshToken.Status)
+                    {
+
+                        var fullName = $"{login.Result.Person.FirstName} {login.Result.Person.LastName}";
+                        var messageText = ToolBox.MakeResetPasswordMessage(fullName, resetToken);
+                        bool sentState = ToolBox.SendEmail(requestBody.Email, "بازنشانی کلمه عبور", messageText);
+
+                        #region AddLog
+                        Log log = new Log()
+                        {
+                            CreateDate = DateTime.Now.ToShamsi(),
+                            UpdateDate = DateTime.Now.ToShamsi(),
+                            LogTime = DateTime.Now.ToShamsi(),
+                            ActionName = this.ControllerContext.RouteData.Values["action"].ToString(),
+                        };
+                        await _logRep.AddLogAsync(log);
+                        #endregion
+
+
+                        if (sentState)
+                        {
+                            result.Status = sentState;
+                            result.ErrorMessage = $"ایمیلی حاوی لینک بازنشانی رمز عبور برای شما ارسال شد";
+                            result.Result = resetToken;
+                        }
+                        else
+                        {
+                            result.Status = sentState;
+                            result.ErrorMessage = $"در ارسال ایمیلی مشکلی بوجود آمد لطفا دوباره تلاش کنید";
+                            result.Result = resetToken;
+                        }
+
+                        return Ok(result);
+                    }
+                    else
+                    {
+                        result.Status = saverefreshToken.Status;
+                        result.ErrorMessage = saverefreshToken.ErrorMessage;
+                    }
+                }
+                else
+                {
+                    result.Status = login.Status;
+                    result.ErrorMessage = login.ErrorMessage;
+                }
             }
             else
             {
                 result.Status = false;
                 result.ErrorMessage = $"پست الکترونیک {requestBody.Email} در سیستم وجود ندارد";
             }
-
-            var newresetTokenRecord = new RefreshToken
-            {
-                UserId = login.Result.PersonID,
-                Token = refreshToken, // ذخیره رفرش توکن
-                Type = "ResetPassword", // نوع: ResetPassword
-                Status = true,
-                CreatedDate = DateTime.Now.ToShamsi(),
-                ExpiryDate = resetTokenExpiryDate // تاریخ انقضا
-            };
-
-            var saverefreshToken = await _tokenRep.AddRefreshTokenAsync(newrefreshTokenRecord);
-
-            if (saverefreshToken.Status)
-            {
-                result.Status = login.Status;
-                result.ErrorMessage = login.ErrorMessage;
-                result.Result = new RefreshTokenResultBody()
-                {
-                    RefreshToken = refreshToken, // بازگرداندن رفرش توکن
-                    AccessToken = accessToken, // بازگرداندن اکسس توکن
-                };
-
-                #region AddLog
-                Log log = new Log()
-                {
-                    CreateDate = DateTime.Now.ToShamsi(),
-                    UpdateDate = DateTime.Now.ToShamsi(),
-                    LogTime = DateTime.Now.ToShamsi(),
-                    ActionName = this.ControllerContext.RouteData.Values["action"].ToString(),
-                };
-                await _logRep.AddLogAsync(log);
-                #endregion
-
-                return Ok(result);
-            }
-        
-            else
-            {
-                result.Status = expireTokenResult.Status;
-                result.ErrorMessage = expireTokenResult.ErrorMessage;
-            }
             return BadRequest(result);
-
-    string tokenText = GenerateResetToken(userId);
-            _tokenRep.AddToken(tokenText, "Reset Password");
-            bool sentState = ToolBox.SendEmail(forgotPasswordVM.Email, "بازنشانی کلمه عبور وبسایت فصل سفر", MakeResetPasswordMessage(_userRep.GetUserByEmail(forgotPasswordVM.Email).FullName, link));
-            return View(forgotPasswordVM);
         }
 
+        [HttpPost("CheckToken")]
+        public async Task<ActionResult<BitResultObject>> CheckToken(CheckTokenRequestBody requestBody)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(requestBody);
+            }
+            BitResultObject result = new BitResultObject();
+
+            var findToken = await _tokenRep.FindTokenAsync(requestBody.Token,requestBody.TokenType,requestBody.TokenStatus);
+
+            result.Status = findToken.Status;
+            result.ErrorMessage = findToken.ErrorMessage;
+
+            if (findToken.Status && findToken.Result != null)
+            {
+                return Ok(result);
+            }
+            return BadRequest(result);
+        }
+
+        [HttpPost("ResetPassword")]
+        public async Task<ActionResult<BitResultObject>> ResetPassword(CheckTokenRequestBody requestBody)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(requestBody);
+            }
+            BitResultObject result = new BitResultObject();
+
+            var findToken = await _tokenRep.FindTokenAsync(requestBody.Token, requestBody.TokenType, requestBody.TokenStatus);
+
+            result.Status = findToken.Status;
+            result.ErrorMessage = findToken.ErrorMessage;
+
+            if (findToken.Status && findToken.Result != null)
+            {
+                return Ok(result);
+            }
+            return BadRequest(result);
+        }
     }
 }
