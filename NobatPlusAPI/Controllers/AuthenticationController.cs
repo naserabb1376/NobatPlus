@@ -708,6 +708,8 @@ namespace NobatPlusAPI.Controllers
                                 };
                                 await _logRep.AddLogAsync(log);
                                 #endregion
+
+                                return Ok(result);
                             }
                         }
 
