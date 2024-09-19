@@ -544,81 +544,109 @@ namespace NobatPlusAPI.Controllers
             }
             RowResultObject<string> result = new RowResultObject<string>();
 
-            var resetTokenExpiryDate = DateTime.Now.ToShamsi().AddHours(2);
-
-            var existLogin = await _loginRep.ExistLoginAsync(requestBody.Email,5);
-
-            if (existLogin.Status)
+            if (string.IsNullOrEmpty(requestBody.PhoneNumber) && string.IsNullOrEmpty(requestBody.Email))
             {
-                var login = await _loginRep.GetLoginByIdAsync(existLogin.ID,1);
-                var resetToken = ToolBox.GenerateToken(login.Result.ID); // تولید رفرش توکن
+                result.Status = false;
+                result.ErrorMessage = $"ورود حداقل یکی از مقادیر خواسته شده الزامی است";
+            }
 
-                if (login.Status)
+            if (!string.IsNullOrEmpty(requestBody.PhoneNumber))
+            {
+                var validPhoneNumber = await _loginRep.ExistLoginAsync(requestBody.PhoneNumber, 3);
+                if (!validPhoneNumber.Status && string.IsNullOrEmpty(validPhoneNumber.ErrorMessage))
                 {
+                    result.Status = validPhoneNumber.Status;
+                    result.ErrorMessage = "شماره تماس نامعتبر است";
+                    return BadRequest(result);
+                }
 
-                    var newresetTokenRecord = new RefreshToken
+                result.Status = await ToolBox.SendCode(requestBody.PhoneNumber);
+
+                if (result.Status)
+                {
+                    result.ErrorMessage = $"کد تایید ارسال شد";
+                    return Ok(result);
+                }
+            }
+            else if (!string.IsNullOrEmpty(requestBody.Email))
+            {
+                var resetTokenExpiryDate = DateTime.Now.ToShamsi().AddHours(2);
+
+                var existLogin = await _loginRep.ExistLoginAsync(requestBody.Email, 5);
+
+                if (existLogin.Status)
+                {
+                    var login = await _loginRep.GetLoginByIdAsync(existLogin.ID, 1);
+                    var resetToken = ToolBox.GenerateToken(login.Result.ID); // تولید رفرش توکن
+
+                    if (login.Status)
                     {
-                        UserId = login.Result.PersonID,
-                        Token = resetToken, // ذخیره رفرش توکن
-                        Type = "ResetPassword", // نوع: ResetPassword
-                        Status = true,
-                        CreatedDate = DateTime.Now.ToShamsi(),
-                        ExpiryDate = resetTokenExpiryDate // تاریخ انقضا
-                    };
 
-                    var saverefreshToken = await _tokenRep.AddRefreshTokenAsync(newresetTokenRecord);
-
-                    if (saverefreshToken.Status)
-                    {
-
-                        var fullName = $"{login.Result.Person.FirstName} {login.Result.Person.LastName}";
-                        var messageText = ToolBox.MakeResetPasswordMessage(fullName, resetToken);
-                        bool sentState = ToolBox.SendEmail(requestBody.Email, "بازنشانی کلمه عبور", messageText);
-
-                        #region AddLog
-                        Log log = new Log()
+                        var newresetTokenRecord = new RefreshToken
                         {
-                            CreateDate = DateTime.Now.ToShamsi(),
-                            UpdateDate = DateTime.Now.ToShamsi(),
-                            LogTime = DateTime.Now.ToShamsi(),
-                            ActionName = this.ControllerContext.RouteData.Values["action"].ToString(),
+                            UserId = login.Result.PersonID,
+                            Token = resetToken, // ذخیره رفرش توکن
+                            Type = "ResetPassword", // نوع: ResetPassword
+                            Status = true,
+                            CreatedDate = DateTime.Now.ToShamsi(),
+                            ExpiryDate = resetTokenExpiryDate // تاریخ انقضا
                         };
-                        await _logRep.AddLogAsync(log);
-                        #endregion
 
+                        var saverefreshToken = await _tokenRep.AddRefreshTokenAsync(newresetTokenRecord);
 
-                        if (sentState)
+                        if (saverefreshToken.Status)
                         {
-                            result.Status = sentState;
-                            result.ErrorMessage = $"ایمیلی حاوی لینک بازنشانی رمز عبور برای شما ارسال شد";
-                            result.Result = resetToken;
+
+                            var fullName = $"{login.Result.Person.FirstName} {login.Result.Person.LastName}";
+                            var messageText = ToolBox.MakeResetPasswordMessage(fullName, resetToken);
+                            bool sentState = ToolBox.SendEmail(requestBody.Email, "بازنشانی کلمه عبور", messageText);
+
+                            #region AddLog
+                            Log log = new Log()
+                            {
+                                CreateDate = DateTime.Now.ToShamsi(),
+                                UpdateDate = DateTime.Now.ToShamsi(),
+                                LogTime = DateTime.Now.ToShamsi(),
+                                ActionName = this.ControllerContext.RouteData.Values["action"].ToString(),
+                            };
+                            await _logRep.AddLogAsync(log);
+                            #endregion
+
+
+                            if (sentState)
+                            {
+                                result.Status = sentState;
+                                result.ErrorMessage = $"ایمیلی حاوی لینک بازنشانی رمز عبور برای شما ارسال شد";
+                                result.Result = resetToken;
+                            }
+                            else
+                            {
+                                result.Status = sentState;
+                                result.ErrorMessage = $"در ارسال ایمیلی مشکلی بوجود آمد لطفا دوباره تلاش کنید";
+                                result.Result = resetToken;
+                            }
+
+                            return Ok(result);
                         }
                         else
                         {
-                            result.Status = sentState;
-                            result.ErrorMessage = $"در ارسال ایمیلی مشکلی بوجود آمد لطفا دوباره تلاش کنید";
-                            result.Result = resetToken;
+                            result.Status = saverefreshToken.Status;
+                            result.ErrorMessage = saverefreshToken.ErrorMessage;
                         }
-
-                        return Ok(result);
                     }
                     else
                     {
-                        result.Status = saverefreshToken.Status;
-                        result.ErrorMessage = saverefreshToken.ErrorMessage;
+                        result.Status = login.Status;
+                        result.ErrorMessage = login.ErrorMessage;
                     }
                 }
                 else
                 {
-                    result.Status = login.Status;
-                    result.ErrorMessage = login.ErrorMessage;
+                    result.Status = false;
+                    result.ErrorMessage = $"پست الکترونیک {requestBody.Email} در سیستم وجود ندارد";
                 }
             }
-            else
-            {
-                result.Status = false;
-                result.ErrorMessage = $"پست الکترونیک {requestBody.Email} در سیستم وجود ندارد";
-            }
+
             return BadRequest(result);
         }
 
@@ -632,53 +660,130 @@ namespace NobatPlusAPI.Controllers
             }
             BitResultObject result = new BitResultObject();
 
-            long loginId = long.Parse(requestBody.Token.Split('-')[0]);
-
-            var existLogin = await _loginRep.ExistLoginAsync(loginId.ToString(), 1);
-
-            if (loginId > 0 && existLogin.Status)
+            if (string.IsNullOrEmpty(requestBody.VerifyCode) && string.IsNullOrEmpty(requestBody.Token))
             {
-                var login = await _loginRep.GetLoginByIdAsync(loginId, 1);
+                result.Status = false;
+                result.ErrorMessage = $"ورود حداقل یکی از مقادیر توکن یا کد تایید الزامی است";
+            }
 
-                if (login.Status)
+            if (!string.IsNullOrEmpty(requestBody.VerifyCode))
+            {
+                var validPhoneNumber = await _loginRep.ExistLoginAsync(requestBody.PhoneNumber, 3);
+                if (!validPhoneNumber.Status && string.IsNullOrEmpty(validPhoneNumber.ErrorMessage))
                 {
-                    login.Result.PasswordHash = requestBody.NewPassword.ToHash();
+                    result.Status = validPhoneNumber.Status;
+                    result.ErrorMessage = "شماره تماس نامعتبر است";
+                    return BadRequest(result);
+                }
 
-                    var saveLogin = await _loginRep.EditLoginAsync(login.Result);
+                result.Status = await ToolBox.CheckCode(requestBody.PhoneNumber, requestBody.VerifyCode);
 
-                    if (saveLogin.Status)
+                if (result.Status)
+                {
+
+                    var existLogin = await _loginRep.ExistLoginAsync(requestBody.PhoneNumber, 3);
+
+                    if (existLogin.Status)
                     {
-                        result.Status = saveLogin.Status;
-                        result.ErrorMessage = $"تغییر کلمه عبور با موفقیت انجام شد";
+                        var login = await _loginRep.GetLoginByIdAsync(existLogin.ID, 1);
 
-                        #region AddLog
-                        Log log = new Log()
+                        if (login.Status)
                         {
-                            CreateDate = DateTime.Now.ToShamsi(),
-                            UpdateDate = DateTime.Now.ToShamsi(),
-                            LogTime = DateTime.Now.ToShamsi(),
-                            ActionName = this.ControllerContext.RouteData.Values["action"].ToString(),
-                        };
-                        await _logRep.AddLogAsync(log);
-                        #endregion
+                            login.Result.PasswordHash = requestBody.NewPassword.ToHash();
+
+                            var saveLogin = await _loginRep.EditLoginAsync(login.Result);
+
+                            if (saveLogin.Status)
+                            {
+                                result.Status = saveLogin.Status;
+                                result.ErrorMessage = $"تغییر کلمه عبور با موفقیت انجام شد";
+
+                                #region AddLog
+                                Log log = new Log()
+                                {
+                                    CreateDate = DateTime.Now.ToShamsi(),
+                                    UpdateDate = DateTime.Now.ToShamsi(),
+                                    LogTime = DateTime.Now.ToShamsi(),
+                                    ActionName = this.ControllerContext.RouteData.Values["action"].ToString(),
+                                };
+                                await _logRep.AddLogAsync(log);
+                                #endregion
+                            }
+                        }
+
+                        else
+                        {
+                            result.Status = login.Status;
+                            result.ErrorMessage = login.ErrorMessage;
+                            return BadRequest(result);
+                        }
+
                     }
                     else
                     {
-                        result.Status = saveLogin.Status;
-                        result.ErrorMessage = saveLogin.ErrorMessage;
+                        result.Status = existLogin.Status;
+                        result.ErrorMessage = "شماره موبایل وارد شده در سیستم وجود ندارد";
+                        return BadRequest(result);
                     }
                 }
                 else
                 {
-                    result.Status = login.Status;
-                    result.ErrorMessage = login.ErrorMessage;
+                    result.ErrorMessage = $"کد تایید صحیح نیست";
+                    return BadRequest(result);
                 }
             }
-
-            else
+            else if (!string.IsNullOrEmpty(requestBody.Token))
             {
-                result.Status = false;
-                result.ErrorMessage = "کاربر معتبر نیست";
+                long loginId = long.Parse(requestBody.Token.Split('-')[0]);
+
+                var existLogin = await _loginRep.ExistLoginAsync(loginId.ToString(), 1);
+
+                if (loginId > 0 && existLogin.Status)
+                {
+                    var login = await _loginRep.GetLoginByIdAsync(loginId, 1);
+
+                    if (login.Status)
+                    {
+                        login.Result.PasswordHash = requestBody.NewPassword.ToHash();
+
+                        var saveLogin = await _loginRep.EditLoginAsync(login.Result);
+
+                        if (saveLogin.Status)
+                        {
+                            result.Status = saveLogin.Status;
+                            result.ErrorMessage = $"تغییر کلمه عبور با موفقیت انجام شد";
+
+                            #region AddLog
+                            Log log = new Log()
+                            {
+                                CreateDate = DateTime.Now.ToShamsi(),
+                                UpdateDate = DateTime.Now.ToShamsi(),
+                                LogTime = DateTime.Now.ToShamsi(),
+                                ActionName = this.ControllerContext.RouteData.Values["action"].ToString(),
+                            };
+                            await _logRep.AddLogAsync(log);
+                            #endregion
+
+                            return Ok(result);
+                        }
+                        else
+                        {
+                            result.Status = saveLogin.Status;
+                            result.ErrorMessage = saveLogin.ErrorMessage;
+                        }
+                    }
+                    else
+                    {
+                        result.Status = login.Status;
+                        result.ErrorMessage = login.ErrorMessage;
+                    }
+                }
+
+                else
+                {
+                    result.Status = false;
+                    result.ErrorMessage = "کاربر معتبر نیست";
+                }
             }
 
             return BadRequest(result);
