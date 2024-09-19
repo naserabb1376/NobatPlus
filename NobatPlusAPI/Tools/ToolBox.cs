@@ -97,16 +97,43 @@ namespace NobatPlusAPI.Tools
         }
 
 
-        public static string GenerateToken()
+        private static string GenerateResetPasswordToken(long loginId)
         {
             byte[] randomBytes = new byte[10]; // اندازه توکن را می‌توانید تغییر دهید
             using (var rngCryptoServiceProvider = new RNGCryptoServiceProvider())
             {
                 rngCryptoServiceProvider.GetBytes(randomBytes);
             }
-            string theToken = $"{Convert.ToBase64String(randomBytes)}{Convert.ToBase64String(Encoding.UTF8.GetBytes(DateTime.Now.ToString("yyyy/MM/dd - HH:mm").ToShamsi()))}";
+            string rawToken = GenerateRefreshToken();
+            string theToken = $"{loginId}-{rawToken}";
             return theToken;
         }
+
+        private static string GenerateRefreshToken()
+        {
+            var randomNumber = new byte[32];
+            using (var rng = RandomNumberGenerator.Create())
+            {
+                rng.GetBytes(randomNumber);
+                return Convert.ToBase64String(randomNumber); // تولید و بازگرداندن رفرش توکن
+            }
+        }
+
+        public static string GenerateToken(long loginId = 0)
+        {
+            string token = "";
+           if(loginId > 0)
+            {
+                token = GenerateResetPasswordToken(loginId);
+            }
+           else
+            {
+                token = GenerateRefreshToken();
+            }
+           return token;
+        }
+
+       
 
         public static bool SendEmail(string emailAddress, string subject, string body)
         {
@@ -115,7 +142,7 @@ namespace NobatPlusAPI.Tools
             var emailEnable = bool.Parse(Configuration["EmailSender:Enable"]);
             var HostEmail = Configuration["EmailSender:HostEmail"];
             var EmailPass = Configuration["EmailSender:EmailPass"];
-            bool send = false;
+            bool send = !emailEnable;
             try
             {
                 MailMessage mail = new MailMessage(

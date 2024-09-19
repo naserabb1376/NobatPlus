@@ -81,11 +81,22 @@ namespace Services
         public async Task<RowResultObject<RefreshToken>> FindTokenAsync(string Token, string type,bool status = true)
         {
             RowResultObject<RefreshToken> result = new RowResultObject<RefreshToken>();
+            var nowDate = DateTime.Now.ToShamsi();
+
+
             try
             {
-                result.Result = await _context.RefreshTokens
+                var tokenrow = await _context.RefreshTokens
                 .AsNoTracking()
-                .SingleOrDefaultAsync(x => x.Token == Token && x.Type == type && x.Status == status && x.ExpiryDate > DateTime.Now.ToShamsi());
+                .SingleOrDefaultAsync(x => x.Token == Token && x.Type.ToLower() == type.ToLower() && x.Status == status);
+
+                var timeDiddrence =  tokenrow.ExpiryDate - nowDate;
+
+                if (timeDiddrence.TotalMinutes > 0)
+                {
+                    result.Result = tokenrow;
+                }
+
             }
             catch (Exception ex)
             {

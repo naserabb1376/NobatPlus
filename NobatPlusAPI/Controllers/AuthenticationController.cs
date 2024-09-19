@@ -227,7 +227,7 @@ namespace NobatPlusAPI.Controllers
 
             var refreshTokenRecord = await _tokenRep.FindTokenAsync(requestBody.RefreshToken, "RefreshToken");
 
-            if (refreshTokenRecord == null)
+            if (refreshTokenRecord.Status && refreshTokenRecord.Result != null)
             {
                 result.ErrorMessage = "رفرش توکن نامعتبر است";
                 result.Status = false;
@@ -544,7 +544,6 @@ namespace NobatPlusAPI.Controllers
             }
             RowResultObject<string> result = new RowResultObject<string>();
 
-            var resetToken = ToolBox.GenerateToken(); // تولید رفرش توکن
             var resetTokenExpiryDate = DateTime.Now.ToShamsi().AddHours(2);
 
             var existLogin = await _loginRep.ExistLoginAsync(requestBody.Email,5);
@@ -552,6 +551,8 @@ namespace NobatPlusAPI.Controllers
             if (existLogin.Status)
             {
                 var login = await _loginRep.GetLoginByIdAsync(existLogin.ID,1);
+                var resetToken = ToolBox.GenerateToken(login.Result.ID); // تولید رفرش توکن
+
                 if (login.Status)
                 {
 
@@ -621,6 +622,68 @@ namespace NobatPlusAPI.Controllers
             return BadRequest(result);
         }
 
+
+        [HttpPost("ResetPassword")]
+        public async Task<ActionResult<BitResultObject>> ResetPassword(ResetPasswordRequestBody requestBody)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(requestBody);
+            }
+            BitResultObject result = new BitResultObject();
+
+            long loginId = long.Parse(requestBody.Token.Split('-')[0]);
+
+            var existLogin = await _loginRep.ExistLoginAsync(loginId.ToString(), 1);
+
+            if (loginId > 0 && existLogin.Status)
+            {
+                var login = await _loginRep.GetLoginByIdAsync(loginId, 1);
+
+                if (login.Status)
+                {
+                    login.Result.PasswordHash = requestBody.NewPassword.ToHash();
+
+                    var saveLogin = await _loginRep.EditLoginAsync(login.Result);
+
+                    if (saveLogin.Status)
+                    {
+                        result.Status = saveLogin.Status;
+                        result.ErrorMessage = $"تغییر کلمه عبور با موفقیت انجام شد";
+
+                        #region AddLog
+                        Log log = new Log()
+                        {
+                            CreateDate = DateTime.Now.ToShamsi(),
+                            UpdateDate = DateTime.Now.ToShamsi(),
+                            LogTime = DateTime.Now.ToShamsi(),
+                            ActionName = this.ControllerContext.RouteData.Values["action"].ToString(),
+                        };
+                        await _logRep.AddLogAsync(log);
+                        #endregion
+                    }
+                    else
+                    {
+                        result.Status = saveLogin.Status;
+                        result.ErrorMessage = saveLogin.ErrorMessage;
+                    }
+                }
+                else
+                {
+                    result.Status = login.Status;
+                    result.ErrorMessage = login.ErrorMessage;
+                }
+            }
+
+            else
+            {
+                result.Status = false;
+                result.ErrorMessage = "کاربر معتبر نیست";
+            }
+
+            return BadRequest(result);
+        }
+
         [HttpPost("CheckToken")]
         public async Task<ActionResult<BitResultObject>> CheckToken(CheckTokenRequestBody requestBody)
         {
@@ -642,25 +705,46 @@ namespace NobatPlusAPI.Controllers
             return BadRequest(result);
         }
 
-        [HttpPost("ResetPassword")]
-        public async Task<ActionResult<BitResultObject>> ResetPassword(CheckTokenRequestBody requestBody)
+        [HttpPost("LogOut")]
+        public async Task<ActionResult<BitResultObject>> LogOut(RefreshTokenRequestBody requestBody)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(requestBody);
             }
-            BitResultObject result = new BitResultObject();
+            BitResultObject result = new BitResultObject() { Status = true,ErrorMessage =""};
 
-            var findToken = await _tokenRep.FindTokenAsync(requestBody.Token, requestBody.TokenType, requestBody.TokenStatus);
+            var refreshTokenRecord = await _tokenRep.FindTokenAsync(requestBody.RefreshToken, "RefreshToken");
 
-            result.Status = findToken.Status;
-            result.ErrorMessage = findToken.ErrorMessage;
-
-            if (findToken.Status && findToken.Result != null)
+            if (refreshTokenRecord.Status && refreshTokenRecord.Result != null)
             {
-                return Ok(result);
+                var expireTokenResult = await _tokenRep.MakeTokenExpireAsync(refreshTokenRecord.Result.ID);
+
+                if (expireTokenResult.Status)
+                {
+                    result.Status = expireTokenResult.Status;
+                    result.ErrorMessage = $"کاربر از سیستم خارج شد";
+
+                    #region AddLog
+                    Log log = new Log()
+                    {
+                        CreateDate = DateTime.Now.ToShamsi(),
+                        UpdateDate = DateTime.Now.ToShamsi(),
+                        LogTime = DateTime.Now.ToShamsi(),
+                        ActionName = this.ControllerContext.RouteData.Values["action"].ToString(),
+                    };
+                    await _logRep.AddLogAsync(log);
+                    #endregion
+                }
+                else
+                {
+                    result.Status = expireTokenResult.Status;
+                    result.ErrorMessage = expireTokenResult.ErrorMessage;
+                    return BadRequest(result);
+                }
             }
-            return BadRequest(result);
+
+                return Ok(result);
         }
     }
 }
