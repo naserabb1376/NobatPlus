@@ -227,7 +227,7 @@ namespace NobatPlusAPI.Controllers
 
             var refreshTokenRecord = await _tokenRep.FindTokenAsync(requestBody.RefreshToken, "RefreshToken");
 
-            if (refreshTokenRecord.Status && refreshTokenRecord.Result != null)
+            if (!refreshTokenRecord.Status && refreshTokenRecord.Result == null)
             {
                 result.ErrorMessage = "رفرش توکن نامعتبر است";
                 result.Status = false;
