@@ -215,6 +215,46 @@ namespace NobatPlusAPI.Controllers
             }
         }
 
+        [HttpPost("CheckCaptchaCode")]
+        public async Task<ActionResult<BitResultObject>> CheckCaptchaCode(CheckCaptchaCodeRequestBody checkCodeRequestBody)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(checkCodeRequestBody);
+            }
+
+            BitResultObject result = new BitResultObject();
+
+            try
+            {
+
+                var storedCaptchaCode = HttpContext.Session.GetString("CaptchaCode");
+                if (checkCodeRequestBody.CaptchaCode == storedCaptchaCode)
+                {
+                    result.Status = true;
+                    result.ErrorMessage = "";
+                    return Ok(result);
+                }
+
+                else
+                {
+                    result.Status = false;
+                    result.ErrorMessage = "کد کپچا نادرست است.";
+                    return BadRequest(result);
+                }
+
+            }
+            catch (Exception ex)
+            {
+                result.Status = false;
+                result.ErrorMessage = $"{ex.Message}\n{ex.InnerException?.Message}";
+            }
+
+
+            return BadRequest(result);
+        }
+
+
         [HttpPost("RefreshToken")]
         public async Task<ActionResult<RowResultObject<RefreshTokenResultBody>>> RefreshToken(RefreshTokenRequestBody requestBody)
         {
@@ -534,6 +574,8 @@ namespace NobatPlusAPI.Controllers
                 return BadRequest(result);
             }
         }
+
+
 
         [HttpPost("ForgotPassword")]
         public async Task<ActionResult<RowResultObject<string>>> ForgotPassword(ForgotPasswordRequestBody requestBody)
