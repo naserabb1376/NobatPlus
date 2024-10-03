@@ -78,7 +78,7 @@ namespace NobatPlusDATA.DataLayer.Services
             
         }
 
-        public async Task<ListResultObject<Stylist>> GetAllStylistsAsync(long parentId = 0,long cityId = 0, int pageIndex = 1, int pageSize = 20, string searchText = "")
+        public async Task<ListResultObject<Stylist>> GetAllStylistsAsync(long parentId = 0,long cityId = 0, int pageIndex = 1, int pageSize = 20, string searchText = "",string sortQuery ="")
         {
             ListResultObject<Stylist> results = new ListResultObject<Stylist>();
             try
@@ -140,7 +140,7 @@ namespace NobatPlusDATA.DataLayer.Services
                 results.TotalCount = query.Count();
                 results.PageCount = DbTools.GetPageCount(results.TotalCount, pageSize);
                 results.Results = await query.OrderByDescending(x => x.CreateDate)
-                .ToPaging(pageIndex, pageSize)
+                .SortBy(sortQuery).ToPaging(pageIndex, pageSize)
                 .ToListAsync();
             }
             catch (Exception ex)
@@ -152,7 +152,7 @@ namespace NobatPlusDATA.DataLayer.Services
            
         }
 
-        public async Task<ListResultObject<Stylist>> GetStylistsOfServiceAsync(long serviceManagementId,long cityId = 0, int pageIndex = 1, int pageSize = 20, string searchText = "")
+        public async Task<ListResultObject<Stylist>> GetStylistsOfServiceAsync(long serviceManagementId,long cityId = 0, int pageIndex = 1, int pageSize = 20, string searchText = "",string sortQuery ="")
         {
             ListResultObject<Stylist> results = new ListResultObject<Stylist>();
             try
@@ -189,7 +189,7 @@ namespace NobatPlusDATA.DataLayer.Services
                 results.TotalCount = query.Count();
                 results.PageCount = DbTools.GetPageCount(results.TotalCount, pageSize);
                 results.Results = await query.OrderByDescending(x => x.CreateDate)
-                .ToPaging(pageIndex, pageSize)
+                .SortBy(sortQuery).ToPaging(pageIndex, pageSize)
                 .ToListAsync();
 
             }
@@ -202,7 +202,7 @@ namespace NobatPlusDATA.DataLayer.Services
            
         }
 
-        public async Task<ListResultObject<Stylist>> GetStylistsOfJobTypeAsync(long JobTypeId,long cityId = 0, int pageIndex = 1, int pageSize = 20, string searchText = "")
+        public async Task<ListResultObject<Stylist>> GetStylistsOfJobTypeAsync(long JobTypeId,long cityId = 0, int pageIndex = 1, int pageSize = 20, string searchText = "",string sortQuery ="")
         {
             ListResultObject<Stylist> results = new ListResultObject<Stylist>();
             try
@@ -238,7 +238,7 @@ namespace NobatPlusDATA.DataLayer.Services
                 results.TotalCount = query.Count();
                 results.PageCount = DbTools.GetPageCount(results.TotalCount, pageSize);
                 results.Results = await query.OrderByDescending(x => x.CreateDate)
-                .ToPaging(pageIndex, pageSize)
+                .SortBy(sortQuery).ToPaging(pageIndex, pageSize)
                 .ToListAsync();
 
             }
@@ -251,7 +251,7 @@ namespace NobatPlusDATA.DataLayer.Services
       
         }
 
-        public async Task<ListResultObject<Stylist>> GetStylistsOfDiscountAsync(long DiscountId,long cityId = 0, int pageIndex = 1, int pageSize = 20, string searchText = "")
+        public async Task<ListResultObject<Stylist>> GetStylistsOfDiscountAsync(long DiscountId,long cityId = 0, int pageIndex = 1, int pageSize = 20, string searchText = "",string sortQuery ="")
         {
             ListResultObject<Stylist> results = new ListResultObject<Stylist>();
             try
@@ -303,7 +303,7 @@ namespace NobatPlusDATA.DataLayer.Services
                 results.TotalCount = query.Count();
                 results.PageCount = DbTools.GetPageCount(results.TotalCount, pageSize);
                 results.Results = await query.OrderByDescending(x => x.CreateDate)
-                .ToPaging(pageIndex, pageSize)
+                .SortBy(sortQuery).ToPaging(pageIndex, pageSize)
                 .ToListAsync();
 
             }

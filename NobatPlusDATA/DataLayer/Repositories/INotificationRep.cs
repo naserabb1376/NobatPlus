@@ -10,7 +10,7 @@ namespace NobatPlusDATA.DataLayer.Repositories
 {
     public interface INotificationRep
     {
-        public Task<ListResultObject<Notification>> GetAllNotificationsAsync(long personId = 0, int pageIndex = 1, int pageSize = 20, string searchText = "");
+        public Task<ListResultObject<Notification>> GetAllNotificationsAsync(long personId = 0, int pageIndex = 1, int pageSize = 20, string searchText = "",string sortQuery ="");
         public Task<RowResultObject<Notification>> GetNotificationByIdAsync(long NotificationId);
         public Task<BitResultObject> AddNotificationAsync(Notification Notification);
         public Task<BitResultObject> EditNotificationAsync(Notification Notification);

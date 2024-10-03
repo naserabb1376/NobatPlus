@@ -77,7 +77,7 @@ namespace NobatPlusDATA.DataLayer.Services
             return result;
         }
 
-        public async Task<ListResultObject<Admin>> GetAllAdminsAsync(string role = "",long cityId = 0, int pageIndex = 1, int pageSize = 20, string searchText = "")
+        public async Task<ListResultObject<Admin>> GetAllAdminsAsync(string role = "",long cityId = 0, int pageIndex = 1, int pageSize = 20, string searchText = "",string sortQuery ="")
         {
             ListResultObject<Admin> results = new ListResultObject<Admin>();
             try
@@ -109,7 +109,7 @@ namespace NobatPlusDATA.DataLayer.Services
                 results.TotalCount = query.Count();
                 results.PageCount = DbTools.GetPageCount(results.TotalCount, pageSize);
                 results.Results = await query.OrderByDescending(x => x.CreateDate)
-                .ToPaging(pageIndex, pageSize)
+                .SortBy(sortQuery).ToPaging(pageIndex, pageSize)
                 .ToListAsync();
             }
             catch (Exception ex)
@@ -120,7 +120,7 @@ namespace NobatPlusDATA.DataLayer.Services
             return results;
         }
 
-        public async Task<ListResultObject<Admin>> GetAdminsOfDiscountAsync(long discountId, long cityId = 0, string role = "", int pageIndex = 1, int pageSize = 20, string searchText = "")
+        public async Task<ListResultObject<Admin>> GetAdminsOfDiscountAsync(long discountId, long cityId = 0, string role = "", int pageIndex = 1, int pageSize = 20, string searchText = "",string sortQuery ="")
         {
             ListResultObject<Admin> results = new ListResultObject<Admin>();
             try
@@ -190,7 +190,7 @@ namespace NobatPlusDATA.DataLayer.Services
                 results.TotalCount = query.Count();
                 results.PageCount = DbTools.GetPageCount(results.TotalCount, pageSize);
                 results.Results = await query.OrderByDescending(x => x.CreateDate)
-                .ToPaging(pageIndex, pageSize)
+                .SortBy(sortQuery).ToPaging(pageIndex, pageSize)
                 .ToListAsync();
             }
             catch (Exception ex)

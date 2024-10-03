@@ -43,7 +43,7 @@ namespace NobatPlusAPI.Controllers
             {
                 return BadRequest(requestBody);
             }
-            var result = await _CustomerDiscountRep.GetAllCustomerDiscountsAsync(requestBody.DiscountId,requestBody.CustomerId,requestBody.StylistId,requestBody.PageIndex,requestBody.PageSize,requestBody.SearchText);
+            var result = await _CustomerDiscountRep.GetAllCustomerDiscountsAsync(requestBody.DiscountId,requestBody.CustomerId,requestBody.StylistId,requestBody.PageIndex,requestBody.PageSize,requestBody.SearchText,requestBody.SortQuery);
             if (result.Status)
             {
                 return Ok(result);

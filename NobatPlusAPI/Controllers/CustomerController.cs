@@ -44,7 +44,7 @@ namespace NobatPlusAPI.Controllers
             {
                 return BadRequest(requestBody);
             }
-            var result = await _CustomerRep.GetAllCustomersAsync(requestBody.CityId,requestBody.PageIndex,requestBody.PageSize,requestBody.SearchText);
+            var result = await _CustomerRep.GetAllCustomersAsync(requestBody.CityId,requestBody.PageIndex,requestBody.PageSize,requestBody.SearchText,requestBody.SortQuery);
             if (result.Status)
             {
                 return Ok(result);
@@ -59,7 +59,7 @@ namespace NobatPlusAPI.Controllers
             {
                 return BadRequest(requestBody);
             }
-            var result = await _CustomerRep.GetCustomersOfDiscountAsync(requestBody.DiscountId,requestBody.CityId,requestBody.PageIndex, requestBody.PageSize, requestBody.SearchText);
+            var result = await _CustomerRep.GetCustomersOfDiscountAsync(requestBody.DiscountId,requestBody.CityId,requestBody.PageIndex, requestBody.PageSize, requestBody.SearchText,requestBody.SortQuery);
             if (result.Status)
             {
                 return Ok(result);

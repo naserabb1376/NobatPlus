@@ -10,7 +10,7 @@ namespace NobatPlusDATA.DataLayer.Repositories
 {
     public interface IRegisterRep
     {
-        public Task<ListResultObject<Register>> GetAllRegistersAsync(int pageIndex = 1, int pageSize = 20, string searchText = "");
+        public Task<ListResultObject<Register>> GetAllRegistersAsync(int pageIndex = 1, int pageSize = 20, string searchText = "",string sortQuery ="");
         public Task<RowResultObject<Register>> GetRegisterByIdAsync(long RegisterId);
         public Task<RowResultObject<Register>> GetRegisterByPersonIdAsync(long PersonId);
         public Task<BitResultObject> AddRegisterAsync(Register Register);
