@@ -11,5 +11,6 @@ namespace NobatPlusAPI.Models.Public
         [Required(ErrorMessage = "لطفا {0} را وارد کنید")]
         public int PageSize { get; set; }
         public string SearchText { get; set; } = "";
+        public string SortQuery { get; set; } = "";
     }
 }

@@ -11,7 +11,7 @@ namespace NobatPlusDATA.DataLayer.Repositories
 {
     public interface ILogRep
     {
-        public Task<ListResultObject<Log>> GetAllLogsAsync(int pageIndex = 1, int pageSize = 20, string searchText = "");
+        public Task<ListResultObject<Log>> GetAllLogsAsync(int pageIndex = 1, int pageSize = 20, string searchText = "",string sortQuery ="");
         public Task<RowResultObject<Log>> GetLogByIdAsync(long LogId);
         public Task<BitResultObject> AddLogAsync(Log Log);
         public Task<BitResultObject> EditLogAsync(Log Log);

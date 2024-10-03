@@ -140,7 +140,7 @@ namespace NobatPlusDATA.DataLayer.Services
   
         }
 
-        public async Task<ListResultObject<BookingService>> GetAllBookingServicesAsync(int pageIndex = 1, int pageSize = 20, string searchText = "")
+        public async Task<ListResultObject<BookingService>> GetAllBookingServicesAsync(int pageIndex = 1, int pageSize = 20, string searchText = "",string sortQuery ="")
         {
             ListResultObject<BookingService> results = new ListResultObject<BookingService>();
             try
@@ -161,7 +161,7 @@ namespace NobatPlusDATA.DataLayer.Services
                 results.TotalCount = query.Count();
                 results.PageCount = DbTools.GetPageCount(results.TotalCount, pageSize);
                 results.Results = await query.OrderByDescending(x => x.Booking.BookingDate)
-                .ToPaging(pageIndex, pageSize)
+                .SortBy(sortQuery).ToPaging(pageIndex, pageSize)
                 .ToListAsync();
             }
             catch (Exception ex)

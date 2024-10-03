@@ -46,7 +46,7 @@ namespace NobatPlusAPI.Controllers
             }
             if (requestBody.ServiceId > 0)
             {
-                 result = await _BookingRep.GetBookingsOfServiceAsync(requestBody.ServiceId,requestBody.CancelState, requestBody.PageIndex, requestBody.PageSize, requestBody.SearchText);
+                 result = await _BookingRep.GetBookingsOfServiceAsync(requestBody.ServiceId,requestBody.CancelState, requestBody.PageIndex, requestBody.PageSize, requestBody.SearchText,requestBody.SortQuery);
                 if (result.Status)
                 {
                     return Ok(result);
@@ -55,7 +55,7 @@ namespace NobatPlusAPI.Controllers
 
             else
             {
-                result = await _BookingRep.GetAllBookingsAsync(requestBody.CancelState, requestBody.PageIndex, requestBody.PageSize, requestBody.SearchText);
+                result = await _BookingRep.GetAllBookingsAsync(requestBody.CancelState, requestBody.PageIndex, requestBody.PageSize, requestBody.SearchText,requestBody.SortQuery);
                 if (result.Status)
                 {
                     return Ok(result);

@@ -46,18 +46,18 @@ namespace NobatPlusAPI.Controllers
             }
             if (requestBody.DiscountID > 0)
             {
-               result = await _StylistRep.GetStylistsOfDiscountAsync(requestBody.DiscountID,requestBody.CityID, requestBody.PageIndex, requestBody.PageSize, requestBody.SearchText);
+               result = await _StylistRep.GetStylistsOfDiscountAsync(requestBody.DiscountID,requestBody.CityID, requestBody.PageIndex, requestBody.PageSize, requestBody.SearchText,requestBody.SortQuery);
             }
             if (requestBody.ServiceID > 0)
             {
-                result = await _StylistRep.GetStylistsOfServiceAsync(requestBody.ServiceID,requestBody.CityID, requestBody.PageIndex, requestBody.PageSize, requestBody.SearchText);
+                result = await _StylistRep.GetStylistsOfServiceAsync(requestBody.ServiceID,requestBody.CityID, requestBody.PageIndex, requestBody.PageSize, requestBody.SearchText,requestBody.SortQuery);
             }
             if (requestBody.JobTypeID > 0)
             {
-                result = await _StylistRep.GetStylistsOfJobTypeAsync(requestBody.JobTypeID,requestBody.CityID, requestBody.PageIndex, requestBody.PageSize, requestBody.SearchText);
+                result = await _StylistRep.GetStylistsOfJobTypeAsync(requestBody.JobTypeID,requestBody.CityID, requestBody.PageIndex, requestBody.PageSize, requestBody.SearchText,requestBody.SortQuery);
             }
             else
-                result = await _StylistRep.GetAllStylistsAsync(requestBody.ParentID,requestBody.CityID,requestBody.PageIndex,requestBody.PageSize,requestBody.SearchText);
+                result = await _StylistRep.GetAllStylistsAsync(requestBody.ParentID,requestBody.CityID,requestBody.PageIndex,requestBody.PageSize,requestBody.SearchText,requestBody.SortQuery);
             if (result.Status)
             {
                 return Ok(result);

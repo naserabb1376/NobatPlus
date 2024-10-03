@@ -10,7 +10,7 @@ namespace NobatPlusDATA.DataLayer.Repositories
 {
     public interface IDiscountAssignmentRep
     {
-        public Task<ListResultObject<DiscountAssignment>> GetAllDiscountAssignmentsAsync(long DiscountId, long AdminId = 0, long StylistId = 0, int pageIndex = 1, int pageSize = 20, string searchText = "");
+        public Task<ListResultObject<DiscountAssignment>> GetAllDiscountAssignmentsAsync(long DiscountId, long AdminId = 0, long StylistId = 0, int pageIndex = 1, int pageSize = 20, string searchText = "",string sortQuery ="");
         public Task<RowResultObject<DiscountAssignment>> GetDiscountAssignmentByIdAsync(long DiscountAssignmentId);
         public Task<BitResultObject> AddDiscountAssignmentsAsync(List<DiscountAssignment> DiscountAssignments);
         public Task<BitResultObject> EditDiscountAssignmentsAsync(List<DiscountAssignment> DiscountAssignments);

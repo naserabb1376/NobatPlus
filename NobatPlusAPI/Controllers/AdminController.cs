@@ -46,10 +46,10 @@ namespace NobatPlusAPI.Controllers
             }
             if (requestBody.DiscountId > 0)
             {
-                result = await _AdminRep.GetAdminsOfDiscountAsync(requestBody.DiscountId,requestBody.CityId,requestBody.Role,requestBody.PageIndex, requestBody.PageSize, requestBody.SearchText);
+                result = await _AdminRep.GetAdminsOfDiscountAsync(requestBody.DiscountId,requestBody.CityId,requestBody.Role,requestBody.PageIndex, requestBody.PageSize, requestBody.SearchText,requestBody.SortQuery);
             }
             else
-                result = await _AdminRep.GetAllAdminsAsync(requestBody.Role,requestBody.CityId,requestBody.PageIndex,requestBody.PageSize,requestBody.SearchText);
+                result = await _AdminRep.GetAllAdminsAsync(requestBody.Role,requestBody.CityId,requestBody.PageIndex,requestBody.PageSize,requestBody.SearchText,requestBody.SortQuery);
             if (result.Status)
             {
                 return Ok(result);

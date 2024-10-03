@@ -142,7 +142,7 @@ namespace NobatPlusDATA.DataLayer.Services
             return result;
         }
 
-        public async Task<ListResultObject<DiscountAssignment>> GetAllDiscountAssignmentsAsync(long DiscountId, long AdminId = 0, long StylistId = 0, int pageIndex = 1, int pageSize = 20, string searchText = "")
+        public async Task<ListResultObject<DiscountAssignment>> GetAllDiscountAssignmentsAsync(long DiscountId, long AdminId = 0, long StylistId = 0, int pageIndex = 1, int pageSize = 20, string searchText = "",string sortQuery ="")
         {
             ListResultObject<DiscountAssignment> results = new ListResultObject<DiscountAssignment>();
             try
@@ -227,7 +227,7 @@ namespace NobatPlusDATA.DataLayer.Services
                 results.TotalCount = query.Count();
                 results.PageCount = DbTools.GetPageCount(results.TotalCount, pageSize);
                 results.Results = await query.OrderByDescending(x => x.CreateDate)
-                .ToPaging(pageIndex, pageSize)
+                .SortBy(sortQuery).ToPaging(pageIndex, pageSize)
                 .ToListAsync();
 
             }
