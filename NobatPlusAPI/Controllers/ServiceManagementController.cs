@@ -66,7 +66,7 @@ namespace NobatPlusAPI.Controllers
         }
 
         [HttpPost("GetServiceManagementById_Base")]
-        public async Task<ActionResult<ListResultObject<ServiceManagement>>> GetServiceManagementById_Base(GetRowRequestBody requestBody)
+        public async Task<ActionResult<RowResultObject<ServiceManagement>>> GetServiceManagementById_Base(GetRowRequestBody requestBody)
         {
             if (!ModelState.IsValid)
             {

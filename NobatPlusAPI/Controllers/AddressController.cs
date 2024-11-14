@@ -52,7 +52,7 @@ namespace NobatPlusAPI.Controllers
         }
 
         [HttpPost("GetAddressById_Base")]
-        public async Task<ActionResult<ListResultObject<Address>>> GetAddressById_Base(GetRowRequestBody requestBody)
+        public async Task<ActionResult<RowResultObject<Address>>> GetAddressById_Base(GetRowRequestBody requestBody)
         {
             if (!ModelState.IsValid)
             {

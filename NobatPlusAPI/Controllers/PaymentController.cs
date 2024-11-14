@@ -52,7 +52,7 @@ namespace NobatPlusAPI.Controllers
         }
 
         [HttpPost("GetPaymentById_Base")]
-        public async Task<ActionResult<ListResultObject<Payment>>> GetPaymentById_Base(GetRowRequestBody requestBody)
+        public async Task<ActionResult<RowResultObject<Payment>>> GetPaymentById_Base(GetRowRequestBody requestBody)
         {
             if (!ModelState.IsValid)
             {

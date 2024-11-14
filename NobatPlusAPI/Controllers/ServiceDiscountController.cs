@@ -52,7 +52,7 @@ namespace NobatPlusAPI.Controllers
         }
 
         [HttpPost("GetServiceDiscountById_Base")]
-        public async Task<ActionResult<ListResultObject<ServiceDiscount>>> GetServiceDiscountById_Base(GetRowRequestBody requestBody)
+        public async Task<ActionResult<RowResultObject<ServiceDiscount>>> GetServiceDiscountById_Base(GetRowRequestBody requestBody)
         {
             if (!ModelState.IsValid)
             {

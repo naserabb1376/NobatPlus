@@ -51,7 +51,7 @@ namespace NobatPlusAPI.Controllers
         }
 
         [HttpPost("GetLogById_Base")]
-        public async Task<ActionResult<ListResultObject<Log>>> GetLogById_Base(GetRowRequestBody requestBody)
+        public async Task<ActionResult<RowResultObject<Log>>> GetLogById_Base(GetRowRequestBody requestBody)
         {
             if (!ModelState.IsValid)
             {

@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 using NobatPlusAPI.Models;
 using NobatPlusAPI.Models.Authenticate;
-using NobatPlusAPI.Models.JobType;
+using NobatPlusAPI.Models.ApiGuide;
 using NobatPlusAPI.Models.Public;
 using NobatPlusDATA.DataLayer.Repositories;
 using NobatPlusDATA.DataLayer.Services;
@@ -20,30 +20,30 @@ using System.Text;
 
 namespace NobatPlusAPI.Controllers
 {
-    [Route("JobType")]
+    [Route("ApiGuide")]
     [ApiController]
     [Authorize]
     [Produces("application/json")]
 
-    public class JobTypeController : ControllerBase
+    public class ApiGuideController : ControllerBase
     {
-        IJobTypeRep _jobTypeRep;
+        IApiGuideRep _ApiGuideRep;
         ILogRep _logRep;
 
-        public JobTypeController(IJobTypeRep jobTypeRep,ILogRep logRep)
+        public ApiGuideController(IApiGuideRep ApiGuideRep,ILogRep logRep)
         {
-           _jobTypeRep = jobTypeRep;
+           _ApiGuideRep = ApiGuideRep;
            _logRep = logRep;
         }
 
-        [HttpPost("GetAllJobTypes_Base")]
-        public async Task<ActionResult<ListResultObject<JobType>>> GetAllJobTypes_Base(GetJobTypeListRequestBody requestBody)
+        [HttpPost("GetAllApiGuides_Base")]
+        public async Task<ActionResult<ListResultObject<ApiGuide>>> GetAllApiGuides_Base(GetApiGuideListRequestBody requestBody)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(requestBody);
             }
-            var result = await _jobTypeRep.GetAllJobTypesAsync(requestBody.SexTypeChecked,requestBody.PageIndex,requestBody.PageSize,requestBody.SearchText);
+            var result = await _ApiGuideRep.GetAllApiGuidesAsync(requestBody.GuideType,requestBody.PageIndex,requestBody.PageSize,requestBody.SearchText);
             if (result.Status)
             {
                 return Ok(result);
@@ -51,14 +51,14 @@ namespace NobatPlusAPI.Controllers
             return BadRequest(result);
         }
 
-        [HttpPost("GetJobTypeById_Base")]
-        public async Task<ActionResult<RowResultObject<JobType>>> GetJobTypeById_Base(GetRowRequestBody requestBody)
+        [HttpPost("GetApiGuideById_Base")]
+        public async Task<ActionResult<RowResultObject<ApiGuide>>> GetApiGuideById_Base(GetRowRequestBody requestBody)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(requestBody);
             }
-            var result = await _jobTypeRep.GetJobTypeByIdAsync(requestBody.ID);
+            var result = await _ApiGuideRep.GetApiGuideByIdAsync(requestBody.ID);
             if (result.Status)
             {
                 return Ok(result);
@@ -66,14 +66,32 @@ namespace NobatPlusAPI.Controllers
             return BadRequest(result);
         }
 
-        [HttpPost("ExistJobType_Base")]
-        public async Task<ActionResult<BitResultObject>> ExistJobType_Base(GetRowRequestBody requestBody)
+
+
+        [HttpPost("GetApiGuideByApiName_Base")]
+        public async Task<ActionResult<RowResultObject<ApiGuide>>> GetApiGuideByApiName_Base(GetApiGuideByApiNameRequestBody requestBody)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(requestBody);
             }
-            var result = await _jobTypeRep.ExistJobTypeAsync(requestBody.ID);
+            var result = await _ApiGuideRep.GetGuideForApiAsync(requestBody.ApiName,requestBody.GuideType);
+            if (result.Status)
+            {
+                return Ok(result);
+            }
+            return BadRequest(result);
+        }
+
+
+        [HttpPost("ExistApiGuide_Base")]
+        public async Task<ActionResult<BitResultObject>> ExistApiGuide_Base(GetRowRequestBody requestBody)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(requestBody);
+            }
+            var result = await _ApiGuideRep.ExistApiGuideAsync(requestBody.ID);
             if (string.IsNullOrEmpty(result.ErrorMessage))
             {
                 return Ok(result);
@@ -81,22 +99,27 @@ namespace NobatPlusAPI.Controllers
             return BadRequest(result);
         }
 
-        [HttpPost("AddJobType_Base")]
-        public async Task<ActionResult<BitResultObject>> AddJobType_Base(AddEditJobTypeRequestBody requestBody)
+        [HttpPost("AddApiGuide_Base")]
+        public async Task<ActionResult<BitResultObject>> AddApiGuide_Base(AddEditApiGuideRequestBody requestBody)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(requestBody);
             }
-            JobType jobType = new JobType()
+            ApiGuide ApiGuide = new ApiGuide()
             {
                 CreateDate = DateTime.Now.ToShamsi(),
                 UpdateDate = DateTime.Now.ToShamsi(),
-                JobTitle = requestBody.JobTitle,
-                SexTypeChecked = requestBody.SexTypeChecked,
+                ApiName = requestBody.ApiName,
+                FieldEnglishName = requestBody.FieldEnglishName,
+                FieldFarsiName = requestBody.FieldFarsiName,
+                FieldDataType = requestBody.FieldDataType,
+                GuideType = requestBody.GuideType,
+                ModelName = requestBody.ModelName,
+                FieldRecomendedInputType = requestBody.FieldRecomendedInputType,
                 Description = requestBody.Description,
             };
-            var result = await _jobTypeRep.AddJobTypeAsync(jobType);
+            var result = await _ApiGuideRep.AddApiGuideAsync(ApiGuide);
             if (result.Status)
             {
                 #region AddLog
@@ -119,31 +142,36 @@ namespace NobatPlusAPI.Controllers
             return BadRequest(result);
         }
 
-        [HttpPut("EditJobType_Base")]
-        public async Task<ActionResult<BitResultObject>> EditJobType_Base(AddEditJobTypeRequestBody requestBody)
+        [HttpPut("EditApiGuide_Base")]
+        public async Task<ActionResult<BitResultObject>> EditApiGuide_Base(AddEditApiGuideRequestBody requestBody)
         {
             var result = new BitResultObject();
             if (!ModelState.IsValid)
             {
                 return BadRequest(requestBody);
             }
-            var theRow = await _jobTypeRep.GetJobTypeByIdAsync(requestBody.ID);
+            var theRow = await _ApiGuideRep.GetApiGuideByIdAsync(requestBody.ID);
             if (!theRow.Status)
             {
                 result.Status = theRow.Status;
                 result.ErrorMessage = theRow.ErrorMessage;
             }
 
-            JobType jobType = new JobType()
+            ApiGuide ApiGuide = new ApiGuide()
             {
                 CreateDate = theRow.Result.CreateDate,
                 UpdateDate = DateTime.Now.ToShamsi(),
                 ID = requestBody.ID,
-                JobTitle = requestBody.JobTitle,
-                SexTypeChecked = requestBody.SexTypeChecked,
+                ApiName = requestBody.ApiName,
+                FieldEnglishName = requestBody.FieldEnglishName,
+                FieldFarsiName = requestBody.FieldFarsiName,
+                FieldDataType = requestBody.FieldDataType,
+                GuideType = requestBody.GuideType,
+                ModelName = requestBody.ModelName,
+                FieldRecomendedInputType = requestBody.FieldRecomendedInputType,
                 Description = requestBody.Description,
             };
-            result = await _jobTypeRep.EditJobTypeAsync(jobType);
+            result = await _ApiGuideRep.EditApiGuideAsync(ApiGuide);
             if (result.Status)
             {
 
@@ -166,14 +194,14 @@ namespace NobatPlusAPI.Controllers
             return BadRequest(result);
         }
 
-        [HttpDelete("DeleteJobType_Base")]
-        public async Task<ActionResult<BitResultObject>> DeleteJobType_Base(GetRowRequestBody requestBody)
+        [HttpDelete("DeleteApiGuide_Base")]
+        public async Task<ActionResult<BitResultObject>> DeleteApiGuide_Base(GetRowRequestBody requestBody)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(requestBody);
             }
-            var result = await _jobTypeRep.RemoveJobTypeAsync(requestBody.ID);
+            var result = await _ApiGuideRep.RemoveApiGuideAsync(requestBody.ID);
             if (result.Status)
             {
 

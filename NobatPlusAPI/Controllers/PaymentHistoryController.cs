@@ -52,7 +52,7 @@ namespace NobatPlusAPI.Controllers
         }
 
         [HttpPost("GetPaymentHistoryById_Base")]
-        public async Task<ActionResult<ListResultObject<PaymentHistory>>> GetPaymentHistoryById_Base(GetRowRequestBody requestBody)
+        public async Task<ActionResult<RowResultObject<PaymentHistory>>> GetPaymentHistoryById_Base(GetRowRequestBody requestBody)
         {
             if (!ModelState.IsValid)
             {

@@ -9,6 +9,9 @@ namespace NobatPlusDATA.DataLayer
 {
     public class NobatPlusContext : DbContext
     {
+
+        //Tables
+
         public DbSet<Person> Persons { get; set; }
         public DbSet<Address> Addresses { get; set; }
         public DbSet<City> Cities { get; set; }
@@ -32,6 +35,11 @@ namespace NobatPlusDATA.DataLayer
         public DbSet<ServiceDiscount> ServiceDiscounts { get; set; }
         public DbSet<CustomerDiscount> CustomerDiscounts { get; set; }
         public DbSet<Log> Logs { get; set; }
+        public DbSet<ApiGuide> ApiGuides { get; set; }
+
+
+        // Views
+
         public DbSet<V_Customer> V_Customers { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)

@@ -52,7 +52,7 @@ namespace NobatPlusAPI.Controllers
         }
 
         [HttpPost("GetCheckAvailabilityById_Base")]
-        public async Task<ActionResult<ListResultObject<CheckAvailability>>> GetCheckAvailabilityById_Base(GetRowRequestBody requestBody)
+        public async Task<ActionResult<RowResultObject<CheckAvailability>>> GetCheckAvailabilityById_Base(GetRowRequestBody requestBody)
         {
             if (!ModelState.IsValid)
             {

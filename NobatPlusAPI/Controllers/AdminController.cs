@@ -58,7 +58,7 @@ namespace NobatPlusAPI.Controllers
         }
 
         [HttpPost("GetAdminById_Base")]
-        public async Task<ActionResult<ListResultObject<Admin>>> GetAdminById_Base(GetRowRequestBody requestBody)
+        public async Task<ActionResult<RowResultObject<Admin>>> GetAdminById_Base(GetRowRequestBody requestBody)
         {
             if (!ModelState.IsValid)
             {

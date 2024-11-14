@@ -67,7 +67,7 @@ namespace NobatPlusAPI.Controllers
 
 
         [HttpPost("GetBookingById_Base")]
-        public async Task<ActionResult<ListResultObject<Booking>>> GetBookingById_Base(GetRowRequestBody requestBody)
+        public async Task<ActionResult<RowResultObject<Booking>>> GetBookingById_Base(GetRowRequestBody requestBody)
         {
             if (!ModelState.IsValid)
             {

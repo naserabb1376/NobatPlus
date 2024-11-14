@@ -52,7 +52,7 @@ namespace NobatPlusAPI.Controllers
         }
 
         [HttpPost("GetNotificationById_Base")]
-        public async Task<ActionResult<ListResultObject<Notification>>> GetNotificationById_Base(GetRowRequestBody requestBody)
+        public async Task<ActionResult<RowResultObject<Notification>>> GetNotificationById_Base(GetRowRequestBody requestBody)
         {
             if (!ModelState.IsValid)
             {

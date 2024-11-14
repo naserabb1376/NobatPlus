@@ -66,7 +66,7 @@ namespace NobatPlusAPI.Controllers
         }
 
         [HttpPost("GetStylistById_Base")]
-        public async Task<ActionResult<ListResultObject<Stylist>>> GetStylistById_Base(GetRowRequestBody requestBody)
+        public async Task<ActionResult<RowResultObject<Stylist>>> GetStylistById_Base(GetRowRequestBody requestBody)
         {
             if (!ModelState.IsValid)
             {

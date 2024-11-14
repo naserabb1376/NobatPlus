@@ -120,6 +120,7 @@ namespace NobatPlusAPI
             builder.Services.AddScoped<IDiscountAssignmentRep, DiscountAssignmentRep>();
             builder.Services.AddScoped<IDiscountRep, DiscountRep>();
             builder.Services.AddScoped<IJobTypeRep, JobTypeRep>();
+            builder.Services.AddScoped<IApiGuideRep, ApiGuideRep>();
             builder.Services.AddScoped<ILoginRep, LoginRep>();
             builder.Services.AddScoped<ILogRep, LogRep>();
             builder.Services.AddScoped<INotificationRep, NotificationRep>();
