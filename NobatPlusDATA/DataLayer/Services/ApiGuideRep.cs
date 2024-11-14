@@ -140,7 +140,7 @@ namespace NobatPlusDATA.DataLayer.Services
             {
                 result.Result = await _context.ApiGuides
                 .AsNoTracking()
-                .SingleOrDefaultAsync(x => x.ApiName == apiName && x.GuideType == guideType);
+                .SingleOrDefaultAsync(x => x.ApiName.ToLower() == apiName.ToLower() && x.GuideType.ToLower() == guideType.ToLower());
             }
             catch (Exception ex)
             {

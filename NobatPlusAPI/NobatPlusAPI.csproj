@@ -23,13 +23,8 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\NobatPlusDATA\NobatPlusDATA.csproj" />
     <ProjectReference Include="..\NobatPlusTokenDB\NobatPlusTokenDB.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Reference Include="NobatPlusDATA">
-      <HintPath>..\NobatPlusDATA\bin\Release\net8.0\NobatPlusDATA.dll</HintPath>
-    </Reference>
   </ItemGroup>
 
 </Project>
