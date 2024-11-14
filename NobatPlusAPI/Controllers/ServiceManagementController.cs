@@ -46,18 +46,18 @@ namespace NobatPlusAPI.Controllers
             }
             if (requestBody.DiscountID > 0)
             {
-               result = await _ServiceManagementRep.GetServicesOfDiscountAsync(requestBody.DiscountID, requestBody.PageIndex, requestBody.PageSize, requestBody.SearchText);
+               result = await _ServiceManagementRep.GetServicesOfDiscountAsync(requestBody.DiscountID, requestBody.PageIndex, requestBody.PageSize, requestBody.SearchText,requestBody.SortQuery);
             }
             if (requestBody.BookingID > 0)
             {
-                result = await _ServiceManagementRep.GetServicesOfBookingAsync(requestBody.BookingID, requestBody.PageIndex, requestBody.PageSize, requestBody.SearchText);
+                result = await _ServiceManagementRep.GetServicesOfBookingAsync(requestBody.BookingID, requestBody.PageIndex, requestBody.PageSize, requestBody.SearchText,requestBody.SortQuery);
             }
             if (requestBody.StylistID > 0)
             {
-                result = await _ServiceManagementRep.GetServicesOfStylistAsync(requestBody.StylistID, requestBody.PageIndex, requestBody.PageSize, requestBody.SearchText);
+                result = await _ServiceManagementRep.GetServicesOfStylistAsync(requestBody.StylistID, requestBody.PageIndex, requestBody.PageSize, requestBody.SearchText,requestBody.SortQuery);
             }
             else
-                result = await _ServiceManagementRep.GetAllServiceManagementsAsync(requestBody.ParentID,requestBody.PageIndex,requestBody.PageSize,requestBody.SearchText);
+                result = await _ServiceManagementRep.GetAllServiceManagementsAsync(requestBody.ParentID,requestBody.PageIndex,requestBody.PageSize,requestBody.SearchText,requestBody.SortQuery);
             if (result.Status)
             {
                 return Ok(result);

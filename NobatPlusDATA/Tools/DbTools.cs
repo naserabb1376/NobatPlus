@@ -6,6 +6,7 @@ using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
+using System.Linq.Dynamic.Core;
 
 namespace NobatPlusDATA.Tools
 {
@@ -53,6 +54,41 @@ namespace NobatPlusDATA.Tools
                 list = list.Skip(skipSize).Take(pageSize);
             }
             return list;
+        }
+
+        public static IQueryable<T> SortBy<T>(this IQueryable<T> query, string sorting)
+        {
+            if (string.IsNullOrEmpty(sorting))
+            {
+                return query;
+            }
+
+            // تجزیه رشته مرتب سازی به ترتیب‌های جداگانه
+            var sortingOptions = sorting.Split(',');
+
+            // ساختن دستور مرتب سازی
+            var sortingString = new StringBuilder();
+            foreach (var sortOption in sortingOptions)
+            {
+                var sortParts = sortOption.Trim().Split('-');
+
+                if (sortParts.Length == 2)
+                {
+                    var field = sortParts[0];
+                    var direction = sortParts[1].ToLower();
+
+                    // اضافه کردن به رشته دستور مرتب سازی
+                    if (sortingString.Length > 0)
+                    {
+                        sortingString.Append(", ");
+                    }
+
+                    sortingString.Append($"{field} {direction}");
+                }
+            }
+
+            // اعمال مرتب سازی به صورت پویا با استفاده از System.Linq.Dynamic.Core
+            return query.OrderBy(sortingString.ToString());
         }
 
 

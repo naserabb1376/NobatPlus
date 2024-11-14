@@ -79,7 +79,7 @@ namespace NobatPlusDATA.DataLayer.Services
             
         }
 
-        public async Task<ListResultObject<ServiceManagement>> GetAllServiceManagementsAsync(long parentId = 0, int pageIndex = 1, int pageSize = 20, string searchText = "")
+        public async Task<ListResultObject<ServiceManagement>> GetAllServiceManagementsAsync(long parentId = 0, int pageIndex = 1, int pageSize = 20, string searchText = "",string sortQuery ="")
         {
             ListResultObject<ServiceManagement> results = new ListResultObject<ServiceManagement>();
             try
@@ -103,7 +103,7 @@ namespace NobatPlusDATA.DataLayer.Services
                 results.TotalCount = query.Count();
                 results.PageCount = DbTools.GetPageCount(results.TotalCount, pageSize);
                 results.Results = await query.OrderByDescending(x => x.CreateDate)
-                .ToPaging(pageIndex, pageSize)
+                .SortBy(sortQuery).ToPaging(pageIndex, pageSize)
                 .ToListAsync();
             }
             catch (Exception ex)
@@ -115,7 +115,7 @@ namespace NobatPlusDATA.DataLayer.Services
            
         }
 
-        public async Task<ListResultObject<ServiceManagement>> GetServicesOfBookingAsync(long bookingId, int pageIndex = 1, int pageSize = 20, string searchText = "")
+        public async Task<ListResultObject<ServiceManagement>> GetServicesOfBookingAsync(long bookingId, int pageIndex = 1, int pageSize = 20, string searchText = "",string sortQuery ="")
         {
             ListResultObject<ServiceManagement> results = new ListResultObject<ServiceManagement>();
             try
@@ -135,7 +135,7 @@ namespace NobatPlusDATA.DataLayer.Services
                 results.TotalCount = query.Count();
                 results.PageCount = DbTools.GetPageCount(results.TotalCount, pageSize);
                 results.Results = await query.OrderByDescending(x => x.CreateDate)
-                .ToPaging(pageIndex, pageSize)
+                .SortBy(sortQuery).ToPaging(pageIndex, pageSize)
                 .ToListAsync();
             }
             catch (Exception ex)
@@ -147,7 +147,7 @@ namespace NobatPlusDATA.DataLayer.Services
           
         }
 
-        public async Task<ListResultObject<ServiceManagement>> GetServicesOfStylistAsync(long stylistId, int pageIndex = 1, int pageSize = 20, string searchText = "")
+        public async Task<ListResultObject<ServiceManagement>> GetServicesOfStylistAsync(long stylistId, int pageIndex = 1, int pageSize = 20, string searchText = "",string sortQuery ="")
         {
             ListResultObject<ServiceManagement> results = new ListResultObject<ServiceManagement>();
             try
@@ -167,7 +167,7 @@ namespace NobatPlusDATA.DataLayer.Services
                 results.TotalCount = query.Count();
                 results.PageCount = DbTools.GetPageCount(results.TotalCount, pageSize);
                 results.Results = await query.OrderByDescending(x => x.CreateDate)
-                .ToPaging(pageIndex, pageSize)
+                .SortBy(sortQuery).ToPaging(pageIndex, pageSize)
                 .ToListAsync();
             }
             catch (Exception ex)
@@ -179,7 +179,7 @@ namespace NobatPlusDATA.DataLayer.Services
           
         }
 
-        public async Task<ListResultObject<ServiceManagement>> GetServicesOfDiscountAsync(long DiscountId, int pageIndex = 1, int pageSize = 20, string searchText = "")
+        public async Task<ListResultObject<ServiceManagement>> GetServicesOfDiscountAsync(long DiscountId, int pageIndex = 1, int pageSize = 20, string searchText = "",string sortQuery ="")
         {
             ListResultObject<ServiceManagement> results = new ListResultObject<ServiceManagement>();
             try
@@ -199,7 +199,7 @@ namespace NobatPlusDATA.DataLayer.Services
                 results.TotalCount = query.Count();
                 results.PageCount = DbTools.GetPageCount(results.TotalCount, pageSize);
                 results.Results = await query.OrderByDescending(x => x.CreateDate)
-                .ToPaging(pageIndex, pageSize)
+                .SortBy(sortQuery).ToPaging(pageIndex, pageSize)
                 .ToListAsync();
             }
             catch (Exception ex)

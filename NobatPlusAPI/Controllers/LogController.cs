@@ -42,7 +42,7 @@ namespace NobatPlusAPI.Controllers
             {
                 return BadRequest(requestBody);
             }
-            var result = await _LogRep.GetAllLogsAsync(requestBody.PageIndex,requestBody.PageSize,requestBody.SearchText);
+            var result = await _LogRep.GetAllLogsAsync(requestBody.PageIndex,requestBody.PageSize,requestBody.SearchText,requestBody.SortQuery);
             if (result.Status)
             {
                 return Ok(result);

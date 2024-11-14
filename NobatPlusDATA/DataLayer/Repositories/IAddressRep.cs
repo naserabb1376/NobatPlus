@@ -11,7 +11,7 @@ namespace NobatPlusDATA.DataLayer.Repositories
 {
     public interface IAddressRep
     {
-        public Task<ListResultObject<Address>> GetAllAddressesAsync(long CityId = 0,int pageIndex = 1, int pageSize = 20, string searchText = "");
+        public Task<ListResultObject<Address>> GetAllAddressesAsync(long CityId = 0,int pageIndex = 1, int pageSize = 20, string searchText = "",string sortQuery ="");
         public Task<RowResultObject<Address>> GetAddressByIdAsync(long addressId);
         public Task<RowResultObject<Address>> GetAddressByPersonIdAsync(long personId);
         public Task<BitResultObject> AddAddressAsync(Address address);

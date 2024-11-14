@@ -44,7 +44,7 @@ namespace NobatPlusAPI.Controllers
             {
                 return BadRequest(requestBody);
             }
-            result = await _BookingServiceRep.GetAllBookingServicesAsync(requestBody.PageIndex, requestBody.PageSize, requestBody.SearchText);
+            result = await _BookingServiceRep.GetAllBookingServicesAsync(requestBody.PageIndex, requestBody.PageSize, requestBody.SearchText,requestBody.SortQuery);
             if (result.Status)
             {
                 return Ok(result);

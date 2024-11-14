@@ -10,7 +10,7 @@ namespace NobatPlusDATA.DataLayer.Repositories
 {
     public interface IJobTypeRep
     {
-        public Task<ListResultObject<JobType>> GetAllJobTypesAsync(int SexTypeChecked = 0, int pageIndex = 1, int pageSize = 20, string searchText = "");
+        public Task<ListResultObject<JobType>> GetAllJobTypesAsync(int SexTypeChecked = 0, int pageIndex = 1, int pageSize = 20, string searchText = "",string sortQuery ="");
         public Task<RowResultObject<JobType>> GetJobTypeByIdAsync(long JobTypeId);
         public Task<BitResultObject> AddJobTypeAsync(JobType JobType);
         public Task<BitResultObject> EditJobTypeAsync(JobType JobType);

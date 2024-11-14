@@ -43,7 +43,7 @@ namespace NobatPlusAPI.Controllers
             {
                 return BadRequest(requestBody);
             }
-            var result = await _ReviewRep.GetAllReviewsAsync(requestBody.BookingId,requestBody.CustomerId,requestBody.PageIndex,requestBody.PageSize,requestBody.SearchText);
+            var result = await _ReviewRep.GetAllReviewsAsync(requestBody.BookingId,requestBody.CustomerId,requestBody.PageIndex,requestBody.PageSize,requestBody.SearchText,requestBody.SortQuery);
             if (result.Status)
             {
                 return Ok(result);
