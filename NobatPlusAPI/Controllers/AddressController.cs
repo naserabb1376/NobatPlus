@@ -28,12 +28,14 @@ namespace NobatPlusAPI.Controllers
     public class AddressController : ControllerBase
     {
         IAddressRep _AddressRep;
+        IPersonRep _personRep;
         ILogRep _logRep;
 
-        public AddressController(IAddressRep AddressRep,ILogRep logRep)
+        public AddressController(IAddressRep AddressRep,IPersonRep personRep,ILogRep logRep)
         {
            _AddressRep = AddressRep;
-            _logRep = logRep;
+           _personRep = personRep;
+           _logRep = logRep;
         }
 
         [HttpPost("GetAllAddresses_Base")]
@@ -82,11 +84,17 @@ namespace NobatPlusAPI.Controllers
         }
 
         [HttpPost("AddAddress_Base")]
-        public async Task<ActionResult<BitResultObject>> AddAddress_Base(AddEditAddressRequestBody requestBody)
+        public async Task<ActionResult<BitResultObject>> AddAddress_Base(AddEditSelfAddressRequestBody requestBody)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(requestBody);
+            }
+            var thePerson = await _personRep.GetPersonByIdAsync(requestBody.PersonID);
+            if (thePerson.Result == null)
+            {
+                thePerson.ErrorMessage = $"این کاربر در سیستم وجود ندارد";
+                return BadRequest(thePerson);
             }
             Address Address = new Address()
             {
@@ -102,21 +110,30 @@ namespace NobatPlusAPI.Controllers
             var result = await _AddressRep.AddAddressAsync(Address);
             if (result.Status)
             {
-                #region AddLog
+                thePerson.Result.AddressID = Address.ID;
 
-                Log log = new Log()
+                result = await _personRep.EditPersonAsync(thePerson.Result);
+
+                if (result.Status)
                 {
-                    CreateDate = DateTime.Now.ToShamsi(),
-                    UpdateDate = DateTime.Now.ToShamsi(),
-                    LogTime = DateTime.Now.ToShamsi(),
-                    ActionName = this.ControllerContext.RouteData.Values["action"].ToString(),
+                    #region AddLog
 
-                };
-                await _logRep.AddLogAsync(log);
-                #endregion
+                    Log log = new Log()
+                    {
+                        CreateDate = DateTime.Now.ToShamsi(),
+                        UpdateDate = DateTime.Now.ToShamsi(),
+                        LogTime = DateTime.Now.ToShamsi(),
+                        ActionName = this.ControllerContext.RouteData.Values["action"].ToString(),
+
+                    };
+                    await _logRep.AddLogAsync(log);
+                    #endregion
 
 
-                return Ok(result);
+                    return Ok(result);
+                }
+
+             
             }
             return BadRequest(result);
         }

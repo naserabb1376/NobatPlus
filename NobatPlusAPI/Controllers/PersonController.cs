@@ -88,19 +88,20 @@ namespace NobatPlusAPI.Controllers
         public async Task<ActionResult<BitResultObject>> AddPerson(AddEditPersonProRequestBody requestBody)
         {
             BitResultObject result = new BitResultObject();
+            Address address = new Address();
             if (!ModelState.IsValid)
             {
                 return BadRequest(requestBody);
             }
 
-            Address address = new Address()
+            address = new Address()
             {
-                CityID = requestBody.CityID,
-                AddressLocationHorizentalPoint = requestBody.AddressLocationHorizentalPoint,
-                AddressLocationVerticalPoint = requestBody.AddressLocationVerticalPoint,
-                AddressPostalCode = requestBody.AddressPostalCode,
-                AddressStreet = requestBody.AddressStreet,
-                Description = requestBody.AddressDescription,
+                CityID = requestBody.Address.CityID,
+                AddressLocationHorizentalPoint = requestBody.Address.AddressLocationHorizentalPoint,
+                AddressLocationVerticalPoint = requestBody.Address.AddressLocationVerticalPoint,
+                AddressPostalCode = requestBody.Address.AddressPostalCode,
+                AddressStreet = requestBody.Address.AddressStreet,
+                Description = requestBody.Address.AddressDescription,
                 CreateDate = DateTime.Now.ToShamsi(),
                 UpdateDate = DateTime.Now.ToShamsi(),
 
@@ -166,13 +167,13 @@ namespace NobatPlusAPI.Controllers
 
             Address address = new Address()
             {
-                CityID = requestBody.CityID,
-                ID = theRow.Result.AddressID,
-                AddressLocationHorizentalPoint = requestBody.AddressLocationHorizentalPoint,
-                AddressLocationVerticalPoint = requestBody.AddressLocationVerticalPoint,
-                AddressPostalCode = requestBody.AddressPostalCode,
-                AddressStreet = requestBody.AddressStreet,
-                Description = requestBody.AddressDescription,
+                CityID = requestBody.Address.CityID,
+                ID = theRow.Result.Address.ID,
+                AddressLocationHorizentalPoint = requestBody.Address.AddressLocationHorizentalPoint,
+                AddressLocationVerticalPoint = requestBody.Address.AddressLocationVerticalPoint,
+                AddressPostalCode = requestBody.Address.AddressPostalCode,
+                AddressStreet = requestBody.Address.AddressStreet,
+                Description = requestBody.Address.AddressDescription,
                 CreateDate = theRow.Result.Address.CreateDate,
                 UpdateDate = DateTime.Now.ToShamsi(),
 
@@ -233,7 +234,7 @@ namespace NobatPlusAPI.Controllers
             {
                 CreateDate = DateTime.Now.ToShamsi(),
                 UpdateDate = DateTime.Now.ToShamsi(),
-                AddressID = requestBody.AdressId,
+                AddressID = (requestBody.AdressId > 0) ? requestBody.AdressId : null,
                 DateOfBirth = requestBody.DateOfBirth?.StringToDate(),
                 FirstName = requestBody.FirstName,
                 LastName = requestBody.LastName,
@@ -285,7 +286,7 @@ namespace NobatPlusAPI.Controllers
                 CreateDate = theRow.Result.CreateDate,
                 UpdateDate = DateTime.Now.ToShamsi(),
                 ID = requestBody.ID,
-                AddressID = requestBody.AdressId,
+                AddressID = (requestBody.AdressId > 0) ? requestBody.AdressId : null,
                 DateOfBirth = requestBody.DateOfBirth?.StringToDate(),
                 FirstName = requestBody.FirstName,
                 LastName = requestBody.LastName,

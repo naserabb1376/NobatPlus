@@ -1,4 +1,5 @@
 ﻿using Domain;
+using NobatPlusAPI.Models.Address;
 using System.ComponentModel.DataAnnotations;
 
 namespace NobatPlusAPI.Models.Authenticate
@@ -39,22 +40,6 @@ namespace NobatPlusAPI.Models.Authenticate
         [MaxLength(11)]
         public string PhoneNumber { get; set; }
 
-        [Display(Name = "شهر یا استان")]
-        [Required(ErrorMessage = "لطفا {0} را وارد کنید")]
-        public long CityID { get; set; }
-
-        [Display(Name = "خیابان")]
-        [Required(ErrorMessage = "لطفا {0} را وارد کنید")]
-        public string AddressStreet { get; set; }
-
-        [Display(Name = "کد پستی")]
-        [RegularExpression(@"^([0-9]{10})$", ErrorMessage = "مقدار {0} باید 10 رقمی و فقط شامل اعداد باشد")]
-        [MaxLength(10)]
-        [Required(ErrorMessage = "لطفا {0} را وارد کنید")]
-        public string AddressPostalCode { get; set; }
-        public string? AddressLocationHorizentalPoint { get; set; }
-        public string? AddressLocationVerticalPoint { get; set; }
-
         [Display(Name = "کد ملی")]
         [RegularExpression(@"^([0-9]{10})$", ErrorMessage = "مقدار {0} باید 10 رقمی و فقط شامل اعداد باشد")]
         [MaxLength(10)]
@@ -73,6 +58,6 @@ namespace NobatPlusAPI.Models.Authenticate
         public string? RegisterDescription { get; set; }
         public string? LoginDescription { get; set; }
         public string? StylistDescription { get; set; }
-        public string? AddressDescription { get; set; }
+        public AddEditAddressRequestBody? Address { get; set; }
     }
 }

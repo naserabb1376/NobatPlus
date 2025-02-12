@@ -21,6 +21,7 @@ using SixLabors.ImageSharp.Drawing.Processing;
 using Repositories;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Azure.Core;
+using System.Net;
 
 namespace NobatPlusAPI.Controllers
 {
@@ -338,6 +339,9 @@ namespace NobatPlusAPI.Controllers
             }
 
             BitResultObject result = new BitResultObject();
+
+            Address address = new Address();
+
             var validUserName = await _loginRep.ExistLoginAsync(signupRequestBody.UserName,2);
 
             if (validUserName.Status)
@@ -367,27 +371,29 @@ namespace NobatPlusAPI.Controllers
 
             var validEmail = await _loginRep.ExistLoginAsync(signupRequestBody.Email, 5);
 
-            if (validNaCode.Status)
+            if (validEmail.Status)
             {
                 result.Status = !validNaCode.Status;
                 result.ErrorMessage = "پست الکترونیک تکراری است";
                 return BadRequest(result);
             }
 
-            Address address = new Address()
-            {
-                CityID = signupRequestBody.CityID,
-                AddressLocationHorizentalPoint = signupRequestBody.AddressLocationHorizentalPoint,
-                AddressLocationVerticalPoint = signupRequestBody.AddressLocationVerticalPoint,
-                AddressPostalCode = signupRequestBody.AddressPostalCode,
-                AddressStreet = signupRequestBody.AddressStreet,
-                Description = signupRequestBody.AddressDescription,
-                CreateDate = DateTime.Now.ToShamsi(),
-                UpdateDate = DateTime.Now.ToShamsi(),
-                
-            };
 
-            result = await _addressRep.AddAddressAsync(address);
+            if (signupRequestBody.Address != null)
+            {
+                address = new Address()
+                {
+                    CityID = signupRequestBody.Address.CityID,
+                    AddressLocationHorizentalPoint = signupRequestBody.Address.AddressLocationHorizentalPoint,
+                    AddressLocationVerticalPoint = signupRequestBody.Address.AddressLocationVerticalPoint,
+                    AddressPostalCode = signupRequestBody.Address.AddressPostalCode,
+                    AddressStreet = signupRequestBody.Address.AddressStreet,
+                    CreateDate = DateTime.Now.ToShamsi(),
+                    UpdateDate = DateTime.Now.ToShamsi(),
+                };
+
+                result = await _addressRep.AddAddressAsync(address);
+            }
 
             if (result.Status)
             {
@@ -401,7 +407,7 @@ namespace NobatPlusAPI.Controllers
                     DateOfBirth = signupRequestBody.DateOfBirth?.StringToDate(),
                     CreateDate = DateTime.Now.ToShamsi(),
                     UpdateDate = DateTime.Now.ToShamsi(),
-                    AddressID = address.ID,
+                    AddressID = (address != null && address.ID > 0) ? address.ID : null,
                     Description = signupRequestBody.PersonDescription,
                 };
                 result = await _personRep.AddPersonAsync(person);
