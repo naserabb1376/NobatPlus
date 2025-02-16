@@ -2,6 +2,7 @@
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Newtonsoft.Json;
+using NobatPlusAPI.Tools;
 using NobatPlusDATA.DataLayer.Repositories;
 using NobatPlusDATA.DataLayer.Services;
 using Repositories;
@@ -69,6 +70,9 @@ namespace NobatPlusAPI
 
             // Add services to the container.
 
+            var apiVersion = ToolBox.CalculateAppVersionNo();
+            var apiTitle = builder.Environment.ApplicationName;
+
             builder.Services.AddControllers(options =>
             {
                 //options.OutputFormatters.Add()
@@ -84,7 +88,11 @@ namespace NobatPlusAPI
 
             builder.Services.AddSwaggerGen(c =>
             {
-                //  c.SwaggerDoc("v1", new OpenApiInfo { Title = "OneApi", Version = "v1" });
+                c.SwaggerDoc("v1", new OpenApiInfo
+                {
+                    Title = apiTitle,
+                    Version = apiVersion
+                });
 
                 // Configure Swagger to use JWT authentication
                 var securityScheme = new OpenApiSecurityScheme
@@ -175,12 +183,12 @@ namespace NobatPlusAPI
             app.UseSwaggerUI(c =>
             {
                 c.DocExpansion(Swashbuckle.AspNetCore.SwaggerUI.DocExpansion.None);
+                c.SwaggerEndpoint("/swagger/v1/swagger.json", $"{apiTitle} {apiVersion}");
+                c.RoutePrefix = string.Empty; // روت اصلی سایت برای Swagger
             });
 
             //}
             app.UseHttpsRedirection();
-
-            //app.UseCors("DynamicCORS");
 
             app. UseCors(corsPolicy);
 

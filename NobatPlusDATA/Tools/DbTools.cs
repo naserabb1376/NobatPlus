@@ -92,6 +92,7 @@ namespace NobatPlusDATA.Tools
         }
 
 
+
         public static string ToShamsi(this string value) // use this word for use the method for all DateTime variables in project
         {
             var date = value.Split(' ')[0].Split('/');
@@ -110,7 +111,16 @@ namespace NobatPlusDATA.Tools
             var time = strshamsi.Split(' ')[1].Split(':');
             DateTime shamsiDate = new DateTime(Convert.ToInt32(date[0]), Convert.ToInt32(date[1]), Convert.ToInt32(date[2]), Convert.ToInt32(time[0]), Convert.ToInt32(time[1]), Convert.ToInt32(time[2]));
             return shamsiDate;
+        }
 
+        public static TimeSpan StringToTimeSpan(this string time)
+        {
+            return TimeSpan.ParseExact(time, @"hh\:mm\:ss", CultureInfo.InvariantCulture);
+        }
+
+        public static string TimeSpanToString(this TimeSpan timeSpan)
+        {
+            return timeSpan.ToString(@"hh\:mm\:ss");
         }
 
         public static string FixPrice(this decimal value)
@@ -193,18 +203,19 @@ namespace NobatPlusDATA.Tools
             return summary;
         }
 
-        public static DateTime? StringToDate(this string stringDate)
+        public static DateTime StringToDate(this string stringDateTime)
         {
-            if (string.IsNullOrEmpty(stringDate))return null;
-            var arr = stringDate.Split('/');
-            var date = new DateTime(int.Parse(arr[0]), int.Parse(arr[1]), int.Parse(arr[2]));
+            if (string.IsNullOrEmpty(stringDateTime)) return DateTime.Now.ToShamsi();
+            var arr = stringDateTime.Split(' ');
+            var stringDateArr = arr[0].Split('/');
+            var stringTimeArr = arr[1].Split(':');
+            var date = new DateTime(int.Parse(stringDateArr[0]), int.Parse(stringDateArr[1]), int.Parse(stringDateArr[2]), int.Parse(stringTimeArr[0]), int.Parse(stringTimeArr[1]), int.Parse(stringTimeArr[2]), 0);
             return date;
         }
 
-        public static string DateToString(this DateTime? date)
+        public static string DateToString(this DateTime date)
         {
-            if (date == null) return "";
-            string stringDate = $"{date?.Year}/{date?.Month}/{date?.Day} {date?.Hour}:{date?.Minute}";
+            string stringDate = $"{date.Year}/{date.Month}/{date.Day} {date.Hour}:{date.Minute}";
             return stringDate;
         }
     }

@@ -196,5 +196,16 @@ namespace NobatPlusAPI.Tools
             File.AppendAllText(Path.Combine(logFilePath), sb.ToString());
         }
 
+        public static string CalculateAppVersionNo()
+        {
+            string versionNo = Configuration["AppVersionNo"].ToString();
+            if (string.IsNullOrEmpty(versionNo))
+            {
+                string nowDate = DateTime.Now.ToShamsi().DateToString().Split(' ')[0];
+                versionNo = nowDate.Substring(3).Replace("/", ".");
+            }
+            return versionNo;
+        }
+
     }
 }
