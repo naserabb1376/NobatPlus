@@ -73,7 +73,16 @@ namespace NobatPlusTokenDB.Tools
             var time = strshamsi.Split(' ')[1].Split(':');
             DateTime shamsiDate = new DateTime(Convert.ToInt32(date[0]), Convert.ToInt32(date[1]), Convert.ToInt32(date[2]), Convert.ToInt32(time[0]), Convert.ToInt32(time[1]), Convert.ToInt32(time[2]));
             return shamsiDate;
+        }
 
+        public static TimeSpan StringToTimeSpan(this string time)
+        {
+            return TimeSpan.ParseExact(time, @"hh\:mm\:ss", CultureInfo.InvariantCulture);
+        }
+
+        public static string TimeSpanToString(this TimeSpan timeSpan)
+        {
+            return timeSpan.ToString(@"hh\:mm\:ss");
         }
     }
 }
