@@ -198,14 +198,37 @@ namespace NobatPlusAPI.Tools
 
         public static string CalculateAppVersionNo()
         {
-            string versionNo = Configuration["AppVersionNo"].ToString();
+            string versionNo = Configuration["AppVersionNo"]?.ToString();
+
             if (string.IsNullOrEmpty(versionNo))
             {
                 string nowDate = DateTime.Now.ToShamsi().DateToString().Split(' ')[0];
-                versionNo = nowDate.Substring(3).Replace("0", "").Replace("/", ".");
+                var dateParts = nowDate.Substring(3).Split("/");
+
+                for (int i = 0; i < dateParts.Length; i++)
+                {
+                    if (dateParts[i].StartsWith("0"))
+                    {
+                        dateParts[i] = dateParts[i].TrimStart('0');
+                    }
+                }
+
+                versionNo = string.Join('.', dateParts);
+
+                // ذخیره مقدار در فایل appsettings.json
+                var configFile = "appsettings.json";
+                var json = File.ReadAllText(configFile);
+                dynamic jsonObj = Newtonsoft.Json.JsonConvert.DeserializeObject(json);
+                jsonObj["AppVersionNo"] = versionNo;
+                File.WriteAllText(configFile, Newtonsoft.Json.JsonConvert.SerializeObject(jsonObj, Newtonsoft.Json.Formatting.Indented));
+
+                // مقدار را به صورت دستی در Configuration نیز به‌روزرسانی می‌کنیم
+                Configuration["AppVersionNo"] = versionNo;
             }
+
             return versionNo;
         }
+
 
     }
 }
