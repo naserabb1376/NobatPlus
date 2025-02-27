@@ -44,7 +44,7 @@ namespace NobatPlusAPI
             builder.Services.AddCors(options =>
             {
               
-                if (corsPolicy == "AllowAll")
+                if (corsPolicy.ToLower().Contains("allowall"))
                 {
                     options.AddPolicy(corsPolicy,builder =>
                 {
