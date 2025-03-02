@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Newtonsoft.Json;
@@ -18,15 +19,12 @@ namespace NobatPlusAPI
         {
             var builder = WebApplication.CreateBuilder(args);
 
-            var corsPolicy = builder.Configuration["cors:policy"].ToString();
-            var cookiesecurity = builder.Configuration["cors:cookiesecurity"].ToString();
-
-            var allowedOrigins = builder.Configuration.GetSection("cors:allowedOrigins").Get<List<string>>().ToArray();
+            var corsSettings = builder.Configuration.GetSection("CorsSettings").Get<CorsSettings>();
 
             var key = Encoding.ASCII.GetBytes(builder.Configuration["Jwt:Key"]);
 
             builder.Services.AddDistributedMemoryCache();
-            if (cookiesecurity == "default")
+            if (corsSettings.cookiesecurity == -1)
             {
                 builder.Services.AddSession();
             }
@@ -37,35 +35,38 @@ namespace NobatPlusAPI
                     options.Cookie.HttpOnly = true; // امنیت بیشتر برای کوکی‌ها
                     options.Cookie.IsEssential = true; // ضروری بودن کوکی برای عملکرد Session
                     options.Cookie.SameSite = SameSiteMode.None;  // اجازه ارسال کوکی‌ها در درخواست‌های cross-origin
-                    options.Cookie.SecurePolicy = (CookieSecurePolicy)int.Parse(cookiesecurity);  // اگر HTTPS فعال است
+                    options.Cookie.SecurePolicy = (CookieSecurePolicy)corsSettings.cookiesecurity;  // اگر HTTPS فعال است
                 });
             }
 
+            ///-- اضافه کردن cors --///
             builder.Services.AddCors(options =>
             {
-              
-                if (corsPolicy == "AllowAll")
-                {
-                    options.AddPolicy(corsPolicy,builder =>
-                {
-                    builder.AllowAnyOrigin()
-                           .AllowAnyMethod()
-                           .AllowAnyHeader()
-                           .WithExposedHeaders("Set-Cookie");
-                    
-                });
-                }
-                else
-                {
-                    options.AddPolicy(corsPolicy, builder =>
-                    builder.WithOrigins(allowedOrigins) // اضافه کردن localhost و آی‌پی لوکال
-                           .AllowCredentials()
-                           .AllowAnyHeader()
-                           .AllowAnyMethod()
-                             .WithExposedHeaders("Set-Cookie"));
 
+                if (corsSettings.usecors)
+                {
+                    options.AddPolicy("MyPolicy", policy =>
+                    {
+                        policy.WithOrigins(corsSettings.allowedOrigins.ToArray())
+                              .AllowAnyMethod()
+                              .AllowAnyHeader()
+                              .WithExposedHeaders("Set-Cookie");
+                    });
                 }
             });
+
+            if (corsSettings.useRateLimiter)
+            {
+                ///--محدود کردن نرخ درخواست‌ها (Rate Limiting) --///
+                builder.Services.AddRateLimiter(options =>
+                {
+                    options.AddFixedWindowLimiter("Fixed", limiterOptions =>
+                    {
+                        limiterOptions.Window = TimeSpan.FromSeconds(10);
+                        limiterOptions.PermitLimit = 5; // تعداد درخواست‌ها در هر بازه زمانی
+                    });
+                });
+            }
 
 
             // Add services to the container.
@@ -173,6 +174,11 @@ namespace NobatPlusAPI
 
             var app = builder.Build();
 
+            if (corsSettings.usecors)
+            {
+                app.UseCors("MyPolicy");
+            }
+
             // Configure the HTTP request pipeline.
 
             #region Pipeline
@@ -190,7 +196,7 @@ namespace NobatPlusAPI
             //}
             app.UseHttpsRedirection();
 
-            app. UseCors(corsPolicy);
+           
 
 
             app.UseSession();
