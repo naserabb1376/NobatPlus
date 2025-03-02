@@ -196,16 +196,35 @@ namespace NobatPlusAPI.Tools
             File.AppendAllText(Path.Combine(logFilePath), sb.ToString());
         }
 
+        private static string ApiVersion { get; set; }
         public static string CalculateAppVersionNo()
         {
-            string versionNo = Configuration["AppVersionNo"].ToString();
-            if (string.IsNullOrEmpty(versionNo))
+            if (string.IsNullOrEmpty(ApiVersion))
             {
-                string nowDate = DateTime.Now.ToShamsi().DateToString().Split(' ')[0];
-                versionNo = nowDate.Substring(3).Replace("0", "").Replace("/", ".");
+                string versionNo = Configuration["AppVersionNo"]?.ToString();
+
+                if (string.IsNullOrEmpty(versionNo))
+                {
+                    string nowDate = DateTime.Now.ToShamsi().DateToString().Split(' ')[0];
+                    var dateParts = nowDate.Substring(3).Split("/");
+
+                    for (int i = 0; i < dateParts.Length; i++)
+                    {
+                        if (dateParts[i].StartsWith("0"))
+                        {
+                            dateParts[i] = dateParts[i].TrimStart('0');
+                        }
+                    }
+
+                    versionNo = string.Join('.', dateParts);
+                }
+
+                ApiVersion = versionNo;
             }
-            return versionNo;
+
+            return ApiVersion;
         }
+
 
     }
 }
