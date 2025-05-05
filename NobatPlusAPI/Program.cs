@@ -19,12 +19,15 @@ namespace NobatPlusAPI
         {
             var builder = WebApplication.CreateBuilder(args);
 
-            var corsSettings = builder.Configuration.GetSection("CorsSettings").Get<CorsSettings>();
+            var corsPolicy = builder.Configuration["cors:policy"].ToString();
+            var cookiesecurity = builder.Configuration["cors:cookiesecurity"].ToString();
+
+            var allowedOrigins = builder.Configuration.GetSection("cors:allowedOrigins").Get<List<string>>().ToArray();
 
             var key = Encoding.ASCII.GetBytes(builder.Configuration["Jwt:Key"]);
 
             builder.Services.AddDistributedMemoryCache();
-            if (corsSettings.cookiesecurity == -1)
+            if (cookiesecurity == "default")
             {
                 builder.Services.AddSession();
             }
@@ -32,41 +35,52 @@ namespace NobatPlusAPI
             {
                 builder.Services.AddSession(options =>
                 {
-                    options.Cookie.HttpOnly = true; // امنیت بیشتر برای کوکی‌ها
-                    options.Cookie.IsEssential = true; // ضروری بودن کوکی برای عملکرد Session
-                    options.Cookie.SameSite = SameSiteMode.None;  // اجازه ارسال کوکی‌ها در درخواست‌های cross-origin
-                    options.Cookie.SecurePolicy = (CookieSecurePolicy)corsSettings.cookiesecurity;  // اگر HTTPS فعال است
+                    options.Cookie.HttpOnly = true; // ????? ????? ???? ???????
+                    options.Cookie.IsEssential = true; // ????? ???? ???? ???? ?????? Session
+                    options.Cookie.SameSite = SameSiteMode.None;  // ????? ????? ??????? ?? ??????????? cross-origin
+                    options.Cookie.SecurePolicy = (CookieSecurePolicy)int.Parse(cookiesecurity);  // ??? HTTPS ???? ???
                 });
             }
 
-            ///-- اضافه کردن cors --///
+
             builder.Services.AddCors(options =>
             {
 
-                if (corsSettings.usecors)
+                if (corsPolicy.ToLower().Contains("allowall"))
                 {
-                    options.AddPolicy("MyPolicy", policy =>
+                    options.AddPolicy(corsPolicy, builder =>
                     {
-                        policy.WithOrigins(corsSettings.allowedOrigins.ToArray())
-                              .AllowAnyMethod()
-                              .AllowAnyHeader()
-                              .WithExposedHeaders("Set-Cookie");
+                        builder.AllowAnyOrigin()
+                               .AllowAnyMethod()
+                               .AllowAnyHeader()
+                               .WithExposedHeaders("Set-Cookie");
+
                     });
+                }
+                else
+                {
+                    options.AddPolicy(corsPolicy, builder =>
+                    builder.WithOrigins(allowedOrigins) // اضافه کردن localhost و آی‌پی لوکال
+                           .AllowCredentials()
+                           .AllowAnyHeader()
+                           .AllowAnyMethod()
+                             .WithExposedHeaders("Set-Cookie"));
+
                 }
             });
 
-            if (corsSettings.useRateLimiter)
-            {
-                ///--محدود کردن نرخ درخواست‌ها (Rate Limiting) --///
-                builder.Services.AddRateLimiter(options =>
-                {
-                    options.AddFixedWindowLimiter("Fixed", limiterOptions =>
-                    {
-                        limiterOptions.Window = TimeSpan.FromSeconds(10);
-                        limiterOptions.PermitLimit = 5; // تعداد درخواست‌ها در هر بازه زمانی
-                    });
-                });
-            }
+            //if (corsSettings.useRateLimiter)
+            //{
+            //    ///--محدود کردن نرخ درخواست‌ها (Rate Limiting) --///
+            //    builder.Services.AddRateLimiter(options =>
+            //    {
+            //        options.AddFixedWindowLimiter("Fixed", limiterOptions =>
+            //        {
+            //            limiterOptions.Window = TimeSpan.FromSeconds(10);
+            //            limiterOptions.PermitLimit = 5; // تعداد درخواست‌ها در هر بازه زمانی
+            //        });
+            //    });
+            //}
 
 
             // Add services to the container.
@@ -174,10 +188,7 @@ namespace NobatPlusAPI
 
             var app = builder.Build();
 
-            if (corsSettings.usecors)
-            {
-                app.UseCors("MyPolicy");
-            }
+           
 
             // Configure the HTTP request pipeline.
 
@@ -196,7 +207,7 @@ namespace NobatPlusAPI
             //}
             app.UseHttpsRedirection();
 
-           
+            app.UseCors(corsPolicy);
 
 
             app.UseSession();
