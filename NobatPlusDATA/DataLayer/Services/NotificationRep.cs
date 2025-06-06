@@ -99,7 +99,7 @@ namespace NobatPlusDATA.DataLayer.Services
                             (!string.IsNullOrEmpty(x.Person.PhoneNumber) && x.Person.PhoneNumber.Contains(searchText)) ||
                             (!string.IsNullOrEmpty(x.Person.Email) && x.Person.Email.Contains(searchText)) ||
                             (!string.IsNullOrEmpty(x.Person.Description) && x.Person.Description.Contains(searchText)) ||
-                            (x.Person.DateOfBirth.HasValue && x.Person.DateOfBirth.Value.ToString().Contains(searchText)) ||
+                            (x.Person.DateOfBirth != null && x.Person.DateOfBirth.ToString().Contains(searchText)) ||
                             (!string.IsNullOrEmpty(x.Message) && x.Message.Contains(searchText)) ||
                             (!string.IsNullOrEmpty(x.Description) && x.Description.Contains(searchText)) ||
                             (!string.IsNullOrEmpty(x.SentDate.ToString()) && x.SentDate.ToString().Contains(searchText)) ||
@@ -121,7 +121,7 @@ namespace NobatPlusDATA.DataLayer.Services
                                 (!string.IsNullOrEmpty(x.Person.PhoneNumber) && x.Person.PhoneNumber.Contains(searchText)) ||
                                 (!string.IsNullOrEmpty(x.Person.Email) && x.Person.Email.Contains(searchText)) ||
                                 (!string.IsNullOrEmpty(x.Person.Description) && x.Person.Description.Contains(searchText)) ||
-                                (x.Person.DateOfBirth.HasValue && x.Person.DateOfBirth.Value.ToString().Contains(searchText)) ||
+                                (x.Person.DateOfBirth != null && x.Person.DateOfBirth.ToString().Contains(searchText)) ||
                                 (!string.IsNullOrEmpty(x.Message) && x.Message.Contains(searchText)) ||
                                 (!string.IsNullOrEmpty(x.Description) && x.Description.Contains(searchText)) ||
                                 (!string.IsNullOrEmpty(x.SentDate.ToString()) && x.SentDate.ToString().Contains(searchText)) ||

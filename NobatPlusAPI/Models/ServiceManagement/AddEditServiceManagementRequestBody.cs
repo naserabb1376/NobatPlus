@@ -21,7 +21,6 @@ namespace NobatPlusAPI.Models.ServiceManagement
 
         [Display(Name = "قیمت خدمت")]
         [Required(ErrorMessage = "لطفا {0} را وارد کنید")]
-        public long Price { get; set; }
         public string? Description { get; set; }
     }
 }

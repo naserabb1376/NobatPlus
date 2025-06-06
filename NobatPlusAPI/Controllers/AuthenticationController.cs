@@ -342,21 +342,21 @@ namespace NobatPlusAPI.Controllers
 
             Address address = new Address();
 
-            var validUserName = await _loginRep.ExistLoginAsync(signupRequestBody.UserName,2);
+            //var validUserName = await _loginRep.ExistLoginAsync(signupRequestBody.UserName,2);
 
-            if (validUserName.Status)
-            {
-                result.Status = !validUserName.Status;
-                result.ErrorMessage = "نام کاربری تکراری است";
-                return BadRequest(result);
-            }
+            //if (validUserName.Status)
+            //{
+            //    result.Status = !validUserName.Status;
+            //    result.ErrorMessage = "نام کاربری تکراری است";
+            //    return BadRequest(result);
+            //}
 
             var validPhoneNumber = await _loginRep.ExistLoginAsync(signupRequestBody.PhoneNumber, 3);
 
             if (validPhoneNumber.Status)
             {
                 result.Status = !validPhoneNumber.Status;
-                result.ErrorMessage = "شماره تماس تکراری است";
+                result.ErrorMessage = "شماره موبایل تکراری است";
                 return BadRequest(result);
             }
 
@@ -404,11 +404,13 @@ namespace NobatPlusAPI.Controllers
                     NaCode = signupRequestBody.NaCode,
                     Email = signupRequestBody.Email,
                     PhoneNumber = signupRequestBody.PhoneNumber,
-                    DateOfBirth = signupRequestBody.DateOfBirth?.StringToDate(),
+                    Gender = signupRequestBody.Gender,
+                    RoleId = signupRequestBody.RoleId,
+                    DateOfBirth = signupRequestBody.DateOfBirth.StringToDate(),
                     CreateDate = DateTime.Now.ToShamsi(),
                     UpdateDate = DateTime.Now.ToShamsi(),
                     AddressID = (address != null && address.ID > 0) ? address.ID : null,
-                    Description = signupRequestBody.PersonDescription,
+                    Description = "",
                 };
                 result = await _personRep.AddPersonAsync(person);
 
@@ -419,7 +421,7 @@ namespace NobatPlusAPI.Controllers
                         PersonID = person.ID,
                         CreateDate = DateTime.Now.ToShamsi(),
                         UpdateDate= DateTime.Now.ToShamsi(),
-                        Description = signupRequestBody.CustomerDescription,
+                        Description = "",
                     };
                     result = await _customerRep.AddCustomerAsync(customer);
 
@@ -431,23 +433,13 @@ namespace NobatPlusAPI.Controllers
                             PersonID = person.ID,
                             RegistrationDate = DateTime.Now.ToShamsi(),
                             UpdateDate = DateTime.Now.ToShamsi(),
-                            Description= signupRequestBody.RegisterDescription,
+                            Description= "",
                         };
                         result = await _registerRep.AddRegisterAsync(register);
                         if (result.Status)
                         {
-                            Login login = new Login()
-                            {
-                                Username = signupRequestBody.UserName,
-                                PasswordHash = signupRequestBody.Password.ToHash(),
-                                PersonID = person.ID,
-                                CreateDate = DateTime.Now.ToShamsi(),
-                                LastLoginDate = DateTime.Now.ToShamsi(),
-                                UpdateDate = DateTime.Now.ToShamsi(),
-                                Description = signupRequestBody.LoginDescription,
-                            };
-                            result = await _loginRep.AddLoginAsync(login);
-                            if (result.Status && signupRequestBody.IsStylist)
+                          
+                            if (result.Status && signupRequestBody.RoleId > 1)
                             {
                                 Stylist stylist = new Stylist()
                                 {
@@ -458,7 +450,7 @@ namespace NobatPlusAPI.Controllers
                                     PersonID = person.ID,
                                     CreateDate = DateTime.Now.ToShamsi(),
                                     UpdateDate = DateTime.Now.ToShamsi(),
-                                    Description = login.Description,
+                                    Description = "",
                                 };
                                 result = await _stylistRep.AddStylistAsync(stylist);
                             }

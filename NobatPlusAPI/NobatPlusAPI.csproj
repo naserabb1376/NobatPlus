@@ -27,4 +27,57 @@
     <ProjectReference Include="..\NobatPlusTokenDB\NobatPlusTokenDB.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="FileCenter\Address\Files\Public\" />
+    <Folder Include="FileCenter\Address\Images\Public\" />
+    <Folder Include="FileCenter\Admin\Files\Public\" />
+    <Folder Include="FileCenter\Admin\Images\Public\" />
+    <Folder Include="FileCenter\ApiGuide\Files\Public\" />
+    <Folder Include="FileCenter\ApiGuide\Images\Public\" />
+    <Folder Include="FileCenter\Authentication\Files\Public\" />
+    <Folder Include="FileCenter\Authentication\Images\Public\" />
+    <Folder Include="FileCenter\BookingService\Files\Public\" />
+    <Folder Include="FileCenter\BookingService\Images\Public\" />
+    <Folder Include="FileCenter\Booking\Files\Public\" />
+    <Folder Include="FileCenter\Booking\Images\Public\" />
+    <Folder Include="FileCenter\CheckAvailability\Files\Public\" />
+    <Folder Include="FileCenter\CheckAvailability\Images\Public\" />
+    <Folder Include="FileCenter\City\Files\Public\" />
+    <Folder Include="FileCenter\City\Images\Public\" />
+    <Folder Include="FileCenter\CustomerDiscount\Files\Public\" />
+    <Folder Include="FileCenter\CustomerDiscount\Images\Public\" />
+    <Folder Include="FileCenter\Customer\Files\Public\" />
+    <Folder Include="FileCenter\Customer\Images\Public\" />
+    <Folder Include="FileCenter\DiscountAssignment\Files\Public\" />
+    <Folder Include="FileCenter\DiscountAssignment\Images\Public\" />
+    <Folder Include="FileCenter\Discount\Files\Public\" />
+    <Folder Include="FileCenter\Discount\Images\Public\" />
+    <Folder Include="FileCenter\JobType\Files\Public\" />
+    <Folder Include="FileCenter\JobType\Images\Public\" />
+    <Folder Include="FileCenter\Login\Files\Public\" />
+    <Folder Include="FileCenter\Login\Images\Public\" />
+    <Folder Include="FileCenter\Logss\Files\Public\" />
+    <Folder Include="FileCenter\Logss\Images\Public\" />
+    <Folder Include="FileCenter\Notification\Files\Public\" />
+    <Folder Include="FileCenter\Notification\Images\Public\" />
+    <Folder Include="FileCenter\PaymentHistory\Files\Public\" />
+    <Folder Include="FileCenter\PaymentHistory\Images\Public\" />
+    <Folder Include="FileCenter\Payment\Files\Public\" />
+    <Folder Include="FileCenter\Payment\Images\Public\" />
+    <Folder Include="FileCenter\Person\Files\Public\" />
+    <Folder Include="FileCenter\Person\Images\Public\" />
+    <Folder Include="FileCenter\Register\Files\Public\" />
+    <Folder Include="FileCenter\Register\Images\Public\" />
+    <Folder Include="FileCenter\Review\Files\Public\" />
+    <Folder Include="FileCenter\Review\Images\Public\" />
+    <Folder Include="FileCenter\ServiceDiscount\Files\Public\" />
+    <Folder Include="FileCenter\ServiceDiscount\Images\Public\" />
+    <Folder Include="FileCenter\ServiceManagement\Files\Public\" />
+    <Folder Include="FileCenter\ServiceManagement\Images\Public\" />
+    <Folder Include="FileCenter\StylistService\Files\Public\" />
+    <Folder Include="FileCenter\StylistService\Images\Public\" />
+    <Folder Include="FileCenter\Stylist\Files\Public\" />
+    <Folder Include="FileCenter\Stylist\Images\Public\" />
+  </ItemGroup>
+
 </Project>
