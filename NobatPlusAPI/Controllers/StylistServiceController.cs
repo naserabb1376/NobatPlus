@@ -85,7 +85,7 @@ namespace NobatPlusAPI.Controllers
         }
 
         [HttpPost("AddStylistServices_Base")]
-        public async Task<ActionResult<BitResultObject>> AddStylistServices_Base(List<GetStylistServiceRowRequestBody> requestBodyList)
+        public async Task<ActionResult<BitResultObject>> AddStylistServices_Base(List<AddEditStylistServiceRequestBody> requestBodyList)
         {
             if (!ModelState.IsValid)
             {
@@ -96,6 +96,8 @@ namespace NobatPlusAPI.Controllers
             {
                 StylistID = requestBody.StylistID,
                 ServiceManagementID = requestBody.ServiceID,
+                DepositPercent = requestBody.DepositPercent,
+                ServicePrice = requestBody.ServicePrice,
             }).ToList();
 
             var result = await _StylistServiceRep.AddStylistServicesAsync(stylistServices);
@@ -123,7 +125,7 @@ namespace NobatPlusAPI.Controllers
 
 
         [HttpPut("EditStylistServices_Base")]
-        public async Task<ActionResult<BitResultObject>> EditStylistServices_Base(List<GetStylistServiceRowRequestBody> requestBodyList)
+        public async Task<ActionResult<BitResultObject>> EditStylistServices_Base(List<AddEditStylistServiceRequestBody> requestBodyList)
         {
             if (!ModelState.IsValid)
             {
@@ -134,6 +136,8 @@ namespace NobatPlusAPI.Controllers
             {
                 StylistID = requestBody.StylistID,
                 ServiceManagementID = requestBody.ServiceID,
+                DepositPercent = requestBody.DepositPercent,
+                ServicePrice = requestBody.ServicePrice,
             }).ToList();
 
             var result = await _StylistServiceRep.EditStylistServicesAsync(stylistServices);

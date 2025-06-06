@@ -104,7 +104,7 @@ namespace NobatPlusDATA.DataLayer.Services
                     //(!string.IsNullOrEmpty(x.State.ToString()) && x.State.ToString().Contains(searchText)) ||
                     (!string.IsNullOrEmpty(x.Address.Description.ToString()) && x.Address.Description.ToString().Contains(searchText)) ||
                     (!string.IsNullOrEmpty(x.Address.AddressStreet.ToString()) && x.Address.AddressStreet.ToString().Contains(searchText)) ||
-                    (x.DateOfBirth.HasValue && x.DateOfBirth.Value.ToString().Contains(searchText)) ||
+                    (!string.IsNullOrEmpty(x.DateOfBirth.ToString()) && x.DateOfBirth.ToString().Contains(searchText)) ||
                     (x.CreateDate.HasValue && x.CreateDate.Value.ToString().Contains(searchText)) ||
                     (x.UpdateDate.HasValue && x.UpdateDate.Value.ToString().Contains(searchText))
                 );

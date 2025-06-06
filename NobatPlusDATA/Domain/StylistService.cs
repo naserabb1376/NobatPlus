@@ -13,5 +13,8 @@ namespace NobatPlusDATA.Domain
 
         public long ServiceManagementID { get; set; }
         public ServiceManagement ServiceManagement { get; set; }
+       public long ServicePrice { get; set; }
+       public int DepositPercent { get; set; }
+
     }
 }

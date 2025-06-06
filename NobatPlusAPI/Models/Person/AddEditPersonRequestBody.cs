@@ -38,7 +38,19 @@ namespace NobatPlusAPI.Models.Person
         [MaxLength(10)]
         [Required(ErrorMessage = "لطفا {0} را وارد کنید")]
         public string NaCode { get; set; }
-        public string? DateOfBirth { get; set; }
+        [Display(Name = "تاریخ تولد")]
+        [Required(ErrorMessage = "لطفا {0} را وارد کنید")]
+        public string DateOfBirth { get; set; }
+
+        [Display(Name = "جنسیت کاربر")]
+        [Required(ErrorMessage = "لطفا {0} را وارد کنید")]
+        [Range(1, long.MaxValue, ErrorMessage = "مقدار {0} باید بزرگتر از 0 باشد")]
+        public int Gender { get; set; }
+
+        [Display(Name = "نقش کاربر")]
+        [Required(ErrorMessage = "لطفا {0} را وارد کنید")]
+        [Range(1, long.MaxValue, ErrorMessage = "مقدار {0} باید بزرگتر از 0 باشد")]
+        public int RoleId { get; set; } // 1. User 2.Stylist 3. Salon
         public string? Description { get; set; }
     }
 
@@ -71,7 +83,19 @@ namespace NobatPlusAPI.Models.Person
         [MaxLength(10)]
         [Required(ErrorMessage = "لطفا {0} را وارد کنید")]
         public string NaCode { get; set; }
-        public string? DateOfBirth { get; set; }
+        [Display(Name = "تاریخ تولد")]
+        [Required(ErrorMessage = "لطفا {0} را وارد کنید")]
+        public string DateOfBirth { get; set; }
+
+        [Display(Name = "جنسیت کاربر")]
+        [Required(ErrorMessage = "لطفا {0} را وارد کنید")]
+        [Range(1, long.MaxValue, ErrorMessage = "مقدار {0} باید بزرگتر از 0 باشد")]
+        public int Gender { get; set; }
+
+        [Display(Name = "نقش کاربر")]
+        [Required(ErrorMessage = "لطفا {0} را وارد کنید")]
+        [Range(1, long.MaxValue, ErrorMessage = "مقدار {0} باید بزرگتر از 0 باشد")]
+        public int RoleId { get; set; } // 1. User 2.Stylist 3. Salon
         public string? Description { get; set; }
 
         public AddEditAddressRequestBody? Address { get; set; }

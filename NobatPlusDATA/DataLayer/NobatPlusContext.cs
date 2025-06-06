@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using NobatPlusDATA.Domain;
 using NobatPlusDATA.Tools;
 using NobatPlusDATA.Views;
+using System.Text.RegularExpressions;
 
 namespace NobatPlusDATA.DataLayer
 {
@@ -35,6 +36,8 @@ namespace NobatPlusDATA.DataLayer
         public DbSet<ServiceDiscount> ServiceDiscounts { get; set; }
         public DbSet<CustomerDiscount> CustomerDiscounts { get; set; }
         public DbSet<Log> Logs { get; set; }
+        public DbSet<FileUpload> FileUploads { get; set; }
+        public DbSet<Image> Images { get; set; }
         public DbSet<ApiGuide> ApiGuides { get; set; }
 
 

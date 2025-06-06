@@ -116,13 +116,15 @@ namespace NobatPlusAPI.Controllers
                     CreateDate = DateTime.Now.ToShamsi(),
                     UpdateDate = DateTime.Now.ToShamsi(),
                     AddressID = address.ID,
-                    DateOfBirth = requestBody.DateOfBirth?.StringToDate(),
+                    DateOfBirth = requestBody.DateOfBirth.StringToDate(),
                     FirstName = requestBody.FirstName,
                     LastName = requestBody.LastName,
                     Email = requestBody.Email,
                     NaCode = requestBody.NaCode,
                     PhoneNumber = requestBody.PhoneNumber,
                     Description = requestBody.Description,
+                    Gender = requestBody.Gender,
+                    RoleId = requestBody.RoleId,
                 };
                 result = await _PersonRep.AddPersonAsync(Person);
             }
@@ -189,13 +191,15 @@ namespace NobatPlusAPI.Controllers
                     UpdateDate = DateTime.Now.ToShamsi(),
                     ID = requestBody.ID,
                     AddressID = address.ID,
-                    DateOfBirth = requestBody.DateOfBirth?.StringToDate(),
+                    DateOfBirth = requestBody.DateOfBirth.StringToDate(),
                     FirstName = requestBody.FirstName,
                     LastName = requestBody.LastName,
                     Email = requestBody.Email,
                     NaCode = requestBody.NaCode,
                     PhoneNumber = requestBody.PhoneNumber,
                     Description = requestBody.Description,
+                    Gender = requestBody.Gender,
+                    RoleId = requestBody.RoleId,
                 };
                 result = await _PersonRep.EditPersonAsync(Person);
             }
@@ -235,13 +239,15 @@ namespace NobatPlusAPI.Controllers
                 CreateDate = DateTime.Now.ToShamsi(),
                 UpdateDate = DateTime.Now.ToShamsi(),
                 AddressID = (requestBody.AdressId > 0) ? requestBody.AdressId : null,
-                DateOfBirth = requestBody.DateOfBirth?.StringToDate(),
+                DateOfBirth = requestBody.DateOfBirth.StringToDate(),
                 FirstName = requestBody.FirstName,
                 LastName = requestBody.LastName,
                 Email = requestBody.Email,
                 NaCode = requestBody.NaCode,
                 PhoneNumber = requestBody.PhoneNumber,
                 Description = requestBody.Description,
+                Gender = requestBody.Gender,
+                RoleId = requestBody.RoleId,
             };
             var result = await _PersonRep.AddPersonAsync(Person);
             if (result.Status)
@@ -287,13 +293,15 @@ namespace NobatPlusAPI.Controllers
                 UpdateDate = DateTime.Now.ToShamsi(),
                 ID = requestBody.ID,
                 AddressID = (requestBody.AdressId > 0) ? requestBody.AdressId : null,
-                DateOfBirth = requestBody.DateOfBirth?.StringToDate(),
+                DateOfBirth = requestBody.DateOfBirth.StringToDate(),
                 FirstName = requestBody.FirstName,
                 LastName = requestBody.LastName,
                 Email = requestBody.Email,
                 NaCode = requestBody.NaCode,
                 PhoneNumber = requestBody.PhoneNumber,
                 Description = requestBody.Description,
+                Gender = requestBody.Gender,
+                RoleId = requestBody.RoleId,
             };
             result = await _PersonRep.EditPersonAsync(Person);
             if (result.Status)

@@ -1,13 +1,10 @@
-﻿using Domain;
-using Domains;
-using Microsoft.AspNetCore.Authentication;
+﻿using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 using NobatPlusAPI.Models;
-using NobatPlusAPI.Models.Authenticate;
-using NobatPlusAPI.Models.ServiceManagement;
+using NobatPlusAPI.Models.FileUpload;
 using NobatPlusAPI.Models.Public;
 using NobatPlusDATA.DataLayer.Repositories;
 using NobatPlusDATA.DataLayer.Services;
@@ -17,47 +14,33 @@ using NobatPlusDATA.Tools;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
+using Domains;
 
 namespace NobatPlusAPI.Controllers
 {
-    [Route("ServiceManagement")]
+    [Route("FileUpload")]
     [ApiController]
     [Authorize]
     [Produces("application/json")]
-
-    public class ServiceManagementController : ControllerBase
+    public class FileUploadController : ControllerBase
     {
-        IServiceManagementRep _ServiceManagementRep;
-        ILogRep _logRep;
+        private IFileUploadRep _FileUploadRep;
+        private ILogRep _logRep;
 
-        public ServiceManagementController(IServiceManagementRep ServiceManagementRep,ILogRep logRep)
+        public FileUploadController(IFileUploadRep FileUploadRep, ILogRep logRep)
         {
-           _ServiceManagementRep = ServiceManagementRep;
-           _logRep = logRep;
+            _FileUploadRep = FileUploadRep;
+            _logRep = logRep;
         }
 
-        [HttpPost("GetAllServiceManagements_Base")]
-        public async Task<ActionResult<ListResultObject<ServiceManagement>>> GetAllServiceManagements_Base(GetServiceManagementListRequestBody requestBody)
+        [HttpPost("GetAllFileUploads_Base")]
+        public async Task<ActionResult<ListResultObject<FileUpload>>> GetAllFileUploads_Base(GetFileUploadListRequestBody requestBody)
         {
-            ListResultObject<ServiceManagement> result = new ListResultObject<ServiceManagement>();
             if (!ModelState.IsValid)
             {
                 return BadRequest(requestBody);
             }
-            if (requestBody.DiscountID > 0)
-            {
-               result = await _ServiceManagementRep.GetServicesOfDiscountAsync(requestBody.DiscountID, requestBody.PageIndex, requestBody.PageSize, requestBody.SearchText,requestBody.SortQuery);
-            }
-            if (requestBody.BookingID > 0)
-            {
-                result = await _ServiceManagementRep.GetServicesOfBookingAsync(requestBody.BookingID, requestBody.PageIndex, requestBody.PageSize, requestBody.SearchText,requestBody.SortQuery);
-            }
-            if (requestBody.StylistID > 0)
-            {
-                result = await _ServiceManagementRep.GetServicesOfStylistAsync(requestBody.StylistID, requestBody.PageIndex, requestBody.PageSize, requestBody.SearchText,requestBody.SortQuery);
-            }
-            else
-                result = await _ServiceManagementRep.GetAllServiceManagementsAsync(requestBody.ParentID,requestBody.PageIndex,requestBody.PageSize,requestBody.SearchText,requestBody.SortQuery);
+            var result = await _FileUploadRep.GetAllFileUploadsAsync(requestBody.entityType, requestBody.ForeignKeyId, requestBody.CreatorId, requestBody.PageIndex, requestBody.PageSize, requestBody.SearchText, requestBody.SortQuery);
             if (result.Status)
             {
                 return Ok(result);
@@ -65,14 +48,14 @@ namespace NobatPlusAPI.Controllers
             return BadRequest(result);
         }
 
-        [HttpPost("GetServiceManagementById_Base")]
-        public async Task<ActionResult<RowResultObject<ServiceManagement>>> GetServiceManagementById_Base(GetRowRequestBody requestBody)
+        [HttpPost("GetFileUploadById_Base")]
+        public async Task<ActionResult<RowResultObject<FileUpload>>> GetFileUploadById_Base(GetRowRequestBody requestBody)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(requestBody);
             }
-            var result = await _ServiceManagementRep.GetServiceManagementByIdAsync(requestBody.ID);
+            var result = await _FileUploadRep.GetFileUploadByIdAsync(requestBody.ID);
             if (result.Status)
             {
                 return Ok(result);
@@ -80,14 +63,14 @@ namespace NobatPlusAPI.Controllers
             return BadRequest(result);
         }
 
-        [HttpPost("ExistServiceManagement_Base")]
-        public async Task<ActionResult<BitResultObject>> ExistServiceManagement_Base(GetRowRequestBody requestBody)
+        [HttpPost("ExistFileUpload_Base")]
+        public async Task<ActionResult<BitResultObject>> ExistFileUpload_Base(GetRowRequestBody requestBody)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(requestBody);
             }
-            var result = await _ServiceManagementRep.ExistServiceManagementAsync(requestBody.ID);
+            var result = await _FileUploadRep.ExistFileUploadAsync(requestBody.ID);
             if (string.IsNullOrEmpty(result.ErrorMessage))
             {
                 return Ok(result);
@@ -95,23 +78,26 @@ namespace NobatPlusAPI.Controllers
             return BadRequest(result);
         }
 
-        [HttpPost("AddServiceManagement_Base")]
-        public async Task<ActionResult<BitResultObject>> AddServiceManagement_Base(AddEditServiceManagementRequestBody requestBody)
+        [HttpPost("AddFileUpload_Base")]
+        public async Task<ActionResult<BitResultObject>> AddFileUpload_Base(AddEditFileUploadRequestBody requestBody)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(requestBody);
             }
-            ServiceManagement ServiceManagement = new ServiceManagement()
+            FileUpload FileUpload = new FileUpload()
             {
                 CreateDate = DateTime.Now.ToShamsi(),
                 UpdateDate = DateTime.Now.ToShamsi(),
-                Duration = requestBody.Duration,
-                ServiceName = requestBody.ServiceName,
-                ServiceParentID = requestBody.ServiceParentID,
-                Description = requestBody.Description,
+                ForeignKeyId = requestBody.ForeignKeyId,
+                EntityType = requestBody.EntityType,
+                ContentType = requestBody.ContentType,
+                FileName = requestBody.FileName,
+                FilePath = requestBody.FilePath,
+                CreatorId = requestBody.CreatorId ?? 0,
+                Description = requestBody.Description ?? "",
             };
-            var result = await _ServiceManagementRep.AddServiceManagementAsync(ServiceManagement);
+            var result = await _FileUploadRep.AddFileUploadAsync(FileUpload);
             if (result.Status)
             {
                 #region AddLog
@@ -122,47 +108,47 @@ namespace NobatPlusAPI.Controllers
                     UpdateDate = DateTime.Now.ToShamsi(),
                     LogTime = DateTime.Now.ToShamsi(),
                     ActionName = this.ControllerContext.RouteData.Values["action"].ToString(),
-
                 };
                 await _logRep.AddLogAsync(log);
 
-                #endregion
-
+                #endregion AddLog
 
                 return Ok(result);
             }
             return BadRequest(result);
         }
 
-        [HttpPut("EditServiceManagement_Base")]
-        public async Task<ActionResult<BitResultObject>> EditServiceManagement_Base(AddEditServiceManagementRequestBody requestBody)
+        [HttpPut("EditFileUpload_Base")]
+        public async Task<ActionResult<BitResultObject>> EditFileUpload_Base(AddEditFileUploadRequestBody requestBody)
         {
             var result = new BitResultObject();
             if (!ModelState.IsValid)
             {
                 return BadRequest(requestBody);
             }
-            var theRow = await _ServiceManagementRep.GetServiceManagementByIdAsync(requestBody.ID);
+            var theRow = await _FileUploadRep.GetFileUploadByIdAsync(requestBody.ID);
             if (!theRow.Status)
             {
                 result.Status = theRow.Status;
                 result.ErrorMessage = theRow.ErrorMessage;
             }
 
-            ServiceManagement ServiceManagement = new ServiceManagement()
+            FileUpload FileUpload = new FileUpload()
             {
                 CreateDate = theRow.Result.CreateDate,
                 UpdateDate = DateTime.Now.ToShamsi(),
                 ID = requestBody.ID,
-                Duration = requestBody.Duration,
-                ServiceName = requestBody.ServiceName,
-                ServiceParentID = requestBody.ServiceParentID,
-                Description = requestBody.Description,
+                ForeignKeyId = requestBody.ForeignKeyId,
+                EntityType = requestBody.EntityType,
+                ContentType = requestBody.ContentType,
+                FileName = requestBody.FileName,
+                FilePath = requestBody.FilePath,
+                CreatorId = requestBody.CreatorId ?? 0,
+                Description = requestBody.Description ?? "",
             };
-            result = await _ServiceManagementRep.EditServiceManagementAsync(ServiceManagement);
+            result = await _FileUploadRep.EditFileUploadAsync(FileUpload);
             if (result.Status)
             {
-
                 #region AddLog
 
                 Log log = new Log()
@@ -171,28 +157,26 @@ namespace NobatPlusAPI.Controllers
                     UpdateDate = DateTime.Now.ToShamsi(),
                     LogTime = DateTime.Now.ToShamsi(),
                     ActionName = this.ControllerContext.RouteData.Values["action"].ToString(),
-
                 };
                 await _logRep.AddLogAsync(log);
 
-                #endregion
+                #endregion AddLog
 
                 return Ok(result);
             }
             return BadRequest(result);
         }
 
-        [HttpDelete("DeleteServiceManagement_Base")]
-        public async Task<ActionResult<BitResultObject>> DeleteServiceManagement_Base(GetRowRequestBody requestBody)
+        [HttpDelete("DeleteFileUpload_Base")]
+        public async Task<ActionResult<BitResultObject>> DeleteFileUpload_Base(GetRowRequestBody requestBody)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(requestBody);
             }
-            var result = await _ServiceManagementRep.RemoveServiceManagementAsync(requestBody.ID);
+            var result = await _FileUploadRep.RemoveFileUploadAsync(requestBody.ID);
             if (result.Status)
             {
-
                 #region AddLog
 
                 Log log = new Log()
@@ -201,11 +185,10 @@ namespace NobatPlusAPI.Controllers
                     UpdateDate = DateTime.Now.ToShamsi(),
                     LogTime = DateTime.Now.ToShamsi(),
                     ActionName = this.ControllerContext.RouteData.Values["action"].ToString(),
-
                 };
                 await _logRep.AddLogAsync(log);
 
-                #endregion
+                #endregion AddLog
 
                 return Ok(result);
             }

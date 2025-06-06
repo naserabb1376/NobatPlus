@@ -182,7 +182,7 @@ namespace NobatPlusDATA.DataLayer.Services
                     (!string.IsNullOrEmpty(x.Stylist.Person.LastName) && x.Stylist.Person.LastName.Contains(searchText)) ||
                     (!string.IsNullOrEmpty(x.Stylist.Specialty) && x.Stylist.Specialty.Contains(searchText)) ||
                     (!string.IsNullOrEmpty(x.ServiceManagement.ServiceName) && x.ServiceManagement.ServiceName.Contains(searchText)) ||
-                    (!string.IsNullOrEmpty(x.ServiceManagement.Price.ToString()) && x.ServiceManagement.Price.ToString().Contains(searchText)) ||
+                    //(!string.IsNullOrEmpty(x.ServiceManagement.Price.ToString()) && x.ServiceManagement.Price.ToString().Contains(searchText)) ||
                     (x.CreateDate.HasValue && x.CreateDate.Value.ToString().Contains(searchText)) ||
                     (x.UpdateDate.HasValue && x.UpdateDate.Value.ToString().Contains(searchText))
                 );
