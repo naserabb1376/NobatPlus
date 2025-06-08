@@ -133,17 +133,16 @@ namespace NobatPlusDATA.DataLayer.Services
 
                 var theRow = await query.FirstOrDefaultAsync();
 
-                //var theRole= _context.Roles.AsNoTracking().FirstOrDefault(x=> x.ID== roleId);
-                //if (theRow.Description.ToLower() != "public" && ((!theRole.Name.Contains("مدیر") && !theRole.Name.Contains("استاد")) && theRow.CreatorId != userId))
-                //{
-                //    result.Status = false;
-                //    result.ErrorMessage = $"The User Has No Access To This File";
-                //}
-                //else
-                //{
+                if (roleId < 4 && theRow.CreatorId != userId)
+                {
+                    result.Status = false;
+                    result.ErrorMessage = $"The User Has No Access To This File";
+                }
+                else
+                {
                     result.Status = true;
                     result.Result = theRow;
-                //}
+                }
             }
             catch (Exception ex)
             {
