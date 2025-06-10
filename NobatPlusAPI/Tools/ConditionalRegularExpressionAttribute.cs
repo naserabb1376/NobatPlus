@@ -20,7 +20,7 @@ namespace NobatPlusAPI.Tools
 
             var comparisonValue = property.GetValue(validationContext.ObjectInstance);
 
-            if (comparisonValue is int intValue && intValue == 1)
+            if (comparisonValue is int intValue && (intValue == 1 || intValue == 3))
             {
                 if (value is string stringValue && !System.Text.RegularExpressions.Regex.IsMatch(stringValue, _pattern))
                 {

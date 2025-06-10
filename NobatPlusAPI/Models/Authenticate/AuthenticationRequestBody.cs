@@ -6,8 +6,9 @@ namespace NobatPlusAPI.Models.Authenticate
     public class AuthenticationRequestBody
     {
         [Display(Name = "نام کاربری")]
-        [MaxLength(20)]
-        [ConditionalRegularExpression("LoginType", @"^[A-Za-z][A-Za-z0-9_]{2,18}$", ErrorMessage = "نام کاربری باید با حروف انگلیسی شروع شود، فقط شامل حروف انگلیسی، اعداد و زیرخط (_) باشد و طول آن بین 4 تا 19 کاراکتر باشد.")]
+        [MaxLength(11)]
+        [RegularExpression(@"^([0-9]{11})$", ErrorMessage = "مقدار {0} باید 11 رقمی و فقط شامل اعداد باشد")]
+        // [ConditionalRegularExpression("LoginType", @"^[A-Za-z][A-Za-z0-9_]{2,18}$", ErrorMessage = "نام کاربری باید با حروف انگلیسی شروع شود، فقط شامل حروف انگلیسی، اعداد و زیرخط (_) باشد و طول آن بین 4 تا 19 کاراکتر باشد.")]
         [Required(ErrorMessage = "لطفا {0} را وارد کنید")]
         public string UserName { get; set; }
 
@@ -16,7 +17,7 @@ namespace NobatPlusAPI.Models.Authenticate
         [ConditionalRegularExpression("LoginType", @"^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{6,20}$", ErrorMessage = "رمز عبور باید شامل حرف و عدد باشد")]
         [Required(ErrorMessage = "لطفا {0} را وارد کنید")]
         public string Password { get; set; }
-        public string CaptchaCode { get; set; }
+        public string? CaptchaCode { get; set; }
         public int LoginType { get; set; } = 1;
     }
 }

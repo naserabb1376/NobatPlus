@@ -1,14 +1,15 @@
 ﻿using Microsoft.AspNetCore.Authentication;
 using Microsoft.IdentityModel.Tokens;
+using NobatPlusAPI.Models.Authenticate;
 using NobatPlusDATA.Domain;
+using NobatPlusDATA.Tools;
 using System.IdentityModel.Tokens.Jwt;
-using System.Net.Mail;
 using System.Net;
+using System.Net.Mail;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
 using VerifyCodeSMSService;
-using NobatPlusDATA.Tools;
 
 namespace NobatPlusAPI.Tools
 {
@@ -96,6 +97,19 @@ namespace NobatPlusAPI.Tools
             return tokenString;
         }
 
+
+        public static bool ValidateCaptcha(this string enteredCode,string storedCode)
+        {
+            bool isValidCaptcha = true;
+            bool useCaptha = bool.Parse(Configuration["UseCaptcha"].ToString());
+            if (useCaptha)
+            {
+                isValidCaptcha = (storedCode != null && enteredCode == storedCode);
+
+            }
+
+            return isValidCaptcha;
+        }
 
         private static string GenerateResetPasswordToken(long loginId)
         {
