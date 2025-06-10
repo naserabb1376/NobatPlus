@@ -64,7 +64,7 @@ namespace NobatPlusAPI.Controllers
 
                 var storedCaptchaCode = HttpContext.Session.GetString("CaptchaCode");
 
-                if ((storedCaptchaCode == null || authenticationRequestBody.CaptchaCode != storedCaptchaCode))
+                if (!authenticationRequestBody.CaptchaCode.ValidateCaptcha(storedCaptchaCode))
                 {
                     result.Status = false;
                     result.ErrorMessage = "کد کپچا نادرست است.";
@@ -230,7 +230,7 @@ namespace NobatPlusAPI.Controllers
             {
 
                 var storedCaptchaCode = HttpContext.Session.GetString("CaptchaCode");
-                if (checkCodeRequestBody.CaptchaCode == storedCaptchaCode)
+                if (checkCodeRequestBody.CaptchaCode.ValidateCaptcha(storedCaptchaCode))
                 {
                     result.Status = true;
                     result.ErrorMessage = "";
@@ -342,14 +342,14 @@ namespace NobatPlusAPI.Controllers
 
             Address address = new Address();
 
-            //var validUserName = await _loginRep.ExistLoginAsync(signupRequestBody.UserName,2);
+            var validUserName = await _loginRep.ExistLoginAsync(signupRequestBody.PhoneNumber, 2);
 
-            //if (validUserName.Status)
-            //{
-            //    result.Status = !validUserName.Status;
-            //    result.ErrorMessage = "نام کاربری تکراری است";
-            //    return BadRequest(result);
-            //}
+            if (validUserName.Status)
+            {
+                result.Status = !validUserName.Status;
+                result.ErrorMessage = "نام کاربری تکراری است";
+                return BadRequest(result);
+            }
 
             var validPhoneNumber = await _loginRep.ExistLoginAsync(signupRequestBody.PhoneNumber, 3);
 
@@ -457,7 +457,22 @@ namespace NobatPlusAPI.Controllers
                             if (result.Status)
                             {
 
-                                #region AddLog
+                                var theLogin = new Login()
+                                {
+                                    
+                                    CreateDate = DateTime.Now.ToShamsi(),
+                                    UpdateDate = DateTime.Now.ToShamsi(),
+                                    LastLoginDate = DateTime.Now.ToShamsi(),
+                                    Description = "",
+                                    PasswordHash = "",
+                                    PersonID = person.ID,
+                                    Username = signupRequestBody.PhoneNumber,
+                                };
+
+                                result = await _loginRep.AddLoginAsync(theLogin);
+                                if (result.Status)
+                                {
+                                        #region AddLog
 
                                 Log log = new Log()
                                 {
@@ -469,13 +484,18 @@ namespace NobatPlusAPI.Controllers
                                 };
                                 await _logRep.AddLogAsync(log);
 
-                                #endregion
+                                    #endregion
+
+
+                                    result.ID = person.ID;
+
+                                    return Ok(result);
+
+                                }
+
 
                             }
 
-                            result.ID = person.ID;
-
-                            return Ok(result);
                         }
                     }
                 }
