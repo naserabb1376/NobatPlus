@@ -175,90 +175,54 @@ namespace NobatPlusDATA.DataLayer.Services
 
         }
 
-        public async Task<BitResultObject> ExistLoginAsync(string uniqueProperty, int searchMode = 1)
+        public async Task<BitResultObject> ExistLoginAsync(string fieldValue, string fieldName)
         {
-            BitResultObject result = new BitResultObject() { Status = false };
+            BitResultObject result = new BitResultObject();
+            long userId = 0;
             try
             {
-                switch (searchMode)
+                switch (fieldName.ToLower().Trim())
                 {
+                    case "personid":
+                        {
+                            var theUser = await _context.Persons.AsNoTracking().FirstOrDefaultAsync(x => x.ID == long.Parse(fieldValue)) ?? new Person();
+                            userId = theUser.ID;
+                            break;
+                        }
+                    case "loginid":
+                        {
+                            var theUser = await _context.Logins.AsNoTracking().FirstOrDefaultAsync(x => x.ID == long.Parse(fieldValue)) ?? new Login();
+                            userId = theUser.PersonID;
+                            break;
+                        }
+                    case "username":
                     default:
-                    case 1:
                         {
-                            long LoginId = long.Parse(uniqueProperty);
-                            var login = await _context.Logins
-                .AsNoTracking()
-                .FirstOrDefaultAsync(x => x.ID == LoginId);
-                            if (login != null)
-                            {
-                                result.Status = true;
-                                result.ID = login.ID;
-                            }
+                            var theUser = await _context.Logins.AsNoTracking().FirstOrDefaultAsync(x => x.Username == fieldValue) ?? new Login();
+                            userId = theUser.PersonID;
+                            break;
                         }
-                        break;
-                    case 2:
+                    case "email":
                         {
-                            var login = await _context.Logins
-               .AsNoTracking()
-               .FirstOrDefaultAsync(x => x.Username == uniqueProperty);
-                            if (login != null)
-                            {
-                                result.Status = true;
-                                result.ID = login.ID;
-                            }
+                            var theUser = await _context.Persons.AsNoTracking().FirstOrDefaultAsync(x => x.Email == fieldValue) ?? new Person();
+                            userId = theUser.ID;
+                            break;
                         }
-                        break;
-                    case 3:
+                    case "nationalcode":
                         {
-                            var login = await _context.Logins.Include(x=> x.Person)
-               .AsNoTracking()
-               .FirstOrDefaultAsync(x => x.Person.PhoneNumber == uniqueProperty);
-                            if (login != null)
-                            {
-                                result.Status = true;
-                                result.ID = login.ID;
-                            }
+                            var theUser = await _context.Persons.AsNoTracking().FirstOrDefaultAsync(x => x.NaCode == fieldValue) ?? new Person();
+                            userId = theUser.ID;
+                            break;
                         }
-                        break;
-                    case 4:
+                    case "phonenumber":
                         {
-                            var login = await _context.Logins.Include(x => x.Person)
-              .AsNoTracking()
-              .FirstOrDefaultAsync(x => x.Person.NaCode == uniqueProperty);
-                            if (login != null)
-                            {
-                                result.Status = true;
-                                result.ID = login.ID;
-                            }
+                            var theUser = await _context.Persons.AsNoTracking().FirstOrDefaultAsync(x => x.PhoneNumber == fieldValue) ?? new Person();
+                            userId = theUser.ID;
+                            break;
                         }
-                        break;
-                    case 5:
-                        {
-                            var login = await _context.Logins.Include(x => x.Person)
-               .AsNoTracking()
-               .FirstOrDefaultAsync(x => x.Person.Email == uniqueProperty);
-                            if (login != null)
-                            {
-                                result.Status = true;
-                                result.ID = login.ID;
-                            }
-                        }
-                        break;
-                    case 6:
-                        {
-                            long LoginId = long.Parse(uniqueProperty);
-                            var login = await _context.Logins
-                .AsNoTracking()
-                .FirstOrDefaultAsync(x => x.PersonID == LoginId);
-                            if (login != null)
-                            {
-                                result.Status = true;
-                                result.ID = login.ID;
-                            }
-                        }
-                        break;
                 }
-
+                result.ID = userId;
+                result.Status = userId > 0;
             }
             catch (Exception ex)
             {

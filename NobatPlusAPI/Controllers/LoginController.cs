@@ -90,7 +90,7 @@ namespace NobatPlusAPI.Controllers
             {
                 return BadRequest(requestBody);
             }
-            var result = await _LoginRep.ExistLoginAsync(requestBody.UniqueProperty,requestBody.SearchMode);
+            var result = await _LoginRep.ExistLoginAsync(requestBody.FieldValue,requestBody.FieldName);
             if (string.IsNullOrEmpty(result.ErrorMessage))
             {
                 return Ok(result);

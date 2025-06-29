@@ -6,13 +6,13 @@ namespace NobatPlusAPI.Models.Login
 {
     public class ExistLoginRequestBody
     {
-        [Display(Name = "کلید جستجو")]
+        [Display(Name = "مقدار جستجو")]
         [Required(ErrorMessage = "لطفا {0} را وارد کنید")]
-        public string UniqueProperty { get; set; }
+        public string FieldValue { get; set; }
 
-        [Display(Name = "روش جستجو")]
+        [Display(Name = "ستون جستجو")]
         [Required(ErrorMessage = "لطفا {0} را وارد کنید")]
-        public int SearchMode { get; set; } = 1;
+        public string FieldName { get; set; }
 
     }
 }

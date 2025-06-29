@@ -78,7 +78,7 @@ namespace NobatPlusAPI.Controllers
                         authenticateResult = await _loginRep.AuthenticateAsync(authenticationRequestBody.UserName, authenticationRequestBody.Password, authenticationRequestBody.LoginType);
                         break;
                     case 2:
-                        var validPhoneNumber = await _loginRep.ExistLoginAsync(authenticationRequestBody.UserName, 3);
+                        var validPhoneNumber = await _loginRep.ExistLoginAsync(authenticationRequestBody.UserName, "UserName");
                         if (!validPhoneNumber.Status && string.IsNullOrEmpty(validPhoneNumber.ErrorMessage))
                         {
                             result.Status = validPhoneNumber.Status;
@@ -342,7 +342,7 @@ namespace NobatPlusAPI.Controllers
 
             Address address = new Address();
 
-            var validUserName = await _loginRep.ExistLoginAsync(signupRequestBody.PhoneNumber, 2);
+            var validUserName = await _loginRep.ExistLoginAsync(signupRequestBody.PhoneNumber, "PhoneNumber");
 
             if (validUserName.Status)
             {
@@ -351,7 +351,7 @@ namespace NobatPlusAPI.Controllers
                 return BadRequest(result);
             }
 
-            var validPhoneNumber = await _loginRep.ExistLoginAsync(signupRequestBody.PhoneNumber, 3);
+            var validPhoneNumber = await _loginRep.ExistLoginAsync(signupRequestBody.PhoneNumber, "PhoneNumber");
 
             if (validPhoneNumber.Status)
             {
@@ -360,7 +360,7 @@ namespace NobatPlusAPI.Controllers
                 return BadRequest(result);
             }
 
-            var validNaCode = await _loginRep.ExistLoginAsync(signupRequestBody.NaCode, 4);
+            var validNaCode = await _loginRep.ExistLoginAsync(signupRequestBody.NaCode, "NationalCode");
 
             if (validNaCode.Status)
             {
@@ -369,7 +369,7 @@ namespace NobatPlusAPI.Controllers
                 return BadRequest(result);
             }
 
-            var validEmail = await _loginRep.ExistLoginAsync(signupRequestBody.Email, 5);
+            var validEmail = await _loginRep.ExistLoginAsync(signupRequestBody.Email, "Email");
 
             if (validEmail.Status)
             {
@@ -513,7 +513,7 @@ namespace NobatPlusAPI.Controllers
 
             BitResultObject result = new BitResultObject();
 
-            var validPhoneNumber = await _loginRep.ExistLoginAsync(sendCodeRequestBody.PhoneNumber, 3);
+            var validPhoneNumber = await _loginRep.ExistLoginAsync(sendCodeRequestBody.PhoneNumber, "PhoneNumber");
             if (sendCodeRequestBody.Exists)
             {
                 if (!validPhoneNumber.Status && string.IsNullOrEmpty(validPhoneNumber.ErrorMessage))
@@ -557,7 +557,7 @@ namespace NobatPlusAPI.Controllers
 
             BitResultObject result = new BitResultObject();
 
-            var validPhoneNumber = await _loginRep.ExistLoginAsync(checkCodeRequestBody.PhoneNumber, 3);
+            var validPhoneNumber = await _loginRep.ExistLoginAsync(checkCodeRequestBody.PhoneNumber, "PhoneNumber");
             if (checkCodeRequestBody.Exists)
             {
                 if (!validPhoneNumber.Status && string.IsNullOrEmpty(validPhoneNumber.ErrorMessage))
@@ -612,7 +612,7 @@ namespace NobatPlusAPI.Controllers
 
             if (!string.IsNullOrEmpty(requestBody.PhoneNumber))
             {
-                var validPhoneNumber = await _loginRep.ExistLoginAsync(requestBody.PhoneNumber, 3);
+                var validPhoneNumber = await _loginRep.ExistLoginAsync(requestBody.PhoneNumber, "PhoneNumber");
                 if (!validPhoneNumber.Status && string.IsNullOrEmpty(validPhoneNumber.ErrorMessage))
                 {
                     result.Status = validPhoneNumber.Status;
@@ -632,7 +632,7 @@ namespace NobatPlusAPI.Controllers
             {
                 var resetTokenExpiryDate = DateTime.Now.ToShamsi().AddHours(2);
 
-                var existLogin = await _loginRep.ExistLoginAsync(requestBody.Email, 5);
+                var existLogin = await _loginRep.ExistLoginAsync(requestBody.Email, "Email");
 
                 if (existLogin.Status)
                 {
@@ -728,7 +728,7 @@ namespace NobatPlusAPI.Controllers
 
             if (!string.IsNullOrEmpty(requestBody.VerifyCode))
             {
-                var validPhoneNumber = await _loginRep.ExistLoginAsync(requestBody.PhoneNumber, 3);
+                var validPhoneNumber = await _loginRep.ExistLoginAsync(requestBody.PhoneNumber, "PhoneNumber");
                 if (!validPhoneNumber.Status && string.IsNullOrEmpty(validPhoneNumber.ErrorMessage))
                 {
                     result.Status = validPhoneNumber.Status;
@@ -741,7 +741,7 @@ namespace NobatPlusAPI.Controllers
                 if (result.Status)
                 {
 
-                    var existLogin = await _loginRep.ExistLoginAsync(requestBody.PhoneNumber, 3);
+                    var existLogin = await _loginRep.ExistLoginAsync(requestBody.PhoneNumber, "PhoneNumber");
 
                     if (existLogin.Status)
                     {
@@ -798,7 +798,7 @@ namespace NobatPlusAPI.Controllers
             {
                 long loginId = long.Parse(requestBody.Token.Split('-')[0]);
 
-                var existLogin = await _loginRep.ExistLoginAsync(loginId.ToString(), 1);
+                var existLogin = await _loginRep.ExistLoginAsync(loginId.ToString(), "loginId");
 
                 if (loginId > 0 && existLogin.Status)
                 {

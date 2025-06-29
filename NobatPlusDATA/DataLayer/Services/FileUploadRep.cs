@@ -76,29 +76,44 @@ namespace NobatPlusDATA.DataLayer.Services
             return result;
         }
 
-        public async Task<ListResultObject<FileUpload>> GetAllFileUploadsAsync(string entityType = "", long ForeignKeyId = 0, long creatorId = 0, int pageIndex = 1, int pageSize = 20, string searchText = "", string sortQuery = "")
+        public async Task<ListResultObject<FileUpload>> GetAllFileUploadsAsync(
+          string entityType = "", long ForeignKeyId = 0, long creatorId = 0,
+          int pageIndex = 1, int pageSize = 20,
+          string searchText = "", string sortQuery = "")
         {
             ListResultObject<FileUpload> results = new ListResultObject<FileUpload>();
+
             try
             {
-                var query = _context.FileUploads
-                    .AsNoTracking()
-                    .Where(x =>
-                            ((ForeignKeyId > 0 && x.ForeignKeyId == ForeignKeyId) ||
-                            (creatorId > 0 && x.CreatorId == creatorId)
+                var query = _context.FileUploads.AsNoTracking().AsQueryable();
 
-                            ||
-                            (!string.IsNullOrEmpty(entityType) && x.EntityType == entityType))
-                       || ((!string.IsNullOrEmpty(x.FileName) && x.FileName.Contains(searchText)) ||
+                // شرط‌های دینامیک فقط در صورت معتبر بودن
+                if (ForeignKeyId > 0)
+                    query = query.Where(x => x.ForeignKeyId == ForeignKeyId);
+
+                if (creatorId > 0)
+                    query = query.Where(x => x.CreatorId == creatorId);
+
+                if (!string.IsNullOrEmpty(entityType))
+                    query = query.Where(x => x.EntityType == entityType);
+
+                if (!string.IsNullOrEmpty(searchText))
+                {
+                    query = query.Where(x =>
+                        (!string.IsNullOrEmpty(x.FileName) && x.FileName.Contains(searchText)) ||
                         (!string.IsNullOrEmpty(x.FilePath) && x.FilePath.Contains(searchText)) ||
-                        (!string.IsNullOrEmpty(x.ContentType) && x.ContentType.Contains(searchText)))
+                        (!string.IsNullOrEmpty(x.ContentType) && x.ContentType.Contains(searchText))
                     );
+                }
 
-                results.TotalCount = query.Count();
+                results.TotalCount = await query.CountAsync();
                 results.PageCount = DbTools.GetPageCount(results.TotalCount, pageSize);
-                results.Results = await query.OrderByDescending(x => x.CreateDate)
-                     .SortBy(sortQuery).ToPaging(pageIndex, pageSize)
-                    //.Include(x => x.Assignment)
+
+                results.Results = await query
+                    .OrderByDescending(x => x.CreateDate)
+                    .SortBy(sortQuery)
+                    .ToPaging(pageIndex, pageSize)
+                    //.Include(x => x.Assignment) // در صورت نیاز بازکنید
                     .ToListAsync();
             }
             catch (Exception ex)
@@ -106,6 +121,7 @@ namespace NobatPlusDATA.DataLayer.Services
                 results.Status = false;
                 results.ErrorMessage = $"{ex.Message} - {ex.InnerException?.Message}";
             }
+
             return results;
         }
 
