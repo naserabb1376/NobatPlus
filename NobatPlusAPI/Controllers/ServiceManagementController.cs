@@ -46,18 +46,18 @@ namespace NobatPlusAPI.Controllers
             }
             if (requestBody.DiscountID > 0)
             {
-               result = await _ServiceManagementRep.GetServicesOfDiscountAsync(requestBody.DiscountID, requestBody.PageIndex, requestBody.PageSize, requestBody.SearchText,requestBody.SortQuery);
+               result = await _ServiceManagementRep.GetServicesOfDiscountAsync(requestBody.DiscountID,requestBody.ServiceGender?? ' ', requestBody.PageIndex, requestBody.PageSize, requestBody.SearchText,requestBody.SortQuery);
             }
             if (requestBody.BookingID > 0)
             {
-                result = await _ServiceManagementRep.GetServicesOfBookingAsync(requestBody.BookingID, requestBody.PageIndex, requestBody.PageSize, requestBody.SearchText,requestBody.SortQuery);
+                result = await _ServiceManagementRep.GetServicesOfBookingAsync(requestBody.BookingID, requestBody.ServiceGender ?? ' ', requestBody.PageIndex, requestBody.PageSize, requestBody.SearchText,requestBody.SortQuery);
             }
             if (requestBody.StylistID > 0)
             {
-                result = await _ServiceManagementRep.GetServicesOfStylistAsync(requestBody.StylistID, requestBody.PageIndex, requestBody.PageSize, requestBody.SearchText,requestBody.SortQuery);
+                result = await _ServiceManagementRep.GetServicesOfStylistAsync(requestBody.StylistID, requestBody.ServiceGender ?? ' ', requestBody.PageIndex, requestBody.PageSize, requestBody.SearchText,requestBody.SortQuery);
             }
             else
-                result = await _ServiceManagementRep.GetAllServiceManagementsAsync(requestBody.ParentID,requestBody.PageIndex,requestBody.PageSize,requestBody.SearchText,requestBody.SortQuery);
+                result = await _ServiceManagementRep.GetAllServiceManagementsAsync(requestBody.ParentID,requestBody.ServiceGender ?? ' ', requestBody.PageIndex,requestBody.PageSize,requestBody.SearchText,requestBody.SortQuery);
             if (result.Status)
             {
                 return Ok(result);
@@ -106,10 +106,11 @@ namespace NobatPlusAPI.Controllers
             {
                 CreateDate = DateTime.Now.ToShamsi(),
                 UpdateDate = DateTime.Now.ToShamsi(),
-                Duration = requestBody.Duration,
+               // Duration = requestBody.Duration,
                 ServiceName = requestBody.ServiceName,
                 ServiceParentID = requestBody.ServiceParentID,
                 Description = requestBody.Description,
+                ServiceGender = requestBody.ServiceGender,
             };
             var result = await _ServiceManagementRep.AddServiceManagementAsync(ServiceManagement);
             if (result.Status)
@@ -154,10 +155,11 @@ namespace NobatPlusAPI.Controllers
                 CreateDate = theRow.Result.CreateDate,
                 UpdateDate = DateTime.Now.ToShamsi(),
                 ID = requestBody.ID,
-                Duration = requestBody.Duration,
+                //Duration = requestBody.Duration,
                 ServiceName = requestBody.ServiceName,
                 ServiceParentID = requestBody.ServiceParentID,
                 Description = requestBody.Description,
+                ServiceGender = requestBody.ServiceGender,
             };
             result = await _ServiceManagementRep.EditServiceManagementAsync(ServiceManagement);
             if (result.Status)

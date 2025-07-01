@@ -892,8 +892,9 @@ namespace NobatPlusDATA.Migrations
                     b.Property<string>("Description")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<TimeSpan>("Duration")
-                        .HasColumnType("time");
+                    b.Property<string>("ServiceGender")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(1)");
 
                     b.Property<string>("ServiceName")
                         .IsRequired()
@@ -961,6 +962,9 @@ namespace NobatPlusDATA.Migrations
 
                     b.Property<int>("DepositPercent")
                         .HasColumnType("int");
+
+                    b.Property<TimeSpan>("ServiceDuration")
+                        .HasColumnType("time");
 
                     b.Property<long>("ServicePrice")
                         .HasColumnType("bigint");

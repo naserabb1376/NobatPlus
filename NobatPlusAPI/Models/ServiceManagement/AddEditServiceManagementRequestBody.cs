@@ -15,12 +15,16 @@ namespace NobatPlusAPI.Models.ServiceManagement
         [Required(ErrorMessage = "لطفا {0} را وارد کنید")]
         public string ServiceName { get; set; }
 
-        [Display(Name = "مدت خدمت")]
-        [Required(ErrorMessage = "لطفا {0} را وارد کنید")]
-        public TimeSpan Duration { get; set; }
+        //[Display(Name = "مدت خدمت")]
+        //[Required(ErrorMessage = "لطفا {0} را وارد کنید")]
+        //public TimeSpan Duration { get; set; }
 
         [Display(Name = "قیمت خدمت")]
         [Required(ErrorMessage = "لطفا {0} را وارد کنید")]
         public string? Description { get; set; }
+
+        [Display(Name = "جنسیت خدمات")]
+        [Required(ErrorMessage = "لطفا {0} را وارد کنید")]
+        public char ServiceGender { get; set; }
     }
 }
