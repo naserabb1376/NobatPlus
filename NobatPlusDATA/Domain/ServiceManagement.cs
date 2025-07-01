@@ -11,7 +11,8 @@ namespace NobatPlusDATA.Domain
     {
         public long ServiceParentID { get; set; }
         public string ServiceName { get; set; }
-        public TimeSpan Duration { get; set; }
+        public char ServiceGender { get; set; }
+      //  public TimeSpan Duration { get; set; }
      //   public long Price { get; set; }
 
         public ICollection<BookingService> BookingServices { get; set; }

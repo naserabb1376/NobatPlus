@@ -23,6 +23,10 @@ namespace NobatPlusAPI.Models.StylistService
         [Display(Name = "درصد بیعانه")]
         [Required(ErrorMessage = "لطفا {0} را وارد کنید")]
         public int DepositPercent { get; set; }
+
+        [Display(Name = "مدت خدمت")]
+        [Required(ErrorMessage = "لطفا {0} را وارد کنید")]
+        public TimeSpan Duration { get; set; }
     }
 }
 

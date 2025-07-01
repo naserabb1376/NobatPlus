@@ -79,7 +79,7 @@ namespace NobatPlusDATA.DataLayer.Services
             
         }
 
-        public async Task<ListResultObject<ServiceManagement>> GetAllServiceManagementsAsync(long parentId = 0, int pageIndex = 1, int pageSize = 20, string searchText = "",string sortQuery ="")
+        public async Task<ListResultObject<ServiceManagement>> GetAllServiceManagementsAsync(long parentId = 0,char serviceGender=' ', int pageIndex = 1, int pageSize = 20, string searchText = "",string sortQuery ="")
         {
             ListResultObject<ServiceManagement> results = new ListResultObject<ServiceManagement>();
             try
@@ -97,8 +97,13 @@ namespace NobatPlusDATA.DataLayer.Services
                    (x.UpdateDate.HasValue && x.UpdateDate.Value.ToString().Contains(searchText))
                     || (!string.IsNullOrEmpty(x.Description.ToString()) && x.Description.ToString().Contains(searchText))
                     || (!string.IsNullOrEmpty(x.ServiceName.ToString()) && x.ServiceName.ToString().Contains(searchText))
-                    || (!string.IsNullOrEmpty(x.Duration.ToString()) && x.Duration.ToString().Contains(searchText))
+                    //|| (!string.IsNullOrEmpty(x.Duration.ToString()) && x.Duration.ToString().Contains(searchText))
                 );
+
+                if (serviceGender!=' ')
+                {
+                    query = query.Where(x => char.ToLower(x.ServiceGender) == char.ToLower(serviceGender));
+                }
 
                 results.TotalCount = query.Count();
                 results.PageCount = DbTools.GetPageCount(results.TotalCount, pageSize);
@@ -115,7 +120,7 @@ namespace NobatPlusDATA.DataLayer.Services
            
         }
 
-        public async Task<ListResultObject<ServiceManagement>> GetServicesOfBookingAsync(long bookingId, int pageIndex = 1, int pageSize = 20, string searchText = "",string sortQuery ="")
+        public async Task<ListResultObject<ServiceManagement>> GetServicesOfBookingAsync(long bookingId,char serviceGender = ' ', int pageIndex = 1, int pageSize = 20, string searchText = "",string sortQuery ="")
         {
             ListResultObject<ServiceManagement> results = new ListResultObject<ServiceManagement>();
             try
@@ -129,8 +134,13 @@ namespace NobatPlusDATA.DataLayer.Services
                     (x.UpdateDate.HasValue && x.UpdateDate.Value.ToString().Contains(searchText))
                     || (!string.IsNullOrEmpty(x.Description.ToString()) && x.Description.ToString().Contains(searchText))
                     || (!string.IsNullOrEmpty(x.ServiceName.ToString()) && x.ServiceName.ToString().Contains(searchText))
-                    || (!string.IsNullOrEmpty(x.Duration.ToString()) && x.Duration.ToString().Contains(searchText))
+                    //|| (!string.IsNullOrEmpty(x.Duration.ToString()) && x.Duration.ToString().Contains(searchText))
                 );
+
+                if (serviceGender != ' ')
+                {
+                    query = query.Where(x => char.ToLower(x.ServiceGender) == char.ToLower(serviceGender));
+                }
 
                 results.TotalCount = query.Count();
                 results.PageCount = DbTools.GetPageCount(results.TotalCount, pageSize);
@@ -147,7 +157,7 @@ namespace NobatPlusDATA.DataLayer.Services
           
         }
 
-        public async Task<ListResultObject<ServiceManagement>> GetServicesOfStylistAsync(long stylistId, int pageIndex = 1, int pageSize = 20, string searchText = "",string sortQuery ="")
+        public async Task<ListResultObject<ServiceManagement>> GetServicesOfStylistAsync(long stylistId, char serviceGender = ' ', int pageIndex = 1, int pageSize = 20, string searchText = "",string sortQuery ="")
         {
             ListResultObject<ServiceManagement> results = new ListResultObject<ServiceManagement>();
             try
@@ -157,12 +167,18 @@ namespace NobatPlusDATA.DataLayer.Services
                 .Select(bs => bs.ServiceManagement)
                 .AsNoTracking()
                 .Where(x =>
+
                     (x.CreateDate.HasValue && x.CreateDate.Value.ToString().Contains(searchText)) ||
                     (x.UpdateDate.HasValue && x.UpdateDate.Value.ToString().Contains(searchText))
                     || (!string.IsNullOrEmpty(x.Description.ToString()) && x.Description.ToString().Contains(searchText))
                     || (!string.IsNullOrEmpty(x.ServiceName.ToString()) && x.ServiceName.ToString().Contains(searchText))
-                    || (!string.IsNullOrEmpty(x.Duration.ToString()) && x.Duration.ToString().Contains(searchText))
+               //     || (!string.IsNullOrEmpty(x.Duration.ToString()) && x.Duration.ToString().Contains(searchText))
                 );
+
+                if (serviceGender != ' ')
+                {
+                    query = query.Where(x => char.ToLower(x.ServiceGender) == char.ToLower(serviceGender));
+                }
 
                 results.TotalCount = query.Count();
                 results.PageCount = DbTools.GetPageCount(results.TotalCount, pageSize);
@@ -179,7 +195,7 @@ namespace NobatPlusDATA.DataLayer.Services
           
         }
 
-        public async Task<ListResultObject<ServiceManagement>> GetServicesOfDiscountAsync(long DiscountId, int pageIndex = 1, int pageSize = 20, string searchText = "",string sortQuery ="")
+        public async Task<ListResultObject<ServiceManagement>> GetServicesOfDiscountAsync(long DiscountId, char serviceGender = ' ', int pageIndex = 1, int pageSize = 20, string searchText = "",string sortQuery ="")
         {
             ListResultObject<ServiceManagement> results = new ListResultObject<ServiceManagement>();
             try
@@ -193,8 +209,13 @@ namespace NobatPlusDATA.DataLayer.Services
                     (x.UpdateDate.HasValue && x.UpdateDate.Value.ToString().Contains(searchText))
                     || (!string.IsNullOrEmpty(x.Description.ToString()) && x.Description.ToString().Contains(searchText))
                     || (!string.IsNullOrEmpty(x.ServiceName.ToString()) && x.ServiceName.ToString().Contains(searchText))
-                    || (!string.IsNullOrEmpty(x.Duration.ToString()) && x.Duration.ToString().Contains(searchText))
+                    //|| (!string.IsNullOrEmpty(x.Duration.ToString()) && x.Duration.ToString().Contains(searchText))
                 );
+
+                if (serviceGender != ' ')
+                {
+                    query = query.Where(x => char.ToLower(x.ServiceGender) == char.ToLower(serviceGender));
+                }
 
                 results.TotalCount = query.Count();
                 results.PageCount = DbTools.GetPageCount(results.TotalCount, pageSize);

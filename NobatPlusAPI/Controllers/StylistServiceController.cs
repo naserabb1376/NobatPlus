@@ -97,6 +97,7 @@ namespace NobatPlusAPI.Controllers
                 StylistID = requestBody.StylistID,
                 ServiceManagementID = requestBody.ServiceID,
                 DepositPercent = requestBody.DepositPercent,
+                ServiceDuration = requestBody.Duration,
                 ServicePrice = requestBody.ServicePrice,
             }).ToList();
 
@@ -136,6 +137,7 @@ namespace NobatPlusAPI.Controllers
             {
                 StylistID = requestBody.StylistID,
                 ServiceManagementID = requestBody.ServiceID,
+                ServiceDuration = requestBody.Duration,
                 DepositPercent = requestBody.DepositPercent,
                 ServicePrice = requestBody.ServicePrice,
             }).ToList();
