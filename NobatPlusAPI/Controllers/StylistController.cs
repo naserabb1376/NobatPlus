@@ -30,13 +30,14 @@ namespace NobatPlusAPI.Controllers
         IStylistRep _StylistRep;
         ILogRep _logRep;
 
-        public StylistController(IStylistRep StylistRep,ILogRep logRep)
+        public StylistController(IStylistRep StylistRep, ILogRep logRep)
         {
-           _StylistRep = StylistRep;
-           _logRep = logRep;
+            _StylistRep = StylistRep;
+            _logRep = logRep;
         }
 
         [HttpPost("GetAllStylists_Base")]
+        [AllowAnonymous]
         public async Task<ActionResult<ListResultObject<Stylist>>> GetAllStylists_Base(GetStylistListRequestBody requestBody)
         {
             ListResultObject<Stylist> result = new ListResultObject<Stylist>();

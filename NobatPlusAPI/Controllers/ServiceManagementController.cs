@@ -37,6 +37,7 @@ namespace NobatPlusAPI.Controllers
         }
 
         [HttpPost("GetAllServiceManagements_Base")]
+        [AllowAnonymous]
         public async Task<ActionResult<ListResultObject<ServiceManagement>>> GetAllServiceManagements_Base(GetServiceManagementListRequestBody requestBody)
         {
             ListResultObject<ServiceManagement> result = new ListResultObject<ServiceManagement>();
