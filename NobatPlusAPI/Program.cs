@@ -161,6 +161,8 @@ namespace NobatPlusAPI
             builder.Services.AddScoped<IStylistRep, StylistRep>();
             builder.Services.AddScoped<IStylistServiceRep, StylistServiceRep>();
             builder.Services.AddScoped<ITokenRep, TokenRep>();
+            builder.Services.AddScoped<ISocialNetworkRep, SocialNetworkRep>();
+            builder.Services.AddScoped<IWorkTimeRep, WorkTimeRep>();
 
             #endregion ImportDbServices
 

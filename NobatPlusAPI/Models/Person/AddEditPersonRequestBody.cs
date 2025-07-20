@@ -52,6 +52,21 @@ namespace NobatPlusAPI.Models.Person
         [Range(1, long.MaxValue, ErrorMessage = "مقدار {0} باید بزرگتر از 0 باشد")]
         public int RoleId { get; set; } // 1. User 2.Stylist 3. Salon
         public string? Description { get; set; }
+
+        [Display(Name = "وضعیت فعال پروفایل")]
+        [Required(ErrorMessage = "لطفا {0} را وارد کنید")]
+        public bool IsActive { get; set; }
+    }
+
+
+    public class DeactivatePersonRequestBody
+    {
+        public long ID { get; set; } = 0;
+
+     
+        [Display(Name = "وضعیت فعال پروفایل")]
+        [Required(ErrorMessage = "لطفا {0} را وارد کنید")]
+        public bool IsActive { get; set; }
     }
 
     public class AddEditPersonProRequestBody
@@ -97,6 +112,10 @@ namespace NobatPlusAPI.Models.Person
         [Range(1, long.MaxValue, ErrorMessage = "مقدار {0} باید بزرگتر از 0 باشد")]
         public int RoleId { get; set; } // 1. User 2.Stylist 3. Salon
         public string? Description { get; set; }
+
+        [Display(Name = "وضعیت فعال پروفایل")]
+        [Required(ErrorMessage = "لطفا {0} را وارد کنید")]
+        public bool IsActive { get; set; }
 
         public AddEditAddressRequestBody? Address { get; set; }
     }

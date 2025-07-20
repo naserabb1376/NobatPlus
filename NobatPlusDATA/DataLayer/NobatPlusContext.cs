@@ -20,6 +20,8 @@ namespace NobatPlusDATA.DataLayer
         public DbSet<Admin> Admins { get; set; }
         public DbSet<Stylist> Stylists { get; set; }
         public DbSet<Booking> Bookings { get; set; }
+        public DbSet<WorkTime> WorkTimes { get; set; }
+        public DbSet<SocialNetwork> SocialNetworks { get; set; }
         public DbSet<PaymentHistory> PaymentHistories { get; set; }
         public DbSet<Login> Logins { get; set; }
         public DbSet<Register> Registers { get; set; }

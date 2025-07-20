@@ -107,9 +107,10 @@ namespace NobatPlusAPI.Controllers
 
             };
 
+            result = await _addressRep.AddAddressAsync(address);
+
             if (result.Status)
             {
-                result = await _addressRep.AddAddressAsync(address);
 
                 Person Person = new Person()
                 {
@@ -125,6 +126,7 @@ namespace NobatPlusAPI.Controllers
                     Description = requestBody.Description,
                     Gender = requestBody.Gender,
                     RoleId = requestBody.RoleId,
+                    IsActive = requestBody.IsActive
                 };
                 result = await _PersonRep.AddPersonAsync(Person);
             }
@@ -181,9 +183,11 @@ namespace NobatPlusAPI.Controllers
 
             };
 
+            result = await _addressRep.EditAddressAsync(address);
+
+
             if (result.Status)
             {
-                result = await _addressRep.EditAddressAsync(address);
 
                 Person Person = new Person()
                 {
@@ -200,6 +204,7 @@ namespace NobatPlusAPI.Controllers
                     Description = requestBody.Description,
                     Gender = requestBody.Gender,
                     RoleId = requestBody.RoleId,
+                    IsActive = requestBody.IsActive,
                 };
                 result = await _PersonRep.EditPersonAsync(Person);
             }
@@ -248,6 +253,7 @@ namespace NobatPlusAPI.Controllers
                 Description = requestBody.Description,
                 Gender = requestBody.Gender,
                 RoleId = requestBody.RoleId,
+                IsActive = requestBody.IsActive
             };
             var result = await _PersonRep.AddPersonAsync(Person);
             if (result.Status)
@@ -302,7 +308,48 @@ namespace NobatPlusAPI.Controllers
                 Description = requestBody.Description,
                 Gender = requestBody.Gender,
                 RoleId = requestBody.RoleId,
+                IsActive = requestBody.IsActive,
             };
+            result = await _PersonRep.EditPersonAsync(Person);
+            if (result.Status)
+            {
+
+                #region AddLog
+
+                Log log = new Log()
+                {
+                    CreateDate = DateTime.Now.ToShamsi(),
+                    UpdateDate = DateTime.Now.ToShamsi(),
+                    LogTime = DateTime.Now.ToShamsi(),
+                    ActionName = this.ControllerContext.RouteData.Values["action"].ToString(),
+
+                };
+                await _logRep.AddLogAsync(log);
+
+                #endregion
+
+                return Ok(result);
+            }
+            return BadRequest(result);
+        }
+        [HttpPut("DeactivatePerson")]
+        public async Task<ActionResult<BitResultObject>> DeactivatePerson(DeactivatePersonRequestBody requestBody)
+        {
+            var result = new BitResultObject();
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(requestBody);
+            }
+            var theRow = await _PersonRep.GetPersonByIdAsync(requestBody.ID);
+            if (!theRow.Status)
+            {
+                result.Status = theRow.Status;
+                result.ErrorMessage = theRow.ErrorMessage;
+            }
+
+            Person Person = theRow.Result;
+            Person.IsActive = requestBody.IsActive;
+
             result = await _PersonRep.EditPersonAsync(Person);
             if (result.Status)
             {

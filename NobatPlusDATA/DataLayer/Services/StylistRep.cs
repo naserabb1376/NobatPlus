@@ -107,6 +107,11 @@ namespace NobatPlusDATA.DataLayer.Services
                         (x.UpdateDate.HasValue && x.UpdateDate.Value.ToString().Contains(searchText)) ||
                         (!string.IsNullOrEmpty(x.YearsOfExperience.ToString()) && x.YearsOfExperience.ToString().Contains(searchText)) ||
                         (!string.IsNullOrEmpty(x.Specialty) && x.Specialty.Contains(searchText)) ||
+                        (!string.IsNullOrEmpty(x.StylistBio) && x.StylistBio.Contains(searchText)) ||
+                        (!string.IsNullOrEmpty(x.StylistName) && x.StylistName.Contains(searchText)) ||
+                        (!string.IsNullOrEmpty(x.WorkShopInteractMode) && x.WorkShopInteractMode.Contains(searchText)) ||
+                        (!string.IsNullOrEmpty(x.AccountStatus) && x.AccountStatus.Contains(searchText)) ||
+                        (!string.IsNullOrEmpty(x.PayMethod) && x.PayMethod.Contains(searchText)) ||
                         (!string.IsNullOrEmpty(x.Description) && x.Description.Contains(searchText))
                     );
                 }
@@ -131,8 +136,14 @@ namespace NobatPlusDATA.DataLayer.Services
                          (!string.IsNullOrEmpty(x.JobType.JobTitle) && x.JobType.JobTitle.Contains(searchText)) ||
                          (x.CreateDate.HasValue && x.CreateDate.Value.ToString().Contains(searchText)) ||
                          (x.UpdateDate.HasValue && x.UpdateDate.Value.ToString().Contains(searchText)) ||
+                         (!string.IsNullOrEmpty(x.StylistBio) && x.StylistBio.Contains(searchText)) ||
+                        (!string.IsNullOrEmpty(x.StylistName) && x.StylistName.Contains(searchText)) ||
+                        (!string.IsNullOrEmpty(x.WorkShopInteractMode) && x.WorkShopInteractMode.Contains(searchText)) ||
+                        (!string.IsNullOrEmpty(x.AccountStatus) && x.AccountStatus.Contains(searchText)) ||
+                        (!string.IsNullOrEmpty(x.PayMethod) && x.PayMethod.Contains(searchText)) ||
                          (!string.IsNullOrEmpty(x.YearsOfExperience.ToString()) && x.YearsOfExperience.ToString().Contains(searchText)) ||
                          (!string.IsNullOrEmpty(x.Specialty) && x.Specialty.Contains(searchText))
+
                         )
                     );
                 }
