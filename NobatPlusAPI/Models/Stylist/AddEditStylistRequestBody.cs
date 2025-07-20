@@ -23,6 +23,37 @@ namespace NobatPlusAPI.Models.Stylist
         [Required(ErrorMessage = "لطفا {0} را وارد کنید")]
         public int YearsOfExperience { get; set; }
 
+        [Display(Name = "نام آرایشگر")]
+        [Required(ErrorMessage = "لطفا {0} را وارد کنید")]
+        public string StylistName { get; set; }
+
+        [Display(Name = "درباره آرایشگر")]
+        public string? StylistBio { get; set; }
+
+        [Display(Name = "جنسیت خدمات")]
+        [Required(ErrorMessage = "لطفا {0} را وارد کنید")]
+        public string GenderAccepted { get; set; }
+
+        [Display(Name = "روش کار در محل")]
+        [Required(ErrorMessage = "لطفا {0} را وارد کنید")]
+        public string WorkShopInteractMode { get; set; }
+
+        [Display(Name = "وضعیت حساب")]
+        [Required(ErrorMessage = "لطفا {0} را وارد کنید")]
+        public string AccountStatus { get; set; }
+
+        [Display(Name = "روش پرداخت")]
+        [Required(ErrorMessage = "لطفا {0} را وارد کنید")]
+        public string PayMethod { get; set; }
+
+        [Display(Name = "مقدار اجاره")]
+        [Required(ErrorMessage = "لطفا {0} را وارد کنید")]
+        public long WorkShopRentAmount { get; set; }
+
+        [Display(Name = "مقدار بیعانه")]
+        [Required(ErrorMessage = "لطفا {0} را وارد کنید")]
+        public long WorkShopDepositAmount { get; set; }
+
         [Display(Name = "کد گروه شغلی")]
         [Required(ErrorMessage = "لطفا {0} را وارد کنید")]
         [Range(1, long.MaxValue, ErrorMessage = "مقدار {0} باید بزرگتر از 0 باشد")]

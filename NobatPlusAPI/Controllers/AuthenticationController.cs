@@ -347,7 +347,7 @@ namespace NobatPlusAPI.Controllers
             if (validUserName.Status)
             {
                 result.Status = !validUserName.Status;
-                result.ErrorMessage = "نام کاربری تکراری است";
+                result.ErrorMessage = "نام کاربری (شماره موبایل) تکراری است";
                 return BadRequest(result);
             }
 
@@ -369,14 +369,14 @@ namespace NobatPlusAPI.Controllers
                 return BadRequest(result);
             }
 
-            var validEmail = await _loginRep.ExistLoginAsync(signupRequestBody.Email, "Email");
+            //var validEmail = await _loginRep.ExistLoginAsync(signupRequestBody.Email, "Email");
 
-            if (validEmail.Status)
-            {
-                result.Status = !validNaCode.Status;
-                result.ErrorMessage = "پست الکترونیک تکراری است";
-                return BadRequest(result);
-            }
+            //if (validEmail.Status)
+            //{
+            //    result.Status = !validNaCode.Status;
+            //    result.ErrorMessage = "پست الکترونیک تکراری است";
+            //    return BadRequest(result);
+            //}
 
 
             if (signupRequestBody.Address != null)
@@ -402,7 +402,7 @@ namespace NobatPlusAPI.Controllers
                     FirstName = signupRequestBody.FirstName,
                     LastName = signupRequestBody.LastName,
                     NaCode = signupRequestBody.NaCode,
-                    Email = signupRequestBody.Email,
+                    Email = signupRequestBody.Email ?? "",
                     PhoneNumber = signupRequestBody.PhoneNumber,
                     Gender = signupRequestBody.Gender,
                     RoleId = signupRequestBody.RoleId,

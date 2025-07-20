@@ -206,6 +206,10 @@ namespace NobatPlusDATA.Tools
         public static DateTime StringToDate(this string stringDateTime)
         {
             if (string.IsNullOrEmpty(stringDateTime)) return DateTime.Now.ToShamsi();
+            if (stringDateTime.Split(' ').Length< 2)
+            {
+                stringDateTime += " 00:00:00";
+            }
             var arr = stringDateTime.Split(' ');
             var stringDateArr = arr[0].Split('/');
             var stringTimeArr = arr[1].Split(':');
