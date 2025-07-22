@@ -93,24 +93,31 @@ namespace NobatPlusDATA.Tools
 
 
 
-        public static string ToShamsi(this string value) // use this word for use the method for all DateTime variables in project
+        public static string ToShamsiString(this DateTime miladiDate)
         {
-            var date = value.Split(' ')[0].Split('/');
-            var time = value.Split(' ')[1].Split(':');
-            DateTime dateTime = new DateTime(Convert.ToInt32(date[0]), Convert.ToInt32(date[1]), Convert.ToInt32(date[2]), Convert.ToInt32(time[0]), Convert.ToInt32(time[1]), Convert.ToInt32(time[2]));
-            PersianCalendar persianCalendar = new PersianCalendar();
-            string shamsiDate = $"{persianCalendar.GetYear(dateTime)}/{persianCalendar.GetMonth(dateTime)}/{persianCalendar.GetDayOfMonth(dateTime)} {persianCalendar.GetHour(dateTime)}:{persianCalendar.GetMinute(dateTime)}:{persianCalendar.GetSecond(dateTime)}";
-            return shamsiDate;
+            PersianCalendar pc = new PersianCalendar();
+            int year = pc.GetYear(miladiDate);
+            int month = pc.GetMonth(miladiDate);
+            int day = pc.GetDayOfMonth(miladiDate);
+            int hour = pc.GetHour(miladiDate);
+            int min = pc.GetMinute(miladiDate);
+            int sec = pc.GetSecond(miladiDate);
+
+            return $"{year:0000}/{month:00}/{day:00} {hour:00}:{min:00}:{sec:00}";
         }
 
-        public static DateTime ToShamsi(this DateTime value) // use this word for use the method for all DateTime variables in project
+        public static DateTime ToShamsi(this DateTime miladiDate)
         {
-            var strDate = $"{value.Year}/{value.Month}/{value.Day} {value.Hour}:{value.Minute}:{value.Second}";
-            var strshamsi = ToShamsi(strDate);
-            var date = strshamsi.Split(' ')[0].Split('/');
-            var time = strshamsi.Split(' ')[1].Split(':');
-            DateTime shamsiDate = new DateTime(Convert.ToInt32(date[0]), Convert.ToInt32(date[1]), Convert.ToInt32(date[2]), Convert.ToInt32(time[0]), Convert.ToInt32(time[1]), Convert.ToInt32(time[2]));
-            return shamsiDate;
+            PersianCalendar pc = new PersianCalendar();
+            int year = pc.GetYear(miladiDate);
+            int month = pc.GetMonth(miladiDate);
+            int day = pc.GetDayOfMonth(miladiDate);
+            int hour = pc.GetHour(miladiDate);
+            int minute = pc.GetMinute(miladiDate);
+            int second = pc.GetSecond(miladiDate);
+
+            // ساخت یک DateTime با تاریخ شمسی (اما همچنان نوع آن Gregorian خواهد بود)
+            return new DateTime(year, month, day, hour, minute, second, pc);
         }
 
         public static TimeSpan StringToTimeSpan(this string time)
@@ -157,7 +164,7 @@ namespace NobatPlusDATA.Tools
             {
                 rngCryptoServiceProvider.GetBytes(randomBytes);
             }
-            return $"{Convert.ToBase64String(randomBytes)}{Convert.ToBase64String(Encoding.UTF8.GetBytes(DateTime.Now.ToString("yyyy/MM/dd - HH:mm").ToShamsi()))}";
+            return $"{Convert.ToBase64String(randomBytes)}{Convert.ToBase64String(Encoding.UTF8.GetBytes(DateTime.Now.ToShamsiString()))}";
         }
 
         public static decimal RetreivePrice(this string finalPrice)
