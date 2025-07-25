@@ -158,6 +158,7 @@ namespace NobatPlusAPI.Controllers
 
             Booking Booking = new Booking()
             {
+                ID = requestBody.ID,
                 CreateDate = theRow.Result.CreateDate,
                 UpdateDate = DateTime.Now.ToShamsi(),
                 BookingDate = requestBody.BookingDate,

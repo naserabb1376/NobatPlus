@@ -157,6 +157,7 @@ namespace NobatPlusAPI.Controllers
 
                 SocialNetwork SocialNetwork = new SocialNetwork()
                 {
+                    ID = requestBody.ID,
                     CreateDate = theRow.Result.CreateDate,
                     UpdateDate = DateTime.Now.ToShamsi(),
                     AccountLink = requestBody.AccountLink,

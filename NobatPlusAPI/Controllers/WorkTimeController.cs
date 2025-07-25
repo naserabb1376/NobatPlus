@@ -143,6 +143,7 @@ namespace NobatPlusAPI.Controllers
 
             WorkTime WorkTime = new WorkTime()
             {
+                ID = requestBody.ID,
                 CreateDate = theRow.Result.CreateDate,
                 UpdateDate = DateTime.Now.ToShamsi(),
                 WorkStartTime = requestBody.WorkStartTime,
