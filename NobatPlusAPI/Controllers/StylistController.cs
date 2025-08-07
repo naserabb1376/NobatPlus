@@ -28,11 +28,13 @@ namespace NobatPlusAPI.Controllers
     public class StylistController : ControllerBase
     {
         IStylistRep _StylistRep;
+        IAddressRep _AddressRep;
         ILogRep _logRep;
 
-        public StylistController(IStylistRep StylistRep, ILogRep logRep)
+        public StylistController(IStylistRep StylistRep,IAddressRep addressRep, ILogRep logRep)
         {
             _StylistRep = StylistRep;
+            _AddressRep = addressRep;
             _logRep = logRep;
         }
 
@@ -112,15 +114,16 @@ namespace NobatPlusAPI.Controllers
                 StylistParentID = requestBody.StylistParentID,
                 Specialty = requestBody.Specialty ?? "",
                 YearsOfExperience = requestBody.YearsOfExperience,
-                Description = requestBody.Description,
-                GenderAccepted = requestBody.GenderAccepted,
-                StylistBio  = requestBody.StylistBio ?? "",
-                StylistName = requestBody.StylistName,
-                WorkShopInteractMode = requestBody.WorkShopInteractMode,
-                AccountStatus = requestBody.AccountStatus,
-                PayMethod = requestBody.PayMethod,
+                Description = requestBody.Description ?? "",
+                GenderAccepted = requestBody.GenderAccepted ?? "",
+                StylistBio = requestBody.StylistBio ?? "",
+                StylistName = requestBody.StylistName ?? "",
+                WorkShopInteractMode = requestBody.WorkShopInteractMode ?? "",
+                AccountStatus = requestBody.AccountStatus ?? "",
+                PayMethod = requestBody.PayMethod ?? "",
                 WorkShopDepositAmount = requestBody.WorkShopDepositAmount,
                 WorkShopRentAmount = requestBody.WorkShopRentAmount,
+                IsWorkShop = requestBody.IsWorkshop,
             };
             var result = await _StylistRep.AddStylistAsync(Stylist);
             if (result.Status)
@@ -142,6 +145,7 @@ namespace NobatPlusAPI.Controllers
 
                 return Ok(result);
             }
+           
             return BadRequest(result);
         }
 
@@ -170,15 +174,16 @@ namespace NobatPlusAPI.Controllers
                 StylistParentID = requestBody.StylistParentID,
                 Specialty = requestBody.Specialty ?? "",
                 YearsOfExperience = requestBody.YearsOfExperience,
-                Description = requestBody.Description,
-                GenderAccepted = requestBody.GenderAccepted,
+                Description = requestBody.Description ?? "",
+                GenderAccepted = requestBody.GenderAccepted ?? "",
                 StylistBio = requestBody.StylistBio ?? "",
-                StylistName = requestBody.StylistName,
-                WorkShopInteractMode = requestBody.WorkShopInteractMode,
-                AccountStatus = requestBody.AccountStatus,
-                PayMethod = requestBody.PayMethod,
+                StylistName = requestBody.StylistName ?? "",
+                WorkShopInteractMode = requestBody.WorkShopInteractMode ?? "",
+                AccountStatus = requestBody.AccountStatus ?? "",
+                PayMethod = requestBody.PayMethod ?? "",
                 WorkShopDepositAmount = requestBody.WorkShopDepositAmount,
                 WorkShopRentAmount = requestBody.WorkShopRentAmount,
+                IsWorkShop = requestBody.IsWorkshop,
             };
             result = await _StylistRep.EditStylistAsync(Stylist);
             if (result.Status)

@@ -1,5 +1,6 @@
 ﻿using Domain;
 using NobatPlusAPI.Models.Address;
+using NobatPlusAPI.Models.Stylist;
 using NobatPlusAPI.Tools;
 using System.ComponentModel.DataAnnotations;
 
@@ -54,29 +55,8 @@ namespace NobatPlusAPI.Models.Authenticate
         [Required(ErrorMessage = "لطفا {0} را وارد کنید")]
         [Range(1, long.MaxValue, ErrorMessage = "مقدار {0} باید بزرگتر از 0 باشد")]
         public int Gender { get; set; }
-
-        [Display(Name = "نقش کاربر")]
-        [Required(ErrorMessage = "لطفا {0} را وارد کنید")]
-        [Range(1, long.MaxValue, ErrorMessage = "مقدار {0} باید بزرگتر از 0 باشد")]
-        public int RoleId { get; set; } // 1. User 2.Stylist 3. Salon
-        public string? Specialty { get; set; }
-
-        [RequiredIfRole(nameof(RoleId), 2, 3, ErrorMessage = "لطفاً {0} را وارد کنید")]
-        public int YearsOfExperience { get; set; }
-
-        [RequiredIfRole(nameof(RoleId), 2, 3, ErrorMessage = "لطفاً {0} را وارد کنید")]
-        public long StylistParentID { get; set; }
-
-        [Display(Name = "گروه شغلی")]
-        [RequiredIfRole(nameof(RoleId), 2, 3, ErrorMessage = "لطفاً {0} را وارد کنید")]
-        public long JobTypeID { get; set; }
-        //public string? PersonDescription { get; set; }
-        //public string? CustomerDescription { get; set; }
-        //public string? RegisterDescription { get; set; }
-        //public string? LoginDescription { get; set; }
-        //public string? StylistDescription { get; set; }
-
-        [RequiredIfRole(nameof(RoleId), 2, 3, ErrorMessage = "لطفاً {0} را وارد کنید")]
+        public SignupStylistRequestBody? stylist { get; set; }
         public AddEditAddressRequestBody? Address { get; set; }
+
     }
 }

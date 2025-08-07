@@ -7,8 +7,9 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 using NobatPlusAPI.Models;
 using NobatPlusAPI.Models.Authenticate;
-using NobatPlusAPI.Models.Notification;
 using NobatPlusAPI.Models.Public;
+using NobatPlusAPI.Models.SMSMessage;
+using NobatPlusAPI.Tools;
 using NobatPlusDATA.DataLayer.Repositories;
 using NobatPlusDATA.DataLayer.Services;
 using NobatPlusDATA.Domain;
@@ -20,30 +21,34 @@ using System.Text;
 
 namespace NobatPlusAPI.Controllers
 {
-    [Route("Notification")]
+    [Route("SMSMessage")]
     [ApiController]
     [Authorize]
     [Produces("application/json")]
 
-    public class NotificationController : ControllerBase
+    public class SMSMessageController : ControllerBase
     {
-        INotificationRep _NotificationRep;
+        ISMSMessageRep _SMSMessageRep;
+        IPersonRep _PersonRep;
+        ILoginRep _LoginRep;
         ILogRep _logRep;
 
-        public NotificationController(INotificationRep NotificationRep,ILogRep logRep)
+        public SMSMessageController(ISMSMessageRep SMSMessageRep,IPersonRep personRep,ILoginRep loginRep,ILogRep logRep)
         {
-           _NotificationRep = NotificationRep;
+           _SMSMessageRep = SMSMessageRep;
+            _PersonRep = personRep;
+            _LoginRep = loginRep;
            _logRep = logRep;
         }
 
-        [HttpPost("GetAllNotifications_Base")]
-        public async Task<ActionResult<ListResultObject<Notification>>> GetAllNotifications_Base(GetNotificationListRequestBody requestBody)
+        [HttpPost("GetAllSMSMessages_Base")]
+        public async Task<ActionResult<ListResultObject<SMSMessage>>> GetAllSMSMessages_Base(GetSMSMessageListRequestBody requestBody)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(requestBody);
             }
-            var result = await _NotificationRep.GetAllNotificationsAsync(requestBody.PersonId,requestBody.PageIndex,requestBody.PageSize,requestBody.SearchText,requestBody.SortQuery);
+            var result = await _SMSMessageRep.GetAllSMSMessagesAsync(requestBody.PersonId,requestBody.PageIndex,requestBody.PageSize,requestBody.SearchText,requestBody.SortQuery);
             if (result.Status)
             {
                 return Ok(result);
@@ -51,14 +56,14 @@ namespace NobatPlusAPI.Controllers
             return BadRequest(result);
         }
 
-        [HttpPost("GetNotificationById_Base")]
-        public async Task<ActionResult<RowResultObject<Notification>>> GetNotificationById_Base(GetRowRequestBody requestBody)
+        [HttpPost("GetSMSMessageById_Base")]
+        public async Task<ActionResult<RowResultObject<SMSMessage>>> GetSMSMessageById_Base(GetRowRequestBody requestBody)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(requestBody);
             }
-            var result = await _NotificationRep.GetNotificationByIdAsync(requestBody.ID);
+            var result = await _SMSMessageRep.GetSMSMessageByIdAsync(requestBody.ID);
             if (result.Status)
             {
                 return Ok(result);
@@ -66,14 +71,14 @@ namespace NobatPlusAPI.Controllers
             return BadRequest(result);
         }
 
-        [HttpPost("ExistNotification_Base")]
-        public async Task<ActionResult<BitResultObject>> ExistNotification_Base(GetRowRequestBody requestBody)
+        [HttpPost("ExistSMSMessage_Base")]
+        public async Task<ActionResult<BitResultObject>> ExistSMSMessage_Base(GetRowRequestBody requestBody)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(requestBody);
             }
-            var result = await _NotificationRep.ExistNotificationAsync(requestBody.ID);
+            var result = await _SMSMessageRep.ExistSMSMessageAsync(requestBody.ID);
             if (string.IsNullOrEmpty(result.ErrorMessage))
             {
                 return Ok(result);
@@ -81,71 +86,113 @@ namespace NobatPlusAPI.Controllers
             return BadRequest(result);
         }
 
-        [HttpPost("AddNotification_Base")]
-        public async Task<ActionResult<BitResultObject>> AddNotification_Base(AddEditNotificationRequestBody requestBody)
-        {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(requestBody);
-            }
-            Notification Notification = new Notification()
-            {
-                CreateDate = DateTime.Now.ToShamsi(),
-                UpdateDate = DateTime.Now.ToShamsi(),
-                PersonID = requestBody.PersonID,
-                Message = requestBody.Message,
-                SentDate = string.IsNullOrEmpty(requestBody.SentDate) ?  DateTime.Now.ToShamsi() : requestBody.SentDate.StringToDate(),
-                Description = requestBody.Description,
-            };
-            var result = await _NotificationRep.AddNotificationAsync(Notification);
-            if (result.Status)
-            {
-                #region AddLog
-
-                Log log = new Log()
-                {
-                    CreateDate = DateTime.Now.ToShamsi(),
-                    UpdateDate = DateTime.Now.ToShamsi(),
-                    LogTime = DateTime.Now.ToShamsi(),
-                    ActionName = this.ControllerContext.RouteData.Values["action"].ToString(),
-
-                };
-                await _logRep.AddLogAsync(log);
-
-                #endregion
-
-
-                return Ok(result);
-            }
-            return BadRequest(result);
-        }
-
-        [HttpPut("EditNotification_Base")]
-        public async Task<ActionResult<BitResultObject>> EditNotification_Base(AddEditNotificationRequestBody requestBody)
+        [HttpPost("AddSMSMessage_Base")]
+        public async Task<ActionResult<BitResultObject>> AddSMSMessage_Base(AddEditSMSMessageRequestBody requestBody)
         {
             var result = new BitResultObject();
             if (!ModelState.IsValid)
             {
                 return BadRequest(requestBody);
             }
-            var theRow = await _NotificationRep.GetNotificationByIdAsync(requestBody.ID);
+
+            var validPhoneNumber = await _LoginRep.ExistLoginAsync(requestBody.PhoneNumber, "PhoneNumber");
+
+            if (requestBody.PhoneNumberExists)
+            {
+                if (!validPhoneNumber.Status && string.IsNullOrEmpty(validPhoneNumber.ErrorMessage))
+                {
+                    result.Status = validPhoneNumber.Status;
+                    result.ErrorMessage = "این کاربر در سیستم وجود ندارد";
+                    return BadRequest(result);
+                }
+            }
+
+            else
+            {
+                if (validPhoneNumber.Status)
+                {
+                    result.Status = !validPhoneNumber.Status;
+                    result.ErrorMessage = "شماره تماس تکراری است";
+                    return BadRequest(result);
+                }
+            }
+
+            bool sentstatus = await ToolBox.SendSMSMessage(requestBody.PhoneNumber,requestBody.Message);
+
+          
+
+            SMSMessage SMSMessage = new SMSMessage()
+            {
+                CreateDate = DateTime.Now.ToShamsi(),
+                UpdateDate = DateTime.Now.ToShamsi(),
+                PhoneNumber = requestBody.PhoneNumber,
+                PersonID = validPhoneNumber.ID,
+                Message = requestBody.Message,
+                SentDate = string.IsNullOrEmpty(requestBody.SentDate) ? DateTime.Now.ToShamsi() : requestBody.SentDate.StringToDate(),
+                Description = requestBody.Description,
+                SentStatus = sentstatus,
+            };
+             result = await _SMSMessageRep.AddSMSMessageAsync(SMSMessage);
+            if (result.Status)
+            {
+                #region AddLog
+
+                Log log = new Log()
+                {
+                    CreateDate = DateTime.Now.ToShamsi(),
+                    UpdateDate = DateTime.Now.ToShamsi(),
+                    LogTime = DateTime.Now.ToShamsi(),
+                    ActionName = this.ControllerContext.RouteData.Values["action"].ToString(),
+
+                };
+                await _logRep.AddLogAsync(log);
+
+                #endregion
+
+
+                if (sentstatus)
+                {
+                    result.ErrorMessage = $"پیامک ارسال شد";
+                    return Ok(result);
+                }
+                else
+                {
+                    result.ErrorMessage = $"در ارسال پیامک مشکلی بوجود آمد";
+                }
+            }
+            return BadRequest(result);
+        }
+
+        [HttpPut("EditSMSMessage_Base")]
+        public async Task<ActionResult<BitResultObject>> EditSMSMessage_Base(AddEditSMSMessageRequestBody requestBody)
+        {
+            var result = new BitResultObject();
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(requestBody);
+            }
+
+            var validPhoneNumber = await _LoginRep.ExistLoginAsync(requestBody.PhoneNumber, "PhoneNumber");
+
+            var theRow = await _SMSMessageRep.GetSMSMessageByIdAsync(requestBody.ID);
             if (!theRow.Status)
             {
                 result.Status = theRow.Status;
                 result.ErrorMessage = theRow.ErrorMessage;
             }
 
-            Notification Notification = new Notification()
+            SMSMessage SMSMessage = new SMSMessage()
             {
                 CreateDate = theRow.Result.CreateDate,
                 UpdateDate = DateTime.Now.ToShamsi(),
                 ID = requestBody.ID,
-                PersonID = requestBody.PersonID,
+                PhoneNumber = requestBody.PhoneNumber,
+                PersonID = validPhoneNumber.ID,
                 Message = requestBody.Message,
                 SentDate = string.IsNullOrEmpty(requestBody.SentDate) ? DateTime.Now.ToShamsi() : requestBody.SentDate.StringToDate(),
                 Description = requestBody.Description,
             };
-            result = await _NotificationRep.EditNotificationAsync(Notification);
+            result = await _SMSMessageRep.EditSMSMessageAsync(SMSMessage);
             if (result.Status)
             {
 
@@ -168,14 +215,14 @@ namespace NobatPlusAPI.Controllers
             return BadRequest(result);
         }
 
-        [HttpDelete("DeleteNotification_Base")]
-        public async Task<ActionResult<BitResultObject>> DeleteNotification_Base(GetRowRequestBody requestBody)
+        [HttpDelete("DeleteSMSMessage_Base")]
+        public async Task<ActionResult<BitResultObject>> DeleteSMSMessage_Base(GetRowRequestBody requestBody)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(requestBody);
             }
-            var result = await _NotificationRep.RemoveNotificationAsync(requestBody.ID);
+            var result = await _SMSMessageRep.RemoveSMSMessageAsync(requestBody.ID);
             if (result.Status)
             {
 

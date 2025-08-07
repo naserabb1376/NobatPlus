@@ -1,15 +1,23 @@
 ﻿using Microsoft.AspNetCore.Authentication;
 using Microsoft.IdentityModel.Tokens;
+using Newtonsoft.Json;
 using NobatPlusAPI.Models.Authenticate;
 using NobatPlusDATA.Domain;
 using NobatPlusDATA.Tools;
+using SixLabors.ImageSharp.Drawing;
 using System.IdentityModel.Tokens.Jwt;
+using System.Linq.Dynamic.Core.Tokenizer;
 using System.Net;
+using System.Net.Http;
 using System.Net.Mail;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
 using VerifyCodeSMSService;
+using static NobatPlusAPI.Tools.ApiCaller;
+using static NobatPlusAPI.Tools.SendSms;
+using static System.Net.Mime.MediaTypeNames;
+using Path = System.IO.Path;
 
 namespace NobatPlusAPI.Tools
 {
@@ -39,6 +47,33 @@ namespace NobatPlusAPI.Tools
                     x = await client.AutoSendCodeAsync(UserName, Password, mobileNumber, AppName);
                     send = true;
                 }
+            }
+            catch (Exception ex)
+            {
+                send = false;
+            }
+            return send;
+        }
+
+        public async static Task<bool> SendSMSMessage(string mobileNumber,string message)
+        {
+            string AppName = Configuration["Jwt:Issuer"];
+            string UserName = Configuration["VerifyCode:PanelUserName"];
+            string Password = Configuration["VerifyCode:PanelPassword"];
+            string lineNumber = Configuration["VerifyCode:PanelLineNumber"];
+            string apiUrl = $"https://RayganSMS.com/SendMessageWithUrl.ashx?Username={UserName}&Password={Password}&PhoneNumber={lineNumber}&MessageBody={message}&RecNumber={mobileNumber}&Smsclass=1";
+
+                     List<ReqHeader> reqHeaders = new List<ReqHeader>();
+           
+            bool send = false;
+            try
+            {
+                ApiCaller apiCaller = new ApiCaller();
+
+                var SendSmsMessageResponse = await apiCaller.Call<long>(apiUrl, "GET","",reqHeaders,Encoding.UTF8);
+                if (SendSmsMessageResponse > 2000) send = true;
+                else send = false;
+
             }
             catch (Exception ex)
             {

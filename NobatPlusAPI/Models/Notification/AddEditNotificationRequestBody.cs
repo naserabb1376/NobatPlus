@@ -17,8 +17,7 @@ namespace NobatPlusAPI.Models.Notification
         public string Message { get; set; }
 
         [Display(Name = "تاریخ اعلان")]
-        [Required(ErrorMessage = "لطفا {0} را وارد کنید")]
-        public DateTime? SentDate { get; set; }
+        public string? SentDate { get; set; }
         public string? Description { get; set; }
     }
 }

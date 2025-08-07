@@ -23,7 +23,7 @@ namespace NobatPlusAPI.Controllers
 {
     [Route("SocialNetwork")]
     [ApiController]
-    [Authorize]
+ //   [Authorize]
     [Produces("application/json")]
 
     public class SocialNetworkController : ControllerBase
@@ -93,7 +93,7 @@ namespace NobatPlusAPI.Controllers
                 return BadRequest(requestBody);
             }
             var existSocialNetwork = await _SocialNetworkRep.ExistSocialNetworkAccountAsync(requestBody.SocialNetworkName,requestBody.StylistID,requestBody.PhoneNumber,requestBody.AccountLink);
-            if (existSocialNetwork.Status)
+            if (!existSocialNetwork.Status)
             {
                 SocialNetwork SocialNetwork = new SocialNetwork()
                 {
@@ -144,7 +144,7 @@ namespace NobatPlusAPI.Controllers
                 return BadRequest(requestBody);
             }
             var existSocialNetwork = await _SocialNetworkRep.ExistSocialNetworkAccountAsync(requestBody.SocialNetworkName, requestBody.StylistID, requestBody.PhoneNumber, requestBody.AccountLink);
-            if (existSocialNetwork.Status)
+            if (!existSocialNetwork.Status)
             {
 
                 var theRow = await _SocialNetworkRep.GetSocialNetworkByIdAsync(requestBody.ID);

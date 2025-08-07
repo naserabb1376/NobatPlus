@@ -163,6 +163,7 @@ namespace NobatPlusAPI
             builder.Services.AddScoped<ITokenRep, TokenRep>();
             builder.Services.AddScoped<ISocialNetworkRep, SocialNetworkRep>();
             builder.Services.AddScoped<IWorkTimeRep, WorkTimeRep>();
+            builder.Services.AddScoped<ISMSMessageRep, SMSMessageRep>();
 
             #endregion ImportDbServices
 

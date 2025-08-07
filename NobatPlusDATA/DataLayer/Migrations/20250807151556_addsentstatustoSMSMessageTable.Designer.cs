@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using NobatPlusDATA.DataLayer;
 
@@ -11,9 +12,11 @@ using NobatPlusDATA.DataLayer;
 namespace NobatPlusDATA.Migrations
 {
     [DbContext(typeof(NobatPlusContext))]
-    partial class NobatPlusContextModelSnapshot : ModelSnapshot
+    [Migration("20250807151556_addsentstatustoSMSMessageTable")]
+    partial class addsentstatustoSMSMessageTable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -860,10 +863,6 @@ namespace NobatPlusDATA.Migrations
                     b.Property<long>("PersonID")
                         .HasColumnType("bigint");
 
-                    b.Property<string>("PhoneNumber")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<DateTime>("SentDate")
                         .HasColumnType("datetime2");
 
@@ -874,6 +873,8 @@ namespace NobatPlusDATA.Migrations
                         .HasColumnType("datetime2");
 
                     b.HasKey("ID");
+
+                    b.HasIndex("PersonID");
 
                     b.ToTable("SMSMessages");
                 });
@@ -1432,6 +1433,17 @@ namespace NobatPlusDATA.Migrations
                     b.Navigation("Booking");
 
                     b.Navigation("Customer");
+                });
+
+            modelBuilder.Entity("NobatPlusDATA.Domain.SMSMessage", b =>
+                {
+                    b.HasOne("NobatPlusDATA.Domain.Person", "Person")
+                        .WithMany()
+                        .HasForeignKey("PersonID")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Person");
                 });
 
             modelBuilder.Entity("NobatPlusDATA.Domain.ServiceDiscount", b =>

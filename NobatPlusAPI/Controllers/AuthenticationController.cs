@@ -405,7 +405,7 @@ namespace NobatPlusAPI.Controllers
                     Email = signupRequestBody.Email ?? "",
                     PhoneNumber = signupRequestBody.PhoneNumber,
                     Gender = signupRequestBody.Gender,
-                    RoleId = signupRequestBody.RoleId,
+                    RoleId = GetRoleId(signupRequestBody),
                     DateOfBirth = signupRequestBody.DateOfBirth.StringToDate(),
                     CreateDate = DateTime.Now.ToShamsi(),
                     UpdateDate = DateTime.Now.ToShamsi(),
@@ -439,18 +439,29 @@ namespace NobatPlusAPI.Controllers
                         if (result.Status)
                         {
                           
-                            if (result.Status && signupRequestBody.RoleId > 1)
+                            if (result.Status && signupRequestBody.stylist != null)
                             {
                                 Stylist stylist = new Stylist()
                                 {
-                                    JobTypeID = signupRequestBody.JobTypeID,
-                                    YearsOfExperience = signupRequestBody.YearsOfExperience,
-                                    Specialty = signupRequestBody.Specialty,
-                                    StylistParentID = signupRequestBody.StylistParentID,
+                                    JobTypeID = signupRequestBody.stylist.JobTypeID,
+                                    YearsOfExperience = signupRequestBody.stylist.YearsOfExperience,
+                                    Specialty = signupRequestBody.stylist.Specialty??"",
+                                    StylistParentID = signupRequestBody.stylist.StylistParentID,
                                     PersonID = person.ID,
                                     CreateDate = DateTime.Now.ToShamsi(),
                                     UpdateDate = DateTime.Now.ToShamsi(),
-                                    Description = "",
+                                    Description = signupRequestBody.stylist.Description ?? "",
+                                    AccountStatus = signupRequestBody.stylist.AccountStatus ?? "",
+                                    GenderAccepted = signupRequestBody.stylist.GenderAccepted ?? "",
+                                    IsWorkShop = signupRequestBody.stylist.IsWorkshop,
+                                    PayMethod = signupRequestBody.stylist.PayMethod ?? "",
+                                    StylistBio= signupRequestBody.stylist.StylistBio ?? "",
+                                    StylistName = signupRequestBody.stylist.StylistName ?? "",
+                                    WorkShopDepositAmount = signupRequestBody.stylist.WorkShopRentAmount,
+                                    WorkShopInteractMode = signupRequestBody.stylist.WorkShopInteractMode ?? "",
+                                    WorkShopRentAmount = signupRequestBody.stylist.WorkShopRentAmount,
+
+                                    
                                 };
                                 result = await _stylistRep.AddStylistAsync(stylist);
                             }
@@ -501,6 +512,26 @@ namespace NobatPlusAPI.Controllers
                 }
             }
             return BadRequest(result);
+        }
+
+        private int GetRoleId(SignupRequestBody signupRequestBody)
+        {
+            int roleId = 0;
+
+            if (signupRequestBody.stylist == null)
+            {
+                roleId = 1;
+            }
+            else if (signupRequestBody.stylist.IsWorkshop)
+            {
+                roleId = 3;
+            }
+            else
+            {
+                roleId = 2;
+            }
+
+            return roleId;
         }
 
         [HttpPost("SendSMSCode")]

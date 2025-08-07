@@ -27,6 +27,7 @@ namespace NobatPlusDATA.DataLayer
         public DbSet<Register> Registers { get; set; }
         public DbSet<Payment> Payments { get; set; }
         public DbSet<Notification> Notifications { get; set; }
+        public DbSet<SMSMessage> SMSMessages { get; set; }
         public DbSet<CheckAvailability> CheckAvailabilities { get; set; }
         public DbSet<ServiceManagement> ServiceManagements { get; set; }
         public DbSet<BookingService> BookingServices { get; set; }

@@ -108,9 +108,9 @@ namespace NobatPlusDATA.DataLayer.Services
                 }
 
                 result.Status = socialNetwork?.ID > 0;
-                result.ID = socialNetwork.ID;
+                result.ID = (socialNetwork?? new SocialNetwork()).ID;
 
-                if (!result.Status)
+                if (result.Status)
                 {
                     result.ErrorMessage = $"این آدرس شبکه اجتماعی برای کاربر دیگری ثبت شده است";
                 }

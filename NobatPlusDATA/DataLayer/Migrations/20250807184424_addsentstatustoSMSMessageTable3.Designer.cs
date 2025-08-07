@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using NobatPlusDATA.DataLayer;
 
@@ -11,9 +12,11 @@ using NobatPlusDATA.DataLayer;
 namespace NobatPlusDATA.Migrations
 {
     [DbContext(typeof(NobatPlusContext))]
-    partial class NobatPlusContextModelSnapshot : ModelSnapshot
+    [Migration("20250807184424_addsentstatustoSMSMessageTable3")]
+    partial class addsentstatustoSMSMessageTable3
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

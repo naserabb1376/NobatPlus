@@ -16,6 +16,7 @@ namespace NobatPlusDATA.Domain
         public string? StylistBio { get; set; }
         public string GenderAccepted { get; set; }
         public string WorkShopInteractMode { get; set; }
+        public bool IsWorkShop { get; set; }
         public string AccountStatus { get; set; }
         public string PayMethod { get; set; }
         public long WorkShopRentAmount { get; set; }
