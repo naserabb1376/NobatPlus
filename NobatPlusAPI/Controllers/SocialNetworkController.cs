@@ -23,7 +23,7 @@ namespace NobatPlusAPI.Controllers
 {
     [Route("SocialNetwork")]
     [ApiController]
- //   [Authorize]
+    [Authorize]
     [Produces("application/json")]
 
     public class SocialNetworkController : ControllerBase

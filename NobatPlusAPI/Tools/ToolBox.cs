@@ -15,8 +15,6 @@ using System.Security.Cryptography;
 using System.Text;
 using VerifyCodeSMSService;
 using static NobatPlusAPI.Tools.ApiCaller;
-using static NobatPlusAPI.Tools.SendSms;
-using static System.Net.Mime.MediaTypeNames;
 using Path = System.IO.Path;
 
 namespace NobatPlusAPI.Tools
