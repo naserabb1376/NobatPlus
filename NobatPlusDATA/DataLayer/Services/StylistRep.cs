@@ -61,13 +61,30 @@ namespace NobatPlusDATA.DataLayer.Services
             
         }
 
-        public async Task<BitResultObject> ExistStylistAsync(long StylistId)
+        public async Task<BitResultObject> ExistStylistAsync(string fieldValue, string fieldName)
         {
             BitResultObject result = new BitResultObject();
+            long stylistId = 0;
             try
             {
-                result.Status = await _context.Stylists.AnyAsync(x => x.ID == StylistId);
-                result.ID = StylistId;
+                switch (fieldName.ToLower().Trim())
+                {
+                    case "personid":
+                        {
+                            var theStylist = await _context.Stylists.AsNoTracking().FirstOrDefaultAsync(x => x.PersonID == long.Parse(fieldValue)) ?? new Stylist();
+                            stylistId = theStylist.ID;
+                            break;
+                        }
+                    case "stylistid":
+                    default:
+                        {
+                            var theStylist = await _context.Stylists.AsNoTracking().FirstOrDefaultAsync(x => x.ID == long.Parse(fieldValue)) ?? new Stylist();
+                            stylistId = theStylist.PersonID;
+                            break;
+                        }
+                }
+                result.ID = stylistId;
+                result.Status = stylistId > 0;
             }
             catch (Exception ex)
             {
@@ -75,7 +92,6 @@ namespace NobatPlusDATA.DataLayer.Services
                 result.ErrorMessage = $"{ex.Message} - {ex.InnerException?.Message}";
             }
             return result;
-            
         }
 
         public async Task<ListResultObject<Stylist>> GetAllStylistsAsync(long parentId = 0,long cityId = 0, int pageIndex = 1, int pageSize = 20, string searchText = "",string sortQuery ="")

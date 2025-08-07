@@ -55,6 +55,9 @@ namespace NobatPlusAPI.Models.Authenticate
         [Required(ErrorMessage = "لطفا {0} را وارد کنید")]
         [Range(1, long.MaxValue, ErrorMessage = "مقدار {0} باید بزرگتر از 0 باشد")]
         public int Gender { get; set; }
+
+        [Display(Name = "وضعیت فعال")]
+        public bool IsActive { get; set; }
         public SignupStylistRequestBody? stylist { get; set; }
         public AddEditAddressRequestBody? Address { get; set; }
 

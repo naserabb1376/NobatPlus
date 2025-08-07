@@ -29,14 +29,12 @@ namespace NobatPlusAPI.Controllers
     public class SMSMessageController : ControllerBase
     {
         ISMSMessageRep _SMSMessageRep;
-        IPersonRep _PersonRep;
         ILoginRep _LoginRep;
         ILogRep _logRep;
 
-        public SMSMessageController(ISMSMessageRep SMSMessageRep,IPersonRep personRep,ILoginRep loginRep,ILogRep logRep)
+        public SMSMessageController(ISMSMessageRep SMSMessageRep,ILoginRep loginRep,ILogRep logRep)
         {
            _SMSMessageRep = SMSMessageRep;
-            _PersonRep = personRep;
             _LoginRep = loginRep;
            _logRep = logRep;
         }

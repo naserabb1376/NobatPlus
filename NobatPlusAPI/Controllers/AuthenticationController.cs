@@ -123,6 +123,7 @@ namespace NobatPlusAPI.Controllers
                     };
 
                     var saverefreshToken = await _tokenRep.AddRefreshTokenAsync(refreshTokenRecord);
+                    var isstylist = await _stylistRep.ExistStylistAsync(authenticateResult.Result.PersonID.ToString(),"personid");
 
                     if (saverefreshToken.Status)
                     {
@@ -133,7 +134,11 @@ namespace NobatPlusAPI.Controllers
                             RefreshToken = refreshToken, // بازگرداندن رفرش توکن
                             AccessToken = accessToken, // بازگرداندن اکسس توکن
                             PersonId = authenticateResult.Result.PersonID,
-                            FullName = $"{authenticateResult.Result.Person.FirstName} {authenticateResult.Result.Person.LastName}"
+                            StylistId = isstylist.ID,
+                            IsActive = authenticateResult.Result.Person.IsActive,
+                            RoleId = authenticateResult.Result.Person.RoleId,
+                            FirstName = authenticateResult.Result.Person.FirstName,
+                            LastName = authenticateResult.Result.Person.LastName,
                         };
 
                         #region AddLog
@@ -410,6 +415,7 @@ namespace NobatPlusAPI.Controllers
                     CreateDate = DateTime.Now.ToShamsi(),
                     UpdateDate = DateTime.Now.ToShamsi(),
                     AddressID = (address != null && address.ID > 0) ? address.ID : null,
+                    IsActive = signupRequestBody.IsActive,
                     Description = "",
                 };
                 result = await _personRep.AddPersonAsync(person);

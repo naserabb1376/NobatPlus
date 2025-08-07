@@ -19,6 +19,6 @@ namespace NobatPlusDATA.DataLayer.Repositories
         public Task<BitResultObject> EditStylistAsync(Stylist Stylist);
         public Task<BitResultObject> RemoveStylistAsync(Stylist Stylist);
         public Task<BitResultObject> RemoveStylistAsync(long StylistId);
-        public Task<BitResultObject> ExistStylistAsync(long StylistId);
+        public Task<BitResultObject> ExistStylistAsync(string fieldValue, string fieldName);
     }
 }

@@ -5,8 +5,6 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
-using NobatPlusAPI.Models;
-using NobatPlusAPI.Models.Authenticate;
 using NobatPlusAPI.Models.Stylist;
 using NobatPlusAPI.Models.Public;
 using NobatPlusDATA.DataLayer.Repositories;
@@ -84,13 +82,13 @@ namespace NobatPlusAPI.Controllers
         }
 
         [HttpPost("ExistStylist_Base")]
-        public async Task<ActionResult<BitResultObject>> ExistStylist_Base(GetRowRequestBody requestBody)
+        public async Task<ActionResult<BitResultObject>> ExistStylist_Base(ExistStylistRequestBody requestBody)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(requestBody);
             }
-            var result = await _StylistRep.ExistStylistAsync(requestBody.ID);
+            var result = await _StylistRep.ExistStylistAsync(requestBody.FieldValue,requestBody.FieldName);
             if (string.IsNullOrEmpty(result.ErrorMessage))
             {
                 return Ok(result);
