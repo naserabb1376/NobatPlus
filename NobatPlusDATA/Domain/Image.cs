@@ -17,5 +17,7 @@ namespace NobatPlusDATA.Domain
         public string Description { get; set; } = ""; // توضیحات تصویر
         public long CreatorId { get; set; } = 0; // کاربر ایجاد کننده
         public int? Priority { get; set; }
+        public string? GetUrl { get; set; } // لینک دانلود
+
     }
 }

@@ -11,9 +11,7 @@ using NobatPlusDATA.DataLayer.Services;
 using NobatPlusDATA.Domain;
 using NobatPlusDATA.ResultObjects;
 using NobatPlusDATA.Tools;
-using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
-using System.Text;
+using FileIO = System.IO.File;
 using Domains;
 
 namespace NobatPlusAPI.Controllers
@@ -96,6 +94,7 @@ namespace NobatPlusAPI.Controllers
                 FilePath = requestBody.FilePath,
                 CreatorId = requestBody.CreatorId ?? 0,
                 Description = requestBody.Description ?? "",
+                GetUrl = requestBody.GetUrl ?? "",
             };
             var result = await _FileUploadRep.AddFileUploadAsync(FileUpload);
             if (result.Status)
@@ -145,6 +144,7 @@ namespace NobatPlusAPI.Controllers
                 FilePath = requestBody.FilePath,
                 CreatorId = requestBody.CreatorId ?? 0,
                 Description = requestBody.Description ?? "",
+                GetUrl = requestBody.GetUrl ?? "",
             };
             result = await _FileUploadRep.EditFileUploadAsync(FileUpload);
             if (result.Status)
@@ -173,6 +173,11 @@ namespace NobatPlusAPI.Controllers
             if (!ModelState.IsValid)
             {
                 return BadRequest(requestBody);
+            }
+            var theRow = await _FileUploadRep.GetFileUploadByIdAsync(requestBody.ID);
+            if (theRow.Result != null && FileIO.Exists(theRow.Result.FilePath))
+            {
+                FileIO.Delete(theRow.Result.FilePath);
             }
             var result = await _FileUploadRep.RemoveFileUploadAsync(requestBody.ID);
             if (result.Status)

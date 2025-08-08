@@ -1,11 +1,13 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using Domains;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System.Security.Claims;
 using Microsoft.Extensions.FileProviders;
+using NobatPlusAPI.Models.FileCenter;
 using NobatPlusDATA.DataLayer.Repositories;
 using NobatPlusDATA.Domain;
+using NobatPlusDATA.ResultObjects;
 using NobatPlusDATA.Tools;
-using Domains;
+using System.Security.Claims;
 
 [Route("FileCenter")]
 [ApiController]
@@ -34,7 +36,10 @@ public class FileCenterController : ControllerBase
             if (file == null || file.Length == 0)
                 return BadRequest("فایلی انتخاب نشده است.");
 
-            string fileName = "", fullPath=""; long RowNumber =0;    
+            fileType = fileType.ToLower();
+            entityName = entityName.ToLower();
+
+            string fileName = "", fullPath = ""; long RowNumber = 0;
             var userId = User?.FindFirst("userId")?.Value;
             if (string.IsNullOrEmpty(userId)) return Unauthorized();
 
@@ -44,8 +49,9 @@ public class FileCenterController : ControllerBase
 
             Directory.CreateDirectory(savePath);
             long resultId = 0;
+            string downloadUrl = "";
 
-            if (fileType.ToLower() == "images")
+            if (fileType == "images")
             {
                 RowNumber = await _imageRep.GetNewRowNumber();
                 fileName = $"{entityName}_{RowNumber}_{userId}{Path.GetExtension(file.FileName)}";
@@ -61,14 +67,19 @@ public class FileCenterController : ControllerBase
                     ForeignKeyId = rowId,
                     CreatorId = long.Parse(userId),
                 };
-                var removeoldResult = await _imageRep.RemoveOldImagesAsync(rowId,entityName);
+                var removeoldResult = await _imageRep.RemoveOldImagesAsync(rowId, entityName);
                 if (!removeoldResult.Status) return BadRequest(removeoldResult);
 
                 var saveResult = await _imageRep.AddImagesAsync(new List<Image> { theImage });
                 if (!saveResult.Status) return BadRequest(saveResult);
                 resultId = saveResult.ID;
+
+                downloadUrl = $"/filecenter/downloadfile?fileType={fileType}&rowId={resultId}&entityName={entityName}";
+                theImage.GetUrl = downloadUrl;
+                await _imageRep.EditImagesAsync(new List<Image>() { theImage });
+
             }
-            else if (fileType.ToLower() == "files")
+            else if (fileType == "files")
             {
                 RowNumber = await _fileUploadRep.GetNewRowNumber();
                 fileName = $"{entityName}_{RowNumber}_{userId}{Path.GetExtension(file.FileName)}";
@@ -80,7 +91,7 @@ public class FileCenterController : ControllerBase
                     UpdateDate = DateTime.Now.ToShamsi(),
                     FileName = fileName,
                     FilePath = fullPath,
-                    EntityType= entityName,
+                    EntityType = entityName,
                     ForeignKeyId = rowId,
                     ContentType = GetContentType(fullPath),
                     Description = isPublic ? "Public" : "Private",
@@ -92,6 +103,12 @@ public class FileCenterController : ControllerBase
                 var saveResult = await _fileUploadRep.AddFileUploadAsync(theFile);
                 if (!saveResult.Status) return BadRequest(saveResult);
                 resultId = saveResult.ID;
+
+                downloadUrl = $"/filecenter/downloadfile?fileType={fileType}&rowId={resultId}&entityName={entityName}";
+                theFile.GetUrl = downloadUrl;
+                await _fileUploadRep.EditFileUploadAsync(theFile);
+
+
             }
             else return BadRequest("Invalid File Category!");
 
@@ -112,7 +129,7 @@ public class FileCenterController : ControllerBase
                 success = true,
                 fileName,
                 resultId,
-                url = $"/filecenter/downloadfile?fileType={fileType}&rowId={resultId}&entityName={entityName}"
+                url = downloadUrl,
             });
         }
         catch (Exception ex)
@@ -170,6 +187,41 @@ public class FileCenterController : ControllerBase
             return BadRequest($"{ex.Message} - {ex.InnerException?.Message}");
         }
     }
+
+    [HttpPost("GetDownloadLinks_Base")]
+    public async Task<ActionResult<ListResultObject<string>>> GetDownloadLinks_Base(GetFileCenterDownloadListRequestBody requestBody)
+    {
+        requestBody.entityType = requestBody.entityType.ToLower();
+        requestBody.fileType = requestBody.fileType.ToLower();
+
+        var result = new List<ListResultObject<string>>();
+        dynamic resultrecords;
+
+        if (!ModelState.IsValid)
+        {
+            return BadRequest(requestBody);
+        }
+        switch (requestBody.fileType)
+        {
+            default:
+            case "files":
+                {
+                    resultrecords = await _fileUploadRep.GetAllFileUploadsAsync(requestBody.entityType, requestBody.ForeignKeyId, 0, requestBody.PageIndex, requestBody.PageSize, requestBody.SearchText, requestBody.SortQuery);
+                }
+                break;
+            case "images":
+                {
+                    resultrecords = await _imageRep.GetAllImagesAsync(requestBody.entityType, requestBody.ForeignKeyId, 0, requestBody.PageIndex, requestBody.PageSize, requestBody.SearchText, requestBody.SortQuery);
+                }
+                break;
+        }
+        if (resultrecords.Status)
+        {
+            return Ok(resultrecords);
+        }
+        return BadRequest(resultrecords);
+    }
+
 
     private string GetContentType(string path)
     {

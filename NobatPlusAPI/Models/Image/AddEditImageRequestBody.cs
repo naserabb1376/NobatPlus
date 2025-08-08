@@ -32,5 +32,8 @@ namespace NobatPlusAPI.Models.Image
         [Display(Name = "اولویت")]
         [Required(ErrorMessage = "لطفا {0} را وارد کنید")]
         public int? Priority { get; set; }
+
+        [Display(Name = "لینک دانلود")]
+        public string? GetUrl { get; set; } // لینک دانلود
     }
 }
