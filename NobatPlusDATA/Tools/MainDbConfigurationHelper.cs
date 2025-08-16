@@ -7,11 +7,11 @@ using System.Threading.Tasks;
 
 namespace NobatPlusDATA.Tools
 {
-    public class ConfigurationHelper
+    public class MainDbConfigurationHelper
     {
         public IConfigurationRoot Configuration { get; }
 
-        public ConfigurationHelper()
+        public MainDbConfigurationHelper()
         {
             // Build the configuration
             var builder = new ConfigurationBuilder()

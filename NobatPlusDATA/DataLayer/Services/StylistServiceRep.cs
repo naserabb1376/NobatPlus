@@ -16,9 +16,9 @@ namespace NobatPlusDATA.DataLayer.Services
     {
 
         private NobatPlusContext _context;
-        public StylistServiceRep()
+        public StylistServiceRep(NobatPlusContext context)
         {
-            _context = DbTools.GetDbContext();
+            _context = context;
         }
 
         public async Task<BitResultObject> AddStylistServicesAsync(List<StylistService> stylistServices)

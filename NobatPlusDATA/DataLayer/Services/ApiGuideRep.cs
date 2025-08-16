@@ -18,9 +18,9 @@ namespace NobatPlusDATA.DataLayer.Services
     {
 
         private NobatPlusContext _context;
-        public ApiGuideRep()
+        public ApiGuideRep(NobatPlusContext context)
         {
-            _context = DbTools.GetDbContext();
+            _context = context;
         }
 
         public async Task<BitResultObject> AddApiGuideAsync(ApiGuide ApiGuide)

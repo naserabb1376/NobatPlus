@@ -16,9 +16,9 @@ namespace NobatPlusDATA.DataLayer.Services
     {
 
         private NobatPlusContext _context;
-        public BookingServiceRep()
+        public BookingServiceRep(NobatPlusContext context)
         {
-            _context = DbTools.GetDbContext();
+            _context = context;
         }
 
 

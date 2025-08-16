@@ -17,9 +17,9 @@ namespace NobatPlusDATA.DataLayer.Services
     {
 
         private NobatPlusContext _context;
-        public JobTypeRep()
+        public JobTypeRep(NobatPlusContext context)
         {
-            _context = DbTools.GetDbContext();
+            _context = context;
         }
 
         public async Task<BitResultObject> AddJobTypeAsync(JobType JobType)

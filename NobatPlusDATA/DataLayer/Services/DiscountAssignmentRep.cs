@@ -18,9 +18,9 @@ namespace NobatPlusDATA.DataLayer.Services
     {
 
         private NobatPlusContext _context;
-        public DiscountAssignmentRep()
+        public DiscountAssignmentRep(NobatPlusContext context)
         {
-            _context = DbTools.GetDbContext();
+            _context = context;
         }
 
         public async Task<BitResultObject> AddDiscountAssignmentsAsync(List<DiscountAssignment> DiscountAssignments)

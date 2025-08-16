@@ -1,11 +1,15 @@
 ﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.RateLimiting;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Newtonsoft.Json;
 using NobatPlusAPI.Tools;
+using NobatPlusDATA.DataLayer;
 using NobatPlusDATA.DataLayer.Repositories;
 using NobatPlusDATA.DataLayer.Services;
+using NobatPlusDATA.Tools;
+using NobatPlusTokenDB.DataLayer;
 using Repositories;
 using Services;
 using System.Globalization;
@@ -133,6 +137,23 @@ namespace NobatPlusAPI
         { securityScheme, new string[] { } }
     });
             });
+
+            #region AddDbContext
+
+            var mainDbconfigHelper = new MainDbConfigurationHelper();
+
+            builder.Services.AddDbContext<NobatPlusContext>(options =>
+                options.UseSqlServer(mainDbconfigHelper.GetConnectionString("publicdb")));
+
+
+            var tokenDbconfigHelper = new TokenDbConfigurationHelper();
+
+            builder.Services.AddDbContext<RefreshTokenDBContext>(options =>
+                options.UseSqlServer(tokenDbconfigHelper.GetConnectionString("Tokenpublicdb")));
+
+            #endregion
+
+
 
             #region ImportDbServices
 

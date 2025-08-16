@@ -16,9 +16,9 @@ namespace NobatPlusDATA.DataLayer.Services
     {
         private NobatPlusContext _context;
 
-        public ImageRep()
+        public ImageRep(NobatPlusContext context)
         {
-            _context = DbTools.GetDbContext();
+            _context = context;
         }
 
         public async Task<BitResultObject> AddImagesAsync(List<Image> images)

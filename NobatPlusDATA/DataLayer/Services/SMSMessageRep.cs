@@ -18,9 +18,9 @@ namespace NobatPlusDATA.DataLayer.Services
     {
 
         private NobatPlusContext _context;
-        public SMSMessageRep()
+        public SMSMessageRep(NobatPlusContext context)
         {
-            _context = DbTools.GetDbContext();
+            _context = context;
         }
 
         public async Task<BitResultObject> AddSMSMessageAsync(SMSMessage SMSMessage)

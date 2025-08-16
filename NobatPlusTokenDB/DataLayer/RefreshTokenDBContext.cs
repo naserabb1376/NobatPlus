@@ -10,14 +10,10 @@ namespace NobatPlusTokenDB.DataLayer
 {
     public class RefreshTokenDBContext : DbContext
     {
-        public DbSet<RefreshToken> RefreshTokens { get; set; }
-
-        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+        public RefreshTokenDBContext(DbContextOptions<RefreshTokenDBContext> options)
+      : base(options)
         {
-            var configHelper = new ConfigurationHelper();
-            string _connectionString = configHelper.GetConnectionString("Tokenpublicdb");
-            optionsBuilder.UseSqlServer(_connectionString);
-            // تنظیمات دیتابیس
         }
+        public DbSet<RefreshToken> RefreshTokens { get; set; }
     }
 }

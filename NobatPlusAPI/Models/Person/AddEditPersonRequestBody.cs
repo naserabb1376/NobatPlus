@@ -23,9 +23,9 @@ namespace NobatPlusAPI.Models.Person
 
         [Required(ErrorMessage = "لطفا {0} را وارد کنید ")]
         [MaxLength(200)]
-        [RegularExpression(@"[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,4}", ErrorMessage = "پست الکترونیک معتبر نیست")]
+        //[RegularExpression(@"[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,4}", ErrorMessage = "پست الکترونیک معتبر نیست")]
         [Display(Name = "پست الکترونیک")]
-        public string Email { get; set; }
+        public string? Email { get; set; }
 
         [Display(Name = "شماره موبایل")]
         [Required(ErrorMessage = "لطفا {0} شخص را وارد کنید")]
@@ -85,10 +85,10 @@ namespace NobatPlusAPI.Models.Person
         [MaxLength(200)]
         [RegularExpression(@"[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,4}", ErrorMessage = "پست الکترونیک معتبر نیست")]
         [Display(Name = "پست الکترونیک")]
-        public string Email { get; set; }
+        public string? Email { get; set; }
 
         [Display(Name = "شماره موبایل")]
-        [Required(ErrorMessage = "لطفا {0} شخص را وارد کنید")]
+        //[Required(ErrorMessage = "لطفا {0} شخص را وارد کنید")]
         [RegularExpression(@"^([0-9]{11})$", ErrorMessage = "مقدار {0} باید 11 رقمی و فقط شامل اعداد باشد")]
         [MaxLength(11)]
         public string PhoneNumber { get; set; }

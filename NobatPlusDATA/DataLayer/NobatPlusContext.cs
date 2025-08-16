@@ -11,6 +11,11 @@ namespace NobatPlusDATA.DataLayer
     public class NobatPlusContext : DbContext
     {
 
+        public NobatPlusContext(DbContextOptions<NobatPlusContext> options)
+      : base(options)
+        {
+        }
+
         //Tables
 
         public DbSet<Person> Persons { get; set; }
@@ -47,13 +52,6 @@ namespace NobatPlusDATA.DataLayer
         // Views
 
         public DbSet<V_Customer> V_Customers { get; set; }
-
-        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-        {
-            var configHelper = new ConfigurationHelper();
-            string _connectionString = configHelper.GetConnectionString("publicdb");
-            optionsBuilder.UseSqlServer(_connectionString);
-        }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

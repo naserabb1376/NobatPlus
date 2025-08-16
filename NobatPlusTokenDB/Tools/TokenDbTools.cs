@@ -13,15 +13,6 @@ namespace NobatPlusTokenDB.Tools
     {
         private static RefreshTokenDBContext _context;
 
-        public static RefreshTokenDBContext GetDbContext()
-        {
-            //if (_context == null)
-            //{
-            _context = new RefreshTokenDBContext();
-            //}
-            return _context;
-        }
-
         public static List<T> ToPaging<T>(this List<T> list, int pageIndex = 1, int pageSize = 20)
         {
             if (pageSize > 0)

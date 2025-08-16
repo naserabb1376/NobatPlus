@@ -7,11 +7,11 @@ using System.Threading.Tasks;
 
 namespace System
 {
-    public class ConfigurationHelper
+    public class TokenDbConfigurationHelper
     {
         public IConfigurationRoot Configuration { get; }
 
-        public ConfigurationHelper()
+        public TokenDbConfigurationHelper()
         {
             // Build the configuration
             var builder = new ConfigurationBuilder()

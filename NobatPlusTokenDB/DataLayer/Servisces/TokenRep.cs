@@ -19,9 +19,9 @@ namespace Services
     {
         private RefreshTokenDBContext _context;
 
-        public TokenRep()
+        public TokenRep(RefreshTokenDBContext context)
         {
-            _context = TokenDbTools.GetDbContext();
+            _context = context;
         }
 
         public async Task<BitResultObject> AddRefreshTokenAsync(RefreshToken RefreshToken)

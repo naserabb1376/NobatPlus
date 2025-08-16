@@ -26,15 +26,6 @@ namespace NobatPlusDATA.Tools
             StylistService = 7,           
         }
 
-        public static NobatPlusContext GetDbContext()
-        {
-            //if (_context == null)
-            //{
-            _context = new NobatPlusContext();
-            //}
-            return _context;
-        }
-
         public static List<T> ToPaging<T>(this List<T> list, int pageIndex = 1, int pageSize = 20)
         {
             if (pageSize > 0)
