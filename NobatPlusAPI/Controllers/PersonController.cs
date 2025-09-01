@@ -93,21 +93,24 @@ namespace NobatPlusAPI.Controllers
             {
                 return BadRequest(requestBody);
             }
-
-            address = new Address()
+            if (requestBody.Address != null)
             {
-                CityID = requestBody.Address.CityID,
-                AddressLocationHorizentalPoint = requestBody.Address.AddressLocationHorizentalPoint,
-                AddressLocationVerticalPoint = requestBody.Address.AddressLocationVerticalPoint,
-                AddressPostalCode = requestBody.Address.AddressPostalCode,
-                AddressStreet = requestBody.Address.AddressStreet,
-                Description = requestBody.Address.AddressDescription,
-                CreateDate = DateTime.Now.ToShamsi(),
-                UpdateDate = DateTime.Now.ToShamsi(),
+                address = new Address()
+                {
+                    CityID = requestBody.Address.CityID,
+                    AddressLocationHorizentalPoint = requestBody.Address.AddressLocationHorizentalPoint,
+                    AddressLocationVerticalPoint = requestBody.Address.AddressLocationVerticalPoint,
+                    AddressPostalCode = requestBody.Address.AddressPostalCode,
+                    AddressStreet = requestBody.Address.AddressStreet,
+                    Description = requestBody.Address.AddressDescription,
+                    CreateDate = DateTime.Now.ToShamsi(),
+                    UpdateDate = DateTime.Now.ToShamsi(),
 
-            };
+                };
 
-            result = await _addressRep.AddAddressAsync(address);
+                result = await _addressRep.AddAddressAsync(address);
+            }
+          
 
             if (result.Status)
             {
@@ -116,7 +119,7 @@ namespace NobatPlusAPI.Controllers
                 {
                     CreateDate = DateTime.Now.ToShamsi(),
                     UpdateDate = DateTime.Now.ToShamsi(),
-                    AddressID = address.ID,
+                    AddressID = (address != null && address.ID > 0) ? address.ID : null,
                     DateOfBirth = requestBody.DateOfBirth.StringToDate(),
                     FirstName = requestBody.FirstName,
                     LastName = requestBody.LastName,
@@ -158,6 +161,7 @@ namespace NobatPlusAPI.Controllers
         public async Task<ActionResult<BitResultObject>> EditPerson(AddEditPersonProRequestBody requestBody)
         {
             var result = new BitResultObject();
+            Address address = new Address();
             if (!ModelState.IsValid)
             {
                 return BadRequest(requestBody);
@@ -168,24 +172,25 @@ namespace NobatPlusAPI.Controllers
                 result.Status = theRow.Status;
                 result.ErrorMessage = theRow.ErrorMessage;
             }
-
-            Address address = new Address()
+            if (requestBody.Address != null)
             {
-                CityID = requestBody.Address.CityID,
-                ID = theRow.Result.Address.ID,
-                AddressLocationHorizentalPoint = requestBody.Address.AddressLocationHorizentalPoint,
-                AddressLocationVerticalPoint = requestBody.Address.AddressLocationVerticalPoint,
-                AddressPostalCode = requestBody.Address.AddressPostalCode,
-                AddressStreet = requestBody.Address.AddressStreet,
-                Description = requestBody.Address.AddressDescription,
-                CreateDate = theRow.Result.Address.CreateDate,
-                UpdateDate = DateTime.Now.ToShamsi(),
+                address = new Address()
+                {
+                    CityID = requestBody.Address.CityID,
+                    ID = (theRow.Result.Address != null && theRow.Result.Address.ID > 0) ? theRow.Result.Address.ID : 0,
+                    AddressLocationHorizentalPoint = requestBody.Address.AddressLocationHorizentalPoint,
+                    AddressLocationVerticalPoint = requestBody.Address.AddressLocationVerticalPoint,
+                    AddressPostalCode = requestBody.Address.AddressPostalCode,
+                    AddressStreet = requestBody.Address.AddressStreet,
+                    Description = requestBody.Address.AddressDescription,
+                    CreateDate = theRow.Result.Address.CreateDate,
+                    UpdateDate = DateTime.Now.ToShamsi(),
 
-            };
+                };
 
-            result = await _addressRep.EditAddressAsync(address);
-
-
+                result = await _addressRep.EditAddressAsync(address);
+            }
+           
             if (result.Status)
             {
 

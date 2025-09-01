@@ -37,6 +37,7 @@ namespace NobatPlusAPI.Controllers
         }
 
         [HttpPost("GetAllCheckAvailabilities_Base")]
+        [AllowAnonymous]
         public async Task<ActionResult<ListResultObject<CheckAvailability>>> GetAllCheckAvailabilities_Base(GetCheckAvailabilityListRequestBody requestBody)
         {
             if (!ModelState.IsValid)
