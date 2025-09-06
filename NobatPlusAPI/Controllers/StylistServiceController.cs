@@ -37,6 +37,7 @@ namespace NobatPlusAPI.Controllers
         }
 
         [HttpPost("GetAllStylistServices_Base")]
+        [AllowAnonymous]
         public async Task<ActionResult<ListResultObject<StylistService>>> GetAllStylistServices_Base(GetStylistServiceListRequestBody requestBody)
         {
             var result = new ListResultObject<StylistService>();

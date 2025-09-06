@@ -101,12 +101,12 @@ namespace NobatPlusDATA.DataLayer.Services
             {
                 IQueryable<Stylist> query = _context.Stylists.Include(x => x.Person).ThenInclude(x => x.Address).ThenInclude(x => x.City).Include(x => x.JobType).AsNoTracking();
 
-                if (parentId > 0)
+                if (parentId >= 0)
                 {
                     query = query.Where(x=> x.StylistParentID == parentId);
                 }
 
-                if (parentId == -1)
+                if (parentId < 0)
                 {
                     query = query.Where(x => x.StylistParentID > 0);
                 }
