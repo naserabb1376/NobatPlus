@@ -14,6 +14,7 @@ namespace NobatPlusDATA.Domain
 
         public ICollection<Booking> Bookings { get; set; }
         public ICollection<Review> Reviews { get; set; }
+        public ICollection<RateHistory> RateHistories { get; set; }
         public ICollection<CustomerDiscount> CustomerDiscounts { get; set; }
     }
 }

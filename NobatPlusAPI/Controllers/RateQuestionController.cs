@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 using NobatPlusAPI.Models;
 using NobatPlusAPI.Models.Authenticate;
-using NobatPlusAPI.Models.Review;
+using NobatPlusAPI.Models.RateQuestion;
 using NobatPlusAPI.Models.Public;
 using NobatPlusDATA.DataLayer.Repositories;
 using NobatPlusDATA.DataLayer.Services;
@@ -20,31 +20,30 @@ using System.Text;
 
 namespace NobatPlusAPI.Controllers
 {
-    [Route("Review")]
+    [Route("RateQuestion")]
     [ApiController]
     [Authorize]
     [Produces("application/json")]
 
-    public class ReviewController : ControllerBase
+    public class RateQuestionController : ControllerBase
     {
-        IReviewRep _ReviewRep;
+        IRateQuestionRep _RateQuestionRep;
         ILogRep _logRep;
 
-        public ReviewController(IReviewRep ReviewRep,ILogRep logRep)
+        public RateQuestionController(IRateQuestionRep RateQuestionRep,ILogRep logRep)
         {
-           _ReviewRep = ReviewRep;
+           _RateQuestionRep = RateQuestionRep;
            _logRep = logRep;
         }
 
-        [HttpPost("GetAllReviews_Base")]
-        [AllowAnonymous]
-        public async Task<ActionResult<ListResultObject<Review>>> GetAllReviews_Base(GetReviewListRequestBody requestBody)
+        [HttpPost("GetAllRateQuestions_Base")]
+        public async Task<ActionResult<ListResultObject<RateQuestion>>> GetAllRateQuestions_Base(GetRateQuestionListRequestBody requestBody)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(requestBody);
             }
-            var result = await _ReviewRep.GetAllReviewsAsync(requestBody.BookingId,requestBody.CustomerId,requestBody.PageIndex,requestBody.PageSize,requestBody.SearchText,requestBody.SortQuery);
+            var result = await _RateQuestionRep.GetAllRateQuestionsAsync(requestBody.PageIndex,requestBody.PageSize,requestBody.SearchText,requestBody.SortQuery);
             if (result.Status)
             {
                 return Ok(result);
@@ -52,14 +51,14 @@ namespace NobatPlusAPI.Controllers
             return BadRequest(result);
         }
 
-        [HttpPost("GetReviewById_Base")]
-        public async Task<ActionResult<RowResultObject<Review>>> GetReviewById_Base(GetRowRequestBody requestBody)
+        [HttpPost("GetRateQuestionById_Base")]
+        public async Task<ActionResult<RowResultObject<RateQuestion>>> GetRateQuestionById_Base(GetRowRequestBody requestBody)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(requestBody);
             }
-            var result = await _ReviewRep.GetReviewByIdAsync(requestBody.ID);
+            var result = await _RateQuestionRep.GetRateQuestionByIdAsync(requestBody.ID);
             if (result.Status)
             {
                 return Ok(result);
@@ -67,14 +66,14 @@ namespace NobatPlusAPI.Controllers
             return BadRequest(result);
         }
 
-        [HttpPost("ExistReview_Base")]
-        public async Task<ActionResult<BitResultObject>> ExistReview_Base(GetRowRequestBody requestBody)
+        [HttpPost("ExistRateQuestion_Base")]
+        public async Task<ActionResult<BitResultObject>> ExistRateQuestion_Base(GetRowRequestBody requestBody)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(requestBody);
             }
-            var result = await _ReviewRep.ExistReviewAsync(requestBody.ID);
+            var result = await _RateQuestionRep.ExistRateQuestionAsync(requestBody.ID);
             if (string.IsNullOrEmpty(result.ErrorMessage))
             {
                 return Ok(result);
@@ -82,28 +81,21 @@ namespace NobatPlusAPI.Controllers
             return BadRequest(result);
         }
 
-        [HttpPost("AddReview_Base")]
-        public async Task<ActionResult<BitResultObject>> AddReview_Base(AddEditReviewRequestBody requestBody)
+        [HttpPost("AddRateQuestion_Base")]
+        public async Task<ActionResult<BitResultObject>> AddRateQuestion_Base(AddEditRateQuestionRequestBody requestBody)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(requestBody);
             }
-            Review Review = new Review()
+            RateQuestion RateQuestion = new RateQuestion()
             {
                 CreateDate = DateTime.Now.ToShamsi(),
                 UpdateDate = DateTime.Now.ToShamsi(),
-                BookingID = requestBody.BookingID,
-                Comments = requestBody.Comments,
-                CustomerID = requestBody.CustomerID,
-                DislikeCount = requestBody.DislikeCount,
-                LikeCount = requestBody.LikeCount,
-                Rating = requestBody.Rating,
-                Status = requestBody.Status,
-                ReviewDate = requestBody.ReviewDate ?? DateTime.Now.ToShamsi(),
+                RateQuestionText = requestBody.RateQuestionText,
                 Description = requestBody.Description,
             };
-            var result = await _ReviewRep.AddReviewAsync(Review);
+            var result = await _RateQuestionRep.AddRateQuestionAsync(RateQuestion);
             if (result.Status)
             {
                 #region AddLog
@@ -126,37 +118,30 @@ namespace NobatPlusAPI.Controllers
             return BadRequest(result);
         }
 
-        [HttpPut("EditReview_Base")]
-        public async Task<ActionResult<BitResultObject>> EditReview_Base(AddEditReviewRequestBody requestBody)
+        [HttpPut("EditRateQuestion_Base")]
+        public async Task<ActionResult<BitResultObject>> EditRateQuestion_Base(AddEditRateQuestionRequestBody requestBody)
         {
             var result = new BitResultObject();
             if (!ModelState.IsValid)
             {
                 return BadRequest(requestBody);
             }
-            var theRow = await _ReviewRep.GetReviewByIdAsync(requestBody.ID);
+            var theRow = await _RateQuestionRep.GetRateQuestionByIdAsync(requestBody.ID);
             if (!theRow.Status)
             {
                 result.Status = theRow.Status;
                 result.ErrorMessage = theRow.ErrorMessage;
             }
 
-            Review Review = new Review()
+            RateQuestion RateQuestion = new RateQuestion()
             {
                 CreateDate = theRow.Result.CreateDate,
                 UpdateDate = DateTime.Now.ToShamsi(),
                 ID = requestBody.ID,
-                BookingID = requestBody.BookingID,
-                Comments = requestBody.Comments,
-                CustomerID = requestBody.CustomerID,
-                DislikeCount = requestBody.DislikeCount,
-                LikeCount = requestBody.LikeCount,
-                Rating = requestBody.Rating,
-                Status = requestBody.Status,
-                ReviewDate = requestBody.ReviewDate ?? DateTime.Now.ToShamsi(),
+                RateQuestionText = requestBody.RateQuestionText,
                 Description = requestBody.Description,
             };
-            result = await _ReviewRep.EditReviewAsync(Review);
+            result = await _RateQuestionRep.EditRateQuestionAsync(RateQuestion);
             if (result.Status)
             {
 
@@ -179,14 +164,14 @@ namespace NobatPlusAPI.Controllers
             return BadRequest(result);
         }
 
-        [HttpDelete("DeleteReview_Base")]
-        public async Task<ActionResult<BitResultObject>> DeleteReview_Base(GetRowRequestBody requestBody)
+        [HttpDelete("DeleteRateQuestion_Base")]
+        public async Task<ActionResult<BitResultObject>> DeleteRateQuestion_Base(GetRowRequestBody requestBody)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(requestBody);
             }
-            var result = await _ReviewRep.RemoveReviewAsync(requestBody.ID);
+            var result = await _RateQuestionRep.RemoveRateQuestionAsync(requestBody.ID);
             if (result.Status)
             {
 

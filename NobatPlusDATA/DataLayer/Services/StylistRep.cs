@@ -94,9 +94,9 @@ namespace NobatPlusDATA.DataLayer.Services
             return result;
         }
 
-        public async Task<ListResultObject<Stylist>> GetAllStylistsAsync(long parentId = 0,long cityId = 0, int pageIndex = 1, int pageSize = 20, string searchText = "",string sortQuery ="")
+        public async Task<ListResultObject<StylistDTO>> GetAllStylistsAsync(long parentId = 0,long cityId = 0, int pageIndex = 1, int pageSize = 20, string searchText = "",string sortQuery ="")
         {
-            ListResultObject<Stylist> results = new ListResultObject<Stylist>();
+            ListResultObject<StylistDTO> results = new ListResultObject<StylistDTO>();
             try
             {
                 IQueryable<Stylist> query = _context.Stylists.Include(x => x.Person).ThenInclude(x => x.Address).ThenInclude(x => x.City).Include(x => x.JobType).AsNoTracking();
@@ -143,7 +143,36 @@ namespace NobatPlusDATA.DataLayer.Services
                 results.PageCount = DbTools.GetPageCount(results.TotalCount, pageSize);
                 results.Results = await query.OrderByDescending(x => x.CreateDate)
                 .SortBy(sortQuery).ToPaging(pageIndex, pageSize)
-                .ToListAsync();
+                .Select(r => new StylistDTO
+                {
+                    ID = r.ID,
+                    Description = r.Description ?? "",
+                    UpdateDate = r.UpdateDate,
+                    CreateDate = r.CreateDate,
+                    AccountStatus = r.AccountStatus ?? "",
+                    PayMethod = r.PayMethod ?? "",
+                    IsWorkShop = r.IsWorkShop,
+                    GenderAccepted = r.GenderAccepted ?? "",
+                    JobType = r.JobType,
+                    JobTypeID = r.JobTypeID,
+                    Person = r.Person,
+                    PersonID = r.PersonID,
+                    Specialty = r.Specialty ?? "",
+                    StylistBio = r.StylistBio ?? "",
+                    StylistName = r.StylistName ?? "",
+                    StylistParentID = r.StylistParentID,
+                    WorkShopDepositAmount = r.WorkShopDepositAmount,
+                    WorkShopInteractMode = r.WorkShopInteractMode ?? "",
+                    WorkShopRentAmount = r.WorkShopRentAmount,
+                    YearsOfExperience = r.YearsOfExperience,
+
+                    // محاسباتی
+                    AvgScoreForStylist = _context.RateHistories
+                         .Where(x => x.StylistID == r.ID)
+                         .Any()
+                             ? _context.RateHistories.Where(x => x.StylistID == r.ID).Average(r => r.RateScore)
+                             : 0
+                }).ToListAsync();
             }
             catch (Exception ex)
             {
@@ -154,9 +183,9 @@ namespace NobatPlusDATA.DataLayer.Services
            
         }
 
-        public async Task<ListResultObject<Stylist>> GetStylistsOfServiceAsync(long serviceManagementId,long cityId = 0, int pageIndex = 1, int pageSize = 20, string searchText = "",string sortQuery ="")
+        public async Task<ListResultObject<StylistDTO>> GetStylistsOfServiceAsync(long serviceManagementId,long cityId = 0, int pageIndex = 1, int pageSize = 20, string searchText = "",string sortQuery ="")
         {
-            ListResultObject<Stylist> results = new ListResultObject<Stylist>();
+            ListResultObject<StylistDTO> results = new ListResultObject<StylistDTO>();
             try
             {
                 var query = _context.StylistServices
@@ -192,6 +221,36 @@ namespace NobatPlusDATA.DataLayer.Services
                 results.PageCount = DbTools.GetPageCount(results.TotalCount, pageSize);
                 results.Results = await query.OrderByDescending(x => x.CreateDate)
                 .SortBy(sortQuery).ToPaging(pageIndex, pageSize)
+                .Select(r => new StylistDTO
+                {
+                    ID = r.ID,
+                    Description = r.Description ?? "",
+                    UpdateDate = r.UpdateDate,
+                    CreateDate = r.CreateDate,
+                    AccountStatus = r.AccountStatus ?? "",
+                    PayMethod = r.PayMethod ?? "",
+                    IsWorkShop = r.IsWorkShop,
+                    GenderAccepted = r.GenderAccepted ?? "",
+                    JobType = r.JobType,
+                    JobTypeID = r.JobTypeID,
+                    Person = r.Person,
+                    PersonID = r.PersonID,
+                    Specialty = r.Specialty ?? "",
+                    StylistBio = r.StylistBio ?? "",
+                    StylistName = r.StylistName ?? "",
+                    StylistParentID = r.StylistParentID,
+                    WorkShopDepositAmount = r.WorkShopDepositAmount,
+                    WorkShopInteractMode = r.WorkShopInteractMode ?? "",
+                    WorkShopRentAmount = r.WorkShopRentAmount,
+                    YearsOfExperience = r.YearsOfExperience,
+
+                    // محاسباتی
+                    AvgScoreForStylist = _context.RateHistories
+                         .Where(x => x.StylistID == r.ID)
+                         .Any()
+                             ? _context.RateHistories.Where(x => x.StylistID == r.ID).Average(r => r.RateScore)
+                             : 0
+                })
                 .ToListAsync();
 
             }
@@ -204,9 +263,9 @@ namespace NobatPlusDATA.DataLayer.Services
            
         }
 
-        public async Task<ListResultObject<Stylist>> GetStylistsOfJobTypeAsync(long JobTypeId,long cityId = 0, int pageIndex = 1, int pageSize = 20, string searchText = "",string sortQuery ="")
+        public async Task<ListResultObject<StylistDTO>> GetStylistsOfJobTypeAsync(long JobTypeId,long cityId = 0, int pageIndex = 1, int pageSize = 20, string searchText = "",string sortQuery ="")
         {
-            ListResultObject<Stylist> results = new ListResultObject<Stylist>();
+            ListResultObject<StylistDTO> results = new ListResultObject<StylistDTO>();
             try
             {
                 var query = _context.Stylists
@@ -241,6 +300,36 @@ namespace NobatPlusDATA.DataLayer.Services
                 results.PageCount = DbTools.GetPageCount(results.TotalCount, pageSize);
                 results.Results = await query.OrderByDescending(x => x.CreateDate)
                 .SortBy(sortQuery).ToPaging(pageIndex, pageSize)
+                 .Select(r => new StylistDTO
+                 {
+                     ID = r.ID,
+                     Description = r.Description ?? "",
+                     UpdateDate = r.UpdateDate,
+                     CreateDate = r.CreateDate,
+                     AccountStatus = r.AccountStatus ?? "",
+                     PayMethod = r.PayMethod ?? "",
+                     IsWorkShop = r.IsWorkShop,
+                     GenderAccepted = r.GenderAccepted ?? "",
+                     JobType = r.JobType,
+                     JobTypeID = r.JobTypeID,
+                     Person = r.Person,
+                     PersonID = r.PersonID,
+                     Specialty = r.Specialty ?? "",
+                     StylistBio = r.StylistBio ?? "",
+                     StylistName = r.StylistName ?? "",
+                     StylistParentID = r.StylistParentID,
+                     WorkShopDepositAmount = r.WorkShopDepositAmount,
+                     WorkShopInteractMode = r.WorkShopInteractMode ?? "",
+                     WorkShopRentAmount = r.WorkShopRentAmount,
+                     YearsOfExperience = r.YearsOfExperience,
+
+                     // محاسباتی
+                     AvgScoreForStylist = _context.RateHistories
+                         .Where(x => x.StylistID == r.ID)
+                         .Any()
+                             ? _context.RateHistories.Where(x => x.StylistID == r.ID).Average(r => r.RateScore)
+                             : 0
+                 })
                 .ToListAsync();
 
             }
@@ -253,9 +342,9 @@ namespace NobatPlusDATA.DataLayer.Services
       
         }
 
-        public async Task<ListResultObject<Stylist>> GetStylistsOfDiscountAsync(long DiscountId,long cityId = 0, int pageIndex = 1, int pageSize = 20, string searchText = "",string sortQuery ="")
+        public async Task<ListResultObject<StylistDTO>> GetStylistsOfDiscountAsync(long DiscountId,long cityId = 0, int pageIndex = 1, int pageSize = 20, string searchText = "",string sortQuery ="")
         {
-            ListResultObject<Stylist> results = new ListResultObject<Stylist>();
+            ListResultObject<StylistDTO> results = new ListResultObject<StylistDTO>();
             try
             {
                 var discountAssignments = _context.DiscountAssignments
@@ -306,6 +395,36 @@ namespace NobatPlusDATA.DataLayer.Services
                 results.PageCount = DbTools.GetPageCount(results.TotalCount, pageSize);
                 results.Results = await query.OrderByDescending(x => x.CreateDate)
                 .SortBy(sortQuery).ToPaging(pageIndex, pageSize)
+                 .Select(r => new StylistDTO
+                 {
+                     ID = r.ID,
+                     Description = r.Description ?? "",
+                     UpdateDate = r.UpdateDate,
+                     CreateDate = r.CreateDate,
+                     AccountStatus = r.AccountStatus ?? "",
+                     PayMethod = r.PayMethod ?? "",
+                     IsWorkShop = r.IsWorkShop,
+                     GenderAccepted = r.GenderAccepted ?? "",
+                     JobType = r.JobType,
+                     JobTypeID = r.JobTypeID,
+                     Person = r.Person,
+                     PersonID = r.PersonID,
+                     Specialty = r.Specialty ?? "",
+                     StylistBio = r.StylistBio ?? "",
+                     StylistName = r.StylistName ?? "",
+                     StylistParentID = r.StylistParentID,
+                     WorkShopDepositAmount = r.WorkShopDepositAmount,
+                     WorkShopInteractMode = r.WorkShopInteractMode ?? "",
+                     WorkShopRentAmount = r.WorkShopRentAmount,
+                     YearsOfExperience = r.YearsOfExperience,
+
+                     // محاسباتی
+                     AvgScoreForStylist = _context.RateHistories
+                         .Where(x => x.StylistID == r.ID)
+                         .Any()
+                             ? _context.RateHistories.Where(x => x.StylistID == r.ID).Average(r => r.RateScore)
+                             : 0
+                 })
                 .ToListAsync();
 
             }
@@ -318,12 +437,47 @@ namespace NobatPlusDATA.DataLayer.Services
             
         }
 
-        public async Task<RowResultObject<Stylist>> GetStylistByIdAsync(long StylistId)
+        public async Task<RowResultObject<StylistDTO>> GetStylistByIdAsync(long StylistId)
         {
-            RowResultObject<Stylist> result = new RowResultObject<Stylist>();
+            RowResultObject<StylistDTO> result = new RowResultObject<StylistDTO>();
             try
             {
-                result.Result = await _context.Stylists.AsNoTracking().SingleOrDefaultAsync(x => x.ID == StylistId);
+                result.Result = await _context.Stylists.Include(x => x.Person).ThenInclude(x => x.Address).ThenInclude(x => x.City)
+               .Include(x => x.JobType)
+                    .Where(x=> x.ID == StylistId)
+                     .Select(r => new StylistDTO
+                     {
+                         ID = r.ID,
+                         Description = r.Description ?? "",
+                         UpdateDate = r.UpdateDate,
+                         CreateDate = r.CreateDate,
+                         AccountStatus = r.AccountStatus ?? "",
+                         PayMethod = r.PayMethod ?? "",
+                         IsWorkShop = r.IsWorkShop,
+                         GenderAccepted = r.GenderAccepted ?? "",
+                         JobType = r.JobType,
+                         JobTypeID = r.JobTypeID,
+                         Person = r.Person,
+                         PersonID = r.PersonID,
+                         Specialty = r.Specialty ?? "",
+                         StylistBio = r.StylistBio ?? "",
+                         StylistName = r.StylistName ?? "",
+                         StylistParentID = r.StylistParentID,
+                         WorkShopDepositAmount = r.WorkShopDepositAmount,
+                         WorkShopInteractMode = r.WorkShopInteractMode ?? "",
+                         WorkShopRentAmount = r.WorkShopRentAmount,
+                         YearsOfExperience = r.YearsOfExperience,
+
+                        // محاسباتی
+                              AvgScoreForStylist = _context.RateHistories
+                         .Where(x => x.StylistID == r.ID)
+                         .Any()
+                             ? _context.RateHistories.Where(x => x.StylistID == r.ID).Average(r => r.RateScore)
+                             : 0
+                     })
+                    .AsNoTracking().SingleOrDefaultAsync();
+
+         
             }
             catch (Exception ex)
             {
@@ -358,8 +512,39 @@ namespace NobatPlusDATA.DataLayer.Services
             BitResultObject result = new BitResultObject();
             try
             {
-                var stylist = await GetStylistByIdAsync(StylistId);
-                result = await RemoveStylistAsync(stylist.Result);
+                var stylistDTO = await GetStylistByIdAsync(StylistId);
+                var stylist = new Stylist()
+                 {
+                     ID = stylistDTO.Result.ID,
+                     Description = stylistDTO.Result.Description,
+                     UpdateDate = stylistDTO.Result.UpdateDate,
+                     CreateDate = stylistDTO.Result.CreateDate,
+                     AccountStatus = stylistDTO.Result.AccountStatus,
+                     PayMethod = stylistDTO.Result.PayMethod,
+                     Bookings = stylistDTO.Result.Bookings,
+                     CustomerDiscounts = stylistDTO.Result.CustomerDiscounts,
+                     IsWorkShop = stylistDTO.Result.IsWorkShop,
+                     GenderAccepted = stylistDTO.Result.GenderAccepted,
+                     DiscountAssignments = stylistDTO.Result.DiscountAssignments,
+                     JobType = stylistDTO.Result.JobType,
+                     JobTypeID = stylistDTO.Result.JobTypeID,
+                     Person = stylistDTO.Result.Person,
+                     PersonID = stylistDTO.Result.PersonID,
+                     RateHistories = stylistDTO.Result.RateHistories,
+                     ServiceDiscounts = stylistDTO.Result.ServiceDiscounts,
+                     SocialNetworks = stylistDTO.Result.SocialNetworks,
+                     Specialty = stylistDTO.Result.Specialty,
+                     StylistBio = stylistDTO.Result.StylistBio,
+                     StylistName = stylistDTO.Result.StylistName,
+                     StylistParentID = stylistDTO.Result.StylistParentID,
+                     StylistServices = stylistDTO.Result.StylistServices,
+                     WorkShopDepositAmount = stylistDTO.Result.WorkShopDepositAmount,
+                     WorkShopInteractMode = stylistDTO.Result.WorkShopInteractMode,
+                     WorkShopRentAmount = stylistDTO.Result.WorkShopRentAmount,
+                     WorkTimes = stylistDTO.Result.WorkTimes,
+                     YearsOfExperience = stylistDTO.Result.YearsOfExperience,
+                 };
+                result = await RemoveStylistAsync(stylist);
             }
             catch (Exception ex)
             {

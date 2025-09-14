@@ -38,9 +38,9 @@ namespace NobatPlusAPI.Controllers
 
         [HttpPost("GetAllStylists_Base")]
         [AllowAnonymous]
-        public async Task<ActionResult<ListResultObject<Stylist>>> GetAllStylists_Base(GetStylistListRequestBody requestBody)
+        public async Task<ActionResult<ListResultObject<StylistDTO>>> GetAllStylists_Base(GetStylistListRequestBody requestBody)
         {
-            ListResultObject<Stylist> result = new ListResultObject<Stylist>();
+            ListResultObject<StylistDTO> result = new ListResultObject<StylistDTO>();
             if (!ModelState.IsValid)
             {
                 return BadRequest(requestBody);
@@ -67,7 +67,8 @@ namespace NobatPlusAPI.Controllers
         }
 
         [HttpPost("GetStylistById_Base")]
-        public async Task<ActionResult<RowResultObject<Stylist>>> GetStylistById_Base(GetRowRequestBody requestBody)
+        [AllowAnonymous]
+        public async Task<ActionResult<RowResultObject<StylistDTO>>> GetStylistById_Base(GetRowRequestBody requestBody)
         {
             if (!ModelState.IsValid)
             {

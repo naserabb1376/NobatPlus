@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using NobatPlusDATA.DataLayer;
 
@@ -11,9 +12,11 @@ using NobatPlusDATA.DataLayer;
 namespace NobatPlusDATA.Migrations
 {
     [DbContext(typeof(NobatPlusContext))]
-    partial class NobatPlusContextModelSnapshot : ModelSnapshot
+    [Migration("20250911110505_AddRateQuestions1")]
+    partial class AddRateQuestions1
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -771,37 +774,28 @@ namespace NobatPlusDATA.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("ID"));
 
-                    b.Property<DateTime?>("CreateDate")
+                    b.Property<DateTime>("BookingDate")
                         .HasColumnType("datetime2");
 
-                    b.Property<long>("CustomerID")
+                    b.Property<long>("BookingID")
                         .HasColumnType("bigint");
+
+                    b.Property<DateTime?>("CreateDate")
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("Description")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<DateTime>("RateDate")
-                        .HasColumnType("datetime2");
-
                     b.Property<long>("RateQuestionID")
                         .HasColumnType("bigint");
 
-                    b.Property<float>("RateScore")
-                        .HasColumnType("real");
-
-                    b.Property<long>("StylistID")
-                        .HasColumnType("bigint");
+                    b.Property<int>("RateScore")
+                        .HasColumnType("int");
 
                     b.Property<DateTime?>("UpdateDate")
                         .HasColumnType("datetime2");
 
                     b.HasKey("ID");
-
-                    b.HasIndex("CustomerID");
-
-                    b.HasIndex("RateQuestionID");
-
-                    b.HasIndex("StylistID");
 
                     b.ToTable("RateHistories");
                 });
@@ -1479,33 +1473,6 @@ namespace NobatPlusDATA.Migrations
                     b.Navigation("Address");
                 });
 
-            modelBuilder.Entity("NobatPlusDATA.Domain.RateHistory", b =>
-                {
-                    b.HasOne("NobatPlusDATA.Domain.Customer", "Customer")
-                        .WithMany("RateHistories")
-                        .HasForeignKey("CustomerID")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired();
-
-                    b.HasOne("NobatPlusDATA.Domain.RateQuestion", "RateQuestion")
-                        .WithMany()
-                        .HasForeignKey("RateQuestionID")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("NobatPlusDATA.Domain.Stylist", "Stylist")
-                        .WithMany("RateHistories")
-                        .HasForeignKey("StylistID")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired();
-
-                    b.Navigation("Customer");
-
-                    b.Navigation("RateQuestion");
-
-                    b.Navigation("Stylist");
-                });
-
             modelBuilder.Entity("NobatPlusDATA.Domain.Register", b =>
                 {
                     b.HasOne("NobatPlusDATA.Domain.Person", "Person")
@@ -1656,8 +1623,6 @@ namespace NobatPlusDATA.Migrations
 
                     b.Navigation("CustomerDiscounts");
 
-                    b.Navigation("RateHistories");
-
                     b.Navigation("Reviews");
                 });
 
@@ -1696,8 +1661,6 @@ namespace NobatPlusDATA.Migrations
                     b.Navigation("CustomerDiscounts");
 
                     b.Navigation("DiscountAssignments");
-
-                    b.Navigation("RateHistories");
 
                     b.Navigation("ServiceDiscounts");
 

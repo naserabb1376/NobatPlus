@@ -16,6 +16,11 @@ namespace NobatPlusDATA.DataLayer
         {
         }
 
+        public NobatPlusContext()
+        {
+
+        }
+
         //Tables
 
         public DbSet<Person> Persons { get; set; }
@@ -47,11 +52,20 @@ namespace NobatPlusDATA.DataLayer
         public DbSet<FileUpload> FileUploads { get; set; }
         public DbSet<Image> Images { get; set; }
         public DbSet<ApiGuide> ApiGuides { get; set; }
+        public DbSet<RateQuestion> RateQuestions { get; set; }
+        public DbSet<RateHistory> RateHistories { get; set; }
 
 
         // Views
 
         public DbSet<V_Customer> V_Customers { get; set; }
+
+        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+        {
+            MainDbConfigurationHelper configurationHelper = new MainDbConfigurationHelper();
+            optionsBuilder.UseSqlServer(configurationHelper.GetConnectionString("publicdb"));
+            //  base.OnConfiguring(optionsBuilder);
+        }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -164,6 +178,18 @@ namespace NobatPlusDATA.DataLayer
                 .HasOne(cd => cd.Customer)
                 .WithMany(s => s.Reviews)
                 .HasForeignKey(cd => cd.CustomerID)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            modelBuilder.Entity<RateHistory>()
+     .HasOne(r => r.Customer)
+     .WithMany(c => c.RateHistories)
+     .HasForeignKey(r => r.CustomerID)
+     .OnDelete(DeleteBehavior.NoAction);
+
+            modelBuilder.Entity<RateHistory>()
+                .HasOne(r => r.Stylist)
+                .WithMany(s => s.RateHistories)
+                .HasForeignKey(r => r.StylistID)
                 .OnDelete(DeleteBehavior.NoAction);
 
             modelBuilder.Entity<Address>()

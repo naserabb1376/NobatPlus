@@ -1,6 +1,8 @@
-﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
+﻿using AutoMapper;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Newtonsoft.Json;
@@ -185,6 +187,8 @@ namespace NobatPlusAPI
             builder.Services.AddScoped<ISocialNetworkRep, SocialNetworkRep>();
             builder.Services.AddScoped<IWorkTimeRep, WorkTimeRep>();
             builder.Services.AddScoped<ISMSMessageRep, SMSMessageRep>();
+            builder.Services.AddScoped<IRateQuestionRep, RateQuestionRep>();
+            builder.Services.AddScoped<IRateHistoryRep, RateHistoryRep>();
 
             #endregion ImportDbServices
 
@@ -209,14 +213,18 @@ namespace NobatPlusAPI
       };
   });
 
+            // 1) اسکن فقط اسمبلی برنامه (پیشنهادی)
+            builder.Services.AddAutoMapper(cfg => { /* تنظیمات سراسری اختیاری */ },
+                                           typeof(Program).Assembly);
+
 
             var app = builder.Build();
-
-           
 
             // Configure the HTTP request pipeline.
 
             #region Pipeline
+
+            app.UseStaticFiles();   
 
             //if (app.Environment.IsDevelopment())
             //{
@@ -226,6 +234,7 @@ namespace NobatPlusAPI
                 c.DocExpansion(Swashbuckle.AspNetCore.SwaggerUI.DocExpansion.None);
                 c.SwaggerEndpoint("/swagger/v1/swagger.json", $"{apiTitle} {apiVersion}");
                 c.RoutePrefix = string.Empty; // روت اصلی سایت برای Swagger
+                c.InjectJavascript("/js/swagger-token.js");
             });
 
             //}
