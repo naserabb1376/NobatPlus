@@ -99,7 +99,7 @@ namespace NobatPlusDATA.DataLayer.Services
             ListResultObject<StylistDTO> results = new ListResultObject<StylistDTO>();
             try
             {
-                IQueryable<Stylist> query = _context.Stylists.Include(x => x.Person).ThenInclude(x => x.Address).ThenInclude(x => x.City).Include(x => x.JobType).AsNoTracking();
+                IQueryable<Stylist> query = _context.Stylists.Include(x => x.Person).ThenInclude(x => x.Address).ThenInclude(x => x.City).Include(x => x.JobType).Include(x=> x.StylistServices).ThenInclude(x=> x.ServiceManagement).AsNoTracking();
 
                 if (parentId >= 0)
                 {
@@ -108,7 +108,7 @@ namespace NobatPlusDATA.DataLayer.Services
 
                 if (parentId < 0)
                 {
-                    query = query.Where(x => x.StylistParentID > 0);
+                    query = query.Where(x => x.StylistParentID > 0 || !x.IsWorkShop);
                 }
 
                 query = query.Where(x =>
@@ -136,6 +136,7 @@ namespace NobatPlusDATA.DataLayer.Services
                        (!string.IsNullOrEmpty(x.WorkShopInteractMode) && x.WorkShopInteractMode.Contains(searchText)) ||
                        (!string.IsNullOrEmpty(x.AccountStatus) && x.AccountStatus.Contains(searchText)) ||
                        (!string.IsNullOrEmpty(x.PayMethod) && x.PayMethod.Contains(searchText)) ||
+                       (x.StylistServices.Any(s => !string.IsNullOrEmpty(s.ServiceManagement.ServiceName) && s.ServiceManagement.ServiceName.Contains(searchText))) ||
                        (!string.IsNullOrEmpty(x.Description) && x.Description.Contains(searchText))
                    );
 
@@ -192,7 +193,7 @@ namespace NobatPlusDATA.DataLayer.Services
                 .Where(bs => bs.ServiceManagementID == serviceManagementId)
                 .Select(bs => bs.Stylist)
                 .Include(x => x.Person).ThenInclude(x => x.Address).ThenInclude(x => x.City)
-                .Include(x => x.JobType)
+                .Include(x => x.JobType).Include(x => x.StylistServices).ThenInclude(x => x.ServiceManagement)
                 .AsNoTracking()
                 .Where(x =>
                     (!string.IsNullOrEmpty(x.Person.FirstName) && x.Person.FirstName.Contains(searchText)) ||
@@ -214,6 +215,7 @@ namespace NobatPlusDATA.DataLayer.Services
                     (x.UpdateDate.HasValue && x.UpdateDate.Value.ToString().Contains(searchText)) ||
                     (!string.IsNullOrEmpty(x.YearsOfExperience.ToString()) && x.YearsOfExperience.ToString().Contains(searchText)) ||
                     (!string.IsNullOrEmpty(x.Specialty) && x.Specialty.Contains(searchText)) ||
+                    (x.StylistServices.Any(s => !string.IsNullOrEmpty(s.ServiceManagement.ServiceName) && s.ServiceManagement.ServiceName.Contains(searchText))) ||
                     (!string.IsNullOrEmpty(x.Description) && x.Description.Contains(searchText))
                 );
 
@@ -270,7 +272,7 @@ namespace NobatPlusDATA.DataLayer.Services
             {
                 var query = _context.Stylists
                 .Include(x => x.Person).ThenInclude(x => x.Address).ThenInclude(x => x.City)
-                .Include(x => x.JobType)
+                .Include(x => x.JobType).Include(x => x.StylistServices).ThenInclude(x => x.ServiceManagement)
                 .AsNoTracking()
                 .Where(x =>
                     x.JobTypeID == JobTypeId &&
@@ -292,6 +294,7 @@ namespace NobatPlusDATA.DataLayer.Services
                      (x.CreateDate.HasValue && x.CreateDate.Value.ToString().Contains(searchText)) ||
                      (x.UpdateDate.HasValue && x.UpdateDate.Value.ToString().Contains(searchText)) ||
                      (!string.IsNullOrEmpty(x.YearsOfExperience.ToString()) && x.YearsOfExperience.ToString().Contains(searchText)) ||
+                     (x.StylistServices.Any(s => !string.IsNullOrEmpty(s.ServiceManagement.ServiceName) && s.ServiceManagement.ServiceName.Contains(searchText))) ||
                      (!string.IsNullOrEmpty(x.Specialty) && x.Specialty.Contains(searchText))
                     )
                 );
@@ -351,21 +354,21 @@ namespace NobatPlusDATA.DataLayer.Services
                .Where(bs => bs.DiscountId == DiscountId)
                .Select(bs => bs.Stylist)
                .Include(x => x.Person).ThenInclude(x => x.Address).ThenInclude(x => x.City)
-               .Include(x => x.JobType)
+               .Include(x => x.JobType).Include(x => x.StylistServices).ThenInclude(x => x.ServiceManagement)
                .AsNoTracking();
 
                 var serviceDiscounts = _context.ServiceDiscounts
              .Where(bs => bs.DiscountId == DiscountId)
              .Select(bs => bs.Stylist)
              .Include(x => x.Person).ThenInclude(x => x.Address).ThenInclude(x => x.City)
-             .Include(x => x.JobType)
+             .Include(x => x.JobType).Include(x => x.StylistServices).ThenInclude(x => x.ServiceManagement)
              .AsNoTracking();
 
                 var customerDiscounts = _context.CustomerDiscounts
                .Where(bs => bs.DiscountId == DiscountId)
                .Select(bs => bs.Stylist)
                .Include(x => x.Person).ThenInclude(x => x.Address).ThenInclude(x => x.City)
-               .Include(x => x.JobType)
+               .Include(x => x.JobType).Include(x => x.StylistServices).ThenInclude(x => x.ServiceManagement)
                .AsNoTracking();
 
                 var query = discountAssignments.Union(serviceDiscounts).Union(customerDiscounts).Where(x =>
@@ -388,6 +391,7 @@ namespace NobatPlusDATA.DataLayer.Services
                     (x.UpdateDate.HasValue && x.UpdateDate.Value.ToString().Contains(searchText)) ||
                     (!string.IsNullOrEmpty(x.YearsOfExperience.ToString()) && x.YearsOfExperience.ToString().Contains(searchText)) ||
                     (!string.IsNullOrEmpty(x.Specialty) && x.Specialty.Contains(searchText)) ||
+                    (x.StylistServices.Any(s=> !string.IsNullOrEmpty(s.ServiceManagement.ServiceName) && s.ServiceManagement.ServiceName.Contains(searchText))) ||
                     (!string.IsNullOrEmpty(x.Description) && x.Description.Contains(searchText))
                 );
 
@@ -443,7 +447,7 @@ namespace NobatPlusDATA.DataLayer.Services
             try
             {
                 result.Result = await _context.Stylists.Include(x => x.Person).ThenInclude(x => x.Address).ThenInclude(x => x.City)
-               .Include(x => x.JobType)
+               .Include(x => x.JobType).Include(x => x.StylistServices).ThenInclude(x => x.ServiceManagement)
                     .Where(x=> x.ID == StylistId)
                      .Select(r => new StylistDTO
                      {

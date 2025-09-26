@@ -1,4 +1,6 @@
-﻿using Domain;
+﻿using AITechWebAPI.ViewModels;
+using AutoMapper;
+using Domain;
 using Domains;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
@@ -14,6 +16,7 @@ using NobatPlusDATA.DataLayer.Services;
 using NobatPlusDATA.Domain;
 using NobatPlusDATA.ResultObjects;
 using NobatPlusDATA.Tools;
+using NobatPlusDATA.ViewModels;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
@@ -30,16 +33,19 @@ namespace NobatPlusAPI.Controllers
         IAddressRep _AddressRep;
         IPersonRep _personRep;
         ILogRep _logRep;
+        private readonly IMapper _mapper;
 
-        public AddressController(IAddressRep AddressRep,IPersonRep personRep,ILogRep logRep)
+
+        public AddressController(IAddressRep AddressRep,IPersonRep personRep,ILogRep logRep, IMapper mapper)
         {
            _AddressRep = AddressRep;
            _personRep = personRep;
            _logRep = logRep;
+            _mapper = mapper;
         }
 
         [HttpPost("GetAllAddresses_Base")]
-        public async Task<ActionResult<ListResultObject<Address>>> GetAllAddresses_Base(GetAddressListRequestBody requestBody)
+        public async Task<ActionResult<ListResultObject<AddressVM>>> GetAllAddresses_Base(GetAddressListRequestBody requestBody)
         {
             if (!ModelState.IsValid)
             {
@@ -48,13 +54,14 @@ namespace NobatPlusAPI.Controllers
             var result = await _AddressRep.GetAllAddressesAsync(requestBody.CityId,requestBody.PageIndex,requestBody.PageSize,requestBody.SearchText,requestBody.SortQuery);
             if (result.Status)
             {
-                return Ok(result);
+                var resultVM = _mapper.Map<ListResultObject<AddressVM>>(result);
+                return Ok(resultVM);
             }
             return BadRequest(result);
         }
 
         [HttpPost("GetAddressById_Base")]
-        public async Task<ActionResult<RowResultObject<Address>>> GetAddressById_Base(GetRowRequestBody requestBody)
+        public async Task<ActionResult<RowResultObject<AddressVM>>> GetAddressById_Base(GetRowRequestBody requestBody)
         {
             if (!ModelState.IsValid)
             {
@@ -63,7 +70,8 @@ namespace NobatPlusAPI.Controllers
             var result = await _AddressRep.GetAddressByIdAsync(requestBody.ID);
             if (result.Status)
             {
-                return Ok(result);
+                var resultVM = _mapper.Map<RowResultObject<RateHistoryVM>>(result);
+                return Ok(resultVM);
             }
             return BadRequest(result);
         }

@@ -1,4 +1,5 @@
-﻿using Domain;
+﻿using AutoMapper;
+using Domain;
 using Domains;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
@@ -14,6 +15,7 @@ using NobatPlusDATA.DataLayer.Services;
 using NobatPlusDATA.Domain;
 using NobatPlusDATA.ResultObjects;
 using NobatPlusDATA.Tools;
+using NobatPlusDATA.ViewModels;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
@@ -29,15 +31,18 @@ namespace NobatPlusAPI.Controllers
     {
         ICityRep _CityRep;
         ILogRep _logRep;
+        private readonly IMapper _mapper;
 
-        public CityController(ICityRep CityRep,ILogRep logRep)
+
+        public CityController(ICityRep CityRep,ILogRep logRep, IMapper mapper)
         {
            _CityRep = CityRep;
             _logRep = logRep;
+            _mapper = mapper;
         }
 
         [HttpPost("GetAllCities_Base")]
-        public async Task<ActionResult<ListResultObject<City>>> GetAllCities_Base(GetCityListRequestBody requestBody)
+        public async Task<ActionResult<ListResultObject<CityVM>>> GetAllCities_Base(GetCityListRequestBody requestBody)
         {
             if (!ModelState.IsValid)
             {
@@ -46,13 +51,14 @@ namespace NobatPlusAPI.Controllers
             var result = await _CityRep.GetAllCitiesAsync(requestBody.ParentId,requestBody.PageIndex,requestBody.PageSize,requestBody.SearchText,requestBody.SortQuery);
             if (result.Status)
             {
-                return Ok(result);
+                var resultVM = _mapper.Map<ListResultObject<CityVM>>(result);
+                return Ok(resultVM);
             }
             return BadRequest(result);
         }
 
         [HttpPost("GetCityById_Base")]
-        public async Task<ActionResult<RowResultObject<City>>> GetCityById_Base(GetRowRequestBody requestBody)
+        public async Task<ActionResult<RowResultObject<CityVM>>> GetCityById_Base(GetRowRequestBody requestBody)
         {
             if (!ModelState.IsValid)
             {
@@ -61,7 +67,8 @@ namespace NobatPlusAPI.Controllers
             var result = await _CityRep.GetCityByIdAsync(requestBody.ID);
             if (result.Status)
             {
-                return Ok(result);
+                var resultVM = _mapper.Map<RowResultObject<CityVM>>(result);
+                return Ok(resultVM);
             }
             return BadRequest(result);
         }

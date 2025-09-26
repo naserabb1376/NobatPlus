@@ -1,4 +1,5 @@
-﻿using Domain;
+﻿using AutoMapper;
+using Domain;
 using Domains;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
@@ -14,6 +15,7 @@ using NobatPlusDATA.DataLayer.Services;
 using NobatPlusDATA.Domain;
 using NobatPlusDATA.ResultObjects;
 using NobatPlusDATA.Tools;
+using NobatPlusDATA.ViewModels;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
@@ -29,15 +31,18 @@ namespace NobatPlusAPI.Controllers
     {
         ILoginRep _LoginRep;
         ILogRep _logRep;
+        private readonly IMapper _mapper;
 
-        public LoginController(ILoginRep LoginRep,ILogRep logRep)
+
+        public LoginController(ILoginRep LoginRep,ILogRep logRep, IMapper mapper)
         {
            _LoginRep = LoginRep;
            _logRep = logRep;
+            _mapper = mapper;
         }
 
         [HttpPost("GetAllLogins_Base")]
-        public async Task<ActionResult<ListResultObject<Login>>> GetAllLogins_Base(GetLoginListRequestBody requestBody)
+        public async Task<ActionResult<ListResultObject<LoginVM>>> GetAllLogins_Base(GetLoginListRequestBody requestBody)
         {
             if (!ModelState.IsValid)
             {
@@ -46,13 +51,14 @@ namespace NobatPlusAPI.Controllers
             var result = await _LoginRep.GetAllLoginsAsync(requestBody.PersonId,requestBody.PageIndex,requestBody.PageSize,requestBody.SearchText,requestBody.SortQuery);
             if (result.Status)
             {
-                return Ok(result);
+                var resultVM = _mapper.Map<ListResultObject<LoginVM>>(result);
+                return Ok(resultVM);
             }
             return BadRequest(result);
         }
 
         [HttpPost("GetLoginById_Base")]
-        public async Task<ActionResult<RowResultObject<Login>>> GetLoginById_Base(GetLoginRowRequestBody requestBody)
+        public async Task<ActionResult<RowResultObject<LoginVM>>> GetLoginById_Base(GetLoginRowRequestBody requestBody)
         {
             if (!ModelState.IsValid)
             {
@@ -61,7 +67,8 @@ namespace NobatPlusAPI.Controllers
             var result = await _LoginRep.GetLoginByIdAsync(requestBody.ID,requestBody.SearchMode);
             if (result.Status)
             {
-                return Ok(result);
+                var resultVM = _mapper.Map<RowResultObject<LoginVM>>(result);
+                return Ok(resultVM);
             }
             return BadRequest(result);
         }

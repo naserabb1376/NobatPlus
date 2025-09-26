@@ -1,4 +1,5 @@
-﻿using Domain;
+﻿using AutoMapper;
+using Domain;
 using Domains;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
@@ -14,6 +15,7 @@ using NobatPlusDATA.DataLayer.Services;
 using NobatPlusDATA.Domain;
 using NobatPlusDATA.ResultObjects;
 using NobatPlusDATA.Tools;
+using NobatPlusDATA.ViewModels;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
@@ -29,15 +31,18 @@ namespace NobatPlusAPI.Controllers
     {
         IDiscountAssignmentRep _DiscountAssignmentRep;
         ILogRep _logRep;
+        private readonly IMapper _mapper;
 
-        public DiscountAssignmentController(IDiscountAssignmentRep DiscountAssignmentRep,ILogRep logRep)
+
+        public DiscountAssignmentController(IDiscountAssignmentRep DiscountAssignmentRep,ILogRep logRep, IMapper mapper)
         {
            _DiscountAssignmentRep = DiscountAssignmentRep;
            _logRep = logRep;
+            _mapper = mapper;
         }
 
         [HttpPost("GetAllDiscountAssignments_Base")]
-        public async Task<ActionResult<ListResultObject<DiscountAssignment>>> GetAllDiscountAssignments_Base(GetDiscountAssignmentListRequestBody requestBody)
+        public async Task<ActionResult<ListResultObject<DiscountAssignmentVM>>> GetAllDiscountAssignments_Base(GetDiscountAssignmentListRequestBody requestBody)
         {
             if (!ModelState.IsValid)
             {
@@ -46,13 +51,14 @@ namespace NobatPlusAPI.Controllers
             var result = await _DiscountAssignmentRep.GetAllDiscountAssignmentsAsync(requestBody.DiscountId,requestBody.AdminId,requestBody.StylistId,requestBody.PageIndex,requestBody.PageSize,requestBody.SearchText,requestBody.SortQuery);
             if (result.Status)
             {
-                return Ok(result);
+                var resultVM = _mapper.Map<ListResultObject<DiscountAssignmentVM>>(result);
+                return Ok(resultVM);
             }
             return BadRequest(result);
         }
 
         [HttpPost("GetDiscountAssignmentById_Base")]
-        public async Task<ActionResult<RowResultObject<DiscountAssignment>>> GetDiscountAssignmentById_Base(GetRowRequestBody requestBody)
+        public async Task<ActionResult<RowResultObject<DiscountAssignmentVM>>> GetDiscountAssignmentById_Base(GetRowRequestBody requestBody)
         {
             if (!ModelState.IsValid)
             {
@@ -61,7 +67,8 @@ namespace NobatPlusAPI.Controllers
             var result = await _DiscountAssignmentRep.GetDiscountAssignmentByIdAsync(requestBody.ID);
             if (result.Status)
             {
-                return Ok(result);
+                var resultVM = _mapper.Map<RowResultObject<DiscountAssignmentVM>>(result);
+                return Ok(resultVM);
             }
             return BadRequest(result);
         }

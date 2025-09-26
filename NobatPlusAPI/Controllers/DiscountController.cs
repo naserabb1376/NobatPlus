@@ -1,4 +1,5 @@
-﻿using Domain;
+﻿using AutoMapper;
+using Domain;
 using Domains;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
@@ -14,6 +15,7 @@ using NobatPlusDATA.DataLayer.Services;
 using NobatPlusDATA.Domain;
 using NobatPlusDATA.ResultObjects;
 using NobatPlusDATA.Tools;
+using NobatPlusDATA.ViewModels;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
@@ -30,15 +32,18 @@ namespace NobatPlusAPI.Controllers
     {
         IDiscountRep _DiscountRep;
         ILogRep _logRep;
+        private readonly IMapper _mapper;
 
-        public DiscountController(IDiscountRep DiscountRep,ILogRep logRep)
+
+        public DiscountController(IDiscountRep DiscountRep,ILogRep logRep, IMapper mapper)
         {
            _DiscountRep = DiscountRep;
            _logRep = logRep;
+            _mapper = mapper;
         }
 
         [HttpPost("GetAllDiscounts_Base")]
-        public async Task<ActionResult<ListResultObject<Discount>>> GetAllDiscounts_Base(GetDiscountListRequestBody requestBody)
+        public async Task<ActionResult<ListResultObject<DiscountVM>>> GetAllDiscounts_Base(GetDiscountListRequestBody requestBody)
         {
             if (!ModelState.IsValid)
             {
@@ -47,13 +52,14 @@ namespace NobatPlusAPI.Controllers
             var result = await _DiscountRep.GetAllDiscountsAsync((DiscountType)requestBody.DiscountType,requestBody.AdminId,requestBody.StylistId,requestBody.CustomerId,requestBody.StylistId,requestBody.PageIndex,requestBody.PageSize,requestBody.SearchText,requestBody.SortQuery);
             if (result.Status)
             {
-                return Ok(result);
+                var resultVM = _mapper.Map<ListResultObject<DiscountVM>>(result);
+                return Ok(resultVM);
             }
             return BadRequest(result);
         }
 
         [HttpPost("GetDiscountById_Base")]
-        public async Task<ActionResult<RowResultObject<Discount>>> GetDiscountById_Base(GetRowRequestBody requestBody)
+        public async Task<ActionResult<RowResultObject<DiscountVM>>> GetDiscountById_Base(GetRowRequestBody requestBody)
         {
             if (!ModelState.IsValid)
             {
@@ -62,7 +68,8 @@ namespace NobatPlusAPI.Controllers
             var result = await _DiscountRep.GetDiscountByIdAsync(requestBody.ID);
             if (result.Status)
             {
-                return Ok(result);
+                var resultVM = _mapper.Map<RowResultObject<DiscountVM>>(result);
+                return Ok(resultVM);
             }
             return BadRequest(result);
         }

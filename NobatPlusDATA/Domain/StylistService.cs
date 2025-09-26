@@ -16,6 +16,5 @@ namespace NobatPlusDATA.Domain
        public long ServicePrice { get; set; }
         public TimeSpan ServiceDuration { get; set; }
         public int DepositPercent { get; set; }
-
     }
 }

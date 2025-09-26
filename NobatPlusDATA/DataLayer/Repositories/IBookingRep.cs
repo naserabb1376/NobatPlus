@@ -11,9 +11,9 @@ namespace NobatPlusDATA.DataLayer.Repositories
 {
     public interface IBookingRep
     {
-        public Task<ListResultObject<Booking>> GetAllBookingsAsync(int cancelState = 0, int pageIndex = 1, int pageSize = 20, string searchText = "",string sortQuery ="");
-        public Task<ListResultObject<Booking>> GetBookingsOfServiceAsync(long ServiceManagementId, int cancelState = 0, int pageIndex = 1, int pageSize = 20, string searchText = "",string sortQuery ="");
-        public Task<RowResultObject<Booking>> GetBookingByIdAsync(long BookingId);
+        public Task<ListResultObject<BookingDTO>> GetAllBookingsAsync(int cancelState = 0, int pageIndex = 1, int pageSize = 20, string searchText = "",string sortQuery ="");
+        public Task<ListResultObject<BookingDTO>> GetBookingsOfServiceAsync(long ServiceManagementId, int cancelState = 0, int pageIndex = 1, int pageSize = 20, string searchText = "",string sortQuery ="");
+        public Task<RowResultObject<BookingDTO>> GetBookingByIdAsync(long BookingId);
         public Task<BitResultObject> AddBookingAsync(Booking Booking);
         public Task<BitResultObject> EditBookingAsync(Booking Booking);
         public Task<BitResultObject> RemoveBookingAsync(Booking Booking);

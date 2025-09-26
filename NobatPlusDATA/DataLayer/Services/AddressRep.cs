@@ -118,7 +118,7 @@ namespace NobatPlusDATA.DataLayer.Services
             RowResultObject<Address> result = new RowResultObject<Address>();
             try
             {
-                result.Result = await _context.Addresses.AsNoTracking().SingleOrDefaultAsync(x => x.ID == addressId);
+                result.Result = await _context.Addresses.Include(x=> x.City).AsNoTracking().SingleOrDefaultAsync(x => x.ID == addressId);
             }
             catch (Exception ex)
             {

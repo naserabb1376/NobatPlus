@@ -1,4 +1,5 @@
-﻿using Domain;
+﻿using AutoMapper;
+using Domain;
 using Domains;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
@@ -14,6 +15,7 @@ using NobatPlusDATA.DataLayer.Services;
 using NobatPlusDATA.Domain;
 using NobatPlusDATA.ResultObjects;
 using NobatPlusDATA.Tools;
+using NobatPlusDATA.ViewModels;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
@@ -29,17 +31,21 @@ namespace NobatPlusAPI.Controllers
     {
         IBookingRep _BookingRep;
         ILogRep _logRep;
+        private readonly IMapper _mapper;
 
-        public BookingController(IBookingRep BookingRep,ILogRep logRep)
+
+        public BookingController(IBookingRep BookingRep,ILogRep logRep, IMapper mapper)
         {
            _BookingRep = BookingRep;
             _logRep = logRep;
+            _mapper = mapper;
         }
 
         [HttpPost("GetAllBookings_Base")]
-        public async Task<ActionResult<ListResultObject<Booking>>> GetAllBookings_Base(GetBookingListRequestBody requestBody)
+        [AllowAnonymous]
+        public async Task<ActionResult<ListResultObject<BookingVM>>> GetAllBookings_Base(GetBookingListRequestBody requestBody)
         {
-            var result = new ListResultObject<Booking>();
+            var result = new ListResultObject<BookingDTO>();
             if (!ModelState.IsValid)
             {
                 return BadRequest(requestBody);
@@ -49,7 +55,8 @@ namespace NobatPlusAPI.Controllers
                  result = await _BookingRep.GetBookingsOfServiceAsync(requestBody.ServiceId,requestBody.CancelState, requestBody.PageIndex, requestBody.PageSize, requestBody.SearchText,requestBody.SortQuery);
                 if (result.Status)
                 {
-                    return Ok(result);
+                    var resultVM = _mapper.Map<ListResultObject<BookingVM>>(result);
+                    return Ok(resultVM);
                 }
             }
 
@@ -58,7 +65,8 @@ namespace NobatPlusAPI.Controllers
                 result = await _BookingRep.GetAllBookingsAsync(requestBody.CancelState, requestBody.PageIndex, requestBody.PageSize, requestBody.SearchText,requestBody.SortQuery);
                 if (result.Status)
                 {
-                    return Ok(result);
+                    var resultVM = _mapper.Map<ListResultObject<BookingVM>>(result);
+                    return Ok(resultVM);
                 }
             }
             
@@ -67,7 +75,7 @@ namespace NobatPlusAPI.Controllers
 
 
         [HttpPost("GetBookingById_Base")]
-        public async Task<ActionResult<RowResultObject<Booking>>> GetBookingById_Base(GetRowRequestBody requestBody)
+        public async Task<ActionResult<RowResultObject<BookingVM>>> GetBookingById_Base(GetRowRequestBody requestBody)
         {
             if (!ModelState.IsValid)
             {
@@ -76,7 +84,8 @@ namespace NobatPlusAPI.Controllers
             var result = await _BookingRep.GetBookingByIdAsync(requestBody.ID);
             if (result.Status)
             {
-                return Ok(result);
+                var resultVM = _mapper.Map<RowResultObject<BookingVM>>(result);
+                return Ok(resultVM);
             }
             return BadRequest(result);
         }

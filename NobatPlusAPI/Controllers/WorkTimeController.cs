@@ -1,4 +1,5 @@
-﻿using Domain;
+﻿using AutoMapper;
+using Domain;
 using Domains;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
@@ -7,13 +8,14 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 using NobatPlusAPI.Models;
 using NobatPlusAPI.Models.Authenticate;
-using NobatPlusAPI.Models.WorkTime;
 using NobatPlusAPI.Models.Public;
+using NobatPlusAPI.Models.WorkTime;
 using NobatPlusDATA.DataLayer.Repositories;
 using NobatPlusDATA.DataLayer.Services;
 using NobatPlusDATA.Domain;
 using NobatPlusDATA.ResultObjects;
 using NobatPlusDATA.Tools;
+using NobatPlusDATA.ViewModels;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
@@ -29,15 +31,18 @@ namespace NobatPlusAPI.Controllers
     {
         IWorkTimeRep _WorkTimeRep;
         ILogRep _logRep;
+        private readonly IMapper _mapper;
 
-        public WorkTimeController(IWorkTimeRep WorkTimeRep,ILogRep logRep)
+        public WorkTimeController(IWorkTimeRep WorkTimeRep,ILogRep logRep, IMapper mapper)
         {
            _WorkTimeRep = WorkTimeRep;
             _logRep = logRep;
+            _mapper = mapper;
         }
 
         [HttpPost("GetAllWorkTimes_Base")]
-        public async Task<ActionResult<ListResultObject<WorkTime>>> GetAllWorkTimes_Base(GetWorkTimeListRequestBody requestBody)
+        [AllowAnonymous]
+        public async Task<ActionResult<ListResultObject<WorkTimeVM>>> GetAllWorkTimes_Base(GetWorkTimeListRequestBody requestBody)
         {
             var result = new ListResultObject<WorkTime>();
             if (!ModelState.IsValid)
@@ -47,7 +52,8 @@ namespace NobatPlusAPI.Controllers
             result = await _WorkTimeRep.GetAllWorkTimesAsync(requestBody.StylistId, requestBody.PageIndex, requestBody.PageSize, requestBody.SearchText, requestBody.SortQuery);
             if (result.Status)
             {
-                return Ok(result);
+                var resultVM = _mapper.Map<ListResultObject<WorkTimeVM>>(result);
+                return Ok(resultVM);
             }
 
             return BadRequest(result);
@@ -55,7 +61,7 @@ namespace NobatPlusAPI.Controllers
 
 
         [HttpPost("GetWorkTimeById_Base")]
-        public async Task<ActionResult<RowResultObject<WorkTime>>> GetWorkTimeById_Base(GetRowRequestBody requestBody)
+        public async Task<ActionResult<RowResultObject<WorkTimeVM>>> GetWorkTimeById_Base(GetRowRequestBody requestBody)
         {
             if (!ModelState.IsValid)
             {
@@ -64,7 +70,8 @@ namespace NobatPlusAPI.Controllers
             var result = await _WorkTimeRep.GetWorkTimeByIdAsync(requestBody.ID);
             if (result.Status)
             {
-                return Ok(result);
+                var resultVM = _mapper.Map<RowResultObject<WorkTimeVM>>(result);
+                return Ok(resultVM);
             }
             return BadRequest(result);
         }

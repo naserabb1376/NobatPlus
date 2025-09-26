@@ -7,6 +7,7 @@ namespace NobatPlusDATA.ViewModels
     {
         public long StylistParentID { get; set; }
         public long PersonID { get; set; }
+        public string PersonFullName { get; set; }
         public string? Specialty { get; set; }
         public string StylistName { get; set; }
         public string? StylistBio { get; set; }
@@ -19,6 +20,11 @@ namespace NobatPlusDATA.ViewModels
         public long WorkShopDepositAmount { get; set; }
         public int YearsOfExperience { get; set; }
         public long JobTypeID { get; set; }
-      
+        public TimeSpan RestTime { get; set; }
+        public string JobTypeTitle { get; set; }
+        public float AvgScoreForStylist { get; set; }
+
+        public List<string> ServiceNames { get; set; }
+
     }
 }

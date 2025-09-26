@@ -150,7 +150,7 @@ namespace NobatPlusDATA.DataLayer.Services
             RowResultObject<Notification> result = new RowResultObject<Notification>();
             try
             {
-                result.Result = await _context.Notifications
+                result.Result = await _context.Notifications.Include(x=> x.Person)
                 .AsNoTracking()
                 .SingleOrDefaultAsync(x => x.ID == NotificationId);
             }

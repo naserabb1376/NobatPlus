@@ -135,6 +135,8 @@ namespace NobatPlusDATA.DataLayer.Services
             {
                 result.Result = await _context.Reviews
                 .AsNoTracking()
+                .Include(x => x.Booking).ThenInclude(x => x.Stylist)
+                .Include(x => x.Customer).ThenInclude(x => x.Person)
                 .SingleOrDefaultAsync(x => x.ID == ReviewId);
             }
             catch (Exception ex)

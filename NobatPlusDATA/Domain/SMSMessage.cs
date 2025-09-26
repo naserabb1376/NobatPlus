@@ -14,5 +14,8 @@ namespace NobatPlusDATA.Domain
         public string Message { get; set; }
         public DateTime SentDate { get; set; }
         public bool SentStatus { get; set; }
+
+        public Person Person { get; set; }
+
     }
 }

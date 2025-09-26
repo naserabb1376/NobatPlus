@@ -1,4 +1,5 @@
-﻿using Domain;
+﻿using AutoMapper;
+using Domain;
 using Domains;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
@@ -14,6 +15,7 @@ using NobatPlusDATA.DataLayer.Services;
 using NobatPlusDATA.Domain;
 using NobatPlusDATA.ResultObjects;
 using NobatPlusDATA.Tools;
+using NobatPlusDATA.ViewModels;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
@@ -29,15 +31,17 @@ namespace NobatPlusAPI.Controllers
     {
         IPaymentRep _PaymentRep;
         ILogRep _logRep;
+        private readonly IMapper _mapper;
 
-        public PaymentController(IPaymentRep PaymentRep,ILogRep logRep)
+        public PaymentController(IPaymentRep PaymentRep,ILogRep logRep, IMapper mapper)
         {
            _PaymentRep = PaymentRep;
            _logRep = logRep;
+            _mapper = mapper;
         }
 
         [HttpPost("GetAllPayments_Base")]
-        public async Task<ActionResult<ListResultObject<Payment>>> GetAllPayments_Base(GetPaymentListRequestBody requestBody)
+        public async Task<ActionResult<ListResultObject<PaymentVM>>> GetAllPayments_Base(GetPaymentListRequestBody requestBody)
         {
             if (!ModelState.IsValid)
             {
@@ -46,13 +50,14 @@ namespace NobatPlusAPI.Controllers
             var result = await _PaymentRep.GetAllPaymentsAsync(requestBody.BookingId,requestBody.PageIndex,requestBody.PageSize,requestBody.SearchText,requestBody.SortQuery);
             if (result.Status)
             {
-                return Ok(result);
+                var resultVM = _mapper.Map<ListResultObject<PaymentVM>>(result);
+                return Ok(resultVM);
             }
             return BadRequest(result);
         }
 
         [HttpPost("GetPaymentById_Base")]
-        public async Task<ActionResult<RowResultObject<Payment>>> GetPaymentById_Base(GetRowRequestBody requestBody)
+        public async Task<ActionResult<RowResultObject<PaymentVM>>> GetPaymentById_Base(GetRowRequestBody requestBody)
         {
             if (!ModelState.IsValid)
             {
@@ -61,7 +66,8 @@ namespace NobatPlusAPI.Controllers
             var result = await _PaymentRep.GetPaymentByIdAsync(requestBody.ID);
             if (result.Status)
             {
-                return Ok(result);
+                var resultVM = _mapper.Map<RowResultObject<PaymentVM>>(result);
+                return Ok(resultVM);
             }
             return BadRequest(result);
         }

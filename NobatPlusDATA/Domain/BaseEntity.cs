@@ -15,6 +15,6 @@ namespace Domains
         public DateTime? UpdateDate { get; set; }
 
         [Display(Name = "توضیحات")]
-        public String? Description { get; set; }
+        public string? Description { get; set; }
     }
 }

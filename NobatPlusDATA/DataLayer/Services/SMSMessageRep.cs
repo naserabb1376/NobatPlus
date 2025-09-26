@@ -90,7 +90,7 @@ namespace NobatPlusDATA.DataLayer.Services
                 if (personId == 0)
                 {
                     query = _context.SMSMessages
-                        .AsNoTracking()
+                        .AsNoTracking().Include(x => x.Person)
                         .Where(x =>
                             (!string.IsNullOrEmpty(x.Message) && x.Message.Contains(searchText)) ||
                             (!string.IsNullOrEmpty(x.Description) && x.Description.Contains(searchText)) ||
@@ -101,7 +101,7 @@ namespace NobatPlusDATA.DataLayer.Services
                 }
                 else
                 {
-                    query = _context.SMSMessages
+                    query = _context.SMSMessages.Include(x => x.Person)
                         .AsNoTracking()
                         .Where(x =>
                             (
@@ -134,7 +134,7 @@ namespace NobatPlusDATA.DataLayer.Services
             try
             {
                 result.Result = await _context.SMSMessages
-                .AsNoTracking()
+                .AsNoTracking().Include(x=> x.Person)
                 .SingleOrDefaultAsync(x => x.ID == SMSMessageId);
             }
             catch (Exception ex)

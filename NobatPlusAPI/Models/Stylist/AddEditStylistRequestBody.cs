@@ -57,6 +57,10 @@ namespace NobatPlusAPI.Models.Stylist
         [Display(Name = "توضیحات")]
         public string? Description { get; set; }
         public bool IsWorkshop { get; set; }
+
+        [Display(Name = "زمان استراحت")]
+        [Required(ErrorMessage = "لطفا {0} را وارد کنید")]
+        public TimeSpan RestTime { get; set; }
     }
 
     public class SignupStylistRequestBody
@@ -108,5 +112,10 @@ namespace NobatPlusAPI.Models.Stylist
         [Display(Name = "توضیحات")]
         public string? Description { get; set; }
         public bool IsWorkshop { get; set; }
+
+        [Display(Name = "زمان استراحت")]
+        [Required(ErrorMessage = "لطفا {0} را وارد کنید")]
+        public TimeSpan RestTime { get; set; }
+
     }
 }

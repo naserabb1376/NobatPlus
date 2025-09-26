@@ -132,7 +132,7 @@ namespace NobatPlusDATA.DataLayer.Services
             RowResultObject<Register> result = new RowResultObject<Register>();
             try
             {
-                result.Result = await _context.Registers
+                result.Result = await _context.Registers.Include(x=> x.Person)
                 .AsNoTracking()
                 .SingleOrDefaultAsync(x => x.ID == RegisterId);
             }

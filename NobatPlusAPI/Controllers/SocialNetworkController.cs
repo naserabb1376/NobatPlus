@@ -1,23 +1,25 @@
-﻿using Domain;
+﻿using AutoMapper;
+using Domain;
 using Domains;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 using NobatPlusAPI.Models;
 using NobatPlusAPI.Models.Authenticate;
-using NobatPlusAPI.Models.SocialNetwork;
 using NobatPlusAPI.Models.Public;
+using NobatPlusAPI.Models.SocialNetwork;
 using NobatPlusDATA.DataLayer.Repositories;
 using NobatPlusDATA.DataLayer.Services;
 using NobatPlusDATA.Domain;
 using NobatPlusDATA.ResultObjects;
 using NobatPlusDATA.Tools;
+using NobatPlusDATA.ViewModels;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
-using Microsoft.AspNetCore.Http.HttpResults;
 
 namespace NobatPlusAPI.Controllers
 {
@@ -30,15 +32,17 @@ namespace NobatPlusAPI.Controllers
     {
         ISocialNetworkRep _SocialNetworkRep;
         ILogRep _logRep;
+        private readonly IMapper _mapper;
 
-        public SocialNetworkController(ISocialNetworkRep SocialNetworkRep,ILogRep logRep)
+        public SocialNetworkController(ISocialNetworkRep SocialNetworkRep,ILogRep logRep, IMapper mapper)
         {
            _SocialNetworkRep = SocialNetworkRep;
             _logRep = logRep;
+            _mapper = mapper;
         }
 
         [HttpPost("GetAllSocialNetworks_Base")]
-        public async Task<ActionResult<ListResultObject<SocialNetwork>>> GetAllSocialNetworks_Base(GetSocialNetworkListRequestBody requestBody)
+        public async Task<ActionResult<ListResultObject<SocialNetworkVM>>> GetAllSocialNetworks_Base(GetSocialNetworkListRequestBody requestBody)
         {
             var result = new ListResultObject<SocialNetwork>();
             if (!ModelState.IsValid)
@@ -48,7 +52,8 @@ namespace NobatPlusAPI.Controllers
             result = await _SocialNetworkRep.GetAllSocialNetworksAsync(requestBody.StylistId, requestBody.PageIndex, requestBody.PageSize, requestBody.SearchText, requestBody.SortQuery);
             if (result.Status)
             {
-                return Ok(result);
+                var resultVM = _mapper.Map<ListResultObject<SocialNetworkVM>>(result);
+                return Ok(resultVM);
             }
 
             return BadRequest(result);
@@ -56,7 +61,7 @@ namespace NobatPlusAPI.Controllers
 
 
         [HttpPost("GetSocialNetworkById_Base")]
-        public async Task<ActionResult<RowResultObject<SocialNetwork>>> GetSocialNetworkById_Base(GetRowRequestBody requestBody)
+        public async Task<ActionResult<RowResultObject<SocialNetworkVM>>> GetSocialNetworkById_Base(GetRowRequestBody requestBody)
         {
             if (!ModelState.IsValid)
             {
@@ -65,7 +70,8 @@ namespace NobatPlusAPI.Controllers
             var result = await _SocialNetworkRep.GetSocialNetworkByIdAsync(requestBody.ID);
             if (result.Status)
             {
-                return Ok(result);
+                var resultVM = _mapper.Map<RowResultObject<SocialNetworkVM>>(result);
+                return Ok(resultVM);
             }
             return BadRequest(result);
         }

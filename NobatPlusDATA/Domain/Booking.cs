@@ -23,4 +23,19 @@ namespace NobatPlusDATA.Domain
         public ICollection<Review> Reviews { get; set; }
         public ICollection<BookingService> BookingServices { get; set; }
     }
+
+    public class BookingDTO : BaseEntity
+    {
+        public long StylistID { get; set; }
+        public long CustomerID { get; set; }
+        public DateTime BookingDate { get; set; }
+        public TimeSpan BookingTime { get; set; }
+        public string Status { get; set; }
+        public bool IsCancelled { get; set; }
+        public string CancelReason { get; set; }
+        public TimeSpan TotalTimeDuration { get; set; }
+
+        public Stylist Stylist { get; set; }
+        public Customer Customer { get; set; }
+    }
 }

@@ -1,4 +1,5 @@
-﻿using Domain;
+﻿using AutoMapper;
+using Domain;
 using Domains;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
@@ -14,6 +15,7 @@ using NobatPlusDATA.DataLayer.Services;
 using NobatPlusDATA.Domain;
 using NobatPlusDATA.ResultObjects;
 using NobatPlusDATA.Tools;
+using NobatPlusDATA.ViewModels;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
@@ -29,15 +31,18 @@ namespace NobatPlusAPI.Controllers
     {
         INotificationRep _NotificationRep;
         ILogRep _logRep;
+        private readonly IMapper _mapper;
 
-        public NotificationController(INotificationRep NotificationRep,ILogRep logRep)
+
+        public NotificationController(INotificationRep NotificationRep,ILogRep logRep, IMapper mapper)
         {
            _NotificationRep = NotificationRep;
            _logRep = logRep;
+            _mapper = mapper;
         }
 
         [HttpPost("GetAllNotifications_Base")]
-        public async Task<ActionResult<ListResultObject<Notification>>> GetAllNotifications_Base(GetNotificationListRequestBody requestBody)
+        public async Task<ActionResult<ListResultObject<NotificationVM>>> GetAllNotifications_Base(GetNotificationListRequestBody requestBody)
         {
             if (!ModelState.IsValid)
             {
@@ -46,13 +51,14 @@ namespace NobatPlusAPI.Controllers
             var result = await _NotificationRep.GetAllNotificationsAsync(requestBody.PersonId,requestBody.PageIndex,requestBody.PageSize,requestBody.SearchText,requestBody.SortQuery);
             if (result.Status)
             {
-                return Ok(result);
+                var resultVM = _mapper.Map<ListResultObject<NotificationVM>>(result);
+                return Ok(resultVM);
             }
             return BadRequest(result);
         }
 
         [HttpPost("GetNotificationById_Base")]
-        public async Task<ActionResult<RowResultObject<Notification>>> GetNotificationById_Base(GetRowRequestBody requestBody)
+        public async Task<ActionResult<RowResultObject<NotificationVM>>> GetNotificationById_Base(GetRowRequestBody requestBody)
         {
             if (!ModelState.IsValid)
             {
@@ -61,7 +67,8 @@ namespace NobatPlusAPI.Controllers
             var result = await _NotificationRep.GetNotificationByIdAsync(requestBody.ID);
             if (result.Status)
             {
-                return Ok(result);
+                var resultVM = _mapper.Map<RowResultObject<NotificationVM>>(result);
+                return Ok(resultVM);
             }
             return BadRequest(result);
         }

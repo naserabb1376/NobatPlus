@@ -1,4 +1,5 @@
-﻿using Domain;
+﻿using AutoMapper;
+using Domain;
 using Domains;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
@@ -15,6 +16,7 @@ using NobatPlusDATA.DataLayer.Services;
 using NobatPlusDATA.Domain;
 using NobatPlusDATA.ResultObjects;
 using NobatPlusDATA.Tools;
+using NobatPlusDATA.ViewModels;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
@@ -31,16 +33,19 @@ namespace NobatPlusAPI.Controllers
         ISMSMessageRep _SMSMessageRep;
         ILoginRep _LoginRep;
         ILogRep _logRep;
+        private readonly IMapper _mapper;
 
-        public SMSMessageController(ISMSMessageRep SMSMessageRep,ILoginRep loginRep,ILogRep logRep)
+
+        public SMSMessageController(ISMSMessageRep SMSMessageRep,ILoginRep loginRep,ILogRep logRep, IMapper mapper)
         {
            _SMSMessageRep = SMSMessageRep;
             _LoginRep = loginRep;
            _logRep = logRep;
+            _mapper = mapper;
         }
 
         [HttpPost("GetAllSMSMessages_Base")]
-        public async Task<ActionResult<ListResultObject<SMSMessage>>> GetAllSMSMessages_Base(GetSMSMessageListRequestBody requestBody)
+        public async Task<ActionResult<ListResultObject<SMSMessageVM>>> GetAllSMSMessages_Base(GetSMSMessageListRequestBody requestBody)
         {
             if (!ModelState.IsValid)
             {
@@ -49,13 +54,14 @@ namespace NobatPlusAPI.Controllers
             var result = await _SMSMessageRep.GetAllSMSMessagesAsync(requestBody.PersonId,requestBody.PageIndex,requestBody.PageSize,requestBody.SearchText,requestBody.SortQuery);
             if (result.Status)
             {
-                return Ok(result);
+                var resultVM = _mapper.Map<ListResultObject<SMSMessageVM>>(result);
+                return Ok(resultVM);
             }
             return BadRequest(result);
         }
 
         [HttpPost("GetSMSMessageById_Base")]
-        public async Task<ActionResult<RowResultObject<SMSMessage>>> GetSMSMessageById_Base(GetRowRequestBody requestBody)
+        public async Task<ActionResult<RowResultObject<SMSMessageVM>>> GetSMSMessageById_Base(GetRowRequestBody requestBody)
         {
             if (!ModelState.IsValid)
             {
@@ -64,7 +70,8 @@ namespace NobatPlusAPI.Controllers
             var result = await _SMSMessageRep.GetSMSMessageByIdAsync(requestBody.ID);
             if (result.Status)
             {
-                return Ok(result);
+                var resultVM = _mapper.Map<RowResultObject<SMSMessageVM>>(result);
+                return Ok(resultVM);
             }
             return BadRequest(result);
         }

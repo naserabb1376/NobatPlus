@@ -141,7 +141,7 @@ namespace NobatPlusDATA.DataLayer.Services
             try
             {
                 result.Result = await _context.CheckAvailabilities
-                .AsNoTracking()
+                               .Include(x => x.Stylist).ThenInclude(x => x.Person).AsNoTracking()
  .SingleOrDefaultAsync(x => x.ID == CheckAvailabilityId);
             }
             catch (Exception ex)

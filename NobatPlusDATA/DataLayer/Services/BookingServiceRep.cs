@@ -148,6 +148,7 @@ namespace NobatPlusDATA.DataLayer.Services
                 var query = _context.BookingServices
                 .AsNoTracking()
                 .Include(x => x.Booking).ThenInclude(x => x.Stylist).ThenInclude(x => x.Person)
+                .Include(x => x.Booking).ThenInclude(x => x.Customer).ThenInclude(x => x.Person)
                 .Include(x => x.ServiceManagement)
                 .Where(x =>
                     (!string.IsNullOrEmpty(x.Booking.BookingDate.ToString()) && x.Booking.BookingDate.ToString().Contains(searchText))
@@ -181,6 +182,7 @@ namespace NobatPlusDATA.DataLayer.Services
                 result.Result = await _context.BookingServices
                 .AsNoTracking()
                 .Include(x => x.Booking).ThenInclude(x => x.Stylist).ThenInclude(x => x.Person)
+                .Include(x => x.Booking).ThenInclude(x => x.Customer).ThenInclude(x => x.Person)
                 .Include(x => x.ServiceManagement)
                 .SingleOrDefaultAsync(x => x.BookingID == BookingId && x.ServiceManagementID == ServiceManagementId);
             }

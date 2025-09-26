@@ -247,6 +247,9 @@ namespace NobatPlusDATA.DataLayer.Services
             {
                 result.Result = await _context.DiscountAssignments
                 .AsNoTracking()
+                        .Include(x => x.Discount)
+                        .Include(x => x.Admin).ThenInclude(x => x.Person)
+                        .Include(x => x.Stylist).ThenInclude(x => x.Person)
                 .SingleOrDefaultAsync(x => x.ID == DiscountAssignmentId);
             }
             catch (Exception ex)

@@ -1,4 +1,5 @@
-﻿using Domain;
+﻿using AutoMapper;
+using Domain;
 using Domains;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
@@ -7,13 +8,14 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 using NobatPlusAPI.Models;
 using NobatPlusAPI.Models.Authenticate;
-using NobatPlusAPI.Models.ServiceManagement;
 using NobatPlusAPI.Models.Public;
+using NobatPlusAPI.Models.ServiceManagement;
 using NobatPlusDATA.DataLayer.Repositories;
 using NobatPlusDATA.DataLayer.Services;
 using NobatPlusDATA.Domain;
 using NobatPlusDATA.ResultObjects;
 using NobatPlusDATA.Tools;
+using NobatPlusDATA.ViewModels;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
@@ -29,16 +31,19 @@ namespace NobatPlusAPI.Controllers
     {
         IServiceManagementRep _ServiceManagementRep;
         ILogRep _logRep;
+        private readonly IMapper _mapper;
 
-        public ServiceManagementController(IServiceManagementRep ServiceManagementRep,ILogRep logRep)
+
+        public ServiceManagementController(IServiceManagementRep ServiceManagementRep,ILogRep logRep, IMapper mapper)
         {
            _ServiceManagementRep = ServiceManagementRep;
            _logRep = logRep;
+            _mapper = mapper;
         }
 
         [HttpPost("GetAllServiceManagements_Base")]
         [AllowAnonymous]
-        public async Task<ActionResult<ListResultObject<ServiceManagement>>> GetAllServiceManagements_Base(GetServiceManagementListRequestBody requestBody)
+        public async Task<ActionResult<ListResultObject<ServiceManagementVM>>> GetAllServiceManagements_Base(GetServiceManagementListRequestBody requestBody)
         {
             ListResultObject<ServiceManagement> result = new ListResultObject<ServiceManagement>();
             if (!ModelState.IsValid)
@@ -61,13 +66,14 @@ namespace NobatPlusAPI.Controllers
                 result = await _ServiceManagementRep.GetAllServiceManagementsAsync(requestBody.ParentID,requestBody.ServiceGender ?? ' ', requestBody.PageIndex,requestBody.PageSize,requestBody.SearchText,requestBody.SortQuery);
             if (result.Status)
             {
-                return Ok(result);
+                var resultVM = _mapper.Map<ListResultObject<ServiceManagementVM>>(result);
+                return Ok(resultVM);
             }
             return BadRequest(result);
         }
 
         [HttpPost("GetServiceManagementById_Base")]
-        public async Task<ActionResult<RowResultObject<ServiceManagement>>> GetServiceManagementById_Base(GetRowRequestBody requestBody)
+        public async Task<ActionResult<RowResultObject<ServiceManagementVM>>> GetServiceManagementById_Base(GetRowRequestBody requestBody)
         {
             if (!ModelState.IsValid)
             {
@@ -76,7 +82,8 @@ namespace NobatPlusAPI.Controllers
             var result = await _ServiceManagementRep.GetServiceManagementByIdAsync(requestBody.ID);
             if (result.Status)
             {
-                return Ok(result);
+                var resultVM = _mapper.Map<RowResultObject<ServiceManagementVM>>(result);
+                return Ok(resultVM);
             }
             return BadRequest(result);
         }

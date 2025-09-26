@@ -1,4 +1,5 @@
-﻿using Domain;
+﻿using AutoMapper;
+using Domain;
 using Domains;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
@@ -14,6 +15,7 @@ using NobatPlusDATA.DataLayer.Services;
 using NobatPlusDATA.Domain;
 using NobatPlusDATA.ResultObjects;
 using NobatPlusDATA.Tools;
+using NobatPlusDATA.ViewModels;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
@@ -30,16 +32,19 @@ namespace NobatPlusAPI.Controllers
         IPersonRep _PersonRep;
         ILogRep _logRep;
         IAddressRep _addressRep;
+        private readonly IMapper _mapper;
 
-        public PersonController(IPersonRep PersonRep,IAddressRep addressRep,ILogRep logRep)
+
+        public PersonController(IPersonRep PersonRep,IAddressRep addressRep,ILogRep logRep, IMapper mapper)
         {
            _PersonRep = PersonRep;
            _logRep = logRep;
            _addressRep = addressRep;
+            _mapper = mapper;
         }
 
         [HttpPost("GetAllPersons_Base")]
-        public async Task<ActionResult<ListResultObject<Person>>> GetAllPersons_Base(GetPersonListRequestBody requestBody)
+        public async Task<ActionResult<ListResultObject<PersonVM>>> GetAllPersons_Base(GetPersonListRequestBody requestBody)
         {
             if (!ModelState.IsValid)
             {
@@ -48,13 +53,14 @@ namespace NobatPlusAPI.Controllers
             var result = await _PersonRep.GetAllPersonsAsync(requestBody.CityId,requestBody.PageIndex,requestBody.PageSize,requestBody.SearchText,requestBody.SortQuery);
             if (result.Status)
             {
-                return Ok(result);
+                var resultVM = _mapper.Map<ListResultObject<PersonVM>>(result);
+                return Ok(resultVM);
             }
             return BadRequest(result);
         }
 
         [HttpPost("GetPersonById_Base")]
-        public async Task<ActionResult<RowResultObject<Person>>> GetPersonById_Base(GetRowRequestBody requestBody)
+        public async Task<ActionResult<RowResultObject<PersonVM>>> GetPersonById_Base(GetRowRequestBody requestBody)
         {
             if (!ModelState.IsValid)
             {
@@ -63,7 +69,8 @@ namespace NobatPlusAPI.Controllers
             var result = await _PersonRep.GetPersonByIdAsync(requestBody.ID);
             if (result.Status)
             {
-                return Ok(result);
+                var resultVM = _mapper.Map<RowResultObject<PersonVM>>(result);
+                return Ok(resultVM);
             }
             return BadRequest(result);
         }

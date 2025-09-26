@@ -131,6 +131,7 @@ namespace NobatPlusDATA.DataLayer.Services
             {
                 result.Status = await _context.ServiceDiscounts
                 .AsNoTracking()
+                .Include(x=> x.Discount).Include(x=> x.Admin).Include(x=> x.Stylist)
                 .AnyAsync(x => x.ID == ServiceDiscountId);
                 result.ID = ServiceDiscountId;
             }

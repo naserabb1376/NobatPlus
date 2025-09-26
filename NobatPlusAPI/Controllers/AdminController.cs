@@ -1,4 +1,6 @@
-﻿using Domain;
+﻿using AITechWebAPI.ViewModels;
+using AutoMapper;
+using Domain;
 using Domains;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
@@ -14,6 +16,7 @@ using NobatPlusDATA.DataLayer.Services;
 using NobatPlusDATA.Domain;
 using NobatPlusDATA.ResultObjects;
 using NobatPlusDATA.Tools;
+using NobatPlusDATA.ViewModels;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
@@ -29,15 +32,17 @@ namespace NobatPlusAPI.Controllers
     {
         IAdminRep _AdminRep;
         ILogRep _logRep;
+        private readonly IMapper _mapper;
 
-        public AdminController(IAdminRep AdminRep,ILogRep logRep)
+        public AdminController(IAdminRep AdminRep,ILogRep logRep, IMapper mapper)
         {
            _AdminRep = AdminRep;
             _logRep = logRep;
+            _mapper = mapper;
         }
 
         [HttpPost("GetAllAdmins_Base")]
-        public async Task<ActionResult<ListResultObject<Admin>>> GetAllAdmins_Base(GetAdminListRequestBody requestBody)
+        public async Task<ActionResult<ListResultObject<AdminVM>>> GetAllAdmins_Base(GetAdminListRequestBody requestBody)
         {
             ListResultObject<Admin> result = new ListResultObject<Admin>();
             if (!ModelState.IsValid)
@@ -52,13 +57,14 @@ namespace NobatPlusAPI.Controllers
                 result = await _AdminRep.GetAllAdminsAsync(requestBody.Role,requestBody.CityId,requestBody.PageIndex,requestBody.PageSize,requestBody.SearchText,requestBody.SortQuery);
             if (result.Status)
             {
-                return Ok(result);
+                var resultVM = _mapper.Map<ListResultObject<AdminVM>>(result);
+                return Ok(resultVM);
             }
             return BadRequest(result);
         }
 
         [HttpPost("GetAdminById_Base")]
-        public async Task<ActionResult<RowResultObject<Admin>>> GetAdminById_Base(GetRowRequestBody requestBody)
+        public async Task<ActionResult<RowResultObject<AdminVM>>> GetAdminById_Base(GetRowRequestBody requestBody)
         {
             if (!ModelState.IsValid)
             {
@@ -67,7 +73,8 @@ namespace NobatPlusAPI.Controllers
             var result = await _AdminRep.GetAdminByIdAsync(requestBody.ID);
             if (result.Status)
             {
-                return Ok(result);
+                var resultVM = _mapper.Map<RowResultObject<AdminVM>>(result);
+                return Ok(resultVM);
             }
             return BadRequest(result);
         }

@@ -1,4 +1,5 @@
-﻿using Domain;
+﻿using AutoMapper;
+using Domain;
 using Domains;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
@@ -14,6 +15,7 @@ using NobatPlusDATA.DataLayer.Services;
 using NobatPlusDATA.Domain;
 using NobatPlusDATA.ResultObjects;
 using NobatPlusDATA.Tools;
+using NobatPlusDATA.ViewModels;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
@@ -29,16 +31,19 @@ namespace NobatPlusAPI.Controllers
     {
         IStylistServiceRep _StylistServiceRep;
         ILogRep _logRep;
+        private readonly IMapper _mapper;
 
-        public StylistServiceController(IStylistServiceRep StylistServiceRep,ILogRep logRep)
+
+        public StylistServiceController(IStylistServiceRep StylistServiceRep,ILogRep logRep, IMapper mapper)
         {
            _StylistServiceRep = StylistServiceRep;
             _logRep = logRep;
+            _mapper = mapper;
         }
 
         [HttpPost("GetAllStylistServices_Base")]
         [AllowAnonymous]
-        public async Task<ActionResult<ListResultObject<StylistService>>> GetAllStylistServices_Base(GetStylistServiceListRequestBody requestBody)
+        public async Task<ActionResult<ListResultObject<StylistServiceVM>>> GetAllStylistServices_Base(GetStylistServiceListRequestBody requestBody)
         {
             var result = new ListResultObject<StylistService>();
             if (!ModelState.IsValid)
@@ -48,7 +53,8 @@ namespace NobatPlusAPI.Controllers
             result = await _StylistServiceRep.GetAllStylistServicesAsync(requestBody.PageIndex, requestBody.PageSize, requestBody.SearchText,requestBody.SortQuery);
             if (result.Status)
             {
-                return Ok(result);
+                var resultVM = _mapper.Map<ListResultObject<StylistServiceVM>>(result);
+                return Ok(resultVM);
             }
 
             return BadRequest(result);
@@ -56,7 +62,7 @@ namespace NobatPlusAPI.Controllers
 
 
         [HttpPost("GetStylistServiceById_Base")]
-        public async Task<ActionResult<RowResultObject<StylistService>>> GetStylistServiceById_Base(GetStylistServiceRowRequestBody requestBody)
+        public async Task<ActionResult<RowResultObject<StylistServiceVM>>> GetStylistServiceById_Base(GetStylistServiceRowRequestBody requestBody)
         {
             if (!ModelState.IsValid)
             {
@@ -65,7 +71,8 @@ namespace NobatPlusAPI.Controllers
             var result = await _StylistServiceRep.GetStylistServiceByIdAsync(requestBody.StylistID,requestBody.ServiceID);
             if (result.Status)
             {
-                return Ok(result);
+                var resultVM = _mapper.Map<RowResultObject<StylistServiceVM>>(result);
+                return Ok(resultVM);
             }
             return BadRequest(result);
         }

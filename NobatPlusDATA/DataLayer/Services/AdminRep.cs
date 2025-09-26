@@ -206,7 +206,7 @@ namespace NobatPlusDATA.DataLayer.Services
             RowResultObject<Admin> result = new RowResultObject<Admin>();
             try
             {
-                result.Result = await _context.Admins
+                result.Result = await _context.Admins.Include(x=> x.Person)
                 .AsNoTracking()
                 .SingleOrDefaultAsync(x => x.ID == adminId);
             }

@@ -1,4 +1,5 @@
-﻿using Domain;
+﻿using AutoMapper;
+using Domain;
 using Domains;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
@@ -15,6 +16,7 @@ using NobatPlusDATA.DataLayer.Services;
 using NobatPlusDATA.Domain;
 using NobatPlusDATA.ResultObjects;
 using NobatPlusDATA.Tools;
+using NobatPlusDATA.ViewModels;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
@@ -30,11 +32,14 @@ namespace NobatPlusAPI.Controllers
     {
         ICustomerRep _CustomerRep;
         ILogRep _logRep;
+        private readonly IMapper _mapper;
 
-        public CustomerController(ICustomerRep CustomerRep,ILogRep logRep)
+
+        public CustomerController(ICustomerRep CustomerRep,ILogRep logRep, IMapper mapper)
         {
            _CustomerRep = CustomerRep;
             _logRep = logRep;
+            _mapper = mapper;
         }
 
         [HttpPost("GetAllCustomers_Base")]
@@ -47,13 +52,14 @@ namespace NobatPlusAPI.Controllers
             var result = await _CustomerRep.GetAllCustomersAsync(requestBody.CityId,requestBody.PageIndex,requestBody.PageSize,requestBody.SearchText,requestBody.SortQuery);
             if (result.Status)
             {
-                return Ok(result);
+                var resultVM = _mapper.Map<ListResultObject<CustomerVM>>(result);
+                return Ok(resultVM);
             }
             return BadRequest(result);
         }
 
         [HttpPost("GetDiscountCustomers_Base")]
-        public async Task<ActionResult<ListResultObject<Customer>>> GetDiscountCustomers_Base(GetCustomerListRequestBody requestBody)
+        public async Task<ActionResult<ListResultObject<CustomerVM>>> GetDiscountCustomers_Base(GetCustomerListRequestBody requestBody)
         {
             if (!ModelState.IsValid)
             {
@@ -62,14 +68,15 @@ namespace NobatPlusAPI.Controllers
             var result = await _CustomerRep.GetCustomersOfDiscountAsync(requestBody.DiscountId,requestBody.CityId,requestBody.PageIndex, requestBody.PageSize, requestBody.SearchText,requestBody.SortQuery);
             if (result.Status)
             {
-                return Ok(result);
+                var resultVM = _mapper.Map<ListResultObject<CustomerVM>>(result);
+                return Ok(resultVM);
             }
             return BadRequest(result);
         }
 
 
         [HttpPost("GetCustomerById_Base")]
-        public async Task<ActionResult<RowResultObject<Customer>>> GetCustomerById_Base(GetRowRequestBody requestBody)
+        public async Task<ActionResult<RowResultObject<CustomerVM>>> GetCustomerById_Base(GetRowRequestBody requestBody)
         {
             if (!ModelState.IsValid)
             {
@@ -78,7 +85,8 @@ namespace NobatPlusAPI.Controllers
             var result = await _CustomerRep.GetCustomerByIdAsync(requestBody.ID);
             if (result.Status)
             {
-                return Ok(result);
+                var resultVM = _mapper.Map<RowResultObject<CustomerVM>>(result);
+                return Ok(resultVM);
             }
             return BadRequest(result);
         }

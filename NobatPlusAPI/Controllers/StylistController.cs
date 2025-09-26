@@ -1,17 +1,19 @@
-﻿using Domain;
+﻿using AutoMapper;
+using Domain;
 using Domains;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
-using NobatPlusAPI.Models.Stylist;
 using NobatPlusAPI.Models.Public;
+using NobatPlusAPI.Models.Stylist;
 using NobatPlusDATA.DataLayer.Repositories;
 using NobatPlusDATA.DataLayer.Services;
 using NobatPlusDATA.Domain;
 using NobatPlusDATA.ResultObjects;
 using NobatPlusDATA.Tools;
+using NobatPlusDATA.ViewModels;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
@@ -28,17 +30,20 @@ namespace NobatPlusAPI.Controllers
         IStylistRep _StylistRep;
         IAddressRep _AddressRep;
         ILogRep _logRep;
+        private readonly IMapper _mapper;
 
-        public StylistController(IStylistRep StylistRep,IAddressRep addressRep, ILogRep logRep)
+
+        public StylistController(IStylistRep StylistRep,IAddressRep addressRep, ILogRep logRep, IMapper mapper)
         {
             _StylistRep = StylistRep;
             _AddressRep = addressRep;
             _logRep = logRep;
+            _mapper = mapper;
         }
 
         [HttpPost("GetAllStylists_Base")]
         [AllowAnonymous]
-        public async Task<ActionResult<ListResultObject<StylistDTO>>> GetAllStylists_Base(GetStylistListRequestBody requestBody)
+        public async Task<ActionResult<ListResultObject<StylistVM>>> GetAllStylists_Base(GetStylistListRequestBody requestBody)
         {
             ListResultObject<StylistDTO> result = new ListResultObject<StylistDTO>();
             if (!ModelState.IsValid)
@@ -61,14 +66,15 @@ namespace NobatPlusAPI.Controllers
                 result = await _StylistRep.GetAllStylistsAsync(requestBody.ParentID,requestBody.CityID,requestBody.PageIndex,requestBody.PageSize,requestBody.SearchText,requestBody.SortQuery);
             if (result.Status)
             {
-                return Ok(result);
+                var resultVM = _mapper.Map<ListResultObject<StylistVM>>(result);
+                return Ok(resultVM);
             }
             return BadRequest(result);
         }
 
         [HttpPost("GetStylistById_Base")]
         [AllowAnonymous]
-        public async Task<ActionResult<RowResultObject<StylistDTO>>> GetStylistById_Base(GetRowRequestBody requestBody)
+        public async Task<ActionResult<RowResultObject<StylistVM>>> GetStylistById_Base(GetRowRequestBody requestBody)
         {
             if (!ModelState.IsValid)
             {
@@ -77,7 +83,8 @@ namespace NobatPlusAPI.Controllers
             var result = await _StylistRep.GetStylistByIdAsync(requestBody.ID);
             if (result.Status)
             {
-                return Ok(result);
+                var resultVM = _mapper.Map<RowResultObject<StylistVM>>(result);
+                return Ok(resultVM);
             }
             return BadRequest(result);
         }
@@ -123,6 +130,7 @@ namespace NobatPlusAPI.Controllers
                 WorkShopDepositAmount = requestBody.WorkShopDepositAmount,
                 WorkShopRentAmount = requestBody.WorkShopRentAmount,
                 IsWorkShop = requestBody.IsWorkshop,
+                RestTime = requestBody.RestTime,
             };
             var result = await _StylistRep.AddStylistAsync(Stylist);
             if (result.Status)
@@ -183,6 +191,7 @@ namespace NobatPlusAPI.Controllers
                 WorkShopDepositAmount = requestBody.WorkShopDepositAmount,
                 WorkShopRentAmount = requestBody.WorkShopRentAmount,
                 IsWorkShop = requestBody.IsWorkshop,
+                RestTime = requestBody.RestTime,
             };
             result = await _StylistRep.EditStylistAsync(Stylist);
             if (result.Status)

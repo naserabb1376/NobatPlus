@@ -1,4 +1,5 @@
-﻿using Domain;
+﻿using AutoMapper;
+using Domain;
 using Domains;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
@@ -7,13 +8,14 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 using NobatPlusAPI.Models;
 using NobatPlusAPI.Models.Authenticate;
-using NobatPlusAPI.Models.Register;
 using NobatPlusAPI.Models.Public;
+using NobatPlusAPI.Models.Register;
 using NobatPlusDATA.DataLayer.Repositories;
 using NobatPlusDATA.DataLayer.Services;
 using NobatPlusDATA.Domain;
 using NobatPlusDATA.ResultObjects;
 using NobatPlusDATA.Tools;
+using NobatPlusDATA.ViewModels;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
@@ -29,15 +31,19 @@ namespace NobatPlusAPI.Controllers
     {
         IRegisterRep _RegisterRep;
         ILogRep _logRep;
+        private readonly IMapper _mapper;
 
-        public RegisterController(IRegisterRep RegisterRep,ILogRep logRep)
+
+        public RegisterController(IRegisterRep RegisterRep,ILogRep logRep, IMapper mapper)
         {
            _RegisterRep = RegisterRep;
            _logRep = logRep;
+            _mapper = mapper;
+            
         }
 
         [HttpPost("GetAllRegisters_Base")]
-        public async Task<ActionResult<ListResultObject<Register>>> GetAllRegisters_Base(GetRegisterListRequestBody requestBody)
+        public async Task<ActionResult<ListResultObject<RegisterVM>>> GetAllRegisters_Base(GetRegisterListRequestBody requestBody)
         {
             if (!ModelState.IsValid)
             {
@@ -46,13 +52,14 @@ namespace NobatPlusAPI.Controllers
             var result = await _RegisterRep.GetAllRegistersAsync(requestBody.PageIndex,requestBody.PageSize,requestBody.SearchText,requestBody.SortQuery);
             if (result.Status)
             {
-                return Ok(result);
+                var resultVM = _mapper.Map<ListResultObject<RegisterVM>>(result);
+                return Ok(resultVM);
             }
             return BadRequest(result);
         }
 
         [HttpPost("GetRegisterById_Base")]
-        public async Task<ActionResult<RowResultObject<Register>>> GetRegisterById_Base(GetRowRequestBody requestBody)
+        public async Task<ActionResult<RowResultObject<RegisterVM>>> GetRegisterById_Base(GetRowRequestBody requestBody)
         {
             if (!ModelState.IsValid)
             {
@@ -61,7 +68,8 @@ namespace NobatPlusAPI.Controllers
             var result = await _RegisterRep.GetRegisterByIdAsync(requestBody.ID);
             if (result.Status)
             {
-                return Ok(result);
+                var resultVM = _mapper.Map<RowResultObject<RegisterVM>>(result);
+                return Ok(resultVM);
             }
             return BadRequest(result);
         }

@@ -23,6 +23,7 @@ namespace NobatPlusDATA.Domain
         public long WorkShopDepositAmount { get; set; }
         public int YearsOfExperience { get; set; }
         public long JobTypeID { get; set; }
+        public TimeSpan RestTime { get; set; }
         public JobType JobType { get; set; }
         public Person Person { get; set; }
         public ICollection<Booking> Bookings { get; set; }
@@ -52,6 +53,7 @@ namespace NobatPlusDATA.Domain
         public int YearsOfExperience { get; set; }
         public float AvgScoreForStylist { get; set; }
         public long JobTypeID { get; set; }
+        public TimeSpan RestTime { get; set; }
         public JobType JobType { get; set; }
         public Person Person { get; set; }
         public ICollection<Booking> Bookings { get; set; }

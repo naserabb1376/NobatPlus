@@ -1,4 +1,5 @@
-﻿using Domain;
+﻿using AutoMapper;
+using Domain;
 using Domains;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
@@ -14,6 +15,7 @@ using NobatPlusDATA.DataLayer.Services;
 using NobatPlusDATA.Domain;
 using NobatPlusDATA.ResultObjects;
 using NobatPlusDATA.Tools;
+using NobatPlusDATA.ViewModels;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
@@ -29,16 +31,19 @@ namespace NobatPlusAPI.Controllers
     {
         ICheckAvailabilityRep _CheckAvailabilityRep;
         ILogRep _logRep;
+        private readonly IMapper _mapper;
 
-        public CheckAvailabilityController(ICheckAvailabilityRep CheckAvailabilityRep,ILogRep logRep)
+
+        public CheckAvailabilityController(ICheckAvailabilityRep CheckAvailabilityRep,ILogRep logRep, IMapper mapper)
         {
            _CheckAvailabilityRep = CheckAvailabilityRep;
            _logRep = logRep;
+            _mapper = mapper;
         }
 
         [HttpPost("GetAllCheckAvailabilities_Base")]
         [AllowAnonymous]
-        public async Task<ActionResult<ListResultObject<CheckAvailability>>> GetAllCheckAvailabilities_Base(GetCheckAvailabilityListRequestBody requestBody)
+        public async Task<ActionResult<ListResultObject<CheckAvailabilityVM>>> GetAllCheckAvailabilities_Base(GetCheckAvailabilityListRequestBody requestBody)
         {
             if (!ModelState.IsValid)
             {
@@ -47,13 +52,14 @@ namespace NobatPlusAPI.Controllers
             var result = await _CheckAvailabilityRep.GetAllCheckAvailabilitiesAsync(requestBody.StylistId,requestBody.PageIndex,requestBody.PageSize,requestBody.SearchText,requestBody.SortQuery);
             if (result.Status)
             {
-                return Ok(result);
+                var resultVM = _mapper.Map<ListResultObject<CheckAvailabilityVM>>(result);
+                return Ok(resultVM);
             }
             return BadRequest(result);
         }
 
         [HttpPost("GetCheckAvailabilityById_Base")]
-        public async Task<ActionResult<RowResultObject<CheckAvailability>>> GetCheckAvailabilityById_Base(GetRowRequestBody requestBody)
+        public async Task<ActionResult<RowResultObject<CheckAvailabilityVM>>> GetCheckAvailabilityById_Base(GetRowRequestBody requestBody)
         {
             if (!ModelState.IsValid)
             {
@@ -62,7 +68,8 @@ namespace NobatPlusAPI.Controllers
             var result = await _CheckAvailabilityRep.GetCheckAvailabilityByIdAsync(requestBody.ID);
             if (result.Status)
             {
-                return Ok(result);
+                var resultVM = _mapper.Map<RowResultObject<CheckAvailabilityVM>>(result);
+                return Ok(resultVM);
             }
             return BadRequest(result);
         }

@@ -88,7 +88,7 @@ namespace NobatPlusDATA.DataLayer.Services
 
                 if (bookingId == 0)
                 {
-                    query = _context.PaymentHistories
+                    query = _context.PaymentHistories.Include(x => x.Booking).ThenInclude(x=> x.Customer).Include(x=> x.Booking).ThenInclude(x=> x.Stylist)
                          .AsNoTracking()
                          .Where(x =>
                              (!string.IsNullOrEmpty(x.PaymentMethod) && x.PaymentMethod.Contains(searchText)) ||
@@ -101,7 +101,7 @@ namespace NobatPlusDATA.DataLayer.Services
                 }
                 else
                 {
-                    query = _context.PaymentHistories
+                    query = _context.PaymentHistories.Include(x => x.Booking).ThenInclude(x => x.Customer).Include(x => x.Booking).ThenInclude(x => x.Stylist)
                         .AsNoTracking()
                         .Where(x =>
                             x.BookingID == bookingId &&
@@ -135,7 +135,7 @@ namespace NobatPlusDATA.DataLayer.Services
             RowResultObject<PaymentHistory> result = new RowResultObject<PaymentHistory>();
             try
             {
-                result.Result = await _context.PaymentHistories
+                result.Result = await _context.PaymentHistories.Include(x => x.Booking).ThenInclude(x => x.Customer).Include(x => x.Booking).ThenInclude(x => x.Stylist)
                 .AsNoTracking()
                 .SingleOrDefaultAsync(x => x.ID == PaymentHistoryId);
             }

@@ -77,9 +77,9 @@ namespace NobatPlusDATA.DataLayer.Services
              
         }
 
-        public async Task<ListResultObject<Booking>> GetAllBookingsAsync(int cancelState = 0, int pageIndex = 1, int pageSize = 20, string searchText = "",string sortQuery ="")
+        public async Task<ListResultObject<BookingDTO>> GetAllBookingsAsync(int cancelState = 0, int pageIndex = 1, int pageSize = 20, string searchText = "",string sortQuery ="")
         {
-            ListResultObject<Booking> results = new ListResultObject<Booking>();
+            ListResultObject<BookingDTO> results = new ListResultObject<BookingDTO>();
             try
             {
                 IQueryable<Booking> query;
@@ -144,6 +144,31 @@ namespace NobatPlusDATA.DataLayer.Services
                 results.PageCount = DbTools.GetPageCount(results.TotalCount, pageSize);
                 results.Results = await query.OrderByDescending(x => x.CreateDate)
                 .SortBy(sortQuery).ToPaging(pageIndex, pageSize)
+                .Select(r => new BookingDTO
+                {
+                    ID = r.ID,
+                    StylistID = r.StylistID,
+                    CustomerID = r.CustomerID,
+                    Description = r.Description,
+                    BookingDate = r.BookingDate,
+                    BookingTime = r.BookingTime,
+                    CancelReason = r.CancelReason,
+                    IsCancelled = r.IsCancelled,
+                    Status = r.Status,
+                    Stylist = r.Stylist,
+                    Customer = r.Customer,
+                    UpdateDate = r.UpdateDate,
+                    CreateDate = r.CreateDate,
+
+                    // محاسباتی
+                    TotalTimeDuration = _context.BookingServices
+            .Select(bs => bs.ServiceManagement.StylistServices
+                .Where(ss => ss.StylistID == r.StylistID)
+                .Select(ss => ss.ServiceDuration)
+                .FirstOrDefault()
+            )
+            .Aggregate(TimeSpan.Zero, (sum, next) => sum + next)
+                })
                 .ToListAsync();
             }
             catch (Exception ex)
@@ -155,9 +180,9 @@ namespace NobatPlusDATA.DataLayer.Services
             
         }
 
-        public async Task<ListResultObject<Booking>> GetBookingsOfServiceAsync(long ServiceManagementId, int cancelState = 0, int pageIndex = 1, int pageSize = 20, string searchText = "",string sortQuery ="")
+        public async Task<ListResultObject<BookingDTO>> GetBookingsOfServiceAsync(long ServiceManagementId, int cancelState = 0, int pageIndex = 1, int pageSize = 20, string searchText = "",string sortQuery ="")
         {
-            ListResultObject<Booking> results = new ListResultObject<Booking>();
+            ListResultObject<BookingDTO> results = new ListResultObject<BookingDTO>();
             try
             {
                 IQueryable<Booking> query;
@@ -170,6 +195,7 @@ namespace NobatPlusDATA.DataLayer.Services
                     .AsNoTracking()
                     .Include(x => x.Stylist).ThenInclude(x => x.Person)
                     .Include(x => x.Customer).ThenInclude(x => x.Person)
+
                     .Where(x =>
                         (!string.IsNullOrEmpty(x.Stylist.Person.FirstName.ToString()) && x.Stylist.Person.FirstName.ToString().Contains(searchText))
                         || (!string.IsNullOrEmpty(x.Stylist.Person.LastName.ToString()) && x.Stylist.Person.LastName.ToString().Contains(searchText))
@@ -227,6 +253,31 @@ namespace NobatPlusDATA.DataLayer.Services
                 results.PageCount = DbTools.GetPageCount(results.TotalCount, pageSize);
                 results.Results = await query.OrderByDescending(x => x.CreateDate)
                 .SortBy(sortQuery).ToPaging(pageIndex, pageSize)
+                .Select(r => new BookingDTO
+                {
+                    ID = r.ID,
+                    StylistID = r.StylistID,
+                    CustomerID = r.CustomerID,
+                    Description = r.Description,
+                    BookingDate = r.BookingDate,
+                    BookingTime = r.BookingTime,
+                    CancelReason = r.CancelReason,
+                    IsCancelled = r.IsCancelled,
+                    Status = r.Status,
+                    Stylist = r.Stylist,
+                    Customer = r.Customer,
+                    UpdateDate = r.UpdateDate,
+                    CreateDate = r.CreateDate,
+
+                    // محاسباتی
+                    TotalTimeDuration = _context.BookingServices
+            .Select(bs => bs.ServiceManagement.StylistServices
+                .Where(ss => ss.StylistID == r.StylistID)
+                .Select(ss => ss.ServiceDuration)
+                .FirstOrDefault()
+            )
+            .Aggregate(TimeSpan.Zero, (sum, next) => sum + next)
+                })
                 .ToListAsync();
             }
             catch (Exception ex)
@@ -238,16 +289,41 @@ namespace NobatPlusDATA.DataLayer.Services
 
         }
 
-        public async Task<RowResultObject<Booking>> GetBookingByIdAsync(long BookingId)
+        public async Task<RowResultObject<BookingDTO>> GetBookingByIdAsync(long BookingId)
         {
-            RowResultObject<Booking> result = new RowResultObject<Booking>();
+            RowResultObject<BookingDTO> result = new RowResultObject<BookingDTO>();
             try
             {
                 result.Result = await _context.Bookings
-                .AsNoTracking()
                 .Include(x => x.Stylist).ThenInclude(x => x.Person)
                 .Include(x => x.Customer).ThenInclude(x => x.Person)
-                .SingleOrDefaultAsync(x => x.ID == BookingId);
+                .Where(x=> x.ID == BookingId)
+                .Select(r => new BookingDTO
+                {
+                    ID = r.ID,
+                    StylistID = r.StylistID,
+                    CustomerID = r.CustomerID,
+                    Description = r.Description,
+                    BookingDate = r.BookingDate,
+                    BookingTime = r.BookingTime,
+                    CancelReason = r.CancelReason,
+                    IsCancelled = r.IsCancelled,
+                    Status = r.Status,
+                    Stylist = r.Stylist,
+                    Customer = r.Customer,
+                    UpdateDate = r.UpdateDate,
+                    CreateDate = r.CreateDate,
+
+                    // محاسباتی
+                    TotalTimeDuration = _context.BookingServices
+            .Select(bs => bs.ServiceManagement.StylistServices
+                .Where(ss => ss.StylistID == r.StylistID)
+                .Select(ss => ss.ServiceDuration)
+                .FirstOrDefault()
+            )
+            .Aggregate(TimeSpan.Zero, (sum, next) => sum + next)
+                })
+                .AsNoTracking().SingleOrDefaultAsync();
             }
             catch (Exception ex)
             {
@@ -281,8 +357,24 @@ namespace NobatPlusDATA.DataLayer.Services
             BitResultObject result = new BitResultObject();
             try
             {
-                var Booking = await GetBookingByIdAsync(BookingId);
-                result = await RemoveBookingAsync(Booking.Result);
+                var BookingDto = await GetBookingByIdAsync(BookingId);
+                var theBooking = new Booking()
+                {
+                    BookingDate = BookingDto.Result.BookingDate,
+                    BookingTime = BookingDto.Result.BookingTime,
+                    CancelReason = BookingDto.Result.CancelReason,
+                    CreateDate = BookingDto.Result.CreateDate,
+                    Customer = BookingDto.Result.Customer,
+                    CustomerID = BookingDto.Result.CustomerID,
+                    Description = BookingDto.Result.Description,
+                    ID = BookingDto.Result.ID,
+                    UpdateDate = BookingDto.Result.UpdateDate,
+                    IsCancelled = BookingDto.Result.IsCancelled,
+                    Status = BookingDto.Result.Status,
+                    Stylist = BookingDto.Result.Stylist,
+                    StylistID = BookingDto.Result.StylistID,
+                };
+                result = await RemoveBookingAsync(theBooking);
             }
             catch (Exception ex)
             {
