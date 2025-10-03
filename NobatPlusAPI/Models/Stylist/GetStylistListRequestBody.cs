@@ -1,4 +1,5 @@
 ﻿using Domain;
+using NobatPlusAPI.Models.Address;
 using NobatPlusAPI.Models.Public;
 using System.ComponentModel.DataAnnotations;
 
@@ -25,5 +26,7 @@ namespace NobatPlusAPI.Models.Stylist
         [Display(Name = "کد گروه شغلی")]
         [Required(ErrorMessage = "لطفا {0} را وارد کنید")]
         public long JobTypeID { get; set; }
+
+        public FindLocationRequestBody? FindLocationRequestBody { get; set; }
     }
 }

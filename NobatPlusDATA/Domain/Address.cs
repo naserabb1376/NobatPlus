@@ -27,4 +27,19 @@ namespace Domain
         public City City { get; set; }
         public long CityID { get; set; }
     }
+
+    public class FindLocationRequestBody
+    {
+        [Display(Name = "عرض جغرافیایی")]
+        [Required(ErrorMessage = "لطفا {0} را وارد کنید")]
+        public double LocationLatitude { get; set; }
+
+        [Display(Name = "طول جغرافیایی")]
+        [Required(ErrorMessage = "لطفا {0} را وارد کنید")]
+        public double LocationLongitude { get; set; }
+
+        [Display(Name = "شعاع کیلومتری")]
+        [Required(ErrorMessage = "لطفا {0} را وارد کنید")]
+        public double RadiusKm { get; set; }
+    }
 }

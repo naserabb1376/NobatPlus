@@ -1,4 +1,5 @@
 ﻿using Domain;
+using Domains;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using NobatPlusDATA.DataLayer.Repositories;
@@ -94,7 +95,7 @@ namespace NobatPlusDATA.DataLayer.Services
             return result;
         }
 
-        public async Task<ListResultObject<StylistDTO>> GetAllStylistsAsync(long parentId = 0,long cityId = 0, int pageIndex = 1, int pageSize = 20, string searchText = "",string sortQuery ="")
+        public async Task<ListResultObject<StylistDTO>> GetAllStylistsAsync(long parentId = 0,long cityId = 0, int pageIndex = 1, int pageSize = 20, string searchText = "",string sortQuery ="", FindLocationRequestBody findLocation = null)
         {
             ListResultObject<StylistDTO> results = new ListResultObject<StylistDTO>();
             try
@@ -109,6 +110,16 @@ namespace NobatPlusDATA.DataLayer.Services
                 if (parentId < 0)
                 {
                     query = query.Where(x => x.StylistParentID > 0 || !x.IsWorkShop);
+                }
+
+                if (findLocation != null)
+                {
+                    double personLat = 0, personLng=0;
+                    query = query.Where(p =>
+                p.Person.Address != null &&
+                double.TryParse(p.Person.Address.AddressLocationVerticalPoint, out  personLat) &&
+                double.TryParse(p.Person.Address.AddressLocationHorizentalPoint, out personLng) &&
+                GeoHelper.CalculateDistance(findLocation.LocationLatitude, findLocation.LocationLongitude, personLat, personLng) <= findLocation.RadiusKm);
                 }
 
                 query = query.Where(x =>
@@ -184,7 +195,7 @@ namespace NobatPlusDATA.DataLayer.Services
            
         }
 
-        public async Task<ListResultObject<StylistDTO>> GetStylistsOfServiceAsync(long serviceManagementId,long cityId = 0, int pageIndex = 1, int pageSize = 20, string searchText = "",string sortQuery ="")
+        public async Task<ListResultObject<StylistDTO>> GetStylistsOfServiceAsync(long serviceManagementId,long cityId = 0, int pageIndex = 1, int pageSize = 20, string searchText = "",string sortQuery ="", FindLocationRequestBody findLocation = null)
         {
             ListResultObject<StylistDTO> results = new ListResultObject<StylistDTO>();
             try
@@ -218,6 +229,16 @@ namespace NobatPlusDATA.DataLayer.Services
                     (x.StylistServices.Any(s => !string.IsNullOrEmpty(s.ServiceManagement.ServiceName) && s.ServiceManagement.ServiceName.Contains(searchText))) ||
                     (!string.IsNullOrEmpty(x.Description) && x.Description.Contains(searchText))
                 );
+
+                if (findLocation != null)
+                {
+                    double personLat = 0, personLng = 0;
+                    query = query.Where(p =>
+                p.Person.Address != null &&
+                double.TryParse(p.Person.Address.AddressLocationVerticalPoint, out personLat) &&
+                double.TryParse(p.Person.Address.AddressLocationHorizentalPoint, out personLng) &&
+                GeoHelper.CalculateDistance(findLocation.LocationLatitude, findLocation.LocationLongitude, personLat, personLng) <= findLocation.RadiusKm);
+                }
 
                 results.TotalCount = query.Count();
                 results.PageCount = DbTools.GetPageCount(results.TotalCount, pageSize);
@@ -265,7 +286,7 @@ namespace NobatPlusDATA.DataLayer.Services
            
         }
 
-        public async Task<ListResultObject<StylistDTO>> GetStylistsOfJobTypeAsync(long JobTypeId,long cityId = 0, int pageIndex = 1, int pageSize = 20, string searchText = "",string sortQuery ="")
+        public async Task<ListResultObject<StylistDTO>> GetStylistsOfJobTypeAsync(long JobTypeId,long cityId = 0, int pageIndex = 1, int pageSize = 20, string searchText = "",string sortQuery ="", FindLocationRequestBody findLocation = null)
         {
             ListResultObject<StylistDTO> results = new ListResultObject<StylistDTO>();
             try
@@ -298,6 +319,16 @@ namespace NobatPlusDATA.DataLayer.Services
                      (!string.IsNullOrEmpty(x.Specialty) && x.Specialty.Contains(searchText))
                     )
                 );
+
+                if (findLocation != null)
+                {
+                    double personLat = 0, personLng = 0;
+                    query = query.Where(p =>
+                p.Person.Address != null &&
+                double.TryParse(p.Person.Address.AddressLocationVerticalPoint, out personLat) &&
+                double.TryParse(p.Person.Address.AddressLocationHorizentalPoint, out personLng) &&
+                GeoHelper.CalculateDistance(findLocation.LocationLatitude, findLocation.LocationLongitude, personLat, personLng) <= findLocation.RadiusKm);
+                }
 
                 results.TotalCount = query.Count();
                 results.PageCount = DbTools.GetPageCount(results.TotalCount, pageSize);
@@ -345,7 +376,7 @@ namespace NobatPlusDATA.DataLayer.Services
       
         }
 
-        public async Task<ListResultObject<StylistDTO>> GetStylistsOfDiscountAsync(long DiscountId,long cityId = 0, int pageIndex = 1, int pageSize = 20, string searchText = "",string sortQuery ="")
+        public async Task<ListResultObject<StylistDTO>> GetStylistsOfDiscountAsync(long DiscountId,long cityId = 0, int pageIndex = 1, int pageSize = 20, string searchText = "",string sortQuery ="", FindLocationRequestBody findLocation = null)
         {
             ListResultObject<StylistDTO> results = new ListResultObject<StylistDTO>();
             try
@@ -394,6 +425,16 @@ namespace NobatPlusDATA.DataLayer.Services
                     (x.StylistServices.Any(s=> !string.IsNullOrEmpty(s.ServiceManagement.ServiceName) && s.ServiceManagement.ServiceName.Contains(searchText))) ||
                     (!string.IsNullOrEmpty(x.Description) && x.Description.Contains(searchText))
                 );
+
+                if (findLocation != null)
+                {
+                    double personLat = 0, personLng = 0;
+                    query = query.Where(p =>
+                p.Person.Address != null &&
+                double.TryParse(p.Person.Address.AddressLocationVerticalPoint, out personLat) &&
+                double.TryParse(p.Person.Address.AddressLocationHorizentalPoint, out personLng) &&
+                GeoHelper.CalculateDistance(findLocation.LocationLatitude, findLocation.LocationLongitude, personLat, personLng) <= findLocation.RadiusKm);
+                }
 
                 results.TotalCount = query.Count();
                 results.PageCount = DbTools.GetPageCount(results.TotalCount, pageSize);
