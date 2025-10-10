@@ -81,12 +81,16 @@ namespace NobatPlusDATA.DataLayer.Services
         public async Task<ListResultObject<Customer>> GetAllCustomersAsync(long cityId = 0, int pageIndex = 1, int pageSize = 20, string searchText = "",string sortQuery ="")
         {
             ListResultObject<Customer> results = new ListResultObject<Customer>();
+            IQueryable<Customer> query = _context.Customers
+                .AsNoTracking()
+                .Include(x => x.Person).ThenInclude(x => x.Address).ThenInclude(x => x.City);
             try
             {
-                var query = _context.Customers
-                .AsNoTracking()
-                .Include(x => x.Person).ThenInclude(x => x.Address).ThenInclude(x => x.City)
-                .Where(x =>
+                if (cityId > 0)
+                {
+                    query = query.Where(x => x.Person.Address.CityID == cityId);
+                }
+                query = query.Where(x =>
                     (!string.IsNullOrEmpty(x.Person.FirstName) && x.Person.FirstName.Contains(searchText)) ||
                     (!string.IsNullOrEmpty(x.Person.LastName) && x.Person.LastName.Contains(searchText)) ||
                     (!string.IsNullOrEmpty(x.Person.NaCode) && x.Person.NaCode.Contains(searchText)) ||
