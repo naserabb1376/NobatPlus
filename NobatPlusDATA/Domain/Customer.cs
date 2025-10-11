@@ -17,4 +17,12 @@ namespace NobatPlusDATA.Domain
         public ICollection<RateHistory> RateHistories { get; set; }
         public ICollection<CustomerDiscount> CustomerDiscounts { get; set; }
     }
+
+    public class CustomerDTO : BaseEntity
+    {
+        public long PersonID { get; set; }
+        public Person Person { get; set; }
+        public int BookingCount { get; set; }
+        public DateTime? LastBookingDate { get; set; }
+    }
 }
