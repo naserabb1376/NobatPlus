@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using Hangfire;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
@@ -6,6 +7,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Newtonsoft.Json;
+using NobatPlusAPI.DataLayer.Services;
 using NobatPlusAPI.Tools;
 using NobatPlusDATA.DataLayer;
 using NobatPlusDATA.DataLayer.Repositories;
@@ -179,10 +181,12 @@ namespace NobatPlusAPI
             builder.Services.AddScoped<IPersonRep, PersonRep>();
             builder.Services.AddScoped<IRegisterRep, RegisterRep>();
             builder.Services.AddScoped<IReviewRep, ReviewRep>();
+            builder.Services.AddScoped<IRoleRep, RoleRep>();
             builder.Services.AddScoped<IServiceDiscountRep, ServiceDiscountRep>();
             builder.Services.AddScoped<IServiceManagementRep, ServiceManagementRep>();
             builder.Services.AddScoped<IStylistRep, StylistRep>();
             builder.Services.AddScoped<IStylistServiceRep, StylistServiceRep>();
+            builder.Services.AddScoped<IStylistPacificRep, StylistPacificRep>();
             builder.Services.AddScoped<ITokenRep, TokenRep>();
             builder.Services.AddScoped<ISocialNetworkRep, SocialNetworkRep>();
             builder.Services.AddScoped<IWorkTimeRep, WorkTimeRep>();
@@ -217,6 +221,9 @@ namespace NobatPlusAPI
             builder.Services.AddAutoMapper(cfg => { /* تنظیمات سراسری اختیاری */ },
                                            typeof(Program).Assembly);
 
+            builder.Services.AddHangfire(config =>
+    config.UseSqlServerStorage((mainDbconfigHelper.GetConnectionString("publicdb"))));
+            builder.Services.AddHangfireServer();
 
             var app = builder.Build();
 
@@ -245,7 +252,8 @@ namespace NobatPlusAPI
 
             app.UseSession();
 
-
+            app.UseHangfireDashboard("/hangfire");
+            app.UseHangfireServer();
 
             app.UseRouting();
             app.UseAuthentication();

@@ -43,29 +43,13 @@ namespace NobatPlusAPI.Controllers
         }
 
         [HttpPost("GetAllCustomers_Base")]
-        public async Task<ActionResult<ListResultObject<Customer>>> GetAllCustomers_Base(GetCustomerListRequestBody requestBody)
+        public async Task<ActionResult<ListResultObject<CustomerVM>>> GetAllCustomers_Base(GetCustomerListRequestBody requestBody)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(requestBody);
             }
-            var result = await _CustomerRep.GetAllCustomersAsync(requestBody.CityId,requestBody.PageIndex,requestBody.PageSize,requestBody.SearchText,requestBody.SortQuery);
-            if (result.Status)
-            {
-                var resultVM = _mapper.Map<ListResultObject<CustomerVM>>(result);
-                return Ok(resultVM);
-            }
-            return BadRequest(result);
-        }
-
-        [HttpPost("GetDiscountCustomers_Base")]
-        public async Task<ActionResult<ListResultObject<CustomerVM>>> GetDiscountCustomers_Base(GetCustomerListRequestBody requestBody)
-        {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(requestBody);
-            }
-            var result = await _CustomerRep.GetCustomersOfDiscountAsync(requestBody.DiscountId,requestBody.CityId,requestBody.PageIndex, requestBody.PageSize, requestBody.SearchText,requestBody.SortQuery);
+            var result = await _CustomerRep.GetAllCustomersAsync(requestBody.StylistId,requestBody.CityId,requestBody.DiscountId,requestBody.PageIndex,requestBody.PageSize,requestBody.SearchText,requestBody.SortQuery);
             if (result.Status)
             {
                 var resultVM = _mapper.Map<ListResultObject<CustomerVM>>(result);

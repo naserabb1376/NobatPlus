@@ -22,6 +22,25 @@ namespace NobatPlusDATA.DataLayer.Services
             _context = context;
         }
 
+        public async Task<BitResultObject> AcceptReviewAsync(long ReviewId, long RoleId)
+        {
+            BitResultObject result = new BitResultObject();
+            try
+            {
+                var Review = await GetReviewByIdAsync(ReviewId, RoleId);
+
+                Review.Result.IsAccepted = true;
+
+                result = await EditReviewAsync(Review.Result);
+            }
+            catch (Exception ex)
+            {
+                result.Status = false;
+                result.ErrorMessage = $"{ex.Message} - {ex.InnerException?.Message}";
+            }
+            return result;
+        }
+
         public async Task<BitResultObject> AddReviewAsync(Review Review)
         {
             BitResultObject result = new BitResultObject();
@@ -79,15 +98,20 @@ namespace NobatPlusDATA.DataLayer.Services
             
         }
 
-        public async Task<ListResultObject<Review>> GetAllReviewsAsync(long BookingId = 0, long CustomerId = 0, int pageIndex = 1, int pageSize = 20, string searchText = "",string sortQuery ="")
+        public async Task<ListResultObject<Review>> GetAllReviewsAsync(long RoleId,long BookingId = 0, long CustomerId = 0, int pageIndex = 1, int pageSize = 20, string searchText = "",string sortQuery ="")
         {
             ListResultObject<Review> results = new ListResultObject<Review>();
             try
             {
                 IQueryable<Review> query = _context.Reviews
               .AsNoTracking()
-              .Include(x => x.Booking).ThenInclude(x => x.Stylist)
+              .Include(x => x.Booking).ThenInclude(x => x.Stylist).ThenInclude(x => x.Person)
               .Include(x => x.Customer).ThenInclude(x => x.Person);
+
+                if (RoleId != 4)
+                {
+                    query = query.Where(x => x.IsAccepted);
+                }
 
                 if (BookingId > 0)
                 {
@@ -128,16 +152,22 @@ namespace NobatPlusDATA.DataLayer.Services
        
         }
 
-        public async Task<RowResultObject<Review>> GetReviewByIdAsync(long ReviewId)
+        public async Task<RowResultObject<Review>> GetReviewByIdAsync(long ReviewId,long RoleId)
         {
             RowResultObject<Review> result = new RowResultObject<Review>();
             try
             {
                 result.Result = await _context.Reviews
                 .AsNoTracking()
-                .Include(x => x.Booking).ThenInclude(x => x.Stylist)
+                .Include(x => x.Booking).ThenInclude(x => x.Stylist).ThenInclude(x => x.Person)
                 .Include(x => x.Customer).ThenInclude(x => x.Person)
                 .SingleOrDefaultAsync(x => x.ID == ReviewId);
+
+                if (RoleId != 4 && !result.Result.IsAccepted)
+                {
+                    result.Result = null;
+                    throw new Exception("شما دسترسی لازم برای انجام این عملیات را ندارید");
+                }
             }
             catch (Exception ex)
             {
@@ -167,12 +197,12 @@ namespace NobatPlusDATA.DataLayer.Services
             
         }
 
-        public async Task<BitResultObject> RemoveReviewAsync(long ReviewId)
+        public async Task<BitResultObject> RemoveReviewAsync(long ReviewId, long RoleId)
         {
             BitResultObject result = new BitResultObject();
             try
             {
-                var Review = await GetReviewByIdAsync(ReviewId);
+                var Review = await GetReviewByIdAsync(ReviewId, RoleId);
                 result = await RemoveReviewAsync(Review.Result);
             }
             catch (Exception ex)

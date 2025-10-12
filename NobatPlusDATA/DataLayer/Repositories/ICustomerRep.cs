@@ -11,9 +11,8 @@ namespace NobatPlusDATA.DataLayer.Repositories
 {
     public interface ICustomerRep
     {
-        public Task<ListResultObject<Customer>> GetAllCustomersAsync(long cityId = 0,int pageIndex = 1, int pageSize = 20, string searchText = "",string sortQuery ="");
-        public Task<ListResultObject<Customer>> GetCustomersOfDiscountAsync(long DiscountId,long ciTyId = 0, int pageIndex = 1, int pageSize = 20, string searchText = "",string sortQuery ="");
-        public Task<RowResultObject<Customer>> GetCustomerByIdAsync(long customerId);
+        public Task<ListResultObject<CustomerDTO>> GetAllCustomersAsync(long stylistId=0,long cityId = 0,long discountId =0,int pageIndex = 1, int pageSize = 20, string searchText = "",string sortQuery ="");
+        public Task<RowResultObject<CustomerDTO>> GetCustomerByIdAsync(long customerId);
         public Task<BitResultObject> AddCustomerAsync(Customer customer);
         public Task<BitResultObject> EditCustomerAsync(Customer customer);
         public Task<BitResultObject> RemoveCustomerAsync(Customer customer);

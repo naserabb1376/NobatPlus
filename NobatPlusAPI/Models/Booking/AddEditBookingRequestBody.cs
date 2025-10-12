@@ -34,7 +34,7 @@ namespace NobatPlusAPI.Models.Booking
         public bool IsCancelled { get; set; }
 
         [Display(Name = "علت لغو")]
-        public string? CancellReason { get; set; }
+        public string? CancelReason { get; set; }
 
         public string? Description { get; set; }
 

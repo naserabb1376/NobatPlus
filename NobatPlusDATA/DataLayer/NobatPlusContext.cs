@@ -11,10 +11,10 @@ namespace NobatPlusDATA.DataLayer
     public class NobatPlusContext : DbContext
     {
 
-        public NobatPlusContext(DbContextOptions<NobatPlusContext> options)
-      : base(options)
-        {
-        }
+      //  public NobatPlusContext(DbContextOptions<NobatPlusContext> options)
+      //: base(options)
+      //  {
+      //  }
 
         public NobatPlusContext()
         {
@@ -31,6 +31,7 @@ namespace NobatPlusDATA.DataLayer
         public DbSet<Stylist> Stylists { get; set; }
         public DbSet<Booking> Bookings { get; set; }
         public DbSet<WorkTime> WorkTimes { get; set; }
+        public DbSet<StylistPacific> StylistPacifics { get; set; }
         public DbSet<SocialNetwork> SocialNetworks { get; set; }
         public DbSet<PaymentHistory> PaymentHistories { get; set; }
         public DbSet<Login> Logins { get; set; }
@@ -54,6 +55,7 @@ namespace NobatPlusDATA.DataLayer
         public DbSet<ApiGuide> ApiGuides { get; set; }
         public DbSet<RateQuestion> RateQuestions { get; set; }
         public DbSet<RateHistory> RateHistories { get; set; }
+        public DbSet<Role> Roles { get; set; }
 
 
         // Views

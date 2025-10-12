@@ -95,392 +95,166 @@ namespace NobatPlusDATA.DataLayer.Services
             return result;
         }
 
-        public async Task<ListResultObject<StylistDTO>> GetAllStylistsAsync(long parentId = 0,long cityId = 0, int pageIndex = 1, int pageSize = 20, string searchText = "",string sortQuery ="", FindLocationRequestBody findLocation = null)
+        public async Task<ListResultObject<StylistDTO>> GetAllStylistsAsync(
+    long parentId = 0,
+    long serviceManagementId = 0,
+    long jobTypeId = 0,
+    long discountId = 0,
+    long cityId = 0,
+    int pageIndex = 1,
+    int pageSize = 20,
+    string searchText = "",
+    string sortQuery = "",
+    FindLocationRequestBody findLocation = null)
         {
             ListResultObject<StylistDTO> results = new ListResultObject<StylistDTO>();
+
             try
             {
-                IQueryable<Stylist> query = _context.Stylists.Include(x => x.Person).ThenInclude(x => x.Address).ThenInclude(x => x.City).Include(x => x.JobType).Include(x=> x.StylistServices).ThenInclude(x=> x.ServiceManagement).AsNoTracking();
+                IQueryable<Stylist> query;
 
-                if (parentId >= 0)
+                // 🟡 منبع داده اصلی بر اساس پارامترهای ورودی
+                if (serviceManagementId > 0)
                 {
-                    query = query.Where(x=> x.StylistParentID == parentId);
+                    query = _context.StylistServices
+                        .Where(s => s.ServiceManagementID == serviceManagementId)
+                        .Select(s => s.Stylist);
+                }
+                else if (jobTypeId > 0)
+                {
+                    query = _context.Stylists.Where(x => x.JobTypeID == jobTypeId);
+                }
+                else if (discountId > 0)
+                {
+                    var fromDiscountAssignments = _context.DiscountAssignments
+                        .Where(d => d.DiscountId == discountId)
+                        .Select(d => d.Stylist);
+
+                    var fromServiceDiscounts = _context.ServiceDiscounts
+                        .Where(d => d.DiscountId == discountId)
+                        .Select(d => d.Stylist);
+
+                    var fromCustomerDiscounts = _context.CustomerDiscounts
+                        .Where(d => d.DiscountId == discountId)
+                        .Select(d => d.Stylist);
+
+                    query = fromDiscountAssignments.Union(fromServiceDiscounts).Union(fromCustomerDiscounts);
+                }
+                else
+                {
+                    query = _context.Stylists.AsQueryable();
+
+                    if (parentId > 0)
+                    {
+                        if (parentId >= 0)
+                            query = query.Where(x => x.StylistParentID == parentId);
+                        else
+                            query = query.Where(x => x.StylistParentID > 0 || !x.IsWorkShop);
+                    }
                 }
 
-                if (parentId < 0)
-                {
-                    query = query.Where(x => x.StylistParentID > 0 || !x.IsWorkShop);
-                }
+                // 🧭 Include های مشترک
+                query = query
+                    .Include(x => x.Person).ThenInclude(x => x.Address).ThenInclude(x => x.City)
+                    .Include(x => x.JobType)
+                    .Include(x => x.StylistServices).ThenInclude(x => x.ServiceManagement)
+                    .AsNoTracking();
 
-                if (findLocation != null)
-                {
-                    double personLat = 0, personLng=0;
-                    query = query.Where(p =>
-                p.Person.Address != null &&
-                double.TryParse(p.Person.Address.AddressLocationVerticalPoint, out  personLat) &&
-                double.TryParse(p.Person.Address.AddressLocationHorizentalPoint, out personLng) &&
-                GeoHelper.CalculateDistance(findLocation.LocationLatitude, findLocation.LocationLongitude, personLat, personLng) <= findLocation.RadiusKm);
-                }
-
-                query = query.Where(x =>
-                       (!string.IsNullOrEmpty(x.Person.FirstName) && x.Person.FirstName.Contains(searchText)) ||
-                       (!string.IsNullOrEmpty(x.Person.LastName) && x.Person.LastName.Contains(searchText)) ||
-                       (!string.IsNullOrEmpty(x.Person.NaCode) && x.Person.NaCode.Contains(searchText)) ||
-                       (!string.IsNullOrEmpty(x.Person.PhoneNumber) && x.Person.PhoneNumber.Contains(searchText)) ||
-                       (!string.IsNullOrEmpty(x.Person.Email) && x.Person.Email.Contains(searchText)) ||
-                       (!string.IsNullOrEmpty(x.Person.Description) && x.Person.Description.Contains(searchText)) ||
-                       (!string.IsNullOrEmpty(x.Person.DateOfBirth.ToString()) && x.Person.DateOfBirth.ToString().Contains(searchText)) ||
-                       (!string.IsNullOrEmpty(x.Person.Address.City.CityName.ToString()) && x.Person.Address.City.CityName.ToString().Contains(searchText)) ||
-                       (!string.IsNullOrEmpty(x.Person.Address.AddressLocationHorizentalPoint.ToString()) && x.Person.Address.AddressLocationHorizentalPoint.ToString().Contains(searchText)) ||
-                       (!string.IsNullOrEmpty(x.Person.Address.AddressLocationVerticalPoint.ToString()) && x.Person.Address.AddressLocationVerticalPoint.ToString().Contains(searchText)) ||
-                       (!string.IsNullOrEmpty(x.Person.Address.AddressPostalCode.ToString()) && x.Person.Address.AddressPostalCode.ToString().Contains(searchText)) ||
-                       //(!string.IsNullOrEmpty(x.State.ToString()) && x.State.ToString().Contains(searchText)) ||
-                       (!string.IsNullOrEmpty(x.Person.Address.Description.ToString()) && x.Person.Address.Description.ToString().Contains(searchText)) ||
-                       (!string.IsNullOrEmpty(x.Person.Address.AddressStreet.ToString()) && x.Person.Address.AddressStreet.ToString().Contains(searchText)) ||
-                       (!string.IsNullOrEmpty(x.JobType.JobTitle) && x.JobType.JobTitle.Contains(searchText)) ||
-                       (x.CreateDate.HasValue && x.CreateDate.Value.ToString().Contains(searchText)) ||
-                       (x.UpdateDate.HasValue && x.UpdateDate.Value.ToString().Contains(searchText)) ||
-                       (!string.IsNullOrEmpty(x.YearsOfExperience.ToString()) && x.YearsOfExperience.ToString().Contains(searchText)) ||
-                       (!string.IsNullOrEmpty(x.Specialty) && x.Specialty.Contains(searchText)) ||
-                       (!string.IsNullOrEmpty(x.StylistBio) && x.StylistBio.Contains(searchText)) ||
-                       (!string.IsNullOrEmpty(x.StylistName) && x.StylistName.Contains(searchText)) ||
-                       (!string.IsNullOrEmpty(x.WorkShopInteractMode) && x.WorkShopInteractMode.Contains(searchText)) ||
-                       (!string.IsNullOrEmpty(x.AccountStatus) && x.AccountStatus.Contains(searchText)) ||
-                       (!string.IsNullOrEmpty(x.PayMethod) && x.PayMethod.Contains(searchText)) ||
-                       (x.StylistServices.Any(s => !string.IsNullOrEmpty(s.ServiceManagement.ServiceName) && s.ServiceManagement.ServiceName.Contains(searchText))) ||
-                       (!string.IsNullOrEmpty(x.Description) && x.Description.Contains(searchText))
-                   );
-
-                results.TotalCount = query.Count();
-                results.PageCount = DbTools.GetPageCount(results.TotalCount, pageSize);
-                results.Results = await query.OrderByDescending(x => x.CreateDate)
-                .SortBy(sortQuery).ToPaging(pageIndex, pageSize)
-                .Select(r => new StylistDTO
-                {
-                    ID = r.ID,
-                    Description = r.Description ?? "",
-                    UpdateDate = r.UpdateDate,
-                    CreateDate = r.CreateDate,
-                    AccountStatus = r.AccountStatus ?? "",
-                    PayMethod = r.PayMethod ?? "",
-                    IsWorkShop = r.IsWorkShop,
-                    GenderAccepted = r.GenderAccepted ?? "",
-                    JobType = r.JobType,
-                    JobTypeID = r.JobTypeID,
-                    Person = r.Person,
-                    PersonID = r.PersonID,
-                    Specialty = r.Specialty ?? "",
-                    StylistBio = r.StylistBio ?? "",
-                    StylistName = r.StylistName ?? "",
-                    StylistParentID = r.StylistParentID,
-                    WorkShopDepositAmount = r.WorkShopDepositAmount,
-                    WorkShopInteractMode = r.WorkShopInteractMode ?? "",
-                    WorkShopRentAmount = r.WorkShopRentAmount,
-                    YearsOfExperience = r.YearsOfExperience,
-
-                    // محاسباتی
-                    AvgScoreForStylist = _context.RateHistories
-                         .Where(x => x.StylistID == r.ID)
-                         .Any()
-                             ? _context.RateHistories.Where(x => x.StylistID == r.ID).Average(r => r.RateScore)
-                             : 0
-                }).ToListAsync();
-            }
-            catch (Exception ex)
-            {
-                results.Status = false;
-                results.ErrorMessage = $"{ex.Message} - {ex.InnerException?.Message}";
-            }
-            return results;
-           
-        }
-
-        public async Task<ListResultObject<StylistDTO>> GetStylistsOfServiceAsync(long serviceManagementId,long cityId = 0, int pageIndex = 1, int pageSize = 20, string searchText = "",string sortQuery ="", FindLocationRequestBody findLocation = null)
-        {
-            ListResultObject<StylistDTO> results = new ListResultObject<StylistDTO>();
-            try
-            {
-                var query = _context.StylistServices
-                .Where(bs => bs.ServiceManagementID == serviceManagementId)
-                .Select(bs => bs.Stylist)
-                .Include(x => x.Person).ThenInclude(x => x.Address).ThenInclude(x => x.City)
-                .Include(x => x.JobType).Include(x => x.StylistServices).ThenInclude(x => x.ServiceManagement)
-                .AsNoTracking()
-                .Where(x =>
-                    (!string.IsNullOrEmpty(x.Person.FirstName) && x.Person.FirstName.Contains(searchText)) ||
-                    (!string.IsNullOrEmpty(x.Person.LastName) && x.Person.LastName.Contains(searchText)) ||
-                    (!string.IsNullOrEmpty(x.Person.NaCode) && x.Person.NaCode.Contains(searchText)) ||
-                    (!string.IsNullOrEmpty(x.Person.PhoneNumber) && x.Person.PhoneNumber.Contains(searchText)) ||
-                    (!string.IsNullOrEmpty(x.Person.Email) && x.Person.Email.Contains(searchText)) ||
-                    (!string.IsNullOrEmpty(x.Person.Description) && x.Person.Description.Contains(searchText)) ||
-                    (!string.IsNullOrEmpty(x.Person.DateOfBirth.ToString()) && x.Person.DateOfBirth.ToString().Contains(searchText)) ||
-                    (!string.IsNullOrEmpty(x.JobType.JobTitle) && x.JobType.JobTitle.Contains(searchText)) ||
-                    (!string.IsNullOrEmpty(x.Person.Address.City.CityName.ToString()) && x.Person.Address.City.CityName.ToString().Contains(searchText)) ||
-                    (!string.IsNullOrEmpty(x.Person.Address.AddressLocationHorizentalPoint.ToString()) && x.Person.Address.AddressLocationHorizentalPoint.ToString().Contains(searchText)) ||
-                    (!string.IsNullOrEmpty(x.Person.Address.AddressLocationVerticalPoint.ToString()) && x.Person.Address.AddressLocationVerticalPoint.ToString().Contains(searchText)) ||
-                    (!string.IsNullOrEmpty(x.Person.Address.AddressPostalCode.ToString()) && x.Person.Address.AddressPostalCode.ToString().Contains(searchText)) ||
-                    //(!string.IsNullOrEmpty(x.State.ToString()) && x.State.ToString().Contains(searchText)) ||
-                    (!string.IsNullOrEmpty(x.Person.Address.Description.ToString()) && x.Person.Address.Description.ToString().Contains(searchText)) ||
-                    (!string.IsNullOrEmpty(x.Person.Address.AddressStreet.ToString()) && x.Person.Address.AddressStreet.ToString().Contains(searchText)) ||
-                    (x.CreateDate.HasValue && x.CreateDate.Value.ToString().Contains(searchText)) ||
-                    (x.UpdateDate.HasValue && x.UpdateDate.Value.ToString().Contains(searchText)) ||
-                    (!string.IsNullOrEmpty(x.YearsOfExperience.ToString()) && x.YearsOfExperience.ToString().Contains(searchText)) ||
-                    (!string.IsNullOrEmpty(x.Specialty) && x.Specialty.Contains(searchText)) ||
-                    (x.StylistServices.Any(s => !string.IsNullOrEmpty(s.ServiceManagement.ServiceName) && s.ServiceManagement.ServiceName.Contains(searchText))) ||
-                    (!string.IsNullOrEmpty(x.Description) && x.Description.Contains(searchText))
-                );
-
+                // 📍 فیلتر موقعیت مکانی
                 if (findLocation != null)
                 {
                     double personLat = 0, personLng = 0;
                     query = query.Where(p =>
-                p.Person.Address != null &&
-                double.TryParse(p.Person.Address.AddressLocationVerticalPoint, out personLat) &&
-                double.TryParse(p.Person.Address.AddressLocationHorizentalPoint, out personLng) &&
-                GeoHelper.CalculateDistance(findLocation.LocationLatitude, findLocation.LocationLongitude, personLat, personLng) <= findLocation.RadiusKm);
+                        p.Person.Address != null &&
+                        double.TryParse(p.Person.Address.AddressLocationVerticalPoint, out personLat) &&
+                        double.TryParse(p.Person.Address.AddressLocationHorizentalPoint, out personLng) &&
+                        GeoHelper.CalculateDistance(findLocation.LocationLatitude, findLocation.LocationLongitude, personLat, personLng) <= findLocation.RadiusKm);
                 }
 
-                results.TotalCount = query.Count();
-                results.PageCount = DbTools.GetPageCount(results.TotalCount, pageSize);
-                results.Results = await query.OrderByDescending(x => x.CreateDate)
-                .SortBy(sortQuery).ToPaging(pageIndex, pageSize)
-                .Select(r => new StylistDTO
+                // 🔍 فیلتر سرچ (مشترک)
+                if (!string.IsNullOrEmpty(searchText))
                 {
-                    ID = r.ID,
-                    Description = r.Description ?? "",
-                    UpdateDate = r.UpdateDate,
-                    CreateDate = r.CreateDate,
-                    AccountStatus = r.AccountStatus ?? "",
-                    PayMethod = r.PayMethod ?? "",
-                    IsWorkShop = r.IsWorkShop,
-                    GenderAccepted = r.GenderAccepted ?? "",
-                    JobType = r.JobType,
-                    JobTypeID = r.JobTypeID,
-                    Person = r.Person,
-                    PersonID = r.PersonID,
-                    Specialty = r.Specialty ?? "",
-                    StylistBio = r.StylistBio ?? "",
-                    StylistName = r.StylistName ?? "",
-                    StylistParentID = r.StylistParentID,
-                    WorkShopDepositAmount = r.WorkShopDepositAmount,
-                    WorkShopInteractMode = r.WorkShopInteractMode ?? "",
-                    WorkShopRentAmount = r.WorkShopRentAmount,
-                    YearsOfExperience = r.YearsOfExperience,
+                    query = query.Where(x =>
+                        (x.Person.FirstName != null && x.Person.FirstName.Contains(searchText)) ||
+                        (x.Person.LastName != null && x.Person.LastName.Contains(searchText)) ||
+                        (x.Person.NaCode != null && x.Person.NaCode.Contains(searchText)) ||
+                        (x.Person.PhoneNumber != null && x.Person.PhoneNumber.Contains(searchText)) ||
+                        (x.Person.Email != null && x.Person.Email.Contains(searchText)) ||
+                        (x.Person.Description != null && x.Person.Description.Contains(searchText)) ||
+                        (x.Person.Address.City.CityName != null && x.Person.Address.City.CityName.Contains(searchText)) ||
+                        (x.JobType.JobTitle != null && x.JobType.JobTitle.Contains(searchText)) ||
+                        (x.Specialty != null && x.Specialty.Contains(searchText)) ||
+                        (x.StylistServices.Any(s => s.ServiceManagement.ServiceName.Contains(searchText))) ||
+                        (x.Description != null && x.Description.Contains(searchText))
+                    );
+                }
 
-                    // محاسباتی
-                    AvgScoreForStylist = _context.RateHistories
-                         .Where(x => x.StylistID == r.ID)
-                         .Any()
-                             ? _context.RateHistories.Where(x => x.StylistID == r.ID).Average(r => r.RateScore)
-                             : 0
-                })
-                .ToListAsync();
+                // 📊 شمارش و صفحه‌بندی
+                results.TotalCount = await query.CountAsync();
+                results.PageCount = DbTools.GetPageCount(results.TotalCount, pageSize);
 
+                // 🧾 خروجی با DTO
+                results.Results = await query
+                    .OrderByDescending(x => x.CreateDate)
+                    .SortBy(sortQuery)
+                    .ToPaging(pageIndex, pageSize)
+                    .Select(r => new StylistDTO
+                    {
+                        ID = r.ID,
+                        Description = r.Description ?? "",
+                        UpdateDate = r.UpdateDate,
+                        CreateDate = r.CreateDate,
+                        AccountStatus = r.AccountStatus ?? "",
+                        PayMethod = r.PayMethod ?? "",
+                        IsWorkShop = r.IsWorkShop,
+                        GenderAccepted = r.GenderAccepted ?? "",
+                        JobType = r.JobType,
+                        JobTypeID = r.JobTypeID,
+                        Person = r.Person,
+                        PersonID = r.PersonID,
+                        Specialty = r.Specialty ?? "",
+                        StylistBio = r.StylistBio ?? "",
+                        StylistName = r.StylistName ?? "",
+                        StylistParentID = r.StylistParentID,
+                        WorkShopDepositAmount = r.WorkShopDepositAmount,
+                        WorkShopInteractMode = r.WorkShopInteractMode ?? "",
+                        WorkShopRentAmount = r.WorkShopRentAmount,
+                        YearsOfExperience = r.YearsOfExperience,
+
+                        // محاسبه امتیاز آرایشگر
+                        AvgScoreForStylist = _context.RateHistories
+                            .Where(x => x.StylistID == r.ID)
+                            .Any()
+                                ? _context.RateHistories.Where(x => x.StylistID == r.ID).Average(r => r.RateScore)
+                                : 0,
+
+                                 TodayBookingsCount = _context.Bookings
+                    .Count(b => b.StylistID == r.ID && b.BookingDate.Date == DateTime.Today),
+
+                        TotalBookingsCount = _context.Bookings
+                    .Count(b => b.StylistID == r.ID),
+
+                        TotalCustomersCount = _context.Bookings
+                    .Where(b => b.StylistID == r.ID)
+                    .Select(b => b.CustomerID)
+                    .Distinct()
+                    .Count(),
+                    IsOnLeaveNow = _context.StylistPacifics
+    .Any(p => p.StylistID == r.ID &&
+              DateTime.Now >= p.PacificStartDate &&
+              DateTime.Now <= p.PacificEndDate)
+                    })
+                    .ToListAsync();
             }
             catch (Exception ex)
             {
                 results.Status = false;
                 results.ErrorMessage = $"{ex.Message} - {ex.InnerException?.Message}";
             }
+
             return results;
-           
         }
 
-        public async Task<ListResultObject<StylistDTO>> GetStylistsOfJobTypeAsync(long JobTypeId,long cityId = 0, int pageIndex = 1, int pageSize = 20, string searchText = "",string sortQuery ="", FindLocationRequestBody findLocation = null)
-        {
-            ListResultObject<StylistDTO> results = new ListResultObject<StylistDTO>();
-            try
-            {
-                var query = _context.Stylists
-                .Include(x => x.Person).ThenInclude(x => x.Address).ThenInclude(x => x.City)
-                .Include(x => x.JobType).Include(x => x.StylistServices).ThenInclude(x => x.ServiceManagement)
-                .AsNoTracking()
-                .Where(x =>
-                    x.JobTypeID == JobTypeId &&
-                    ((!string.IsNullOrEmpty(x.Person.FirstName) && x.Person.FirstName.Contains(searchText)) ||
-                     (!string.IsNullOrEmpty(x.Person.LastName) && x.Person.LastName.Contains(searchText)) ||
-                     (!string.IsNullOrEmpty(x.Person.NaCode) && x.Person.NaCode.Contains(searchText)) ||
-                     (!string.IsNullOrEmpty(x.Person.PhoneNumber) && x.Person.PhoneNumber.Contains(searchText)) ||
-                     (!string.IsNullOrEmpty(x.Person.Email) && x.Person.Email.Contains(searchText)) ||
-                     (!string.IsNullOrEmpty(x.Person.Description) && x.Person.Description.Contains(searchText)) ||
-                     (!string.IsNullOrEmpty(x.Person.DateOfBirth.ToString()) && x.Person.DateOfBirth.ToString().Contains(searchText)) ||
-                    (!string.IsNullOrEmpty(x.Person.Address.City.CityName.ToString()) && x.Person.Address.City.CityName.ToString().Contains(searchText)) ||
-                    (!string.IsNullOrEmpty(x.Person.Address.AddressLocationHorizentalPoint.ToString()) && x.Person.Address.AddressLocationHorizentalPoint.ToString().Contains(searchText)) ||
-                    (!string.IsNullOrEmpty(x.Person.Address.AddressLocationVerticalPoint.ToString()) && x.Person.Address.AddressLocationVerticalPoint.ToString().Contains(searchText)) ||
-                    (!string.IsNullOrEmpty(x.Person.Address.AddressPostalCode.ToString()) && x.Person.Address.AddressPostalCode.ToString().Contains(searchText)) ||
-                    //(!string.IsNullOrEmpty(x.State.ToString()) && x.State.ToString().Contains(searchText)) ||
-                    (!string.IsNullOrEmpty(x.Person.Address.Description.ToString()) && x.Person.Address.Description.ToString().Contains(searchText)) ||
-                    (!string.IsNullOrEmpty(x.Person.Address.AddressStreet.ToString()) && x.Person.Address.AddressStreet.ToString().Contains(searchText)) ||
-                     (!string.IsNullOrEmpty(x.JobType.JobTitle) && x.JobType.JobTitle.Contains(searchText)) ||
-                     (x.CreateDate.HasValue && x.CreateDate.Value.ToString().Contains(searchText)) ||
-                     (x.UpdateDate.HasValue && x.UpdateDate.Value.ToString().Contains(searchText)) ||
-                     (!string.IsNullOrEmpty(x.YearsOfExperience.ToString()) && x.YearsOfExperience.ToString().Contains(searchText)) ||
-                     (x.StylistServices.Any(s => !string.IsNullOrEmpty(s.ServiceManagement.ServiceName) && s.ServiceManagement.ServiceName.Contains(searchText))) ||
-                     (!string.IsNullOrEmpty(x.Specialty) && x.Specialty.Contains(searchText))
-                    )
-                );
-
-                if (findLocation != null)
-                {
-                    double personLat = 0, personLng = 0;
-                    query = query.Where(p =>
-                p.Person.Address != null &&
-                double.TryParse(p.Person.Address.AddressLocationVerticalPoint, out personLat) &&
-                double.TryParse(p.Person.Address.AddressLocationHorizentalPoint, out personLng) &&
-                GeoHelper.CalculateDistance(findLocation.LocationLatitude, findLocation.LocationLongitude, personLat, personLng) <= findLocation.RadiusKm);
-                }
-
-                results.TotalCount = query.Count();
-                results.PageCount = DbTools.GetPageCount(results.TotalCount, pageSize);
-                results.Results = await query.OrderByDescending(x => x.CreateDate)
-                .SortBy(sortQuery).ToPaging(pageIndex, pageSize)
-                 .Select(r => new StylistDTO
-                 {
-                     ID = r.ID,
-                     Description = r.Description ?? "",
-                     UpdateDate = r.UpdateDate,
-                     CreateDate = r.CreateDate,
-                     AccountStatus = r.AccountStatus ?? "",
-                     PayMethod = r.PayMethod ?? "",
-                     IsWorkShop = r.IsWorkShop,
-                     GenderAccepted = r.GenderAccepted ?? "",
-                     JobType = r.JobType,
-                     JobTypeID = r.JobTypeID,
-                     Person = r.Person,
-                     PersonID = r.PersonID,
-                     Specialty = r.Specialty ?? "",
-                     StylistBio = r.StylistBio ?? "",
-                     StylistName = r.StylistName ?? "",
-                     StylistParentID = r.StylistParentID,
-                     WorkShopDepositAmount = r.WorkShopDepositAmount,
-                     WorkShopInteractMode = r.WorkShopInteractMode ?? "",
-                     WorkShopRentAmount = r.WorkShopRentAmount,
-                     YearsOfExperience = r.YearsOfExperience,
-
-                     // محاسباتی
-                     AvgScoreForStylist = _context.RateHistories
-                         .Where(x => x.StylistID == r.ID)
-                         .Any()
-                             ? _context.RateHistories.Where(x => x.StylistID == r.ID).Average(r => r.RateScore)
-                             : 0
-                 })
-                .ToListAsync();
-
-            }
-            catch (Exception ex)
-            {
-                results.Status = false;
-                results.ErrorMessage = $"{ex.Message} - {ex.InnerException?.Message}";
-            }
-            return results;
-      
-        }
-
-        public async Task<ListResultObject<StylistDTO>> GetStylistsOfDiscountAsync(long DiscountId,long cityId = 0, int pageIndex = 1, int pageSize = 20, string searchText = "",string sortQuery ="", FindLocationRequestBody findLocation = null)
-        {
-            ListResultObject<StylistDTO> results = new ListResultObject<StylistDTO>();
-            try
-            {
-                var discountAssignments = _context.DiscountAssignments
-               .Where(bs => bs.DiscountId == DiscountId)
-               .Select(bs => bs.Stylist)
-               .Include(x => x.Person).ThenInclude(x => x.Address).ThenInclude(x => x.City)
-               .Include(x => x.JobType).Include(x => x.StylistServices).ThenInclude(x => x.ServiceManagement)
-               .AsNoTracking();
-
-                var serviceDiscounts = _context.ServiceDiscounts
-             .Where(bs => bs.DiscountId == DiscountId)
-             .Select(bs => bs.Stylist)
-             .Include(x => x.Person).ThenInclude(x => x.Address).ThenInclude(x => x.City)
-             .Include(x => x.JobType).Include(x => x.StylistServices).ThenInclude(x => x.ServiceManagement)
-             .AsNoTracking();
-
-                var customerDiscounts = _context.CustomerDiscounts
-               .Where(bs => bs.DiscountId == DiscountId)
-               .Select(bs => bs.Stylist)
-               .Include(x => x.Person).ThenInclude(x => x.Address).ThenInclude(x => x.City)
-               .Include(x => x.JobType).Include(x => x.StylistServices).ThenInclude(x => x.ServiceManagement)
-               .AsNoTracking();
-
-                var query = discountAssignments.Union(serviceDiscounts).Union(customerDiscounts).Where(x =>
-                    (!string.IsNullOrEmpty(x.Person.FirstName) && x.Person.FirstName.Contains(searchText)) ||
-                    (!string.IsNullOrEmpty(x.Person.LastName) && x.Person.LastName.Contains(searchText)) ||
-                    (!string.IsNullOrEmpty(x.Person.NaCode) && x.Person.NaCode.Contains(searchText)) ||
-                    (!string.IsNullOrEmpty(x.Person.PhoneNumber) && x.Person.PhoneNumber.Contains(searchText)) ||
-                    (!string.IsNullOrEmpty(x.Person.Email) && x.Person.Email.Contains(searchText)) ||
-                    (!string.IsNullOrEmpty(x.Person.Description) && x.Person.Description.Contains(searchText)) ||
-                    (!string.IsNullOrEmpty(x.Person.Address.City.CityName.ToString()) && x.Person.Address.City.CityName.ToString().Contains(searchText)) ||
-                    (!string.IsNullOrEmpty(x.Person.Address.AddressLocationHorizentalPoint.ToString()) && x.Person.Address.AddressLocationHorizentalPoint.ToString().Contains(searchText)) ||
-                    (!string.IsNullOrEmpty(x.Person.Address.AddressLocationVerticalPoint.ToString()) && x.Person.Address.AddressLocationVerticalPoint.ToString().Contains(searchText)) ||
-                    (!string.IsNullOrEmpty(x.Person.Address.AddressPostalCode.ToString()) && x.Person.Address.AddressPostalCode.ToString().Contains(searchText)) ||
-                    //(!string.IsNullOrEmpty(x.State.ToString()) && x.State.ToString().Contains(searchText)) ||
-                    (!string.IsNullOrEmpty(x.Person.Address.Description.ToString()) && x.Person.Address.Description.ToString().Contains(searchText)) ||
-                    (!string.IsNullOrEmpty(x.Person.Address.AddressStreet.ToString()) && x.Person.Address.AddressStreet.ToString().Contains(searchText)) ||
-                    (!string.IsNullOrEmpty(x.Person.DateOfBirth.ToString()) && x.Person.DateOfBirth.ToString().Contains(searchText)) ||
-                    (!string.IsNullOrEmpty(x.JobType.JobTitle) && x.JobType.JobTitle.Contains(searchText)) ||
-                    (x.CreateDate.HasValue && x.CreateDate.Value.ToString().Contains(searchText)) ||
-                    (x.UpdateDate.HasValue && x.UpdateDate.Value.ToString().Contains(searchText)) ||
-                    (!string.IsNullOrEmpty(x.YearsOfExperience.ToString()) && x.YearsOfExperience.ToString().Contains(searchText)) ||
-                    (!string.IsNullOrEmpty(x.Specialty) && x.Specialty.Contains(searchText)) ||
-                    (x.StylistServices.Any(s=> !string.IsNullOrEmpty(s.ServiceManagement.ServiceName) && s.ServiceManagement.ServiceName.Contains(searchText))) ||
-                    (!string.IsNullOrEmpty(x.Description) && x.Description.Contains(searchText))
-                );
-
-                if (findLocation != null)
-                {
-                    double personLat = 0, personLng = 0;
-                    query = query.Where(p =>
-                p.Person.Address != null &&
-                double.TryParse(p.Person.Address.AddressLocationVerticalPoint, out personLat) &&
-                double.TryParse(p.Person.Address.AddressLocationHorizentalPoint, out personLng) &&
-                GeoHelper.CalculateDistance(findLocation.LocationLatitude, findLocation.LocationLongitude, personLat, personLng) <= findLocation.RadiusKm);
-                }
-
-                results.TotalCount = query.Count();
-                results.PageCount = DbTools.GetPageCount(results.TotalCount, pageSize);
-                results.Results = await query.OrderByDescending(x => x.CreateDate)
-                .SortBy(sortQuery).ToPaging(pageIndex, pageSize)
-                 .Select(r => new StylistDTO
-                 {
-                     ID = r.ID,
-                     Description = r.Description ?? "",
-                     UpdateDate = r.UpdateDate,
-                     CreateDate = r.CreateDate,
-                     AccountStatus = r.AccountStatus ?? "",
-                     PayMethod = r.PayMethod ?? "",
-                     IsWorkShop = r.IsWorkShop,
-                     GenderAccepted = r.GenderAccepted ?? "",
-                     JobType = r.JobType,
-                     JobTypeID = r.JobTypeID,
-                     Person = r.Person,
-                     PersonID = r.PersonID,
-                     Specialty = r.Specialty ?? "",
-                     StylistBio = r.StylistBio ?? "",
-                     StylistName = r.StylistName ?? "",
-                     StylistParentID = r.StylistParentID,
-                     WorkShopDepositAmount = r.WorkShopDepositAmount,
-                     WorkShopInteractMode = r.WorkShopInteractMode ?? "",
-                     WorkShopRentAmount = r.WorkShopRentAmount,
-                     YearsOfExperience = r.YearsOfExperience,
-
-                     // محاسباتی
-                     AvgScoreForStylist = _context.RateHistories
-                         .Where(x => x.StylistID == r.ID)
-                         .Any()
-                             ? _context.RateHistories.Where(x => x.StylistID == r.ID).Average(r => r.RateScore)
-                             : 0
-                 })
-                .ToListAsync();
-
-            }
-            catch (Exception ex)
-            {
-                results.Status = false;
-                results.ErrorMessage = $"{ex.Message} - {ex.InnerException?.Message}";
-            }
-            return results;
-            
-        }
 
         public async Task<RowResultObject<StylistDTO>> GetStylistByIdAsync(long StylistId)
         {
@@ -518,7 +292,22 @@ namespace NobatPlusDATA.DataLayer.Services
                          .Where(x => x.StylistID == r.ID)
                          .Any()
                              ? _context.RateHistories.Where(x => x.StylistID == r.ID).Average(r => r.RateScore)
-                             : 0
+                             : 0,
+                         TodayBookingsCount = _context.Bookings
+                    .Count(b => b.StylistID == r.ID && b.BookingDate.Date == DateTime.Today),
+
+                         TotalBookingsCount = _context.Bookings
+                    .Count(b => b.StylistID == r.ID),
+
+                         TotalCustomersCount = _context.Bookings
+                    .Where(b => b.StylistID == r.ID)
+                    .Select(b => b.CustomerID)
+                    .Distinct()
+                    .Count(),
+                         IsOnLeaveNow = _context.StylistPacifics
+    .Any(p => p.StylistID == r.ID &&
+              DateTime.Now >= p.PacificStartDate &&
+              DateTime.Now <= p.PacificEndDate)
                      })
                     .AsNoTracking().SingleOrDefaultAsync();
 

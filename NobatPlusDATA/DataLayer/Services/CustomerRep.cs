@@ -79,24 +79,44 @@ namespace NobatPlusDATA.DataLayer.Services
         }
 
         public async Task<ListResultObject<CustomerDTO>> GetAllCustomersAsync(
-    long cityId = 0,
-    long stylistId = 0,
-    int pageIndex = 1,
-    int pageSize = 20,
-    string searchText = "",
-    string sortQuery = "")
+       long cityId = 0,
+       long stylistId = 0,
+       long discountId = 0,
+       int pageIndex = 1,
+       int pageSize = 20,
+       string searchText = "",
+       string sortQuery = "")
         {
             ListResultObject<CustomerDTO> results = new ListResultObject<CustomerDTO>();
 
             try
             {
-                var query = _context.Customers
-                    .AsNoTracking()
-                    .Include(x => x.Person)
-                        .ThenInclude(x => x.Address)
-                            .ThenInclude(x => x.City)
-                    .Include(x => x.Bookings)
-                    .AsQueryable();
+                IQueryable<Customer> query;
+
+                // اگر DiscountId مشخص شده بود، مشتریان مربوط به آن تخفیف را بگیر
+                if (discountId > 0)
+                {
+                    query = _context.CustomerDiscounts
+                        .AsNoTracking()
+                        .Where(cd => cd.DiscountId == discountId)
+                        .Select(cd => cd.Customer)
+                        .Include(x => x.Person)
+                            .ThenInclude(p => p.Address)
+                                .ThenInclude(a => a.City)
+                        .Include(x => x.Bookings)
+                        .AsQueryable();
+                }
+                else
+                {
+                    // در غیر این صورت، همه مشتری‌ها
+                    query = _context.Customers
+                        .AsNoTracking()
+                        .Include(x => x.Person)
+                            .ThenInclude(p => p.Address)
+                                .ThenInclude(a => a.City)
+                        .Include(x => x.Bookings)
+                        .AsQueryable();
+                }
 
                 // فیلتر شهر
                 if (cityId > 0)
@@ -110,19 +130,23 @@ namespace NobatPlusDATA.DataLayer.Services
                     query = query.Where(x =>
                         (x.Person.FirstName != null && x.Person.FirstName.Contains(searchText)) ||
                         (x.Person.LastName != null && x.Person.LastName.Contains(searchText)) ||
+                        (x.Person.NaCode != null && x.Person.NaCode.Contains(searchText)) ||
                         (x.Person.PhoneNumber != null && x.Person.PhoneNumber.Contains(searchText)) ||
                         (x.Person.Email != null && x.Person.Email.Contains(searchText)) ||
-                        (x.Person.Address.City.CityName != null && x.Person.Address.City.CityName.Contains(searchText))
+                        (x.Person.Address.City.CityName != null && x.Person.Address.City.CityName.Contains(searchText)) ||
+                        (x.Description != null && x.Description.Contains(searchText))
                     );
                 }
 
-                // ایجاد خروجی با Select
+                // ساخت خروجی با DTO
                 var customerQuery = query.Select(x => new CustomerDTO
                 {
                     ID = x.ID,
                     Person = x.Person,
-
-                    // محاسبه تعداد و آخرین نوبت
+                    CreateDate = x.CreateDate,
+                    UpdateDate = x.UpdateDate,
+                    PersonID = x.PersonID,
+                    Description = x.Description,
                     BookingCount = stylistId > 0
                         ? x.Bookings.Count(b => b.StylistID == stylistId)
                         : x.Bookings.Count(),
@@ -139,6 +163,7 @@ namespace NobatPlusDATA.DataLayer.Services
                             .FirstOrDefault()
                 });
 
+                // شمارش کل و صفحه‌بندی
                 results.TotalCount = await customerQuery.CountAsync();
                 results.PageCount = DbTools.GetPageCount(results.TotalCount, pageSize);
 
@@ -158,75 +183,47 @@ namespace NobatPlusDATA.DataLayer.Services
         }
 
 
-        public async Task<ListResultObject<Customer>> GetCustomersOfDiscountAsync(long DiscountId,long cityId = 0, int pageIndex = 1, int pageSize = 20, string searchText = "",string sortQuery ="")
+
+
+
+        public async Task<RowResultObject<CustomerDTO>> GetCustomerByIdAsync(long CustomerId)
         {
-            ListResultObject<Customer> results = new ListResultObject<Customer>();
-            try
-            {
-                IQueryable<Customer> query;
+            RowResultObject<CustomerDTO> result = new RowResultObject<CustomerDTO>();
 
-                // فیلتر شهر
-                if (cityId > 0)
-                {
-                    query = query.Where(x => x.Person.Address.CityID == cityId);
-                }
-
-                query = _context.CustomerDiscounts
-                .AsNoTracking()
-                .Where(bs => bs.DiscountId == DiscountId)
-                .Select(bs => bs.Customer)
-                .Include(x => x.Person).ThenInclude(x=> x.Address).ThenInclude(x=> x.City)
-                .Where(x =>
-                    (!string.IsNullOrEmpty(x.Person.FirstName) && x.Person.FirstName.Contains(searchText)) ||
-                    (!string.IsNullOrEmpty(x.Person.LastName) && x.Person.LastName.Contains(searchText)) ||
-                    (!string.IsNullOrEmpty(x.Person.NaCode) && x.Person.NaCode.Contains(searchText)) ||
-                    (!string.IsNullOrEmpty(x.Person.PhoneNumber) && x.Person.PhoneNumber.Contains(searchText)) ||
-                    (!string.IsNullOrEmpty(x.Person.Email) && x.Person.Email.Contains(searchText)) ||
-                    (!string.IsNullOrEmpty(x.Person.Description) && x.Person.Description.Contains(searchText)) ||
-                    (x.Person.DateOfBirth != null && x.Person.DateOfBirth.ToString().Contains(searchText)) ||
-                    (!string.IsNullOrEmpty(x.Description) && x.Description.Contains(searchText)) ||
-                    (!string.IsNullOrEmpty(x.Person.Address.City.CityName.ToString()) && x.Person.Address.City.CityName.ToString().Contains(searchText)) ||
-                    (!string.IsNullOrEmpty(x.Person.Address.AddressLocationHorizentalPoint.ToString()) && x.Person.Address.AddressLocationHorizentalPoint.ToString().Contains(searchText)) ||
-                    (!string.IsNullOrEmpty(x.Person.Address.AddressLocationVerticalPoint.ToString()) && x.Person.Address.AddressLocationVerticalPoint.ToString().Contains(searchText)) ||
-                    (!string.IsNullOrEmpty(x.Person.Address.AddressPostalCode.ToString()) && x.Person.Address.AddressPostalCode.ToString().Contains(searchText)) ||
-                    //(!string.IsNullOrEmpty(x.State.ToString()) && x.State.ToString().Contains(searchText)) ||
-                    (!string.IsNullOrEmpty(x.Person.Address.Description.ToString()) && x.Person.Address.Description.ToString().Contains(searchText)) ||
-                    (!string.IsNullOrEmpty(x.Person.Address.AddressStreet.ToString()) && x.Person.Address.AddressStreet.ToString().Contains(searchText)) ||
-                    (x.CreateDate.HasValue && x.CreateDate.Value.ToString().Contains(searchText)) ||
-                    (x.UpdateDate.HasValue && x.UpdateDate.Value.ToString().Contains(searchText))
-                );
-                results.TotalCount = query.Count();
-                results.PageCount = DbTools.GetPageCount(results.TotalCount, pageSize);
-                results.Results = await query.OrderByDescending(x => x.CreateDate)
-                .SortBy(sortQuery).ToPaging(pageIndex, pageSize)
-                .ToListAsync();
-            }
-            catch (Exception ex)
-            {
-                results.Status = false;
-                results.ErrorMessage = $"{ex.Message} - {ex.InnerException?.Message}";
-            }
-            return results;
-            
-        }
-
-        public async Task<RowResultObject<Customer>> GetCustomerByIdAsync(long CustomerId)
-        {
-            RowResultObject<Customer> result = new RowResultObject<Customer>();
             try
             {
                 result.Result = await _context.Customers
-                .AsNoTracking()
-                .SingleOrDefaultAsync(x => x.ID == CustomerId);
+                    .AsNoTracking()
+                    .Where(x => x.ID == CustomerId)
+                    .Select(x => new CustomerDTO
+                    {
+                        ID = x.ID,
+                        PersonID = x.PersonID,
+                        Person = x.Person,
+                        BookingCount = _context.Bookings.Count(b => b.CustomerID == x.ID),
+                        LastBookingDate = _context.Bookings
+                            .Where(b => b.CustomerID == x.ID)
+                            .OrderByDescending(b => b.BookingDate)
+                            .Select(b => (DateTime?)b.BookingDate)
+                            .FirstOrDefault()
+                    })
+                    .SingleOrDefaultAsync();
+
+                if (result.Result == null)
+                {
+                    result.Status = false;
+                    result.ErrorMessage = "مشتری یافت نشد.";
+                }
             }
             catch (Exception ex)
             {
                 result.Status = false;
                 result.ErrorMessage = $"{ex.Message} - {ex.InnerException?.Message}";
             }
+
             return result;
-      
         }
+
 
         public async Task<BitResultObject> RemoveCustomerAsync(Customer Customer)
         {
@@ -252,8 +249,16 @@ namespace NobatPlusDATA.DataLayer.Services
             BitResultObject result = new BitResultObject();
             try
             {
-                var Customer = await GetCustomerByIdAsync(CustomerId);
-                result = await RemoveCustomerAsync(Customer.Result);
+                var CustomerDto = await GetCustomerByIdAsync(CustomerId);
+                var theCustomer = new Customer()
+                {
+                    CreateDate = CustomerDto.Result.CreateDate,
+                    Description = CustomerDto.Result.Description,
+                    PersonID = CustomerDto.Result.PersonID,
+                    UpdateDate = CustomerDto.Result.UpdateDate,
+                    ID = CustomerDto.Result.ID
+                };
+                result = await RemoveCustomerAsync(theCustomer);
             }
             catch (Exception ex)
             {

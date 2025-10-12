@@ -1,90 +1,85 @@
-﻿using AutoMapper;
-using Domain;
+﻿using AITechWebAPI.ViewModels;
+using AutoMapper;
 using Domains;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
-using NobatPlusAPI.Models;
-using NobatPlusAPI.Models.Authenticate;
 using NobatPlusAPI.Models.Public;
-using NobatPlusAPI.Models.ServiceManagement;
+using NobatPlusAPI.Models.Role;
+using NobatPlusAPI.ViewModels;
 using NobatPlusDATA.DataLayer.Repositories;
-using NobatPlusDATA.DataLayer.Services;
 using NobatPlusDATA.Domain;
 using NobatPlusDATA.ResultObjects;
 using NobatPlusDATA.Tools;
-using NobatPlusDATA.ViewModels;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 
-namespace NobatPlusAPI.Controllers
+namespace AITechWebAPI.Controllers
 {
-    [Route("ServiceManagement")]
+    [Route("Role")]
     [ApiController]
     [Authorize]
     [Produces("application/json")]
 
-    public class ServiceManagementController : ControllerBase
+
+    public class RoleController : ControllerBase
     {
-        IServiceManagementRep _ServiceManagementRep;
+        IRoleRep _RoleRep;
         ILogRep _logRep;
         private readonly IMapper _mapper;
 
 
-        public ServiceManagementController(IServiceManagementRep ServiceManagementRep,ILogRep logRep, IMapper mapper)
+        public RoleController(IRoleRep RoleRep,ILogRep logRep,IMapper mapper)
         {
-           _ServiceManagementRep = ServiceManagementRep;
+           _RoleRep = RoleRep;
            _logRep = logRep;
             _mapper = mapper;
         }
 
-        [HttpPost("GetAllServiceManagements_Base")]
-        [AllowAnonymous]
-        public async Task<ActionResult<ListResultObject<ServiceManagementVM>>> GetAllServiceManagements_Base(GetServiceManagementListRequestBody requestBody)
+        [HttpPost("GetAllRoles_Base")]
+        public async Task<ActionResult<ListResultObject<RoleVM>>> GetAllRoles_Base(GetRoleListRequestBody requestBody)
         {
-            ListResultObject<ServiceManagement> result = new ListResultObject<ServiceManagement>();
             if (!ModelState.IsValid)
             {
                 return BadRequest(requestBody);
             }
-            
-                result = await _ServiceManagementRep.GetAllServiceManagementsAsync(requestBody.ParentID,requestBody.BookingID,requestBody.StylistID,requestBody.BookingID,requestBody.ServiceGender ?? ' ', requestBody.PageIndex,requestBody.PageSize,requestBody.SearchText,requestBody.SortQuery);
-            
+            var result = await _RoleRep.GetAllRolesAsync(0,requestBody.PageIndex,requestBody.PageSize,requestBody.SearchText,requestBody.SortQuery);
             if (result.Status)
             {
-                var resultVM = _mapper.Map<ListResultObject<ServiceManagementVM>>(result);
+                var resultVM = _mapper.Map<ListResultObject<RoleVM>>(result);
+                return Ok(resultVM);
+            }
+
+            return BadRequest(result);
+        }
+
+        [HttpPost("GetRoleById_Base")]
+        public async Task<ActionResult<RowResultObject<RoleVM>>> GetRoleById_Base(GetRowRequestBody requestBody)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(requestBody);
+            }
+            var result = await _RoleRep.GetRoleByIdAsync(requestBody.ID);
+            if (result.Status)
+            {
+                var resultVM = _mapper.Map<RowResultObject<RoleVM>>(result);
                 return Ok(resultVM);
             }
             return BadRequest(result);
         }
 
-        [HttpPost("GetServiceManagementById_Base")]
-        public async Task<ActionResult<RowResultObject<ServiceManagementVM>>> GetServiceManagementById_Base(GetRowRequestBody requestBody)
+        [HttpPost("ExistRole_Base")]
+        public async Task<ActionResult<BitResultObject>> ExistRole_Base(GetRowRequestBody requestBody)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(requestBody);
             }
-            var result = await _ServiceManagementRep.GetServiceManagementByIdAsync(requestBody.ID);
-            if (result.Status)
-            {
-                var resultVM = _mapper.Map<RowResultObject<ServiceManagementVM>>(result);
-                return Ok(resultVM);
-            }
-            return BadRequest(result);
-        }
-
-        [HttpPost("ExistServiceManagement_Base")]
-        public async Task<ActionResult<BitResultObject>> ExistServiceManagement_Base(GetRowRequestBody requestBody)
-        {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(requestBody);
-            }
-            var result = await _ServiceManagementRep.ExistServiceManagementAsync(requestBody.ID);
+            var result = await _RoleRep.ExistRoleAsync(requestBody.ID);
             if (string.IsNullOrEmpty(result.ErrorMessage))
             {
                 return Ok(result);
@@ -92,24 +87,22 @@ namespace NobatPlusAPI.Controllers
             return BadRequest(result);
         }
 
-        [HttpPost("AddServiceManagement_Base")]
-        public async Task<ActionResult<BitResultObject>> AddServiceManagement_Base(AddEditServiceManagementRequestBody requestBody)
+        [HttpPost("AddRole_Base")]
+        public async Task<ActionResult<BitResultObject>> AddRole_Base(AddEditRoleRequestBody requestBody)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(requestBody);
             }
-            ServiceManagement ServiceManagement = new ServiceManagement()
+            Role Role = new Role()
             {
                 CreateDate = DateTime.Now.ToShamsi(),
                 UpdateDate = DateTime.Now.ToShamsi(),
-               // Duration = requestBody.Duration,
-                ServiceName = requestBody.ServiceName,
-                ServiceParentID = requestBody.ServiceParentID,
-                Description = requestBody.Description,
-                ServiceGender = requestBody.ServiceGender,
+                Description = requestBody.Description ??"",          
+                Name = requestBody.Name,
+
             };
-            var result = await _ServiceManagementRep.AddServiceManagementAsync(ServiceManagement);
+            var result = await _RoleRep.AddRoleAsync(Role);
             if (result.Status)
             {
                 #region AddLog
@@ -132,33 +125,31 @@ namespace NobatPlusAPI.Controllers
             return BadRequest(result);
         }
 
-        [HttpPut("EditServiceManagement_Base")]
-        public async Task<ActionResult<BitResultObject>> EditServiceManagement_Base(AddEditServiceManagementRequestBody requestBody)
+        [HttpPut("EditRole_Base")]
+        public async Task<ActionResult<BitResultObject>> EditRole_Base(AddEditRoleRequestBody requestBody)
         {
             var result = new BitResultObject();
             if (!ModelState.IsValid)
             {
                 return BadRequest(requestBody);
             }
-            var theRow = await _ServiceManagementRep.GetServiceManagementByIdAsync(requestBody.ID);
+            var theRow = await _RoleRep.GetRoleByIdAsync(requestBody.ID);
             if (!theRow.Status)
             {
                 result.Status = theRow.Status;
                 result.ErrorMessage = theRow.ErrorMessage;
             }
 
-            ServiceManagement ServiceManagement = new ServiceManagement()
+            Role Role = new Role()
             {
                 CreateDate = theRow.Result.CreateDate,
                 UpdateDate = DateTime.Now.ToShamsi(),
                 ID = requestBody.ID,
-                //Duration = requestBody.Duration,
-                ServiceName = requestBody.ServiceName,
-                ServiceParentID = requestBody.ServiceParentID,
-                Description = requestBody.Description,
-                ServiceGender = requestBody.ServiceGender,
+                Description = requestBody.Description ?? "",
+                Name = requestBody.Name,
+
             };
-            result = await _ServiceManagementRep.EditServiceManagementAsync(ServiceManagement);
+            result = await _RoleRep.EditRoleAsync(Role);
             if (result.Status)
             {
 
@@ -181,14 +172,14 @@ namespace NobatPlusAPI.Controllers
             return BadRequest(result);
         }
 
-        [HttpDelete("DeleteServiceManagement_Base")]
-        public async Task<ActionResult<BitResultObject>> DeleteServiceManagement_Base(GetRowRequestBody requestBody)
+        [HttpDelete("DeleteRole_Base")]
+        public async Task<ActionResult<BitResultObject>> DeleteRole_Base(GetRowRequestBody requestBody)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(requestBody);
             }
-            var result = await _ServiceManagementRep.RemoveServiceManagementAsync(requestBody.ID);
+            var result = await _RoleRep.RemoveRoleAsync(requestBody.ID);
             if (result.Status)
             {
 

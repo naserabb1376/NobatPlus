@@ -50,20 +50,7 @@ namespace NobatPlusAPI.Controllers
             {
                 return BadRequest(requestBody);
             }
-            if (requestBody.DiscountID > 0)
-            {
-               result = await _StylistRep.GetStylistsOfDiscountAsync(requestBody.DiscountID,requestBody.CityID, requestBody.PageIndex, requestBody.PageSize, requestBody.SearchText,requestBody.SortQuery);
-            }
-            if (requestBody.ServiceID > 0)
-            {
-                result = await _StylistRep.GetStylistsOfServiceAsync(requestBody.ServiceID,requestBody.CityID, requestBody.PageIndex, requestBody.PageSize, requestBody.SearchText,requestBody.SortQuery);
-            }
-            if (requestBody.JobTypeID > 0)
-            {
-                result = await _StylistRep.GetStylistsOfJobTypeAsync(requestBody.JobTypeID,requestBody.CityID, requestBody.PageIndex, requestBody.PageSize, requestBody.SearchText,requestBody.SortQuery);
-            }
-            else
-                result = await _StylistRep.GetAllStylistsAsync(requestBody.ParentID,requestBody.CityID,requestBody.PageIndex,requestBody.PageSize,requestBody.SearchText,requestBody.SortQuery);
+                result = await _StylistRep.GetAllStylistsAsync(requestBody.ParentID,requestBody.ServiceID,requestBody.JobTypeID,requestBody.DiscountID,requestBody.CityID,requestBody.PageIndex,requestBody.PageSize,requestBody.SearchText,requestBody.SortQuery);
             if (result.Status)
             {
                 var resultVM = _mapper.Map<ListResultObject<StylistVM>>(result);

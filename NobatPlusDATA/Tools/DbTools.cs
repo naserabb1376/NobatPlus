@@ -18,12 +18,12 @@ namespace NobatPlusDATA.Tools
         {
             All = 0,
             Admin = 1,
-            Customer = 2, 
-            Stylist = 3, 
-            StylistCustomer = 4, 
-            Service = 5, 
+            Customer = 2,
+            Stylist = 3,
+            StylistCustomer = 4,
+            Service = 5,
             AdminService = 6,
-            StylistService = 7,           
+            StylistService = 7,
         }
 
         public static List<T> ToPaging<T>(this List<T> list, int pageIndex = 1, int pageSize = 20)
@@ -37,9 +37,13 @@ namespace NobatPlusDATA.Tools
         }
 
 
-           public static IQueryable<T> ToPaging<T>(this IQueryable<T>? list, int pageIndex = 1, int pageSize = 20)
+        public static IQueryable<T> ToPaging<T>(this IQueryable<T>? list, int pageIndex = 1, int pageSize = 20)
         {
-            if (pageSize > 0)
+            if (pageIndex <= 0)
+            {
+                list = list.Take(0);
+            }
+            else if (pageIndex > 0 && pageSize > 0)
             {
                 int skipSize = (pageIndex - 1) * pageSize;
                 list = list.Skip(skipSize).Take(pageSize);
@@ -184,7 +188,7 @@ namespace NobatPlusDATA.Tools
 
         public static int GetPageCount(int totalItemsCount, int pageItemsCount)
         {
-            if(totalItemsCount == 0 || pageItemsCount == 0) return 1;
+            if (totalItemsCount == 0 || pageItemsCount == 0) return 1;
             int pageCount = totalItemsCount / pageItemsCount;
             if (totalItemsCount % pageItemsCount != 0)
             {
@@ -204,7 +208,7 @@ namespace NobatPlusDATA.Tools
         public static DateTime StringToDate(this string stringDateTime)
         {
             if (string.IsNullOrEmpty(stringDateTime)) return DateTime.Now.ToShamsi();
-            if (stringDateTime.Split(' ').Length< 2)
+            if (stringDateTime.Split(' ').Length < 2)
             {
                 stringDateTime += " 00:00:00";
             }

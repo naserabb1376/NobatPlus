@@ -29,6 +29,7 @@ namespace NobatPlusDATA.Domain
         public ICollection<Booking> Bookings { get; set; }
         public ICollection<RateHistory> RateHistories { get; set; }
         public ICollection<WorkTime> WorkTimes { get; set; }
+        public ICollection<StylistPacific> StylistPacifics { get; set; }
         public ICollection<SocialNetwork> SocialNetworks { get; set; }
         public ICollection<StylistService> StylistServices { get; set; }
         public ICollection<DiscountAssignment> DiscountAssignments { get; set; }
@@ -53,6 +54,10 @@ namespace NobatPlusDATA.Domain
         public int YearsOfExperience { get; set; }
         public float AvgScoreForStylist { get; set; }
         public long JobTypeID { get; set; }
+        public int TodayBookingsCount { get; set; }
+        public int TotalBookingsCount { get; set; }
+        public int TotalCustomersCount { get; set; }
+        public bool IsOnLeaveNow { get; set; }
         public TimeSpan RestTime { get; set; }
         public JobType JobType { get; set; }
         public Person Person { get; set; }

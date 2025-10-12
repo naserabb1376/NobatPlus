@@ -32,6 +32,12 @@ namespace NobatPlusAPI.Tools
            .ForMember(dest => dest.CustomerName, opt => opt.MapFrom(src => src.Customer.Person.FirstName + " " + src.Customer.Person.LastName))
            ;
 
+            CreateMap<Review, ReviewVM>()
+         .ForMember(dest => dest.SalonName, opt => opt.MapFrom(src => src.Booking.Stylist.StylistName))
+         .ForMember(dest => dest.StylistName, opt => opt.MapFrom(src => src.Booking.Stylist.Person.FirstName + " " + src.Booking.Stylist.Person.LastName))
+         .ForMember(dest => dest.CustomerName, opt => opt.MapFrom(src => src.IsPrivate ? src.Customer.Person.FirstName + " " + src.Customer.Person.LastName : "ناشناس"))
+         ;
+
             CreateMap<SocialNetwork, SocialNetworkVM>()
           .ForMember(dest => dest.SalonName, opt => opt.MapFrom(src => src.Stylist.StylistName))
           .ForMember(dest => dest.StylistName, opt => opt.MapFrom(src => src.Stylist.Person.FirstName + " " + src.Stylist.Person.LastName))
@@ -47,6 +53,10 @@ namespace NobatPlusAPI.Tools
        .ForMember(dest => dest.StylistRestTime, opt => opt.MapFrom(src => src.Stylist.RestTime))
        .ForMember(dest => dest.StylistName, opt => opt.MapFrom(src => src.Stylist.Person.FirstName + " " + src.Stylist.Person.LastName))
        ;
+            CreateMap<StylistPacific, StylistPacificVM>()
+      .ForMember(dest => dest.SalonName, opt => opt.MapFrom(src => src.Stylist.StylistName))
+      .ForMember(dest => dest.StylistName, opt => opt.MapFrom(src => src.Stylist.Person.FirstName + " " + src.Stylist.Person.LastName))
+      ;
 
             CreateMap<BookingService, BookingServiceVM>()
           .ForMember(dest => dest.SalonName, opt => opt.MapFrom(src => src.Booking.Stylist.StylistName))
@@ -104,7 +114,10 @@ namespace NobatPlusAPI.Tools
 
             CreateMap<StylistDTO, StylistVM>()
 .ForMember(dest => dest.JobTypeTitle, opt => opt.MapFrom(src => src.JobType.JobTitle))
-.ForMember(dest => dest.PersonFullName, opt => opt.MapFrom(src => src.Person.FirstName + " " + src.Person.LastName))
+.ForMember(dest => dest.PersonFirstName, opt => opt.MapFrom(src => src.Person.FirstName))
+.ForMember(dest => dest.PersonLastName, opt => opt.MapFrom(src => src.Person.LastName))
+.ForMember(dest => dest.PersonNationalCode, opt => opt.MapFrom(src => src.Person.NaCode))
+.ForMember(dest => dest.PersonPhoneNumber, opt => opt.MapFrom(src => src.Person.PhoneNumber))
   .ForMember(dest => dest.ServiceNames,
         opt => opt.MapFrom(src => src.StylistServices
             .Select(ss => ss.ServiceManagement.ServiceName).ToList()));
@@ -125,9 +138,10 @@ namespace NobatPlusAPI.Tools
 .ForMember(dest => dest.PersonFullName, opt => opt.MapFrom(src => src.Person.FirstName + " " + src.Person.LastName))
            ;
 
-            CreateMap<Customer, CustomerVM>()
+            CreateMap<CustomerDTO, CustomerVM>()
 .ForMember(dest => dest.PersonFullName, opt => opt.MapFrom(src => src.Person.FirstName + " " + src.Person.LastName))
            ;
+            CreateMap<City, CityVM>();
 
             CreateMap<Notification, NotificationVM>()
 .ForMember(dest => dest.PersonFullName, opt => opt.MapFrom(src => src.Person.FirstName + " " + src.Person.LastName))

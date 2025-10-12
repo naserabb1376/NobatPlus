@@ -42,5 +42,10 @@ namespace NobatPlusAPI.Models.Review
         public DateTime? ReviewDate { get; set; }
 
         public string? Description { get; set; }
+
+        [Display(Name = "سطح نمایش")]
+        [Required(ErrorMessage = "لطفا {0} را وارد کنید")]
+        public bool IsPrivate { get; set; }
+
     }
 }

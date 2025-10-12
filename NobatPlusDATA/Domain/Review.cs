@@ -18,6 +18,9 @@ namespace NobatPlusDATA.Domain
         public int LikeCount { get; set; }
         public int DislikeCount { get; set; }
 
+        public bool IsPrivate { get; set; }
+        public bool IsAccepted { get; set; }
+
         public DateTime ReviewDate { get; set; }
 
         public Booking Booking { get; set; }

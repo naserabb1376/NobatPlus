@@ -15,13 +15,15 @@ namespace NobatPlusDATA.Domain
         public string? Email { get; set; }
         public string PhoneNumber { get; set; }
         public int Gender { get; set; }
-        public int RoleId { get; set; } // 1. User 2.Stylist 3. Salon
-        public Address? Address { get; set; }
+        //public int RoleId { get; set; } // 1.User 2.Stylist 3.Salon 4.Admin
+        //public Role Role { get; set; }
         public long? AddressID { get; set; }
+        public Address? Address { get; set; }
         public string? NaCode { get; set; }
         public bool IsActive { get; set; }
         public DateTime DateOfBirth { get; set; }
 
         public ICollection<Notification> Notifications { get; set; }
+        public ICollection<SMSMessage> SMSMessages { get; set; }
     }
 }

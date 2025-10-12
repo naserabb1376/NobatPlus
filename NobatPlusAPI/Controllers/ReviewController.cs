@@ -49,7 +49,9 @@ namespace NobatPlusAPI.Controllers
             {
                 return BadRequest(requestBody);
             }
-            var result = await _ReviewRep.GetAllReviewsAsync(requestBody.BookingId,requestBody.CustomerId,requestBody.PageIndex,requestBody.PageSize,requestBody.SearchText,requestBody.SortQuery);
+
+            long roleId = long.Parse(User.FindFirst("Role")?.Value ?? "0");
+            var result = await _ReviewRep.GetAllReviewsAsync(roleId,requestBody.BookingId,requestBody.CustomerId,requestBody.PageIndex,requestBody.PageSize,requestBody.SearchText,requestBody.SortQuery);
             if (result.Status)
             {
                 var resultVM = _mapper.Map<ListResultObject<ReviewVM>>(result);
@@ -65,7 +67,9 @@ namespace NobatPlusAPI.Controllers
             {
                 return BadRequest(requestBody);
             }
-            var result = await _ReviewRep.GetReviewByIdAsync(requestBody.ID);
+
+            long roleId = long.Parse(User.FindFirst("Role")?.Value ?? "0");
+            var result = await _ReviewRep.GetReviewByIdAsync(requestBody.ID,roleId);
             if (result.Status)
             {
                 var resultVM = _mapper.Map<RowResultObject<ReviewVM>>(result);
@@ -109,6 +113,8 @@ namespace NobatPlusAPI.Controllers
                 Status = requestBody.Status,
                 ReviewDate = requestBody.ReviewDate ?? DateTime.Now.ToShamsi(),
                 Description = requestBody.Description,
+                IsPrivate = requestBody.IsPrivate,
+                IsAccepted = false,
             };
             var result = await _ReviewRep.AddReviewAsync(Review);
             if (result.Status)
@@ -133,6 +139,39 @@ namespace NobatPlusAPI.Controllers
             return BadRequest(result);
         }
 
+        [HttpPut("AcceptReview_Base")]
+        public async Task<ActionResult<BitResultObject>> AcceptReview_Base(GetRowRequestBody requestBody)
+        {
+            var result = new BitResultObject();
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(requestBody);
+            }
+            long roleId = long.Parse(User.FindFirst("Role")?.Value ?? "0");
+          
+            result = await _ReviewRep.AcceptReviewAsync(requestBody.ID,roleId);
+            if (result.Status)
+            {
+
+                #region AddLog
+
+                Log log = new Log()
+                {
+                    CreateDate = DateTime.Now.ToShamsi(),
+                    UpdateDate = DateTime.Now.ToShamsi(),
+                    LogTime = DateTime.Now.ToShamsi(),
+                    ActionName = this.ControllerContext.RouteData.Values["action"].ToString(),
+
+                };
+                await _logRep.AddLogAsync(log);
+
+                #endregion
+
+                return Ok(result);
+            }
+            return BadRequest(result);
+        }
+
         [HttpPut("EditReview_Base")]
         public async Task<ActionResult<BitResultObject>> EditReview_Base(AddEditReviewRequestBody requestBody)
         {
@@ -141,7 +180,8 @@ namespace NobatPlusAPI.Controllers
             {
                 return BadRequest(requestBody);
             }
-            var theRow = await _ReviewRep.GetReviewByIdAsync(requestBody.ID);
+            long roleId = long.Parse(User.FindFirst("Role")?.Value ?? "0");
+            var theRow = await _ReviewRep.GetReviewByIdAsync(requestBody.ID,roleId);
             if (!theRow.Status)
             {
                 result.Status = theRow.Status;
@@ -162,6 +202,8 @@ namespace NobatPlusAPI.Controllers
                 Status = requestBody.Status,
                 ReviewDate = requestBody.ReviewDate ?? DateTime.Now.ToShamsi(),
                 Description = requestBody.Description,
+                IsPrivate = requestBody.IsPrivate,
+                IsAccepted = false,
             };
             result = await _ReviewRep.EditReviewAsync(Review);
             if (result.Status)
@@ -193,7 +235,8 @@ namespace NobatPlusAPI.Controllers
             {
                 return BadRequest(requestBody);
             }
-            var result = await _ReviewRep.RemoveReviewAsync(requestBody.ID);
+            long roleId = long.Parse(User.FindFirst("Role")?.Value ?? "0");
+            var result = await _ReviewRep.RemoveReviewAsync(requestBody.ID,roleId);
             if (result.Status)
             {
 

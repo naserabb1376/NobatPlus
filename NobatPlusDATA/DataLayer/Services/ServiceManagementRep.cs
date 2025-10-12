@@ -79,158 +79,80 @@ namespace NobatPlusDATA.DataLayer.Services
             
         }
 
-        public async Task<ListResultObject<ServiceManagement>> GetAllServiceManagementsAsync(long parentId = 0,char serviceGender=' ', int pageIndex = 1, int pageSize = 20, string searchText = "",string sortQuery ="")
+        public async Task<ListResultObject<ServiceManagement>> GetAllServiceManagementsAsync(long parentId = 0,long bookingId = 0,long stylistId = 0,long discountId = 0,char serviceGender = ' ',int pageIndex = 1,int pageSize = 20,string searchText = "",string sortQuery = "")
         {
-            ListResultObject<ServiceManagement> results = new ListResultObject<ServiceManagement>();
+            var results = new ListResultObject<ServiceManagement>();
+
             try
             {
-                IQueryable<ServiceManagement> query = _context.ServiceManagements
-               .AsNoTracking();
+                IQueryable<ServiceManagement> query;
 
-                if (parentId >= 0)
+                // 🟡 تعیین منبع داده
+                if (bookingId > 0)
                 {
-                    query = query.Where(x => x.ServiceParentID == parentId);
+                    query = _context.BookingServices
+                        .Where(bs => bs.BookingID == bookingId)
+                        .Select(bs => bs.ServiceManagement);
+                }
+                else if (stylistId > 0)
+                {
+                    query = _context.StylistServices
+                        .Where(ss => ss.StylistID == stylistId)
+                        .Select(ss => ss.ServiceManagement);
+                }
+                else if (discountId > 0)
+                {
+                    query = _context.ServiceDiscounts
+                        .Where(sd => sd.DiscountId == discountId)
+                        .Select(sd => sd.ServiceManagement);
+                }
+                else
+                {
+                    query = _context.ServiceManagements.AsQueryable();
+
+                    if (parentId > 0)
+                    {
+                        query = query.Where(x => x.ServiceParentID == parentId);
+                    }
                 }
 
-                query = query.Where(x =>
-                   (x.CreateDate.HasValue && x.CreateDate.Value.ToString().Contains(searchText)) ||
-                   (x.UpdateDate.HasValue && x.UpdateDate.Value.ToString().Contains(searchText))
-                    || (!string.IsNullOrEmpty(x.Description.ToString()) && x.Description.ToString().Contains(searchText))
-                    || (!string.IsNullOrEmpty(x.ServiceName.ToString()) && x.ServiceName.ToString().Contains(searchText))
-                    //|| (!string.IsNullOrEmpty(x.Duration.ToString()) && x.Duration.ToString().Contains(searchText))
-                );
-
-                if (serviceGender!=' ')
+                // 🔍 فیلتر سرچ
+                if (!string.IsNullOrEmpty(searchText))
                 {
-                    query = query.Where(x => char.ToLower(x.ServiceGender) == char.ToLower(serviceGender));
+                    query = query.Where(x =>
+                        (x.CreateDate.HasValue && x.CreateDate.Value.ToString().Contains(searchText)) ||
+                        (x.UpdateDate .HasValue && x.UpdateDate.Value.ToString().Contains(searchText)) ||
+                        (!string.IsNullOrEmpty(x.Description) && x.Description.Contains(searchText)) ||
+                        (!string.IsNullOrEmpty(x.ServiceName) && x.ServiceName.Contains(searchText))
+                    );
                 }
 
-                results.TotalCount = query.Count();
-                results.PageCount = DbTools.GetPageCount(results.TotalCount, pageSize);
-                results.Results = await query.OrderByDescending(x => x.CreateDate)
-                .SortBy(sortQuery).ToPaging(pageIndex, pageSize)
-                .ToListAsync();
-            }
-            catch (Exception ex)
-            {
-                results.Status = false;
-                results.ErrorMessage = $"{ex.Message} - {ex.InnerException?.Message}";
-            }
-            return results;
-           
-        }
-
-        public async Task<ListResultObject<ServiceManagement>> GetServicesOfBookingAsync(long bookingId,char serviceGender = ' ', int pageIndex = 1, int pageSize = 20, string searchText = "",string sortQuery ="")
-        {
-            ListResultObject<ServiceManagement> results = new ListResultObject<ServiceManagement>();
-            try
-            {
-                var query = _context.BookingServices
-                .Where(bs => bs.BookingID == bookingId)
-                .Select(bs => bs.ServiceManagement)
-                .AsNoTracking()
-                .Where(x =>
-                    (x.CreateDate.HasValue && x.CreateDate.Value.ToString().Contains(searchText)) ||
-                    (x.UpdateDate.HasValue && x.UpdateDate.Value.ToString().Contains(searchText))
-                    || (!string.IsNullOrEmpty(x.Description.ToString()) && x.Description.ToString().Contains(searchText))
-                    || (!string.IsNullOrEmpty(x.ServiceName.ToString()) && x.ServiceName.ToString().Contains(searchText))
-                    //|| (!string.IsNullOrEmpty(x.Duration.ToString()) && x.Duration.ToString().Contains(searchText))
-                );
-
+                // 🚻 فیلتر جنسیت
                 if (serviceGender != ' ')
                 {
                     query = query.Where(x => char.ToLower(x.ServiceGender) == char.ToLower(serviceGender));
                 }
 
-                results.TotalCount = query.Count();
+                // 📊 آمار و صفحه‌بندی
+                results.TotalCount = await query.CountAsync();
                 results.PageCount = DbTools.GetPageCount(results.TotalCount, pageSize);
-                results.Results = await query.OrderByDescending(x => x.CreateDate)
-                .SortBy(sortQuery).ToPaging(pageIndex, pageSize)
-                .ToListAsync();
+
+                results.Results = await query
+                    .AsNoTracking()
+                    .OrderByDescending(x => x.CreateDate)
+                    .SortBy(sortQuery)
+                    .ToPaging(pageIndex, pageSize)
+                    .ToListAsync();
             }
             catch (Exception ex)
             {
                 results.Status = false;
                 results.ErrorMessage = $"{ex.Message} - {ex.InnerException?.Message}";
             }
+
             return results;
-          
         }
 
-        public async Task<ListResultObject<ServiceManagement>> GetServicesOfStylistAsync(long stylistId, char serviceGender = ' ', int pageIndex = 1, int pageSize = 20, string searchText = "",string sortQuery ="")
-        {
-            ListResultObject<ServiceManagement> results = new ListResultObject<ServiceManagement>();
-            try
-            {
-                var query = _context.StylistServices
-                .Where(bs => bs.StylistID == stylistId)
-                .Select(bs => bs.ServiceManagement)
-                .AsNoTracking()
-                .Where(x =>
-
-                    (x.CreateDate.HasValue && x.CreateDate.Value.ToString().Contains(searchText)) ||
-                    (x.UpdateDate.HasValue && x.UpdateDate.Value.ToString().Contains(searchText))
-                    || (!string.IsNullOrEmpty(x.Description.ToString()) && x.Description.ToString().Contains(searchText))
-                    || (!string.IsNullOrEmpty(x.ServiceName.ToString()) && x.ServiceName.ToString().Contains(searchText))
-               //     || (!string.IsNullOrEmpty(x.Duration.ToString()) && x.Duration.ToString().Contains(searchText))
-                );
-
-                if (serviceGender != ' ')
-                {
-                    query = query.Where(x => char.ToLower(x.ServiceGender) == char.ToLower(serviceGender));
-                }
-
-                results.TotalCount = query.Count();
-                results.PageCount = DbTools.GetPageCount(results.TotalCount, pageSize);
-                results.Results = await query.OrderByDescending(x => x.CreateDate)
-                .SortBy(sortQuery).ToPaging(pageIndex, pageSize)
-                .ToListAsync();
-            }
-            catch (Exception ex)
-            {
-                results.Status = false;
-                results.ErrorMessage = $"{ex.Message} - {ex.InnerException?.Message}";
-            }
-            return results;
-          
-        }
-
-        public async Task<ListResultObject<ServiceManagement>> GetServicesOfDiscountAsync(long DiscountId, char serviceGender = ' ', int pageIndex = 1, int pageSize = 20, string searchText = "",string sortQuery ="")
-        {
-            ListResultObject<ServiceManagement> results = new ListResultObject<ServiceManagement>();
-            try
-            {
-                var query =  _context.ServiceDiscounts
-                .Where(bs => bs.DiscountId == DiscountId)
-                .Select(bs => bs.ServiceManagement)
-                .AsNoTracking()
-                .Where(x =>
-                    (x.CreateDate.HasValue && x.CreateDate.Value.ToString().Contains(searchText)) ||
-                    (x.UpdateDate.HasValue && x.UpdateDate.Value.ToString().Contains(searchText))
-                    || (!string.IsNullOrEmpty(x.Description.ToString()) && x.Description.ToString().Contains(searchText))
-                    || (!string.IsNullOrEmpty(x.ServiceName.ToString()) && x.ServiceName.ToString().Contains(searchText))
-                    //|| (!string.IsNullOrEmpty(x.Duration.ToString()) && x.Duration.ToString().Contains(searchText))
-                );
-
-                if (serviceGender != ' ')
-                {
-                    query = query.Where(x => char.ToLower(x.ServiceGender) == char.ToLower(serviceGender));
-                }
-
-                results.TotalCount = query.Count();
-                results.PageCount = DbTools.GetPageCount(results.TotalCount, pageSize);
-                results.Results = await query.OrderByDescending(x => x.CreateDate)
-                .SortBy(sortQuery).ToPaging(pageIndex, pageSize)
-                .ToListAsync();
-            }
-            catch (Exception ex)
-            {
-                results.Status = false;
-                results.ErrorMessage = $"{ex.Message} - {ex.InnerException?.Message}";
-            }
-            return results;
-           
-        }
 
         public async Task<RowResultObject<ServiceManagement>> GetServiceManagementByIdAsync(long ServiceManagementId)
         {
