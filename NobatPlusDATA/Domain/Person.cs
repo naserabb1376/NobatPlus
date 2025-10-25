@@ -1,10 +1,11 @@
-﻿using System;
+﻿using Domain;
+using Domains;
+using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Domain;
-using Domains;
 
 namespace NobatPlusDATA.Domain
 {
@@ -15,8 +16,13 @@ namespace NobatPlusDATA.Domain
         public string? Email { get; set; }
         public string PhoneNumber { get; set; }
         public int Gender { get; set; }
-        //public int RoleId { get; set; } // 1.User 2.Stylist 3.Salon 4.Admin
-        //public Role Role { get; set; }
+
+       // [NotMapped]   // ⛔ در دیتابیس ساخته نمی‌شود
+        public long RoleId { get; set; } // 1.User 2.Stylist 3.Salon 4.Admin
+
+       // [NotMapped]   // ⛔ در دیتابیس ساخته نمی‌شود
+        [ForeignKey("RoleId")]
+        public Role Role { get; set; }
         public long? AddressID { get; set; }
         public Address? Address { get; set; }
         public string? NaCode { get; set; }

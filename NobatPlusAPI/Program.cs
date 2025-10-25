@@ -175,6 +175,8 @@ namespace NobatPlusAPI
             builder.Services.AddScoped<IApiGuideRep, ApiGuideRep>();
             builder.Services.AddScoped<ILoginRep, LoginRep>();
             builder.Services.AddScoped<ILogRep, LogRep>();
+            builder.Services.AddScoped<IImageRep, ImageRep>();
+            builder.Services.AddScoped<IFileUploadRep, FileUploadRep>();
             builder.Services.AddScoped<INotificationRep, NotificationRep>();
             builder.Services.AddScoped<IPaymentHistoryRep, PaymentHistoryRep>();
             builder.Services.AddScoped<IPaymentRep, PaymentRep>();

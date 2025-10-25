@@ -207,9 +207,9 @@ namespace NobatPlusDATA.DataLayer.Services
             BitResultObject result = new BitResultObject();
             try
             {
+                result.ID = images.Count > 0 ? images.FirstOrDefault().ID : 0;
                 _context.Images.RemoveRange(images);
                 await _context.SaveChangesAsync();
-                result.ID = images.FirstOrDefault().ID;
                 foreach (var image in images)
                 {
                     _context.Entry(image).State = EntityState.Detached;

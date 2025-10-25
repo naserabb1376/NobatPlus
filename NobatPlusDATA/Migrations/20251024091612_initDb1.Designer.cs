@@ -12,8 +12,8 @@ using NobatPlusDATA.DataLayer;
 namespace NobatPlusDATA.Migrations
 {
     [DbContext(typeof(NobatPlusContext))]
-    [Migration("20250807142415_addSMSMessageTable")]
-    partial class addSMSMessageTable
+    [Migration("20251024091612_initDb1")]
+    partial class initDb1
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -378,7 +378,6 @@ namespace NobatPlusDATA.Migrations
                         .HasColumnType("datetime2");
 
                     b.Property<string>("Description")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("DiscountAmount")
@@ -476,6 +475,9 @@ namespace NobatPlusDATA.Migrations
                     b.Property<long>("ForeignKeyId")
                         .HasColumnType("bigint");
 
+                    b.Property<string>("GetUrl")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<DateTime?>("UpdateDate")
                         .HasColumnType("datetime2");
 
@@ -516,6 +518,9 @@ namespace NobatPlusDATA.Migrations
 
                     b.Property<long>("ForeignKeyId")
                         .HasColumnType("bigint");
+
+                    b.Property<string>("GetUrl")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<int?>("Priority")
                         .HasColumnType("int");
@@ -747,9 +752,6 @@ namespace NobatPlusDATA.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("RoleId")
-                        .HasColumnType("int");
-
                     b.Property<DateTime?>("UpdateDate")
                         .HasColumnType("datetime2");
 
@@ -758,6 +760,75 @@ namespace NobatPlusDATA.Migrations
                     b.HasIndex("AddressID");
 
                     b.ToTable("Persons");
+                });
+
+            modelBuilder.Entity("NobatPlusDATA.Domain.RateHistory", b =>
+                {
+                    b.Property<long>("ID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("ID"));
+
+                    b.Property<DateTime?>("CreateDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<long>("CustomerID")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("RateDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<long>("RateQuestionID")
+                        .HasColumnType("bigint");
+
+                    b.Property<float>("RateScore")
+                        .HasColumnType("real");
+
+                    b.Property<long>("StylistID")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTime?>("UpdateDate")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("ID");
+
+                    b.HasIndex("CustomerID");
+
+                    b.HasIndex("RateQuestionID");
+
+                    b.HasIndex("StylistID");
+
+                    b.ToTable("RateHistories");
+                });
+
+            modelBuilder.Entity("NobatPlusDATA.Domain.RateQuestion", b =>
+                {
+                    b.Property<long>("ID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("ID"));
+
+                    b.Property<DateTime?>("CreateDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("RateQuestionText")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("UpdateDate")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("ID");
+
+                    b.ToTable("RateQuestions");
                 });
 
             modelBuilder.Entity("NobatPlusDATA.Domain.Register", b =>
@@ -863,8 +934,15 @@ namespace NobatPlusDATA.Migrations
                     b.Property<long>("PersonID")
                         .HasColumnType("bigint");
 
+                    b.Property<string>("PhoneNumber")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<DateTime>("SentDate")
                         .HasColumnType("datetime2");
+
+                    b.Property<bool>("SentStatus")
+                        .HasColumnType("bit");
 
                     b.Property<DateTime?>("UpdateDate")
                         .HasColumnType("datetime2");
@@ -1028,6 +1106,9 @@ namespace NobatPlusDATA.Migrations
 
                     b.Property<long>("PersonID")
                         .HasColumnType("bigint");
+
+                    b.Property<TimeSpan>("RestTime")
+                        .HasColumnType("time");
 
                     b.Property<string>("Specialty")
                         .HasColumnType("nvarchar(max)");
@@ -1402,6 +1483,33 @@ namespace NobatPlusDATA.Migrations
                     b.Navigation("Address");
                 });
 
+            modelBuilder.Entity("NobatPlusDATA.Domain.RateHistory", b =>
+                {
+                    b.HasOne("NobatPlusDATA.Domain.Customer", "Customer")
+                        .WithMany("RateHistories")
+                        .HasForeignKey("CustomerID")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.HasOne("NobatPlusDATA.Domain.RateQuestion", "RateQuestion")
+                        .WithMany()
+                        .HasForeignKey("RateQuestionID")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("NobatPlusDATA.Domain.Stylist", "Stylist")
+                        .WithMany("RateHistories")
+                        .HasForeignKey("StylistID")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.Navigation("Customer");
+
+                    b.Navigation("RateQuestion");
+
+                    b.Navigation("Stylist");
+                });
+
             modelBuilder.Entity("NobatPlusDATA.Domain.Register", b =>
                 {
                     b.HasOne("NobatPlusDATA.Domain.Person", "Person")
@@ -1435,7 +1543,7 @@ namespace NobatPlusDATA.Migrations
             modelBuilder.Entity("NobatPlusDATA.Domain.SMSMessage", b =>
                 {
                     b.HasOne("NobatPlusDATA.Domain.Person", "Person")
-                        .WithMany()
+                        .WithMany("SMSMessages")
                         .HasForeignKey("PersonID")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -1563,6 +1671,8 @@ namespace NobatPlusDATA.Migrations
 
                     b.Navigation("CustomerDiscounts");
 
+                    b.Navigation("RateHistories");
+
                     b.Navigation("Reviews");
                 });
 
@@ -1583,6 +1693,8 @@ namespace NobatPlusDATA.Migrations
             modelBuilder.Entity("NobatPlusDATA.Domain.Person", b =>
                 {
                     b.Navigation("Notifications");
+
+                    b.Navigation("SMSMessages");
                 });
 
             modelBuilder.Entity("NobatPlusDATA.Domain.ServiceManagement", b =>
@@ -1601,6 +1713,8 @@ namespace NobatPlusDATA.Migrations
                     b.Navigation("CustomerDiscounts");
 
                     b.Navigation("DiscountAssignments");
+
+                    b.Navigation("RateHistories");
 
                     b.Navigation("ServiceDiscounts");
 

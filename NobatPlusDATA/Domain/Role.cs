@@ -1,8 +1,11 @@
 ﻿using Domains;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace NobatPlusDATA.Domain
 {
     // Role: جدول نقش‌ها
+
+    //[NotMapped]   // ⛔ در دیتابیس ساخته نمی‌شود
     public class Role : BaseEntity
     {
         public string Name { get; set; } // نام نقش (مثلاً Student, Teacher, Admin)

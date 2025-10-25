@@ -1,9 +1,10 @@
-﻿using System;
+﻿using Domains;
+using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Domains;
 
 namespace NobatPlusDATA.Domain
 {
@@ -18,7 +19,10 @@ namespace NobatPlusDATA.Domain
         public int LikeCount { get; set; }
         public int DislikeCount { get; set; }
 
+        //[NotMapped]   // ⛔ در دیتابیس ساخته نمی‌شود
         public bool IsPrivate { get; set; }
+
+        //[NotMapped]   // ⛔ در دیتابیس ساخته نمی‌شود
         public bool IsAccepted { get; set; }
 
         public DateTime ReviewDate { get; set; }

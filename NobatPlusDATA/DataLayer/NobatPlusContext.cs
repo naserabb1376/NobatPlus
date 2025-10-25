@@ -11,15 +11,15 @@ namespace NobatPlusDATA.DataLayer
     public class NobatPlusContext : DbContext
     {
 
-      //  public NobatPlusContext(DbContextOptions<NobatPlusContext> options)
-      //: base(options)
-      //  {
-      //  }
-
-        public NobatPlusContext()
+        public NobatPlusContext(DbContextOptions<NobatPlusContext> options)
+      : base(options)
         {
-
         }
+
+        //public NobatPlusContext()
+        //{
+
+        //}
 
         //Tables
 
@@ -31,7 +31,6 @@ namespace NobatPlusDATA.DataLayer
         public DbSet<Stylist> Stylists { get; set; }
         public DbSet<Booking> Bookings { get; set; }
         public DbSet<WorkTime> WorkTimes { get; set; }
-        public DbSet<StylistPacific> StylistPacifics { get; set; }
         public DbSet<SocialNetwork> SocialNetworks { get; set; }
         public DbSet<PaymentHistory> PaymentHistories { get; set; }
         public DbSet<Login> Logins { get; set; }
@@ -56,18 +55,19 @@ namespace NobatPlusDATA.DataLayer
         public DbSet<RateQuestion> RateQuestions { get; set; }
         public DbSet<RateHistory> RateHistories { get; set; }
         public DbSet<Role> Roles { get; set; }
+        public DbSet<StylistPacific> StylistPacifics { get; set; }
 
 
         // Views
 
         public DbSet<V_Customer> V_Customers { get; set; }
 
-        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-        {
-            MainDbConfigurationHelper configurationHelper = new MainDbConfigurationHelper();
-            optionsBuilder.UseSqlServer(configurationHelper.GetConnectionString("publicdb"));
-            //  base.OnConfiguring(optionsBuilder);
-        }
+        //protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+        //{
+        //    MainDbConfigurationHelper configurationHelper = new MainDbConfigurationHelper();
+        //    optionsBuilder.UseSqlServer(configurationHelper.GetConnectionString("localdb"));
+        //    //  base.OnConfiguring(optionsBuilder);
+        //}
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

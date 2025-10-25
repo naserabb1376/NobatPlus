@@ -3,7 +3,6 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
-using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using NobatPlusDATA.DataLayer;
 
@@ -12,11 +11,9 @@ using NobatPlusDATA.DataLayer;
 namespace NobatPlusDATA.Migrations
 {
     [DbContext(typeof(NobatPlusContext))]
-    [Migration("20250911123833_AddRateQuestions4")]
-    partial class AddRateQuestions4
+    partial class NobatPlusContextModelSnapshot : ModelSnapshot
     {
-        /// <inheritdoc />
-        protected override void BuildTargetModel(ModelBuilder modelBuilder)
+        protected override void BuildModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -378,7 +375,6 @@ namespace NobatPlusDATA.Migrations
                         .HasColumnType("datetime2");
 
                     b.Property<string>("Description")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("DiscountAmount")
@@ -753,8 +749,8 @@ namespace NobatPlusDATA.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("RoleId")
-                        .HasColumnType("int");
+                    b.Property<long>("RoleId")
+                        .HasColumnType("bigint");
 
                     b.Property<DateTime?>("UpdateDate")
                         .HasColumnType("datetime2");
@@ -762,6 +758,8 @@ namespace NobatPlusDATA.Migrations
                     b.HasKey("ID");
 
                     b.HasIndex("AddressID");
+
+                    b.HasIndex("RoleId");
 
                     b.ToTable("Persons");
                 });
@@ -794,15 +792,6 @@ namespace NobatPlusDATA.Migrations
 
                     b.Property<long>("StylistID")
                         .HasColumnType("bigint");
-
-                    b.Property<float>("StylistQuestionRateAvg")
-                        .HasColumnType("real");
-
-                    b.Property<float>("StylistRateAvg")
-                        .HasColumnType("real");
-
-                    b.Property<int>("StylistRateCount")
-                        .HasColumnType("int");
 
                     b.Property<DateTime?>("UpdateDate")
                         .HasColumnType("datetime2");
@@ -901,6 +890,12 @@ namespace NobatPlusDATA.Migrations
                     b.Property<int>("DislikeCount")
                         .HasColumnType("int");
 
+                    b.Property<bool>("IsAccepted")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsPrivate")
+                        .HasColumnType("bit");
+
                     b.Property<int>("LikeCount")
                         .HasColumnType("int");
 
@@ -924,6 +919,32 @@ namespace NobatPlusDATA.Migrations
                     b.HasIndex("CustomerID");
 
                     b.ToTable("Reviews");
+                });
+
+            modelBuilder.Entity("NobatPlusDATA.Domain.Role", b =>
+                {
+                    b.Property<long>("ID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("ID"));
+
+                    b.Property<DateTime?>("CreateDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("UpdateDate")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("ID");
+
+                    b.ToTable("Roles");
                 });
 
             modelBuilder.Entity("NobatPlusDATA.Domain.SMSMessage", b =>
@@ -961,6 +982,8 @@ namespace NobatPlusDATA.Migrations
                         .HasColumnType("datetime2");
 
                     b.HasKey("ID");
+
+                    b.HasIndex("PersonID");
 
                     b.ToTable("SMSMessages");
                 });
@@ -1118,6 +1141,9 @@ namespace NobatPlusDATA.Migrations
                     b.Property<long>("PersonID")
                         .HasColumnType("bigint");
 
+                    b.Property<TimeSpan>("RestTime")
+                        .HasColumnType("time");
+
                     b.Property<string>("Specialty")
                         .HasColumnType("nvarchar(max)");
 
@@ -1154,6 +1180,39 @@ namespace NobatPlusDATA.Migrations
                     b.HasIndex("PersonID");
 
                     b.ToTable("Stylists");
+                });
+
+            modelBuilder.Entity("NobatPlusDATA.Domain.StylistPacific", b =>
+                {
+                    b.Property<long>("ID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("ID"));
+
+                    b.Property<DateTime?>("CreateDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("PacificEndDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("PacificStartDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<long>("StylistID")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTime?>("UpdateDate")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("ID");
+
+                    b.HasIndex("StylistID");
+
+                    b.ToTable("StylistPacifics");
                 });
 
             modelBuilder.Entity("NobatPlusDATA.Domain.StylistService", b =>
@@ -1488,7 +1547,15 @@ namespace NobatPlusDATA.Migrations
                         .WithMany()
                         .HasForeignKey("AddressID");
 
+                    b.HasOne("NobatPlusDATA.Domain.Role", "Role")
+                        .WithMany()
+                        .HasForeignKey("RoleId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.Navigation("Address");
+
+                    b.Navigation("Role");
                 });
 
             modelBuilder.Entity("NobatPlusDATA.Domain.RateHistory", b =>
@@ -1546,6 +1613,17 @@ namespace NobatPlusDATA.Migrations
                     b.Navigation("Booking");
 
                     b.Navigation("Customer");
+                });
+
+            modelBuilder.Entity("NobatPlusDATA.Domain.SMSMessage", b =>
+                {
+                    b.HasOne("NobatPlusDATA.Domain.Person", "Person")
+                        .WithMany("SMSMessages")
+                        .HasForeignKey("PersonID")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Person");
                 });
 
             modelBuilder.Entity("NobatPlusDATA.Domain.ServiceDiscount", b =>
@@ -1609,6 +1687,17 @@ namespace NobatPlusDATA.Migrations
                     b.Navigation("JobType");
 
                     b.Navigation("Person");
+                });
+
+            modelBuilder.Entity("NobatPlusDATA.Domain.StylistPacific", b =>
+                {
+                    b.HasOne("NobatPlusDATA.Domain.Stylist", "Stylist")
+                        .WithMany("StylistPacifics")
+                        .HasForeignKey("StylistID")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Stylist");
                 });
 
             modelBuilder.Entity("NobatPlusDATA.Domain.StylistService", b =>
@@ -1690,6 +1779,8 @@ namespace NobatPlusDATA.Migrations
             modelBuilder.Entity("NobatPlusDATA.Domain.Person", b =>
                 {
                     b.Navigation("Notifications");
+
+                    b.Navigation("SMSMessages");
                 });
 
             modelBuilder.Entity("NobatPlusDATA.Domain.ServiceManagement", b =>
@@ -1714,6 +1805,8 @@ namespace NobatPlusDATA.Migrations
                     b.Navigation("ServiceDiscounts");
 
                     b.Navigation("SocialNetworks");
+
+                    b.Navigation("StylistPacifics");
 
                     b.Navigation("StylistServices");
 
