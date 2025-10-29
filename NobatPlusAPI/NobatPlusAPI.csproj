@@ -88,6 +88,7 @@
     <Folder Include="FileCenter\StylistService\Images\Public\" />
     <Folder Include="FileCenter\Stylist\Files\Public\" />
     <Folder Include="FileCenter\Stylist\Images\Public\" />
+    <Folder Include="wwwroot\js\" />
   </ItemGroup>
 
 </Project>
