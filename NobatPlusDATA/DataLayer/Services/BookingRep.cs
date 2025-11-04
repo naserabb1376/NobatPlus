@@ -77,261 +77,155 @@ namespace NobatPlusDATA.DataLayer.Services
              
         }
 
-        public async Task<ListResultObject<BookingDTO>> GetAllBookingsAsync(int cancelState = 0, int pageIndex = 1, int pageSize = 20, string searchText = "",string sortQuery ="")
+
+        public async Task<ListResultObject<BookingDTO>> GetAllBookingsAsync(
+    long serviceManagementId = 0,
+    int cancelState = 0,
+    int pageIndex = 1,
+    int pageSize = 20,
+    string searchText = "",
+    string sortQuery = "") // 🔹 پارامتر جدید برای فیلتر سرویس
         {
             ListResultObject<BookingDTO> results = new ListResultObject<BookingDTO>();
+
             try
             {
-                IQueryable<Booking> query;
+                IQueryable<Booking> bookingsQuery;
 
-                if (cancelState == 0)
+                // 🔹 اگر ServiceManagementId مقدار دارد، از BookingServices بگیر
+                if (serviceManagementId > 0)
                 {
-                    query = _context.Bookings
-                        .AsNoTracking()
-                        .Include(x => x.Stylist).ThenInclude(x => x.Person)
-                        .Include(x => x.Customer).ThenInclude(x => x.Person)
-                        .Where(x =>
-                            (!string.IsNullOrEmpty(x.Stylist.Person.FirstName.ToString()) && x.Stylist.Person.FirstName.ToString().Contains(searchText))
-                            || (!string.IsNullOrEmpty(x.Stylist.Person.LastName.ToString()) && x.Stylist.Person.LastName.ToString().Contains(searchText))
-                            || (!string.IsNullOrEmpty(x.IsCancelled.ToString()) && x.IsCancelled.ToString().Contains(searchText))
-                            || (!string.IsNullOrEmpty(x.Status.ToString()) && x.Status.ToString().Contains(searchText))
-                            || (!string.IsNullOrEmpty(x.Description.ToString()) && x.Description.ToString().Contains(searchText))
-                            || (x.BookingDate != null && x.BookingDate.ToString().Contains(searchText))
-                            || (!string.IsNullOrEmpty(x.BookingTime.ToString()) && x.BookingTime.ToString().Contains(searchText))
-                            || (x.CreateDate.HasValue && x.CreateDate.Value.ToString().Contains(searchText))
-                            || (x.UpdateDate.HasValue && x.UpdateDate.Value.ToString().Contains(searchText))
-                        );
-                }
-                else if (cancelState == 1)
-                {
-                    query = _context.Bookings
-                        .AsNoTracking()
-                        .Include(x => x.Stylist).ThenInclude(x => x.Person)
-                        .Include(x => x.Customer).ThenInclude(x => x.Person)
-                        .Where(x => (x.IsCancelled) &&
-                            ((!string.IsNullOrEmpty(x.Stylist.Person.FirstName.ToString()) && x.Stylist.Person.FirstName.ToString().Contains(searchText))
-                            || (!string.IsNullOrEmpty(x.Stylist.Person.LastName.ToString()) && x.Stylist.Person.LastName.ToString().Contains(searchText))
-                            || (!string.IsNullOrEmpty(x.IsCancelled.ToString()) && x.IsCancelled.ToString().Contains(searchText))
-                            || (!string.IsNullOrEmpty(x.Status.ToString()) && x.Status.ToString().Contains(searchText))
-                            || (!string.IsNullOrEmpty(x.Description.ToString()) && x.Description.ToString().Contains(searchText))
-                            || (!string.IsNullOrEmpty(x.BookingDate.ToString()) && x.BookingDate.ToString().Contains(searchText))
-                            || (!string.IsNullOrEmpty(x.BookingTime.ToString()) && x.BookingTime.ToString().Contains(searchText))
-                            || (x.CreateDate.HasValue && x.CreateDate.Value.ToString().Contains(searchText))
-                            || (x.UpdateDate.HasValue && x.UpdateDate.Value.ToString().Contains(searchText))
-                            ));
+                    bookingsQuery = _context.BookingServices
+                        .Where(bs => bs.ServiceManagementID == serviceManagementId)
+                        .Select(bs => bs.Booking);
                 }
                 else
                 {
-                    query = _context.Bookings
-                        .AsNoTracking()
-                        .Include(x => x.Stylist).ThenInclude(x => x.Person)
-                        .Include(x => x.Customer).ThenInclude(x => x.Person)
-                        .Where(x => (!x.IsCancelled) &&
-                            ((!string.IsNullOrEmpty(x.Stylist.Person.FirstName.ToString()) && x.Stylist.Person.FirstName.ToString().Contains(searchText))
-                            || (!string.IsNullOrEmpty(x.Stylist.Person.LastName.ToString()) && x.Stylist.Person.LastName.ToString().Contains(searchText))
-                            || (!string.IsNullOrEmpty(x.IsCancelled.ToString()) && x.IsCancelled.ToString().Contains(searchText))
-                            || (!string.IsNullOrEmpty(x.Status.ToString()) && x.Status.ToString().Contains(searchText))
-                            || (!string.IsNullOrEmpty(x.Description.ToString()) && x.Description.ToString().Contains(searchText))
-                            || (!string.IsNullOrEmpty(x.BookingDate.ToString()) && x.BookingDate.ToString().Contains(searchText))
-                            || (!string.IsNullOrEmpty(x.BookingTime.ToString()) && x.BookingTime.ToString().Contains(searchText))
-                            || (x.CreateDate.HasValue && x.CreateDate.Value.ToString().Contains(searchText))
-                            || (x.UpdateDate.HasValue && x.UpdateDate.Value.ToString().Contains(searchText))
-                        ));
-                        
-                    
+                    bookingsQuery = _context.Bookings;
                 }
-                results.TotalCount = query.Count();
-                results.PageCount = DbTools.GetPageCount(results.TotalCount, pageSize);
-                results.Results = await query.OrderByDescending(x => x.CreateDate)
-                .SortBy(sortQuery).ToPaging(pageIndex, pageSize)
-                .Select(r => new BookingDTO
-                {
-                    ID = r.ID,
-                    StylistID = r.StylistID,
-                    CustomerID = r.CustomerID,
-                    Description = r.Description,
-                    BookingDate = r.BookingDate,
-                    BookingTime = r.BookingTime,
-                    CancelReason = r.CancelReason,
-                    IsCancelled = r.IsCancelled,
-                    Status = r.Status,
-                    Stylist = r.Stylist,
-                    Customer = r.Customer,
-                    UpdateDate = r.UpdateDate,
-                    CreateDate = r.CreateDate,
 
-                    // محاسباتی
-                    TotalTimeDuration = _context.BookingServices
-            .Select(bs => bs.ServiceManagement.StylistServices
-                .Where(ss => ss.StylistID == r.StylistID)
-                .Select(ss => ss.ServiceDuration)
-                .FirstOrDefault()
-            )
-            .Aggregate(TimeSpan.Zero, (sum, next) => sum + next)
-                })
-                .ToListAsync();
+                // 🔹 فیلتر وضعیت لغو
+                if (cancelState == 1)
+                    bookingsQuery = bookingsQuery.Where(x => x.IsCancelled);
+                else if (cancelState == 2)
+                    bookingsQuery = bookingsQuery.Where(x => !x.IsCancelled);
+
+                // 🔹 جستجو در فیلدها
+                if (!string.IsNullOrEmpty(searchText))
+                {
+                    bookingsQuery = bookingsQuery.Where(x =>
+                        x.Stylist.Person.FirstName.Contains(searchText) ||
+                        x.Stylist.Person.LastName.Contains(searchText) ||
+                        x.Description.Contains(searchText) ||
+                        x.Status.ToString().Contains(searchText));
+                }
+
+                // 🔹 لود ارتباطات اصلی
+                bookingsQuery = bookingsQuery
+                    .Include(x => x.Stylist).ThenInclude(x => x.Person)
+                    .Include(x => x.Customer).ThenInclude(x => x.Person)
+                    .AsNoTracking();
+
+                // 🔹 زیرکوئری محاسبه مجموع زمان‌ها
+                var stylistDurations = _context.StylistServices
+                    .GroupBy(s => s.StylistID)
+                    .Select(g => new
+                    {
+                        StylistID = g.Key,
+                        TotalSeconds = (int?)g.Sum(x => EF.Functions.DateDiffSecond(TimeSpan.Zero, x.ServiceDuration))
+                    });
+
+                // 🔹 صفحه‌بندی و خروجی
+                results.TotalCount = await bookingsQuery.CountAsync();
+                results.PageCount = DbTools.GetPageCount(results.TotalCount, pageSize);
+
+                results.Results = await (from b in bookingsQuery
+                                         join d in stylistDurations on b.StylistID equals d.StylistID into gj
+                                         from d in gj.DefaultIfEmpty()
+                                         orderby b.CreateDate descending
+                                         select new BookingDTO
+                                         {
+                                             ID = b.ID,
+                                             StylistID = b.StylistID,
+                                             CustomerID = b.CustomerID,
+                                             Description = b.Description,
+                                             BookingDate = b.BookingDate,
+                                             BookingTime = b.BookingTime,
+                                             CancelReason = b.CancelReason,
+                                             IsCancelled = b.IsCancelled,
+                                             Status = b.Status,
+                                             Stylist = b.Stylist,
+                                             Customer = b.Customer,
+                                             UpdateDate = b.UpdateDate,
+                                             CreateDate = b.CreateDate,
+                                             TotalTimeDuration = TimeSpan.FromSeconds(d.TotalSeconds.HasValue ? d.TotalSeconds.Value : 0)
+                                         })
+                                        .SortBy(sortQuery)
+                                        .ToPaging(pageIndex, pageSize)
+                                        .ToListAsync();
             }
             catch (Exception ex)
             {
                 results.Status = false;
                 results.ErrorMessage = $"{ex.Message} - {ex.InnerException?.Message}";
             }
+
             return results;
-            
         }
 
-        public async Task<ListResultObject<BookingDTO>> GetBookingsOfServiceAsync(long ServiceManagementId, int cancelState = 0, int pageIndex = 1, int pageSize = 20, string searchText = "",string sortQuery ="")
-        {
-            ListResultObject<BookingDTO> results = new ListResultObject<BookingDTO>();
-            try
-            {
-                IQueryable<Booking> query;
 
-                if (cancelState == 0)
-                {
-                    query = _context.BookingServices
-                    .Where(bs => bs.ServiceManagementID == ServiceManagementId)
-                    .Select(bs => bs.Booking)
-                    .AsNoTracking()
-                    .Include(x => x.Stylist).ThenInclude(x => x.Person)
-                    .Include(x => x.Customer).ThenInclude(x => x.Person)
 
-                    .Where(x =>
-                        (!string.IsNullOrEmpty(x.Stylist.Person.FirstName.ToString()) && x.Stylist.Person.FirstName.ToString().Contains(searchText))
-                        || (!string.IsNullOrEmpty(x.Stylist.Person.LastName.ToString()) && x.Stylist.Person.LastName.ToString().Contains(searchText))
-                        || (!string.IsNullOrEmpty(x.IsCancelled.ToString()) && x.IsCancelled.ToString().Contains(searchText))
-                        || (!string.IsNullOrEmpty(x.Status.ToString()) && x.Status.ToString().Contains(searchText))
-                        || (!string.IsNullOrEmpty(x.Description.ToString()) && x.Description.ToString().Contains(searchText))
-                        || (!string.IsNullOrEmpty(x.BookingDate.ToString()) && x.BookingDate.ToString().Contains(searchText))
-                        || (!string.IsNullOrEmpty(x.BookingTime.ToString()) && x.BookingTime.ToString().Contains(searchText))
-                        || (x.CreateDate.HasValue && x.CreateDate.Value.ToString().Contains(searchText))
-                        || (x.UpdateDate.HasValue && x.UpdateDate.Value.ToString().Contains(searchText))
-                    );
-                }
-                else if (cancelState == 1)
-                {
-                    query = _context.BookingServices
-                    .Where(bs => bs.ServiceManagementID == ServiceManagementId)
-                    .Select(bs => bs.Booking)
-                    .AsNoTracking()
-                    .Include(x => x.Stylist).ThenInclude(x => x.Person)
-                    .Include(x => x.Customer).ThenInclude(x => x.Person)
-                    .Where(x => (x.IsCancelled) &&
-                        ((!string.IsNullOrEmpty(x.Stylist.Person.FirstName.ToString()) && x.Stylist.Person.FirstName.ToString().Contains(searchText))
-                        || (!string.IsNullOrEmpty(x.Stylist.Person.LastName.ToString()) && x.Stylist.Person.LastName.ToString().Contains(searchText))
-                        || (!string.IsNullOrEmpty(x.IsCancelled.ToString()) && x.IsCancelled.ToString().Contains(searchText))
-                        || (!string.IsNullOrEmpty(x.Status.ToString()) && x.Status.ToString().Contains(searchText))
-                        || (!string.IsNullOrEmpty(x.Description.ToString()) && x.Description.ToString().Contains(searchText))
-                        || (!string.IsNullOrEmpty(x.BookingDate.ToString()) && x.BookingDate.ToString().Contains(searchText))
-                        || (!string.IsNullOrEmpty(x.BookingTime.ToString()) && x.BookingTime.ToString().Contains(searchText))
-                        || (x.CreateDate.HasValue && x.CreateDate.Value.ToString().Contains(searchText))
-                        || (x.UpdateDate.HasValue && x.UpdateDate.Value.ToString().Contains(searchText))
-
-                    ));
-                }
-                else
-                {
-                    query = _context.BookingServices
-                    .Where(bs => bs.ServiceManagementID == ServiceManagementId)
-                    .Select(bs => bs.Booking)
-                    .AsNoTracking()
-                    .Include(x => x.Stylist).ThenInclude(x => x.Person)
-                    .Include(x => x.Customer).ThenInclude(x => x.Person)
-                    .Where(x => (!x.IsCancelled) &&
-                        ((!string.IsNullOrEmpty(x.Stylist.Person.FirstName.ToString()) && x.Stylist.Person.FirstName.ToString().Contains(searchText))
-                        || (!string.IsNullOrEmpty(x.Stylist.Person.LastName.ToString()) && x.Stylist.Person.LastName.ToString().Contains(searchText))
-                        || (!string.IsNullOrEmpty(x.IsCancelled.ToString()) && x.IsCancelled.ToString().Contains(searchText))
-                        || (!string.IsNullOrEmpty(x.Status.ToString()) && x.Status.ToString().Contains(searchText))
-                        || (!string.IsNullOrEmpty(x.Description.ToString()) && x.Description.ToString().Contains(searchText))
-                        || (!string.IsNullOrEmpty(x.BookingDate.ToString()) && x.BookingDate.ToString().Contains(searchText))
-                        || (!string.IsNullOrEmpty(x.BookingTime.ToString()) && x.BookingTime.ToString().Contains(searchText))
-                        || (x.CreateDate.HasValue && x.CreateDate.Value.ToString().Contains(searchText))
-                        || (x.UpdateDate.HasValue && x.UpdateDate.Value.ToString().Contains(searchText))
-                    ));
-               }
-                results.TotalCount = query.Count();
-                results.PageCount = DbTools.GetPageCount(results.TotalCount, pageSize);
-                results.Results = await query.OrderByDescending(x => x.CreateDate)
-                .SortBy(sortQuery).ToPaging(pageIndex, pageSize)
-                .Select(r => new BookingDTO
-                {
-                    ID = r.ID,
-                    StylistID = r.StylistID,
-                    CustomerID = r.CustomerID,
-                    Description = r.Description,
-                    BookingDate = r.BookingDate,
-                    BookingTime = r.BookingTime,
-                    CancelReason = r.CancelReason,
-                    IsCancelled = r.IsCancelled,
-                    Status = r.Status,
-                    Stylist = r.Stylist,
-                    Customer = r.Customer,
-                    UpdateDate = r.UpdateDate,
-                    CreateDate = r.CreateDate,
-
-                    // محاسباتی
-                    TotalTimeDuration = _context.BookingServices
-            .Select(bs => bs.ServiceManagement.StylistServices
-                .Where(ss => ss.StylistID == r.StylistID)
-                .Select(ss => ss.ServiceDuration)
-                .FirstOrDefault()
-            )
-            .Aggregate(TimeSpan.Zero, (sum, next) => sum + next)
-                })
-                .ToListAsync();
-            }
-            catch (Exception ex)
-            {
-                results.Status = false;
-                results.ErrorMessage = $"{ex.Message} - {ex.InnerException?.Message}";
-            }
-            return results;
-
-        }
-
-        public async Task<RowResultObject<BookingDTO>> GetBookingByIdAsync(long BookingId)
+        public async Task<RowResultObject<BookingDTO>> GetBookingByIdAsync(long bookingId)
         {
             RowResultObject<BookingDTO> result = new RowResultObject<BookingDTO>();
+
             try
             {
-                result.Result = await _context.Bookings
-                .Include(x => x.Stylist).ThenInclude(x => x.Person)
-                .Include(x => x.Customer).ThenInclude(x => x.Person)
-                .Where(x=> x.ID == BookingId)
-                .Select(r => new BookingDTO
-                {
-                    ID = r.ID,
-                    StylistID = r.StylistID,
-                    CustomerID = r.CustomerID,
-                    Description = r.Description,
-                    BookingDate = r.BookingDate,
-                    BookingTime = r.BookingTime,
-                    CancelReason = r.CancelReason,
-                    IsCancelled = r.IsCancelled,
-                    Status = r.Status,
-                    Stylist = r.Stylist,
-                    Customer = r.Customer,
-                    UpdateDate = r.UpdateDate,
-                    CreateDate = r.CreateDate,
+                var bookingQuery = _context.Bookings
+                    .Include(x => x.Stylist).ThenInclude(x => x.Person)
+                    .Include(x => x.Customer).ThenInclude(x => x.Person)
+                    .AsNoTracking()
+                    .Where(x => x.ID == bookingId);
 
-                    // محاسباتی
-                    TotalTimeDuration = _context.BookingServices
-            .Select(bs => bs.ServiceManagement.StylistServices
-                .Where(ss => ss.StylistID == r.StylistID)
-                .Select(ss => ss.ServiceDuration)
-                .FirstOrDefault()
-            )
-            .Aggregate(TimeSpan.Zero, (sum, next) => sum + next)
-                })
-                .AsNoTracking().SingleOrDefaultAsync();
+                var stylistDurations = _context.StylistServices
+                    .GroupBy(s => s.StylistID)
+                    .Select(g => new
+                    {
+                        StylistID = g.Key,
+                        TotalSeconds = (int?)g.Sum(x => EF.Functions.DateDiffSecond(TimeSpan.Zero, x.ServiceDuration))
+                    });
+
+                result.Result = await (from b in bookingQuery
+                                       join d in stylistDurations on b.StylistID equals d.StylistID into gj
+                                       from d in gj.DefaultIfEmpty()
+                                       select new BookingDTO
+                                       {
+                                           ID = b.ID,
+                                           StylistID = b.StylistID,
+                                           CustomerID = b.CustomerID,
+                                           Description = b.Description,
+                                           BookingDate = b.BookingDate,
+                                           BookingTime = b.BookingTime,
+                                           CancelReason = b.CancelReason,
+                                           IsCancelled = b.IsCancelled,
+                                           Status = b.Status,
+                                           Stylist = b.Stylist,
+                                           Customer = b.Customer,
+                                           UpdateDate = b.UpdateDate,
+                                           CreateDate = b.CreateDate,
+                                           TotalTimeDuration = TimeSpan.FromSeconds(d.TotalSeconds.Value)
+                                       })
+                                      .SingleOrDefaultAsync();
             }
             catch (Exception ex)
             {
                 result.Status = false;
                 result.ErrorMessage = $"{ex.Message} - {ex.InnerException?.Message}";
             }
+
             return result;
         }
+
 
         public async Task<BitResultObject> RemoveBookingAsync(Booking Booking)
         {

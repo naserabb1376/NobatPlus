@@ -95,7 +95,7 @@ namespace NobatPlusAPI.Controllers
         public async Task<ActionResult<BitResultObject>> AddPerson(AddEditPersonProRequestBody requestBody)
         {
             BitResultObject result = new BitResultObject();
-            Address address = new Address();
+            Address address = null;
             if (!ModelState.IsValid)
             {
                 return BadRequest(requestBody);
@@ -168,7 +168,7 @@ namespace NobatPlusAPI.Controllers
         public async Task<ActionResult<BitResultObject>> EditPerson(AddEditPersonProRequestBody requestBody)
         {
             var result = new BitResultObject();
-            Address address = new Address();
+            Address address = null;
             if (!ModelState.IsValid)
             {
                 return BadRequest(requestBody);
@@ -206,7 +206,7 @@ namespace NobatPlusAPI.Controllers
                     CreateDate = theRow.Result.CreateDate,
                     UpdateDate = DateTime.Now.ToShamsi(),
                     ID = requestBody.ID,
-                    AddressID = address.ID,
+                    AddressID = address != null ? address.ID : null,
                     DateOfBirth = requestBody.DateOfBirth.StringToDate(),
                     FirstName = requestBody.FirstName,
                     LastName = requestBody.LastName,
