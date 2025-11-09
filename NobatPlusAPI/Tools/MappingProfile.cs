@@ -118,6 +118,13 @@ namespace NobatPlusAPI.Tools
 .ForMember(dest => dest.PersonLastName, opt => opt.MapFrom(src => src.Person.LastName))
 .ForMember(dest => dest.PersonNationalCode, opt => opt.MapFrom(src => src.Person.NaCode))
 .ForMember(dest => dest.PersonPhoneNumber, opt => opt.MapFrom(src => src.Person.PhoneNumber))
+.ForMember(dest => dest.Gender, opt => opt.MapFrom(src => src.Person.Gender))
+.ForMember(dest => dest.Email, opt => opt.MapFrom(src => src.Person.Email))
+.ForMember(dest => dest.DateOfBirth, opt => opt.MapFrom(src => src.Person.DateOfBirth))
+.ForMember(dest => dest.AddressLocationHorizentalPoint, opt => opt.MapFrom(src => src.Person.Address.AddressLocationHorizentalPoint))
+.ForMember(dest => dest.AddressLocationVerticalPoint, opt => opt.MapFrom(src => src.Person.Address.AddressLocationVerticalPoint))
+.ForMember(dest => dest.AddressStreet, opt => opt.MapFrom(src => src.Person.Address.AddressStreet))
+.ForMember(dest => dest.AddressPostalCode, opt => opt.MapFrom(src => src.Person.Address.AddressPostalCode))
   .ForMember(dest => dest.ServiceNames,
         opt => opt.MapFrom(src => src.StylistServices
             .Select(ss => ss.ServiceManagement.ServiceName).ToList()));

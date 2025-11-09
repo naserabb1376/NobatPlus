@@ -31,6 +31,7 @@ namespace NobatPlusDATA.ViewModels
         public int TotalBookingsCount { get; set; }
         public int TotalCustomersCount { get; set; }
         public bool IsOnLeaveNow { get; set; }
+        public int Gender { get; set; }
         public string? Email { get; set; }
         public DateTime DateOfBirth { get; set; }
         public string AddressStreet { get; set; }
