@@ -143,6 +143,8 @@ namespace NobatPlusAPI.Tools
            ;
             CreateMap<City, CityVM>();
             CreateMap<Person, PersonVM>();
+            CreateMap<ServiceManagement, ServiceManagementVM>();
+
 
             CreateMap<Notification, NotificationVM>()
 .ForMember(dest => dest.PersonFullName, opt => opt.MapFrom(src => src.Person.FirstName + " " + src.Person.LastName))

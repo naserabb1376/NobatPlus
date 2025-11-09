@@ -1,5 +1,6 @@
 ﻿
 using Domains;
+using System.ComponentModel.DataAnnotations;
 
 namespace NobatPlusDATA.ViewModels
 {
@@ -30,6 +31,12 @@ namespace NobatPlusDATA.ViewModels
         public int TotalBookingsCount { get; set; }
         public int TotalCustomersCount { get; set; }
         public bool IsOnLeaveNow { get; set; }
+        public string? Email { get; set; }
+        public DateTime DateOfBirth { get; set; }
+        public string AddressStreet { get; set; }
+        public string AddressPostalCode { get; set; }
+        public string? AddressLocationHorizentalPoint { get; set; }
+        public string? AddressLocationVerticalPoint { get; set; }
         public List<string> ServiceNames { get; set; }
 
     }
