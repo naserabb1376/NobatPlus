@@ -190,7 +190,7 @@ namespace NobatPlusAPI.Controllers
                     AddressPostalCode = requestBody.Address.AddressPostalCode,
                     AddressStreet = requestBody.Address.AddressStreet,
                     Description = requestBody.Address.AddressDescription,
-                    CreateDate = theRow.Result.Address.CreateDate,
+                    CreateDate = (theRow.Result.Address != null && theRow.Result.Address.ID > 0) ? theRow.Result.Address.CreateDate : DateTime.Now.ToShamsi(),
                     UpdateDate = DateTime.Now.ToShamsi(),
 
                 };
