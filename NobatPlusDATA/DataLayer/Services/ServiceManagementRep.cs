@@ -110,7 +110,7 @@ namespace NobatPlusDATA.DataLayer.Services
                 {
                     query = _context.ServiceManagements.AsQueryable();
 
-                    if (parentId > 0)
+                    if (parentId >= 0)
                     {
                         query = query.Where(x => x.ServiceParentID == parentId);
                     }

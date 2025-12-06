@@ -44,6 +44,7 @@ namespace NobatPlusAPI.Controllers
         }
 
         [HttpPost("GetAllPersons_Base")]
+        [AllowAnonymous]
         public async Task<ActionResult<ListResultObject<PersonVM>>> GetAllPersons_Base(GetPersonListRequestBody requestBody)
         {
             if (!ModelState.IsValid)

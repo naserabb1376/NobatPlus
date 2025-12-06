@@ -220,6 +220,7 @@ namespace NobatPlusDATA.DataLayer.Services
                         WorkShopInteractMode = r.WorkShopInteractMode ?? "",
                         WorkShopRentAmount = r.WorkShopRentAmount,
                         YearsOfExperience = r.YearsOfExperience,
+                        StylistImagePath = _context.Images.Any(x=> x.EntityType.ToLower() == "stylist" && x.ForeignKeyId == r.ID) ? $"https://nobatplusapi.mtcoding.ir/FileCenter/downloadfile?fileType=images&rowId=0&foreignkeyId={r.ID}&entityName=stylist" : "",
 
                         // محاسبه امتیاز آرایشگر
                         AvgScoreForStylist = _context.RateHistories
@@ -286,9 +287,11 @@ namespace NobatPlusDATA.DataLayer.Services
                          WorkShopInteractMode = r.WorkShopInteractMode ?? "",
                          WorkShopRentAmount = r.WorkShopRentAmount,
                          YearsOfExperience = r.YearsOfExperience,
+                         StylistImagePath = _context.Images.Any(x => x.EntityType.ToLower() == "stylist" && x.ForeignKeyId == r.ID) ? $"https://nobatplusapi.mtcoding.ir/FileCenter/downloadfile?fileType=images&rowId=0&foreignkeyId={r.ID}&entityName=stylist" : "",
 
-                        // محاسباتی
-                              AvgScoreForStylist = _context.RateHistories
+
+                         // محاسباتی
+                         AvgScoreForStylist = _context.RateHistories
                          .Where(x => x.StylistID == r.ID)
                          .Any()
                              ? _context.RateHistories.Where(x => x.StylistID == r.ID).Average(r => r.RateScore)

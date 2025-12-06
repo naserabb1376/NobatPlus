@@ -58,6 +58,7 @@ namespace NobatPlusDATA.Domain
         public int TotalBookingsCount { get; set; }
         public int TotalCustomersCount { get; set; }
         public bool IsOnLeaveNow { get; set; }
+        public string? StylistImagePath { get; set; }
         public TimeSpan RestTime { get; set; }
         public JobType JobType { get; set; }
         public Person Person { get; set; }

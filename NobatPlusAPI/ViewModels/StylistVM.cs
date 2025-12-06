@@ -38,6 +38,8 @@ namespace NobatPlusDATA.ViewModels
         public string AddressPostalCode { get; set; }
         public string? AddressLocationHorizentalPoint { get; set; }
         public string? AddressLocationVerticalPoint { get; set; }
+        public string? StylistImagePath { get; set; }
+        public bool IsActive { get; set; }
         public List<string> ServiceNames { get; set; }
 
     }
