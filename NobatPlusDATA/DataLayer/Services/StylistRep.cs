@@ -221,6 +221,17 @@ namespace NobatPlusDATA.DataLayer.Services
                         WorkShopRentAmount = r.WorkShopRentAmount,
                         YearsOfExperience = r.YearsOfExperience,
                         StylistImagePath = _context.Images.Any(x=> x.EntityType.ToLower() == "stylist" && x.ForeignKeyId == r.ID) ? $"https://nobatplusapi.mtcoding.ir/FileCenter/downloadfile?fileType=images&rowId=0&foreignkeyId={r.ID}&entityName=stylist" : "",
+                        StylistServices = r.StylistServices
+    .Select(s => new StylistService
+    {
+        StylistID = s.StylistID,
+        ServiceManagementID = s.ServiceManagementID,
+        ServicePrice = s.ServicePrice,
+        ServiceDuration = s.ServiceDuration,
+        DepositPercent = s.DepositPercent,
+        ServiceManagement = s.ServiceManagement
+    })
+    .ToList(),
 
                         // محاسبه امتیاز آرایشگر
                         AvgScoreForStylist = _context.RateHistories
@@ -288,8 +299,17 @@ namespace NobatPlusDATA.DataLayer.Services
                          WorkShopRentAmount = r.WorkShopRentAmount,
                          YearsOfExperience = r.YearsOfExperience,
                          StylistImagePath = _context.Images.Any(x => x.EntityType.ToLower() == "stylist" && x.ForeignKeyId == r.ID) ? $"https://nobatplusapi.mtcoding.ir/FileCenter/downloadfile?fileType=images&rowId=0&foreignkeyId={r.ID}&entityName=stylist" : "",
-
-
+                         StylistServices = r.StylistServices
+    .Select(s => new StylistService
+    {
+        StylistID = s.StylistID,
+        ServiceManagementID = s.ServiceManagementID,
+        ServicePrice = s.ServicePrice,
+        ServiceDuration = s.ServiceDuration,
+        DepositPercent = s.DepositPercent,
+        ServiceManagement = s.ServiceManagement
+    })
+    .ToList(),
                          // محاسباتی
                          AvgScoreForStylist = _context.RateHistories
                          .Where(x => x.StylistID == r.ID)
