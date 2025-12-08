@@ -17,4 +17,12 @@ namespace NobatPlusDATA.Domain
 
         public Stylist Stylist { get; set; }
     }
+
+    public class SocialNetworkDTO
+    {
+        public string SocialNetworkName { get; set; }
+        public string PhoneNumber { get; set; }
+        public string AccountLink { get; set; }
+        public string SocialNetworkIcon { get; set; }
+    }
 }

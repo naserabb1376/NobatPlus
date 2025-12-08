@@ -64,8 +64,8 @@ namespace NobatPlusDATA.Domain
         public Person Person { get; set; }
         public ICollection<Booking> Bookings { get; set; }
         public ICollection<RateHistory> RateHistories { get; set; }
-        public ICollection<WorkTime> WorkTimes { get; set; }
-        public ICollection<SocialNetwork> SocialNetworks { get; set; }
+        public ICollection<WorkTimeDTO> WorkTimes { get; set; }
+        public ICollection<SocialNetworkDTO> SocialNetworks { get; set; }
         public ICollection<StylistService> StylistServices { get; set; }
         public ICollection<DiscountAssignment> DiscountAssignments { get; set; }
         public ICollection<ServiceDiscount> ServiceDiscounts { get; set; }

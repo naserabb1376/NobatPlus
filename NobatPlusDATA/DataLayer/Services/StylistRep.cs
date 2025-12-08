@@ -158,6 +158,7 @@ namespace NobatPlusDATA.DataLayer.Services
                     .Include(x => x.Person).ThenInclude(x => x.Address).ThenInclude(x => x.City)
                     .Include(x => x.JobType)
                     .Include(x => x.StylistServices).ThenInclude(x => x.ServiceManagement)
+                    .Include(x => x.WorkTimes).Include(x => x.SocialNetworks)
                     .AsNoTracking();
 
                 // 📍 فیلتر موقعیت مکانی
@@ -232,6 +233,23 @@ namespace NobatPlusDATA.DataLayer.Services
         ServiceManagement = s.ServiceManagement
     })
     .ToList(),
+                        SocialNetworks = r.SocialNetworks
+    .Select(s => new SocialNetworkDTO
+    {
+        AccountLink = s.AccountLink,
+        PhoneNumber = s.PhoneNumber,
+        SocialNetworkIcon = s.SocialNetworkIcon,
+        SocialNetworkName = s.SocialNetworkName 
+    })
+    .ToList(),
+                        WorkTimes = r.WorkTimes
+    .Select(s => new WorkTimeDTO
+    {
+        DayOfWeek = s.DayOfWeek,
+        WorkStartTime = s.WorkStartTime,
+        WorkEndTime = s.WorkEndTime,
+    })
+    .ToList(),
 
                         // محاسبه امتیاز آرایشگر
                         AvgScoreForStylist = _context.RateHistories
@@ -275,6 +293,7 @@ namespace NobatPlusDATA.DataLayer.Services
             {
                 result.Result = await _context.Stylists.Include(x => x.Person).ThenInclude(x => x.Address).ThenInclude(x => x.City)
                .Include(x => x.JobType).Include(x => x.StylistServices).ThenInclude(x => x.ServiceManagement)
+               .Include(x => x.WorkTimes).Include(x => x.SocialNetworks)
                     .Where(x=> x.ID == StylistId)
                      .Select(r => new StylistDTO
                      {
@@ -310,6 +329,24 @@ namespace NobatPlusDATA.DataLayer.Services
         ServiceManagement = s.ServiceManagement
     })
     .ToList(),
+                         SocialNetworks = r.SocialNetworks
+    .Select(s => new SocialNetworkDTO
+    {
+        AccountLink = s.AccountLink,
+        PhoneNumber = s.PhoneNumber,
+        SocialNetworkIcon = s.SocialNetworkIcon,
+        SocialNetworkName = s.SocialNetworkName
+    })
+    .ToList(),
+                         WorkTimes = r.WorkTimes
+    .Select(s => new WorkTimeDTO
+    {
+        DayOfWeek = s.DayOfWeek,
+        WorkStartTime = s.WorkStartTime,
+        WorkEndTime = s.WorkEndTime,
+    })
+    .ToList(),
+
                          // محاسباتی
                          AvgScoreForStylist = _context.RateHistories
                          .Where(x => x.StylistID == r.ID)
@@ -389,7 +426,6 @@ namespace NobatPlusDATA.DataLayer.Services
                      PersonID = stylistDTO.Result.PersonID,
                      RateHistories = stylistDTO.Result.RateHistories,
                      ServiceDiscounts = stylistDTO.Result.ServiceDiscounts,
-                     SocialNetworks = stylistDTO.Result.SocialNetworks,
                      Specialty = stylistDTO.Result.Specialty,
                      StylistBio = stylistDTO.Result.StylistBio,
                      StylistName = stylistDTO.Result.StylistName,
@@ -398,7 +434,6 @@ namespace NobatPlusDATA.DataLayer.Services
                      WorkShopDepositAmount = stylistDTO.Result.WorkShopDepositAmount,
                      WorkShopInteractMode = stylistDTO.Result.WorkShopInteractMode,
                      WorkShopRentAmount = stylistDTO.Result.WorkShopRentAmount,
-                     WorkTimes = stylistDTO.Result.WorkTimes,
                      YearsOfExperience = stylistDTO.Result.YearsOfExperience,
                  };
                 result = await RemoveStylistAsync(stylist);

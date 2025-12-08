@@ -16,4 +16,11 @@ namespace NobatPlusDATA.Domain
 
         public Stylist Stylist { get; set; }
     }
+
+    public class WorkTimeDTO
+    {
+        public TimeSpan WorkStartTime { get; set; }
+        public TimeSpan WorkEndTime { get; set; }
+        public string DayOfWeek { get; set; }
+    }
 }

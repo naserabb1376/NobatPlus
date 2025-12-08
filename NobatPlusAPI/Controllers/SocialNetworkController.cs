@@ -42,6 +42,7 @@ namespace NobatPlusAPI.Controllers
         }
 
         [HttpPost("GetAllSocialNetworks_Base")]
+        [AllowAnonymous]
         public async Task<ActionResult<ListResultObject<SocialNetworkVM>>> GetAllSocialNetworks_Base(GetSocialNetworkListRequestBody requestBody)
         {
             var result = new ListResultObject<SocialNetwork>();

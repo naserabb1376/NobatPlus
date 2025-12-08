@@ -1,5 +1,6 @@
 ﻿
 using Domains;
+using NobatPlusDATA.Domain;
 using System.ComponentModel.DataAnnotations;
 
 namespace NobatPlusDATA.ViewModels
@@ -41,6 +42,9 @@ namespace NobatPlusDATA.ViewModels
         public string? StylistImagePath { get; set; }
         public bool IsActive { get; set; }
         public List<string> ServiceNames { get; set; }
+        public List<WorkTimeDTO> WorkTimes { get; set; }
+        public List<SocialNetworkDTO> SocialNetworks { get; set; }
+
 
     }
 }
