@@ -38,6 +38,9 @@ namespace NobatPlusAPI.Models.Booking
 
         public string? Description { get; set; }
 
+        public List<long> ServiceIds { get; set; } = new List<long>();
+
+
 
     }
 }

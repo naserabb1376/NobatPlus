@@ -70,7 +70,7 @@ namespace NobatPlusAPI.Controllers
             var result = await _AddressRep.GetAddressByIdAsync(requestBody.ID);
             if (result.Status)
             {
-                var resultVM = _mapper.Map<RowResultObject<RateHistoryVM>>(result);
+                var resultVM = _mapper.Map<RowResultObject<AddressVM>>(result);
                 return Ok(resultVM);
             }
             return BadRequest(result);

@@ -32,19 +32,17 @@ namespace NobatPlusAPI.Controllers
     public class BookingController : ControllerBase
     {
         IBookingRep _BookingRep;
-        INotificationRep _notificationRep;
-        ISMSMessageRep _sMSMessageRep;
+        IBookingServiceRep _BookingServiceRep;
         ILogRep _logRep;
         private readonly IMapper _mapper;
 
 
-        public BookingController(IBookingRep BookingRep,ILogRep logRep, IMapper mapper, INotificationRep notificationRep, ISMSMessageRep sMSMessageRep)
+        public BookingController(IBookingRep BookingRep,IBookingServiceRep BookingServiceRep,ILogRep logRep, IMapper mapper)
         {
-           _BookingRep = BookingRep;
+            _BookingRep = BookingRep;
+            _BookingServiceRep = BookingServiceRep;
             _logRep = logRep;
             _mapper = mapper;
-            _notificationRep = notificationRep;
-            _sMSMessageRep = sMSMessageRep;
         }
 
         [HttpPost("GetAllBookings_Base")]
@@ -120,11 +118,26 @@ namespace NobatPlusAPI.Controllers
                 Description = requestBody.Description,
             };
             var result = await _BookingRep.AddBookingAsync(Booking);
+
+            var bookingServices = new List<BookingService>();
+
+            foreach (long serviceId in requestBody.ServiceIds)
+            {
+                bookingServices.Add(new BookingService()
+                {
+                    BookingID = result.ID,
+                    ServiceManagementID = serviceId,
+                });
+            }
+
+             result = await _BookingServiceRep.AddBookingServicesAsync(bookingServices);
+
             if (result.Status)
             {
-                BackgroundJob.Schedule(() => SendBookingRemindMessage(result.ID), requestBody.BookingDate.AddDays(-1));
-
-
+                BackgroundJob.Schedule<JobManager>(
+       job => job.SendBookingRemindMessage(bookingServices.FirstOrDefault().BookingID),
+       requestBody.BookingDate.AddDays(-1)
+   );
                 #region AddLog
 
                 Log log = new Log()
@@ -145,90 +158,7 @@ namespace NobatPlusAPI.Controllers
             return BadRequest(result);
         }
 
-        private async Task SendBookingRemindMessage(long bookingId)
-        {
-            var booking = await _BookingRep.GetBookingByIdAsync(bookingId);
-
-            if (booking.Result == null) return;
-
-
-            string message = $@"
-{booking.Result.Customer.Person.FirstName} عزیز
-یادت نره که فردا {booking.Result.BookingDate.ToShamsiString()}
-پیش {booking.Result.Stylist.Person.FirstName} {booking.Result.Stylist.Person.LastName} نوبت داری
-میبینیمت!
-";
-
-
-            #region SendSMS
-
-            bool sentstatus = await ToolBox.SendSMSMessage(booking.Result.Customer.Person.PhoneNumber, message);
-
-
-
-            SMSMessage SMSMessage = new SMSMessage()
-            {
-                CreateDate = DateTime.Now.ToShamsi(),
-                UpdateDate = DateTime.Now.ToShamsi(),
-                PhoneNumber = booking.Result.Customer.Person.PhoneNumber,
-                PersonID = booking.Result.Customer.PersonID,
-                Message = message,
-                SentDate = DateTime.Now.ToShamsi(),
-                Description = message,
-                SentStatus = sentstatus,
-            };
-            var smsresult = await _sMSMessageRep.AddSMSMessageAsync(SMSMessage);
-            if (smsresult.Status)
-            {
-                #region AddLog
-
-                Log log = new Log()
-                {
-                    CreateDate = DateTime.Now.ToShamsi(),
-                    UpdateDate = DateTime.Now.ToShamsi(),
-                    LogTime = DateTime.Now.ToShamsi(),
-                    ActionName = this.ControllerContext.RouteData.Values["action"].ToString(),
-
-                };
-                await _logRep.AddLogAsync(log);
-
-                #endregion
-            }
-
-            #endregion
-
-            #region SendNotification
-
-            Notification Notification = new Notification()
-            {
-                CreateDate = DateTime.Now.ToShamsi(),
-                UpdateDate = DateTime.Now.ToShamsi(),
-                PersonID = booking.Result.Customer.PersonID,
-                Message = message,
-                SentDate = DateTime.Now.ToShamsi(),
-                Description = message,
-            };
-            var notifresult = await _notificationRep.AddNotificationAsync(Notification);
-            if (notifresult.Status)
-            {
-                #region AddLog
-
-                Log log = new Log()
-                {
-                    CreateDate = DateTime.Now.ToShamsi(),
-                    UpdateDate = DateTime.Now.ToShamsi(),
-                    LogTime = DateTime.Now.ToShamsi(),
-                    ActionName = this.ControllerContext.RouteData.Values["action"].ToString(),
-
-                };
-                await _logRep.AddLogAsync(log);
-
-                #endregion
-            }
-
-            #endregion
-        }
-
+      
 
         [HttpPut("EditBooking_Base")]
         public async Task<ActionResult<BitResultObject>> EditBooking_Base(AddEditBookingRequestBody requestBody)
@@ -261,7 +191,22 @@ namespace NobatPlusAPI.Controllers
                 StylistID = requestBody.StylistID,
                 Description = requestBody.Description,
             };
-             result = await _BookingRep.EditBookingAsync(Booking);
+
+            var bookingServices = new List<BookingService>();
+
+            foreach (long serviceId in requestBody.ServiceIds)
+            {
+                bookingServices.Add(new BookingService()
+                {
+                    BookingID = Booking.ID,
+                    ServiceManagementID = serviceId,
+                });
+            }
+
+            result = await _BookingServiceRep.EditBookingServicesAsync(bookingServices);
+
+
+            result = await _BookingRep.EditBookingAsync(Booking);
             if (result.Status)
             {
 

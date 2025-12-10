@@ -227,6 +227,10 @@ namespace NobatPlusAPI
     config.UseSqlServerStorage((mainDbconfigHelper.GetConnectionString("publicdb"))));
             builder.Services.AddHangfireServer();
 
+
+            builder.Services.AddTransient<JobManager>();
+
+
             var app = builder.Build();
 
             // Configure the HTTP request pipeline.
