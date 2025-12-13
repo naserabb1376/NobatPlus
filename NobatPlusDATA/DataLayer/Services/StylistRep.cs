@@ -80,7 +80,7 @@ namespace NobatPlusDATA.DataLayer.Services
                     default:
                         {
                             var theStylist = await _context.Stylists.AsNoTracking().FirstOrDefaultAsync(x => x.ID == long.Parse(fieldValue)) ?? new Stylist();
-                            stylistId = theStylist.PersonID;
+                            stylistId = theStylist.ID;
                             break;
                         }
                 }

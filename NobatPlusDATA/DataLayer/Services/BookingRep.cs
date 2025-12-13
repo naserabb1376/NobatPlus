@@ -135,6 +135,20 @@ namespace NobatPlusDATA.DataLayer.Services
                         TotalSeconds = (int?)g.Sum(x => EF.Functions.DateDiffSecond(TimeSpan.Zero, x.ServiceDuration))
                     });
 
+                var bookingBlockTimes = _context.BookingServices
+    .GroupBy(bs => bs.BookingID)
+    .Select(g => new
+    {
+        BookingID = g.Key,
+        TotalDurationMinutes = g.Sum(x =>
+            EF.Functions.DateDiffMinute(TimeSpan.Zero, x.)
+        ),
+        TotalRestMinutes = g.Sum(x =>
+            EF.Functions.DateDiffMinute(TimeSpan.Zero, x.ServiceManagement.RestTime)
+        )
+    });
+
+
                 // 🔹 صفحه‌بندی و خروجی
                 results.TotalCount = await bookingsQuery.CountAsync();
                 results.PageCount = DbTools.GetPageCount(results.TotalCount, pageSize);
@@ -149,8 +163,13 @@ namespace NobatPlusDATA.DataLayer.Services
                                              StylistID = b.StylistID,
                                              CustomerID = b.CustomerID,
                                              Description = b.Description,
-                                             BookingDate = b.BookingDate,
-                                             BookingTime = b.BookingTime,
+                                             BookingStartDate = b.BookingDate,
+                                             TotalDurationMinutes = bt.TotalDurationMinutes,
+                                             TotalBlockMinutes = bt.TotalDurationMinutes + bt.TotalRestMinutes,
+
+                                             EndDateTime = b.BookingDate
+            .Add(b.BookingTime)
+            .AddMinutes(bt.TotalDurationMinutes),
                                              CancelReason = b.CancelReason,
                                              IsCancelled = b.IsCancelled,
                                              Status = b.Status,

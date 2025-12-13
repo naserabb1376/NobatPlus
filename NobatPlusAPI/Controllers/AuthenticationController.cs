@@ -124,6 +124,7 @@ namespace NobatPlusAPI.Controllers
 
                     var saverefreshToken = await _tokenRep.AddRefreshTokenAsync(refreshTokenRecord);
                     var isstylist = await _stylistRep.ExistStylistAsync(authenticateResult.Result.PersonID.ToString(),"personid");
+                    var iscustomer = await _customerRep.ExistCustomerAsync(authenticateResult.Result.PersonID.ToString(),"personid");
 
                     if (saverefreshToken.Status)
                     {
@@ -134,6 +135,7 @@ namespace NobatPlusAPI.Controllers
                             RefreshToken = refreshToken, // بازگرداندن رفرش توکن
                             AccessToken = accessToken, // بازگرداندن اکسس توکن
                             PersonId = authenticateResult.Result.PersonID,
+                            CustomerId = iscustomer.ID,
                             StylistId = isstylist.ID,
                             IsActive = authenticateResult.Result.Person.IsActive,
                             RoleId = authenticateResult.Result.Person.RoleId,

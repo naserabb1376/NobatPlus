@@ -76,13 +76,13 @@ namespace NobatPlusAPI.Controllers
         }
 
         [HttpPost("ExistCustomer_Base")]
-        public async Task<ActionResult<BitResultObject>> ExistCustomer_Base(GetRowRequestBody requestBody)
+        public async Task<ActionResult<BitResultObject>> ExistCustomer_Base(ExistCustomerRequestBody requestBody)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(requestBody);
             }
-            var result = await _CustomerRep.ExistCustomerAsync(requestBody.ID);
+            var result = await _CustomerRep.ExistCustomerAsync(requestBody.FieldValue,requestBody.FieldName);
             if (string.IsNullOrEmpty(result.ErrorMessage))
             {
                 return Ok(result);

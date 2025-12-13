@@ -12,7 +12,6 @@ namespace NobatPlusDATA.Domain
         public long StylistID { get; set; }
         public long CustomerID { get; set; }
         public DateTime BookingDate { get; set; }
-        public TimeSpan BookingTime { get; set; }
         public string Status { get; set; }
         public bool IsCancelled { get; set; }
         public string CancelReason { get; set; }
@@ -28,9 +27,11 @@ namespace NobatPlusDATA.Domain
     {
         public long StylistID { get; set; }
         public long CustomerID { get; set; }
-        public DateTime BookingDate { get; set; }
-        public TimeSpan BookingTime { get; set; }
+        public DateTime BookingStartDate { get; set; }
+        public DateTime BookingEndDate { get; set; }
         public string Status { get; set; }
+        public int TotalDurationMinutes { get; set; }
+        public int TotalBlockMinutes { get; set; }
         public bool IsCancelled { get; set; }
         public string CancelReason { get; set; }
         public TimeSpan TotalTimeDuration { get; set; }

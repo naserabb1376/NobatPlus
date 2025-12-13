@@ -17,6 +17,6 @@ namespace NobatPlusDATA.DataLayer.Repositories
         public Task<BitResultObject> EditCustomerAsync(Customer customer);
         public Task<BitResultObject> RemoveCustomerAsync(Customer customer);
         public Task<BitResultObject> RemoveCustomerAsync(long customerId);
-        public Task<BitResultObject> ExistCustomerAsync(long customerId);
+        public Task<BitResultObject> ExistCustomerAsync(string fieldValue, string fieldName);
     }
 }

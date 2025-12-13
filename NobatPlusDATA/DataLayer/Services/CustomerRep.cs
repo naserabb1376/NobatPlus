@@ -60,15 +60,30 @@ namespace NobatPlusDATA.DataLayer.Services
             
         }
 
-        public async Task<BitResultObject> ExistCustomerAsync(long CustomerId)
+        public async Task<BitResultObject> ExistCustomerAsync(string fieldValue, string fieldName)
         {
             BitResultObject result = new BitResultObject();
+            long customerid = 0;
             try
             {
-                result.Status = await _context.Customers
-                .AsNoTracking()
-                .AnyAsync(x => x.ID == CustomerId);
-                result.ID = CustomerId;
+                switch (fieldName.ToLower().Trim())
+                {
+                    case "personid":
+                        {
+                            var theCustomer = await _context.Customers.AsNoTracking().FirstOrDefaultAsync(x => x.PersonID == long.Parse(fieldValue)) ?? new Customer();
+                            customerid = theCustomer.ID;
+                            break;
+                        }
+                    case "customerid":
+                    default:
+                        {
+                            var theCustomer = await _context.Customers.AsNoTracking().FirstOrDefaultAsync(x => x.ID == long.Parse(fieldValue)) ?? new Customer();
+                            customerid = theCustomer.ID;
+                            break;
+                        }
+                }
+                result.ID = customerid;
+                result.Status = customerid > 0;
             }
             catch (Exception ex)
             {
@@ -117,6 +132,16 @@ namespace NobatPlusDATA.DataLayer.Services
                         .Include(x => x.Bookings)
                         .AsQueryable();
                 }
+
+                if (stylistId > 0)
+                {
+                    query = query.Where(c =>
+                        c.Bookings.Any(b =>
+                            b.StylistID == stylistId && !b.IsCancelled
+                        )
+                    );
+                }
+
 
                 // فیلتر شهر
                 if (cityId > 0)
