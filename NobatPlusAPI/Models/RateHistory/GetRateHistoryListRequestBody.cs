@@ -9,6 +9,9 @@ namespace NobatPlusAPI.Models.RateHistory
         [Display(Name = "کد مشتری")]
         public long CustomerId { get; set; } = 0;
 
+        [Display(Name = "کد رزرو")]
+        public long BookingId { get; set; } = 0;
+
         [Display(Name = "کد آرایشگر")]
         public long StylistId { get; set; } = 0;
 

@@ -11,6 +11,7 @@ namespace NobatPlusDATA.Domain
     {
         public long StylistID { get; set; }
         public long CustomerID { get; set; }
+        public long BookingID { get; set; }
         public long RateQuestionID { get; set; }
         public float RateScore { get; set; }
       
@@ -18,6 +19,7 @@ namespace NobatPlusDATA.Domain
 
         public Stylist Stylist { get; set; }
         public Customer Customer { get; set; }
+        public Booking Booking { get; set; }
         public RateQuestion RateQuestion { get; set; }
 
     }
@@ -26,6 +28,7 @@ namespace NobatPlusDATA.Domain
     {
         public long StylistID { get; set; }
         public long CustomerID { get; set; }
+        public long BookingID { get; set; }
         public long RateQuestionID { get; set; }
         public float RateScore { get; set; }
         public DateTime RateDate { get; set; }
@@ -33,6 +36,7 @@ namespace NobatPlusDATA.Domain
         // Navigation Properties
         public Stylist Stylist { get; set; }
         public Customer Customer { get; set; }
+        public Booking Booking { get; set; }
         public RateQuestion RateQuestion { get; set; }
 
         // محاسباتی

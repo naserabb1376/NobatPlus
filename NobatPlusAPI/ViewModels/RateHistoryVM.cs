@@ -13,6 +13,7 @@ namespace NobatPlusDATA.ViewModels
         public string SalonName { get; set; }
         public string CustomerName { get; set; }
         public string RateQuestionText { get; set; }
+        public long BookingId { get; set; }
         public float RateScore { get; set; }
         public float AvgScorePerQuestion { get; set; }
         public float AvgScoreForStylist { get; set; }

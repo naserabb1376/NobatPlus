@@ -30,13 +30,15 @@ namespace NobatPlusAPI.Controllers
     public class ReviewController : ControllerBase
     {
         IReviewRep _ReviewRep;
+        IBookingRep _BookingRep;
         ILogRep _logRep;
         private readonly IMapper _mapper;
 
 
-        public ReviewController(IReviewRep ReviewRep,ILogRep logRep, IMapper mapper)
+        public ReviewController(IReviewRep ReviewRep,IBookingRep bookingRep,ILogRep logRep, IMapper mapper)
         {
            _ReviewRep = ReviewRep;
+            _BookingRep = bookingRep;
            _logRep = logRep;
             _mapper = mapper;
         }
@@ -51,7 +53,7 @@ namespace NobatPlusAPI.Controllers
             }
 
             long roleId = long.Parse(User.FindFirst("Role")?.Value ?? "0");
-            var result = await _ReviewRep.GetAllReviewsAsync(roleId,requestBody.BookingId,requestBody.CustomerId,requestBody.PageIndex,requestBody.PageSize,requestBody.SearchText,requestBody.SortQuery);
+            var result = await _ReviewRep.GetAllReviewsAsync(roleId,requestBody.BookingId,requestBody.CustomerId,requestBody.StylistId,requestBody.PageIndex,requestBody.PageSize,requestBody.SearchText,requestBody.SortQuery);
             if (result.Status)
             {
                 var resultVM = _mapper.Map<ListResultObject<ReviewVM>>(result);
@@ -96,9 +98,26 @@ namespace NobatPlusAPI.Controllers
         [HttpPost("AddReview_Base")]
         public async Task<ActionResult<BitResultObject>> AddReview_Base(AddEditReviewRequestBody requestBody)
         {
+            var result = new BitResultObject();
+
             if (!ModelState.IsValid)
             {
                 return BadRequest(requestBody);
+            }
+
+            var theBooking = await _BookingRep.GetBookingByIdAsync(requestBody.BookingID);
+            if (!theBooking.Status)
+            {
+                result.Status = theBooking.Status;
+                result.ErrorMessage = theBooking.ErrorMessage;
+                return BadRequest(result);
+            }
+
+            if (theBooking.Result.CustomerID != requestBody.CustomerID || theBooking.Result.Status.Trim() != "4")
+            {
+                result.Status = false;
+                result.ErrorMessage = "شما اجازه ثبت بازخورد درباره این نوبت را ندارید";
+                return BadRequest(result);
             }
             Review Review = new Review()
             {
@@ -107,6 +126,7 @@ namespace NobatPlusAPI.Controllers
                 BookingID = requestBody.BookingID,
                 Comments = requestBody.Comments,
                 CustomerID = requestBody.CustomerID,
+                StylistID = requestBody.StylistID,
                 DislikeCount = requestBody.DislikeCount,
                 LikeCount = requestBody.LikeCount,
                 Rating = requestBody.Rating,
@@ -116,7 +136,7 @@ namespace NobatPlusAPI.Controllers
                 IsPrivate = requestBody.IsPrivate,
                 IsAccepted = false,
             };
-            var result = await _ReviewRep.AddReviewAsync(Review);
+            result = await _ReviewRep.AddReviewAsync(Review);
             if (result.Status)
             {
                 #region AddLog
@@ -188,6 +208,21 @@ namespace NobatPlusAPI.Controllers
                 result.ErrorMessage = theRow.ErrorMessage;
             }
 
+            var theBooking = await _BookingRep.GetBookingByIdAsync(requestBody.BookingID);
+            if (!theBooking.Status)
+            {
+                result.Status = theBooking.Status;
+                result.ErrorMessage = theBooking.ErrorMessage;
+                return BadRequest(result);
+            }
+
+            if (theBooking.Result.CustomerID != requestBody.CustomerID || theBooking.Result.Status.Trim() != "4")
+            {
+                result.Status = false;
+                result.ErrorMessage = "شما اجازه ثبت بازخورد درباره این نوبت را ندارید";
+                return BadRequest(result);
+            }
+
             Review Review = new Review()
             {
                 CreateDate = theRow.Result.CreateDate,
@@ -196,6 +231,7 @@ namespace NobatPlusAPI.Controllers
                 BookingID = requestBody.BookingID,
                 Comments = requestBody.Comments,
                 CustomerID = requestBody.CustomerID,
+                StylistID = requestBody.StylistID,
                 DislikeCount = requestBody.DislikeCount,
                 LikeCount = requestBody.LikeCount,
                 Rating = requestBody.Rating,

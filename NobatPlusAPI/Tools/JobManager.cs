@@ -34,7 +34,7 @@ namespace NobatPlusAPI.Tools
 
             string message = $@"
 {booking.Result.Customer.Person.FirstName} عزیز
-یادت نره که فردا {booking.Result.BookingDate.ToShamsiString()}
+یادت نره که فردا {booking.Result.BookingStartDate.ToShamsiString()}
 پیش {booking.Result.Stylist.Person.FirstName} {booking.Result.Stylist.Person.LastName} نوبت داری
 میبینیمت!
 ";

@@ -10,7 +10,7 @@ namespace NobatPlusDATA.DataLayer.Repositories
 {
     public interface IRateHistoryRep
     {
-        public Task<ListResultObject<RateHistoryDTO>> GetAllRateHistoriesAsync(long customerId = 0,long stylistId =0,long RateQuestionId =0, int pageIndex = 1, int pageSize = 20, string searchText = "",string sortQuery ="");
+        public Task<ListResultObject<RateHistoryDTO>> GetAllRateHistoriesAsync(long customerId = 0,long stylistId =0, long bookingId = 0, long RateQuestionId =0, int pageIndex = 1, int pageSize = 20, string searchText = "",string sortQuery ="");
         public Task<RowResultObject<RateHistoryDTO>> GetRateHistoryByIdAsync(long RateHistoryId);
         public Task<BitResultObject> AddRateHistoryAsync(RateHistory RateHistory);
         public Task<BitResultObject> EditRateHistoryAsync(RateHistory RateHistory);

@@ -27,6 +27,7 @@ namespace NobatPlusDATA.Domain
         public JobType JobType { get; set; }
         public Person Person { get; set; }
         public ICollection<Booking> Bookings { get; set; }
+        public ICollection<Review> Reviews { get; set; }
         public ICollection<RateHistory> RateHistories { get; set; }
         public ICollection<WorkTime> WorkTimes { get; set; }
         public ICollection<StylistPacific> StylistPacifics { get; set; }
@@ -59,6 +60,7 @@ namespace NobatPlusDATA.Domain
         public int TotalCustomersCount { get; set; }
         public bool IsOnLeaveNow { get; set; }
         public string? StylistImagePath { get; set; }
+        public double RecommendPercent { get; set; }
         public TimeSpan RestTime { get; set; }
         public JobType JobType { get; set; }
         public Person Person { get; set; }

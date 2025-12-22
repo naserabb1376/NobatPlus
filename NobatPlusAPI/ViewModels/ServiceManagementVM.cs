@@ -10,6 +10,7 @@ namespace NobatPlusDATA.ViewModels
         public long ServiceParentID { get; set; }
         public string ServiceName { get; set; }
         public char ServiceGender { get; set; }
+        public int StylistCount { get; set; }
 
     }
 }

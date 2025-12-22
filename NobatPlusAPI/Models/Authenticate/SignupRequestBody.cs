@@ -58,6 +58,9 @@ namespace NobatPlusAPI.Models.Authenticate
 
         [Display(Name = "وضعیت فعال")]
         public bool IsActive { get; set; }
+
+        [Display(Name = "انجام لاگین")]
+        public bool WithLogin { get; set; }
         public SignupStylistRequestBody? stylist { get; set; }
         public AddEditAddressRequestBody? Address { get; set; }
 

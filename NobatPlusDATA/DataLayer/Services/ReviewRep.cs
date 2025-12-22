@@ -98,7 +98,7 @@ namespace NobatPlusDATA.DataLayer.Services
             
         }
 
-        public async Task<ListResultObject<Review>> GetAllReviewsAsync(long RoleId,long BookingId = 0, long CustomerId = 0, int pageIndex = 1, int pageSize = 20, string searchText = "",string sortQuery ="")
+        public async Task<ListResultObject<Review>> GetAllReviewsAsync(long RoleId,long BookingId = 0, long CustomerId = 0, long StylistId = 0, int pageIndex = 1, int pageSize = 20, string searchText = "",string sortQuery ="")
         {
             ListResultObject<Review> results = new ListResultObject<Review>();
             try
@@ -117,6 +117,10 @@ namespace NobatPlusDATA.DataLayer.Services
                 {
                     query = query.Where(x => x.BookingID == BookingId);
                 }
+                if (StylistId > 0)
+                {
+                    query = query.Where(x => x.StylistID == StylistId);
+                }
                 else if (CustomerId > 0)
                 {
                     query = query.Where(x => x.CustomerID == CustomerId);
@@ -132,7 +136,7 @@ namespace NobatPlusDATA.DataLayer.Services
                     (!string.IsNullOrEmpty(x.DislikeCount.ToString()) && x.DislikeCount.ToString().Contains(searchText)) ||
                     (!string.IsNullOrEmpty(x.Rating.ToString()) && x.Rating.ToString().Contains(searchText)) ||
                     (!string.IsNullOrEmpty(x.Booking.BookingDate.ToString()) && x.Booking.BookingDate.ToString().Contains(searchText)) ||
-                    (!string.IsNullOrEmpty(x.Booking.BookingTime.ToString()) && x.Booking.BookingTime.ToString().Contains(searchText)) ||
+                    //(!string.IsNullOrEmpty(x.Booking.BookingTime.ToString()) && x.Booking.BookingTime.ToString().Contains(searchText)) ||
                     (!string.IsNullOrEmpty(x.Booking.Status.ToString()) && x.Booking.Status.ToString().Contains(searchText)) ||
                     (x.CreateDate.HasValue && x.CreateDate.Value.ToString().Contains(searchText)) ||
                     (x.UpdateDate.HasValue && x.UpdateDate.Value.ToString().Contains(searchText))

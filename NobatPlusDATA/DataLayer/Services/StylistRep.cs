@@ -257,6 +257,23 @@ namespace NobatPlusDATA.DataLayer.Services
                             .Any()
                                 ? _context.RateHistories.Where(x => x.StylistID == r.ID).Average(r => r.RateScore)
                                 : 0,
+                        RecommendPercent = _context.RateHistories
+    .Where(x => x.StylistID == r.ID && x.RateQuestionID == 5)
+    .Any()
+        ? (
+            _context.RateHistories.Count(x =>
+                x.StylistID == r.ID &&
+                x.RateQuestionID == 5 &&
+                x.RateScore == 5.0
+            ) * 100.0
+            /
+            _context.RateHistories.Count(x =>
+                x.StylistID == r.ID &&
+                x.RateQuestionID == 5
+            )
+          )
+        : 0,
+
 
                                  TodayBookingsCount = _context.Bookings
                     .Count(b => b.StylistID == r.ID && b.BookingDate.Date == DateTime.Today),
@@ -353,6 +370,23 @@ namespace NobatPlusDATA.DataLayer.Services
                          .Any()
                              ? _context.RateHistories.Where(x => x.StylistID == r.ID).Average(r => r.RateScore)
                              : 0,
+                         RecommendPercent = _context.RateHistories
+    .Where(x => x.StylistID == r.ID && x.RateQuestionID == 5)
+    .Any()
+        ? (
+            _context.RateHistories.Count(x =>
+                x.StylistID == r.ID &&
+                x.RateQuestionID == 5 &&
+                x.RateScore == 5.0
+            ) * 100.0
+            /
+            _context.RateHistories.Count(x =>
+                x.StylistID == r.ID &&
+                x.RateQuestionID == 5
+            )
+          )
+        : 0,
+
                          TodayBookingsCount = _context.Bookings
                     .Count(b => b.StylistID == r.ID && b.BookingDate.Date == DateTime.Today),
 

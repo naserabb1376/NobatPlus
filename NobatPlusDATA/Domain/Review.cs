@@ -12,6 +12,7 @@ namespace NobatPlusDATA.Domain
     {
         public long BookingID { get; set; }
         public long CustomerID { get; set; }
+        public long StylistID { get; set; }
         public int Rating { get; set; }
         public string Comments { get; set; }
         public string Status { get; set; }
@@ -29,5 +30,6 @@ namespace NobatPlusDATA.Domain
 
         public Booking Booking { get; set; }
         public Customer Customer { get; set; }
+        public Stylist Stylist { get; set; }
     }
 }

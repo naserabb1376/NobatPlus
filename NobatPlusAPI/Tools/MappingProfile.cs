@@ -151,7 +151,7 @@ namespace NobatPlusAPI.Tools
            ;
             CreateMap<City, CityVM>();
             CreateMap<Person, PersonVM>();
-            CreateMap<ServiceManagement, ServiceManagementVM>();
+            CreateMap<ServiceManagementDTO, ServiceManagementVM>();
 
 
             CreateMap<Notification, NotificationVM>()

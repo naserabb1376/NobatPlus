@@ -45,7 +45,7 @@ namespace NobatPlusAPI.Controllers
         [AllowAnonymous]
         public async Task<ActionResult<ListResultObject<ServiceManagementVM>>> GetAllServiceManagements_Base(GetServiceManagementListRequestBody requestBody)
         {
-            ListResultObject<ServiceManagement> result = new ListResultObject<ServiceManagement>();
+            ListResultObject<ServiceManagementDTO> result = new ListResultObject<ServiceManagementDTO>();
             if (!ModelState.IsValid)
             {
                 return BadRequest(requestBody);

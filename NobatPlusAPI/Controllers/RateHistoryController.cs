@@ -30,24 +30,27 @@ namespace NobatPlusAPI.Controllers
     public class RateHistoryController : ControllerBase
     {
         IRateHistoryRep _RateHistoryRep;
+        IBookingRep _BookingRep;
         ILogRep _logRep;
         private readonly IMapper _mapper;
 
-        public RateHistoryController(IRateHistoryRep RateHistoryRep,ILogRep logRep,IMapper mapper)
+        public RateHistoryController(IRateHistoryRep RateHistoryRep,IBookingRep bookingRep,ILogRep logRep,IMapper mapper)
         {
            _RateHistoryRep = RateHistoryRep;
+            _BookingRep = bookingRep;
            _logRep = logRep;
            _mapper = mapper;
         }
 
         [HttpPost("GetAllRateHistories_Base")]
+        [AllowAnonymous]
         public async Task<ActionResult<ListResultObject<RateHistoryVM>>> GetAllRateHistories_Base(GetRateHistoryListRequestBody requestBody)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(requestBody);
             }
-            var result = await _RateHistoryRep.GetAllRateHistoriesAsync(requestBody.CustomerId,requestBody.StylistId,requestBody.RateQuestionId,requestBody.PageIndex,requestBody.PageSize,requestBody.SearchText,requestBody.SortQuery);
+            var result = await _RateHistoryRep.GetAllRateHistoriesAsync(requestBody.CustomerId,requestBody.StylistId,requestBody.BookingId,requestBody.RateQuestionId,requestBody.PageIndex,requestBody.PageSize,requestBody.SearchText,requestBody.SortQuery);
             if (result.Status)
             {
                 var resultVM = _mapper.Map<ListResultObject<RateHistoryVM>>(result);
@@ -90,10 +93,28 @@ namespace NobatPlusAPI.Controllers
         [HttpPost("AddRateHistory_Base")]
         public async Task<ActionResult<BitResultObject>> AddRateHistory_Base(AddEditRateHistoryRequestBody requestBody)
         {
+            var result = new BitResultObject();
+
             if (!ModelState.IsValid)
             {
                 return BadRequest(requestBody);
             }
+
+            var theBooking = await _BookingRep.GetBookingByIdAsync(requestBody.BookingID);
+            if (!theBooking.Status)
+            {
+                result.Status = theBooking.Status;
+                result.ErrorMessage = theBooking.ErrorMessage;
+                return BadRequest(result);
+            }
+
+            if (theBooking.Result.CustomerID != requestBody.CustomerID || theBooking.Result.Status.Trim() != "4")
+            {
+                result.Status = false;
+                result.ErrorMessage = "شما اجازه ثبت بازخورد درباره این نوبت را ندارید";
+                return BadRequest(result);
+            }
+
             RateHistory RateHistory = new RateHistory()
             {
                 CreateDate = DateTime.Now.ToShamsi(),
@@ -102,10 +123,11 @@ namespace NobatPlusAPI.Controllers
                 RateQuestionID = requestBody.RateQuestionID,
                 StylistID = requestBody.StylistID,
                 CustomerID = requestBody.CustomerID,
+                BookingID = requestBody.BookingID,
                 RateScore = requestBody.RateScore,
                 Description = requestBody.Description,
             };
-            var result = await _RateHistoryRep.AddRateHistoryAsync(RateHistory);
+            result = await _RateHistoryRep.AddRateHistoryAsync(RateHistory);
             if (result.Status)
             {
                 #region AddLog
@@ -143,6 +165,21 @@ namespace NobatPlusAPI.Controllers
                 result.ErrorMessage = theRow.ErrorMessage;
             }
 
+            var theBooking = await _BookingRep.GetBookingByIdAsync(requestBody.BookingID);
+            if (!theBooking.Status)
+            {
+                result.Status = theBooking.Status;
+                result.ErrorMessage = theBooking.ErrorMessage;
+                return BadRequest(result);
+            }
+
+            if (theBooking.Result.CustomerID != requestBody.CustomerID || theBooking.Result.Status.Trim() != "4")
+            {
+                result.Status = false;
+                result.ErrorMessage = "شما اجازه ثبت بازخورد درباره این نوبت را ندارید";
+                return BadRequest(result);
+            }
+
             RateHistory RateHistory = new RateHistory()
             {
                 CreateDate = theRow.Result.CreateDate,
@@ -152,6 +189,7 @@ namespace NobatPlusAPI.Controllers
                 RateQuestionID = requestBody.RateQuestionID,
                 StylistID = requestBody.StylistID,
                 CustomerID = requestBody.CustomerID,
+                BookingID = requestBody.BookingID,
                 RateScore = requestBody.RateScore,
                 Description = requestBody.Description,
             };

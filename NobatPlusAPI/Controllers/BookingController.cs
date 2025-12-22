@@ -55,7 +55,7 @@ namespace NobatPlusAPI.Controllers
                 return BadRequest(requestBody);
             }
 
-            result = await _BookingRep.GetAllBookingsAsync(requestBody.ServiceId,requestBody.CancelState, requestBody.PageIndex, requestBody.PageSize, requestBody.SearchText, requestBody.SortQuery);
+            result = await _BookingRep.GetAllBookingsAsync(requestBody.ServiceId,requestBody.CustomerId,requestBody.StylistId,requestBody.CancelState,requestBody.FromDate,requestBody.ToDate, requestBody.PageIndex, requestBody.PageSize, requestBody.SearchText, requestBody.SortQuery);
             if (result.Status)
             {
                 var resultVM = _mapper.Map<ListResultObject<BookingVM>>(result);
@@ -109,7 +109,7 @@ namespace NobatPlusAPI.Controllers
                 CreateDate = DateTime.Now.ToShamsi(),
                 UpdateDate = DateTime.Now.ToShamsi(),
                 BookingDate = requestBody.BookingDate,
-                BookingTime = requestBody.BookingTime,
+                //BookingTime = requestBody.BookingTime,
                 CancelReason = requestBody.CancelReason ?? "",
                 CustomerID = requestBody.CustomerID,
                 IsCancelled = requestBody.IsCancelled,
@@ -183,7 +183,7 @@ namespace NobatPlusAPI.Controllers
                 CreateDate = theRow.Result.CreateDate,
                 UpdateDate = DateTime.Now.ToShamsi(),
                 BookingDate = requestBody.BookingDate,
-                BookingTime = requestBody.BookingTime,
+                //BookingTime = requestBody.BookingTime,
                 CancelReason = requestBody.CancelReason ?? "",
                 CustomerID = requestBody.CustomerID,
                 IsCancelled = requestBody.IsCancelled,

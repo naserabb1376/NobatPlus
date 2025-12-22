@@ -65,7 +65,7 @@ namespace NobatPlusDATA.DataLayer
         //protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         //{
         //    MainDbConfigurationHelper configurationHelper = new MainDbConfigurationHelper();
-        //    optionsBuilder.UseSqlServer(configurationHelper.GetConnectionString("localdb"));
+        //    optionsBuilder.UseSqlServer(configurationHelper.GetConnectionString("publicdb"));
         //    //  base.OnConfiguring(optionsBuilder);
         //}
 

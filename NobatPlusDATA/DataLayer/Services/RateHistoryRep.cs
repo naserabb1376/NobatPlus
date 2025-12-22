@@ -86,6 +86,7 @@ namespace NobatPlusDATA.DataLayer.Services
         public async Task<ListResultObject<RateHistoryDTO>> GetAllRateHistoriesAsync(
       long customerId = 0,
       long stylistId = 0,
+       long bookingId = 0,
       long rateQuestionId = 0,
       int pageIndex = 1,
       int pageSize = 20,
@@ -103,6 +104,10 @@ namespace NobatPlusDATA.DataLayer.Services
 
                 if (stylistId > 0)
                     query = query.Where(x => x.StylistID == stylistId);
+
+
+                if (bookingId > 0)
+                    query = query.Where(x => x.BookingID == bookingId);
 
                 if (customerId > 0)
                     query = query.Where(x => x.CustomerID == customerId);

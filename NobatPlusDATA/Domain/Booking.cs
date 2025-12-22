@@ -20,6 +20,7 @@ namespace NobatPlusDATA.Domain
         public Customer Customer { get; set; }
         public ICollection<Payment> Payments { get; set; }
         public ICollection<Review> Reviews { get; set; }
+        public ICollection<RateHistory> RateHistories { get; set; }
         public ICollection<BookingService> BookingServices { get; set; }
     }
 
@@ -34,7 +35,6 @@ namespace NobatPlusDATA.Domain
         public int TotalBlockMinutes { get; set; }
         public bool IsCancelled { get; set; }
         public string CancelReason { get; set; }
-        public TimeSpan TotalTimeDuration { get; set; }
 
         public Stylist Stylist { get; set; }
         public Customer Customer { get; set; }

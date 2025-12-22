@@ -40,6 +40,7 @@ namespace NobatPlusDATA.ViewModels
         public string? AddressLocationHorizentalPoint { get; set; }
         public string? AddressLocationVerticalPoint { get; set; }
         public string? StylistImagePath { get; set; }
+        public double RecommendPercent { get; set; }
         public bool IsActive { get; set; }
         public List<string> ServiceNames { get; set; }
         public List<WorkTimeDTO> WorkTimes { get; set; }

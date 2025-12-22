@@ -24,7 +24,7 @@ namespace NobatPlusAPI.Controllers
 {
     [Route("StylistService")]
     [ApiController]
-    [Authorize]
+  //  [Authorize]
     [Produces("application/json")]
 
     public class StylistServiceController : ControllerBase

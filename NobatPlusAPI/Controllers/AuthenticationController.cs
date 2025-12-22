@@ -61,7 +61,6 @@ namespace NobatPlusAPI.Controllers
 
             try
             {
-
                 var storedCaptchaCode = HttpContext.Session.GetString("CaptchaCode");
 
                 if (!authenticationRequestBody.CaptchaCode.ValidateCaptcha(storedCaptchaCode))
@@ -71,98 +70,7 @@ namespace NobatPlusAPI.Controllers
                     return BadRequest(result);
                 }
 
-                switch (authenticationRequestBody.LoginType)
-                {
-                    default:
-                    case 1:
-                        authenticateResult = await _loginRep.AuthenticateAsync(authenticationRequestBody.UserName, authenticationRequestBody.Password, authenticationRequestBody.LoginType);
-                        break;
-                    case 2:
-                        var validPhoneNumber = await _loginRep.ExistLoginAsync(authenticationRequestBody.UserName, "UserName");
-                        if (!validPhoneNumber.Status && string.IsNullOrEmpty(validPhoneNumber.ErrorMessage))
-                        {
-                            result.Status = validPhoneNumber.Status;
-                            result.ErrorMessage = "شماره تماس نامعتبر است";
-                            return BadRequest(result);
-                        }
-                        bool validCode = await ToolBox.CheckCode(authenticationRequestBody.UserName, authenticationRequestBody.Password);
-                        if (validCode)
-                        {
-                            authenticateResult = await _loginRep.AuthenticateAsync(authenticationRequestBody.UserName, authenticationRequestBody.Password, authenticationRequestBody.LoginType);
-                        }
-                        else
-                        {
-                            result.Status = validCode;
-                            result.ErrorMessage = "کد تایید نامعتبر است";
-                            return BadRequest(result);
-                        }
-                        break;
-                    case 3:
-                        authenticateResult = await _loginRep.AuthenticateAsync(authenticationRequestBody.UserName, authenticationRequestBody.Password, authenticationRequestBody.LoginType);
-                        break;
-                }
-
-                result.Status = authenticateResult.Status;
-                result.ErrorMessage = authenticateResult.ErrorMessage;
-
-                if (authenticateResult.Status)
-                {
-                    var refreshToken = ToolBox.GenerateToken(); // تولید رفرش توکن
-                    var accessToken = ToolBox.GenerateAccessToken(authenticateResult.Result); // تولید رفرش توکن
-                    var refreshTokenExpiryDate = DateTime.Now.ToShamsi().AddDays(30); // تنظیم تاریخ انقضای رفرش توکن برای 30 روز
-
-
-                    var refreshTokenRecord = new RefreshToken
-                    {
-                        UserId = authenticateResult.Result.PersonID,
-                        Token = refreshToken, // ذخیره رفرش توکن
-                        Type = "RefreshToken", // نوع: RefreshToken
-                        Status = true,
-                        CreatedDate = DateTime.Now.ToShamsi(),
-                        ExpiryDate = refreshTokenExpiryDate // تاریخ انقضا
-                    };
-
-                    var saverefreshToken = await _tokenRep.AddRefreshTokenAsync(refreshTokenRecord);
-                    var isstylist = await _stylistRep.ExistStylistAsync(authenticateResult.Result.PersonID.ToString(),"personid");
-                    var iscustomer = await _customerRep.ExistCustomerAsync(authenticateResult.Result.PersonID.ToString(),"personid");
-
-                    if (saverefreshToken.Status)
-                    {
-                        result.Status = authenticateResult.Status;
-                        result.ErrorMessage = authenticateResult.ErrorMessage;
-                        result.Result = new AuthenticationResultBody()
-                        {
-                            RefreshToken = refreshToken, // بازگرداندن رفرش توکن
-                            AccessToken = accessToken, // بازگرداندن اکسس توکن
-                            PersonId = authenticateResult.Result.PersonID,
-                            CustomerId = iscustomer.ID,
-                            StylistId = isstylist.ID,
-                            IsActive = authenticateResult.Result.Person.IsActive,
-                            RoleId = authenticateResult.Result.Person.RoleId,
-                            FirstName = authenticateResult.Result.Person.FirstName,
-                            LastName = authenticateResult.Result.Person.LastName,
-                        };
-
-                        #region AddLog
-                        Log log = new Log()
-                        {
-                            CreateDate = DateTime.Now.ToShamsi(),
-                            UpdateDate = DateTime.Now.ToShamsi(),
-                            LogTime = DateTime.Now.ToShamsi(),
-                            ActionName = this.ControllerContext.RouteData.Values["action"].ToString(),
-                        };
-                        await _logRep.AddLogAsync(log);
-                        #endregion
-
-                        return Ok(result);
-                    }
-
-                    else
-                    {
-                        result.Status = saverefreshToken.Status;
-                        result.ErrorMessage = saverefreshToken.ErrorMessage;
-                    }
-                }
+                result = await DoLoginAsync(authenticationRequestBody);
 
             }
             catch (Exception ex)
@@ -508,6 +416,23 @@ namespace NobatPlusAPI.Controllers
 
 
                                     result.ID = person.ID;
+
+                                    if (result.Status && signupRequestBody.WithLogin)
+                                    {
+                                        AuthenticationRequestBody authenticationRequestBody = new AuthenticationRequestBody()
+                                        {
+                                            CaptchaCode = "",
+                                            Password="",
+                                            UserName = signupRequestBody.PhoneNumber,
+                                            LoginType = 4
+                                        };
+                                        var loginResult = await DoLoginAsync(authenticationRequestBody);
+
+                                        if (!loginResult.Status)
+                                            return BadRequest(loginResult);
+
+                                        return Ok(loginResult);
+                                    }
 
                                     return Ok(result);
 
@@ -952,6 +877,119 @@ namespace NobatPlusAPI.Controllers
             }
 
                 return Ok(result);
+        }
+
+        private async Task<RowResultObject<AuthenticationResultBody>> DoLoginAsync(AuthenticationRequestBody requestBody)
+        {
+            RowResultObject<AuthenticationResultBody> result = new RowResultObject<AuthenticationResultBody>();
+            RowResultObject<Login> authenticateResult = new RowResultObject<Login>();
+
+            try
+            {
+                switch (requestBody.LoginType)
+                {
+                    default:
+                    case 1:
+                        authenticateResult = await _loginRep.AuthenticateAsync(requestBody.UserName, requestBody.Password, requestBody.LoginType);
+                        break;
+                    case 2:
+                        var validPhoneNumber = await _loginRep.ExistLoginAsync(requestBody.UserName, "UserName");
+                        if (!validPhoneNumber.Status && string.IsNullOrEmpty(validPhoneNumber.ErrorMessage))
+                        {
+                            result.Status = validPhoneNumber.Status;
+                            result.ErrorMessage = "شماره تماس نامعتبر است";
+                            //return BadRequest(result);
+                        }
+                        bool validCode = await ToolBox.CheckCode(requestBody.UserName, requestBody.Password);
+                        if (validCode)
+                        {
+                            authenticateResult = await _loginRep.AuthenticateAsync(requestBody.UserName, requestBody.Password, requestBody.LoginType);
+                        }
+                        else
+                        {
+                            result.Status = validCode;
+                            result.ErrorMessage = "کد تایید نامعتبر است";
+                            //return BadRequest(result);
+                        }
+                        break;
+                    case 3:
+                        authenticateResult = await _loginRep.AuthenticateAsync(requestBody.UserName, requestBody.Password, requestBody.LoginType);
+                        break;
+                    case 4:
+                        authenticateResult = await _loginRep.AuthenticateAsync(requestBody.UserName, requestBody.Password, requestBody.LoginType);
+                        break;
+                }
+
+                result.Status = authenticateResult.Status;
+                result.ErrorMessage = authenticateResult.ErrorMessage;
+
+                if (authenticateResult.Status)
+                {
+                    var refreshToken = ToolBox.GenerateToken(); // تولید رفرش توکن
+                    var accessToken = ToolBox.GenerateAccessToken(authenticateResult.Result); // تولید رفرش توکن
+                    var refreshTokenExpiryDate = DateTime.Now.ToShamsi().AddDays(30); // تنظیم تاریخ انقضای رفرش توکن برای 30 روز
+
+
+                    var refreshTokenRecord = new RefreshToken
+                    {
+                        UserId = authenticateResult.Result.PersonID,
+                        Token = refreshToken, // ذخیره رفرش توکن
+                        Type = "RefreshToken", // نوع: RefreshToken
+                        Status = true,
+                        CreatedDate = DateTime.Now.ToShamsi(),
+                        ExpiryDate = refreshTokenExpiryDate // تاریخ انقضا
+                    };
+
+                    var saverefreshToken = await _tokenRep.AddRefreshTokenAsync(refreshTokenRecord);
+                    var isstylist = await _stylistRep.ExistStylistAsync(authenticateResult.Result.PersonID.ToString(), "personid");
+                    var iscustomer = await _customerRep.ExistCustomerAsync(authenticateResult.Result.PersonID.ToString(), "personid");
+
+                    if (saverefreshToken.Status)
+                    {
+                        result.Status = authenticateResult.Status;
+                        result.ErrorMessage = authenticateResult.ErrorMessage;
+                        result.Result = new AuthenticationResultBody()
+                        {
+                            RefreshToken = refreshToken, // بازگرداندن رفرش توکن
+                            AccessToken = accessToken, // بازگرداندن اکسس توکن
+                            PersonId = authenticateResult.Result.PersonID,
+                            CustomerId = iscustomer.ID,
+                            StylistId = isstylist.ID,
+                            IsActive = authenticateResult.Result.Person.IsActive,
+                            RoleId = authenticateResult.Result.Person.RoleId,
+                            FirstName = authenticateResult.Result.Person.FirstName,
+                            LastName = authenticateResult.Result.Person.LastName,
+                        };
+
+                        #region AddLog
+                        Log log = new Log()
+                        {
+                            CreateDate = DateTime.Now.ToShamsi(),
+                            UpdateDate = DateTime.Now.ToShamsi(),
+                            LogTime = DateTime.Now.ToShamsi(),
+                            ActionName = this.ControllerContext.RouteData.Values["action"].ToString(),
+                        };
+                        await _logRep.AddLogAsync(log);
+                        #endregion
+
+                        //return Ok(result);
+                    }
+
+                    else
+                    {
+                        result.Status = saverefreshToken.Status;
+                        result.ErrorMessage = saverefreshToken.ErrorMessage;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+
+                result.Status = false;
+                result.ErrorMessage = $"{ex.Message}\n{ex.InnerException?.Message}";
+            }
+
+            return result;
         }
     }
 }

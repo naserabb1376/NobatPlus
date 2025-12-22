@@ -79,9 +79,9 @@ namespace NobatPlusDATA.DataLayer.Services
             
         }
 
-        public async Task<ListResultObject<ServiceManagement>> GetAllServiceManagementsAsync(long parentId = 0,long bookingId = 0,long stylistId = 0,long discountId = 0,char serviceGender = ' ',int pageIndex = 1,int pageSize = 20,string searchText = "",string sortQuery = "")
+        public async Task<ListResultObject<ServiceManagementDTO>> GetAllServiceManagementsAsync(long parentId = 0,long bookingId = 0,long stylistId = 0,long discountId = 0,char serviceGender = ' ',int pageIndex = 1,int pageSize = 20,string searchText = "",string sortQuery = "")
         {
-            var results = new ListResultObject<ServiceManagement>();
+            var results = new ListResultObject<ServiceManagementDTO>();
 
             try
             {
@@ -116,6 +116,8 @@ namespace NobatPlusDATA.DataLayer.Services
                     }
                 }
 
+                query = query.Include(x => x.StylistServices);
+
                 // 🔍 فیلتر سرچ
                 if (!string.IsNullOrEmpty(searchText))
                 {
@@ -142,6 +144,17 @@ namespace NobatPlusDATA.DataLayer.Services
                     .OrderByDescending(x => x.CreateDate)
                     .SortBy(sortQuery)
                     .ToPaging(pageIndex, pageSize)
+                     .Select(r => new ServiceManagementDTO
+                     {
+                         ID = r.ID,
+                         Description = r.Description ?? "",
+                         UpdateDate = r.UpdateDate,
+                         CreateDate = r.CreateDate,
+                         ServiceGender = r.ServiceGender,
+                         ServiceName = r.ServiceName,
+                         ServiceParentID = r.ServiceParentID,
+                         StylistCount = r.StylistServices.Count,
+                     })
                     .ToListAsync();
             }
             catch (Exception ex)
@@ -154,14 +167,25 @@ namespace NobatPlusDATA.DataLayer.Services
         }
 
 
-        public async Task<RowResultObject<ServiceManagement>> GetServiceManagementByIdAsync(long ServiceManagementId)
+        public async Task<RowResultObject<ServiceManagementDTO>> GetServiceManagementByIdAsync(long ServiceManagementId)
         {
-            RowResultObject<ServiceManagement> result = new RowResultObject<ServiceManagement>();
+            RowResultObject<ServiceManagementDTO> result = new RowResultObject<ServiceManagementDTO>();
             try
             {
                 result.Result = await _context.ServiceManagements
-                .AsNoTracking()
-                .SingleOrDefaultAsync(x => x.ID == ServiceManagementId);
+                    .Include(x=> x.StylistServices)
+                .Where(x => x.ID == ServiceManagementId)
+                 .Select(r => new ServiceManagementDTO
+                 {
+                     ID = r.ID,
+                     Description = r.Description ?? "",
+                     UpdateDate = r.UpdateDate,
+                     CreateDate = r.CreateDate,
+                     ServiceGender = r.ServiceGender,
+                     ServiceName = r.ServiceName,
+                     ServiceParentID = r.ServiceParentID,
+                     StylistCount = r.StylistServices.Count,
+                 }).AsNoTracking().SingleOrDefaultAsync();
             }
             catch (Exception ex)
             {
@@ -196,8 +220,18 @@ namespace NobatPlusDATA.DataLayer.Services
             BitResultObject result = new BitResultObject();
             try
             {
-                var serviceManagement = await GetServiceManagementByIdAsync(ServiceManagementId);
-                result = await RemoveServiceManagementAsync(serviceManagement.Result);
+                var serviceManagementDto = await GetServiceManagementByIdAsync(ServiceManagementId);
+                ServiceManagement serviceManagement = new ServiceManagement()
+                {
+                    ID = serviceManagementDto.Result.ID,
+                    ServiceParentID = serviceManagementDto.Result.ServiceParentID,
+                    CreateDate = serviceManagementDto.Result.CreateDate,
+                    UpdateDate = serviceManagementDto.Result.UpdateDate,
+                    Description = serviceManagementDto.Result.Description,
+                    ServiceGender = serviceManagementDto.Result.ServiceGender,
+                    ServiceName = serviceManagementDto.Result.ServiceName,
+                };
+                result = await RemoveServiceManagementAsync(serviceManagement);
             }
             catch (Exception ex)
             {

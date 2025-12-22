@@ -38,7 +38,7 @@ namespace NobatPlusDATA.DataLayer.Services
                 result.ErrorMessage = $"{ex.Message} - {ex.InnerException?.Message}";
             }
             return result;
-            
+
         }
 
         public async Task<BitResultObject> EditCustomerAsync(Customer Customer)
@@ -57,7 +57,7 @@ namespace NobatPlusDATA.DataLayer.Services
                 result.ErrorMessage = $"{ex.Message} - {ex.InnerException?.Message}";
             }
             return result;
-            
+
         }
 
         public async Task<BitResultObject> ExistCustomerAsync(string fieldValue, string fieldName)
@@ -94,8 +94,8 @@ namespace NobatPlusDATA.DataLayer.Services
         }
 
         public async Task<ListResultObject<CustomerDTO>> GetAllCustomersAsync(
-       long cityId = 0,
        long stylistId = 0,
+       long cityId = 0,
        long discountId = 0,
        int pageIndex = 1,
        int pageSize = 20,
@@ -266,7 +266,7 @@ namespace NobatPlusDATA.DataLayer.Services
                 result.ErrorMessage = $"{ex.Message} - {ex.InnerException?.Message}";
             }
             return result;
-           
+
         }
 
         public async Task<BitResultObject> RemoveCustomerAsync(long CustomerId)
@@ -291,7 +291,7 @@ namespace NobatPlusDATA.DataLayer.Services
                 result.ErrorMessage = $"{ex.Message} - {ex.InnerException?.Message}";
             }
             return result;
-           
+
         }
     }
 }

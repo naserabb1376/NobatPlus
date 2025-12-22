@@ -6,7 +6,7 @@ using System.Linq;
 
 namespace NobatPlusDATA.ViewModels
 {
-    public class StylistServiceVM:BaseEntity
+    public class StylistServiceVM
     {
         public long StylistId { get; set; }
         public long ServiceManagementId { get; set; }
