@@ -79,6 +79,10 @@ namespace NobatPlusAPI.Controllers
                 result.ErrorMessage = $"{ex.Message}\n{ex.InnerException?.Message}";
             }
 
+           if (result.Status)
+            {
+                return Ok(result);
+            }
 
             return BadRequest(result);
         }
