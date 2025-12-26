@@ -175,9 +175,27 @@ namespace NobatPlusDATA.DataLayer.Services
                 // 🔍 فیلتر سرچ (مشترک)
                 if (!string.IsNullOrEmpty(searchText))
                 {
+                    searchText = searchText.Trim();
+
+                    var tokens = searchText
+                        .Replace("-", " ")
+                        .Replace(",", " ")
+                        .Replace("،", " ")
+                        .Split(" ", StringSplitOptions.RemoveEmptyEntries)
+                        .ToList();
+
                     query = query.Where(x =>
                         (x.Person.FirstName != null && x.Person.FirstName.Contains(searchText)) ||
                         (x.Person.LastName != null && x.Person.LastName.Contains(searchText)) ||
+
+// جستجوی ترکیبی نام و نام خانوادگی
+(x.Person.FirstName != null && x.Person.LastName != null &&
+ (
+     (x.Person.FirstName + " " + x.Person.LastName).Contains(searchText) ||
+     (x.Person.FirstName + x.Person.LastName).Contains(searchText)
+ ))
+ ||
+
                         (x.Person.NaCode != null && x.Person.NaCode.Contains(searchText)) ||
                         (x.Person.PhoneNumber != null && x.Person.PhoneNumber.Contains(searchText)) ||
                         (x.Person.Email != null && x.Person.Email.Contains(searchText)) ||
@@ -185,7 +203,18 @@ namespace NobatPlusDATA.DataLayer.Services
                         (x.Person.Address.City.CityName != null && x.Person.Address.City.CityName.Contains(searchText)) ||
                         (x.JobType.JobTitle != null && x.JobType.JobTitle.Contains(searchText)) ||
                         (x.Specialty != null && x.Specialty.Contains(searchText)) ||
-                        (x.StylistServices.Any(s => s.ServiceManagement.ServiceName.Contains(searchText))) ||
+(
+    tokens.Count == 1
+        ? x.StylistServices.Any(s =>
+            s.ServiceManagement.ServiceName.Contains(tokens[0])
+          )
+        : tokens.All(token =>
+            x.StylistServices.Any(s =>
+                s.ServiceManagement.ServiceName.Contains(token)
+            )
+          )
+)
+||
                         (x.Description != null && x.Description.Contains(searchText))
                     );
                 }
