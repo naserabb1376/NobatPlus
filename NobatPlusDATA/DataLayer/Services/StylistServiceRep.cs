@@ -24,101 +24,193 @@ namespace NobatPlusDATA.DataLayer.Services
         public async Task<BitResultObject> AddStylistServicesAsync(List<StylistService> stylistServices)
         {
             BitResultObject result = new BitResultObject();
+
             try
             {
-                await _context.StylistServices.AddRangeAsync(stylistServices);
-                await _context.SaveChangesAsync();
-                result.ID = stylistServices.FirstOrDefault().ServiceManagementID;
-                foreach (var stylistService in stylistServices)
+                // گروه‌بندی بر اساس Stylist
+                var groupedByStylist = stylistServices
+                    .GroupBy(x => x.StylistID)
+                    .ToList();
+
+                foreach (var stylistGroup in groupedByStylist)
                 {
-                    _context.Entry(stylistService).State = EntityState.Detached;
+                    var stylistId = stylistGroup.Key;
+
+                    // سرویس‌های موجود این stylist
+                    var existingServices = await _context.StylistServices
+                        .AsNoTracking()
+                        .Where(x => x.StylistID == stylistId)
+                        .ToListAsync();
+
+                    var existingServiceIds = existingServices
+                        .Select(x => x.ServiceManagementID)
+                        .ToHashSet();
+
+                    var servicesToInsert = new List<StylistService>();
+
+                    foreach (var inputService in stylistGroup)
+                    {
+                        var hierarchy = await GetServiceHierarchyAsync(inputService.ServiceManagementID);
+
+                        foreach (var service in hierarchy)
+                        {
+                            if (existingServiceIds.Contains(service.ID))
+                                continue;
+
+                            // اگر parent است → قیمت و مدت صفر
+                            bool isParent = service.ID != inputService.ServiceManagementID;
+
+                            servicesToInsert.Add(new StylistService
+                            {
+                                StylistID = stylistId,
+                                ServiceManagementID = service.ID,
+                                ServicePrice = isParent ? 0 : inputService.ServicePrice,
+                                DepositPercent = isParent ? 0 : inputService.DepositPercent,
+                                ServiceDuration = isParent ? TimeSpan.Zero : inputService.ServiceDuration
+                            });
+
+                            existingServiceIds.Add(service.ID);
+                        }
+                    }
+
+                    if (servicesToInsert.Any())
+                    {
+                        await _context.StylistServices.AddRangeAsync(servicesToInsert);
+                        await _context.SaveChangesAsync();
+                    }
                 }
+
+                result.Status = true;
             }
             catch (Exception ex)
             {
                 result.Status = false;
                 result.ErrorMessage = $"{ex.Message} - {ex.InnerException?.Message}";
             }
+
             return result;
         }
+
 
         public async Task<BitResultObject> EditStylistServicesAsync(List<StylistService> stylistServices)
         {
             BitResultObject result = new BitResultObject();
+
             try
             {
-                _context.StylistServices.UpdateRange(stylistServices);
-                await _context.SaveChangesAsync();
-                result.ID = stylistServices.FirstOrDefault().ServiceManagementID;
-                foreach (var stylistService in stylistServices)
+                // گروه‌بندی بر اساس Stylist
+                var groupedByStylist = stylistServices
+                    .GroupBy(x => x.StylistID)
+                    .ToList();
+
+                foreach (var stylistGroup in groupedByStylist)
                 {
-                    _context.Entry(stylistService).State = EntityState.Detached;
+                    var stylistId = stylistGroup.Key;
+
+                    // حذف همه سرویس‌های قبلی این stylist
+                    var oldItems = await _context.StylistServices
+                        .Where(x => x.StylistID == stylistId)
+                        .ToListAsync();
+
+                    if (oldItems.Any())
+                    {
+                        _context.StylistServices.RemoveRange(oldItems);
+                        await _context.SaveChangesAsync();
+                    }
+
+                    // افزودن مجدد فقط سرویس‌های مربوط به همین stylist
+                    await AddStylistServicesAsync(stylistGroup.ToList());
                 }
+
+                result.Status = true;
             }
             catch (Exception ex)
             {
                 result.Status = false;
                 result.ErrorMessage = $"{ex.Message} - {ex.InnerException?.Message}";
             }
+
             return result;
         }
+
+
 
         public async Task<BitResultObject> RemoveStylistServicesAsync(List<StylistService> stylistServices)
         {
             BitResultObject result = new BitResultObject();
+
             try
             {
-                _context.StylistServices.RemoveRange(stylistServices);
-                await _context.SaveChangesAsync();
-                result.ID = stylistServices.FirstOrDefault().ServiceManagementID;
-                foreach (var stylistService in stylistServices)
-                {
-                    _context.Entry(stylistService).State = EntityState.Detached;
-                }
-            }
-            catch (Exception ex)
-            {
-                result.Status = false;
-                result.ErrorMessage = $"{ex.Message} - {ex.InnerException?.Message}";
-            }
-            return result;
-        }
+                // گروه‌بندی بر اساس Stylist
+                var groupedByStylist = stylistServices
+                    .GroupBy(x => x.StylistID)
+                    .ToList();
 
-        public async Task<BitResultObject> RemoveStylistServicesAsync(List<(long StylistId, long ServiceManagementId)> stylistServiceIds)
-        {
-            BitResultObject result = new BitResultObject();
-            try
-            {
-                var stylistServicesToRemove = new List<StylistService>();
-
-                foreach (var (stylistId, serviceManagementId) in stylistServiceIds)
+                foreach (var stylistGroup in groupedByStylist)
                 {
-                    var stylistService = await GetStylistServiceByIdAsync(stylistId, serviceManagementId);
-                    if (stylistService.Result != null)
+                    var stylistId = stylistGroup.Key;
+                    var serviceIdsToRemove = new HashSet<long>();
+
+                    foreach (var item in stylistGroup)
                     {
-                        stylistServicesToRemove.Add(stylistService.Result);
+                        // خود service
+                        serviceIdsToRemove.Add(item.ServiceManagementID);
+
+                        // همه childها
+                        var descendants = await GetServiceDescendantsAsync(item.ServiceManagementID);
+                        foreach (var child in descendants)
+                            serviceIdsToRemove.Add(child.ID);
+                    }
+
+                    var itemsToRemove = await _context.StylistServices
+                        .Where(x =>
+                            x.StylistID == stylistId &&
+                            serviceIdsToRemove.Contains(x.ServiceManagementID))
+                        .ToListAsync();
+
+                    if (itemsToRemove.Any())
+                    {
+                        _context.StylistServices.RemoveRange(itemsToRemove);
+                        await _context.SaveChangesAsync();
                     }
                 }
 
-                if (stylistServicesToRemove.Any())
-                {
-                    result = await RemoveStylistServicesAsync(stylistServicesToRemove);
-                }
-                else
-                {
-                    result.Status = false;
-                    result.ErrorMessage = "No matching stylist services found to remove.";
-                }
+                result.Status = true;
             }
             catch (Exception ex)
             {
                 result.Status = false;
                 result.ErrorMessage = $"{ex.Message} - {ex.InnerException?.Message}";
             }
+
             return result;
         }
 
+        public async Task<BitResultObject> RemoveStylistServicesAsync(
+      List<(long StylistId, long ServiceManagementId)> stylistServiceIds)
+        {
+            BitResultObject result = new BitResultObject();
 
+            try
+            {
+                var stylistServices = stylistServiceIds
+                    .Select(x => new StylistService
+                    {
+                        StylistID = x.StylistId,
+                        ServiceManagementID = x.ServiceManagementId
+                    })
+                    .ToList();
+
+                result = await RemoveStylistServicesAsync(stylistServices);
+            }
+            catch (Exception ex)
+            {
+                result.Status = false;
+                result.ErrorMessage = $"{ex.Message} - {ex.InnerException?.Message}";
+            }
+
+            return result;
+        }
 
         public async Task<BitResultObject> ExistStylistServiceAsync(long StylistId, long ServiceManagementId)
         {
@@ -189,5 +281,48 @@ namespace NobatPlusDATA.DataLayer.Services
             return result;
            
         }
+
+        private async Task<List<ServiceManagement>> GetServiceHierarchyAsync(long serviceId)
+        {
+            var result = new List<ServiceManagement>();
+
+            var current = await _context.ServiceManagements
+                .FirstOrDefaultAsync(x => x.ID == serviceId);
+
+            while (current != null && current.ID != 0)
+            {
+                result.Add(current);
+
+                if (current.ServiceParentID == 0)
+                    break;
+
+                current = await _context.ServiceManagements
+                    .FirstOrDefaultAsync(x => x.ID == current.ServiceParentID);
+            }
+
+            return result;
+        }
+
+        private async Task<List<ServiceManagement>> GetServiceDescendantsAsync(long serviceId)
+        {
+            var result = new List<ServiceManagement>();
+
+            async Task LoadChildren(long parentId)
+            {
+                var children = await _context.ServiceManagements
+                    .Where(x => x.ServiceParentID == parentId)
+                    .ToListAsync();
+
+                foreach (var child in children)
+                {
+                    result.Add(child);
+                    await LoadChildren(child.ID);
+                }
+            }
+
+            await LoadChildren(serviceId);
+            return result;
+        }
+
     }
 }

@@ -26,7 +26,7 @@ namespace NobatPlusAPI.Controllers
 {
     [Route("Booking")]
     [ApiController]
-    [Authorize]
+    //[Authorize]
     [Produces("application/json")]
 
     public class BookingController : ControllerBase
