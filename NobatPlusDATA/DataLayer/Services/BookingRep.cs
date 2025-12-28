@@ -177,12 +177,12 @@ namespace NobatPlusDATA.DataLayer.Services
 
                         TotalDurationMinutes = d != null ? d.TotalDurationMinutes : 0,
 
-                        //BookingEndDate = b.BookingDate
-                        //    .AddMinutes(d != null ? d.TotalDurationMinutes : 0),
+                        BookingEndDate = b.BookingDate
+                            .AddMinutes(d != null ? d.TotalDurationMinutes : 0),
 
-                        //TotalBlockMinutes =
-                        //    (d != null ? d.TotalDurationMinutes : 0) +
-                        //    EF.Functions.DateDiffMinute(TimeSpan.Zero, b.Stylist.RestTime),
+                        TotalBlockMinutes =
+                            (d != null ? d.TotalDurationMinutes : 0) +
+                            EF.Functions.DateDiffMinute(TimeSpan.Zero, b.Stylist.RestTime),
 
                         Status = b.Status,
                         IsCancelled = b.IsCancelled,
@@ -246,15 +246,14 @@ namespace NobatPlusDATA.DataLayer.Services
 
                         BookingStartDate = b.BookingDate,
 
-                        //TotalDurationMinutes = d != null ? d.TotalDurationMinutes : 0,
-                        TotalDurationMinutes = bookingDurations. == null ? 12 : 0,
+                        TotalDurationMinutes = d != null ? d.TotalDurationMinutes : 0,
 
-                        //BookingEndDate = b.BookingDate
-                        //    .AddMinutes(d != null ? d.TotalDurationMinutes : 0),
+                        BookingEndDate = b.BookingDate
+                            .AddMinutes(d != null ? d.TotalDurationMinutes : 0),
 
-                        //TotalBlockMinutes =
-                        //    (d != null ? d.TotalDurationMinutes : 0) +
-                        //    EF.Functions.DateDiffMinute(TimeSpan.Zero, b.Stylist.RestTime),
+                        TotalBlockMinutes =
+                            (d != null ? d.TotalDurationMinutes : 0) +
+                            EF.Functions.DateDiffMinute(TimeSpan.Zero, b.Stylist.RestTime),
 
                         Status = b.Status,
                         IsCancelled = b.IsCancelled,
