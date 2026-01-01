@@ -225,6 +225,9 @@ namespace NobatPlusDATA.DataLayer.Services
                         ID = x.ID,
                         PersonID = x.PersonID,
                         Person = x.Person,
+                        CreateDate = x.CreateDate,
+                        Description = x.Description,
+                        UpdateDate = x.UpdateDate,
                         BookingCount = _context.Bookings.Count(b => b.CustomerID == x.ID),
                         LastBookingDate = _context.Bookings
                             .Where(b => b.CustomerID == x.ID)

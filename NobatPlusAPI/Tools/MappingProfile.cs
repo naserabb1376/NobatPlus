@@ -30,6 +30,7 @@ namespace NobatPlusAPI.Tools
            .ForMember(dest => dest.SalonName, opt => opt.MapFrom(src => src.Stylist.StylistName))
            .ForMember(dest => dest.StylistName, opt => opt.MapFrom(src => src.Stylist.Person.FirstName + " " + src.Stylist.Person.LastName))
            .ForMember(dest => dest.CustomerName, opt => opt.MapFrom(src => src.Customer.Person.FirstName + " " + src.Customer.Person.LastName))
+           .ForMember(dest => dest.CustomerPhoneNumber, opt => opt.MapFrom(src => src.Customer.Person.PhoneNumber))
            ;
 
             CreateMap<Review, ReviewVM>()
@@ -148,6 +149,7 @@ namespace NobatPlusAPI.Tools
 
             CreateMap<CustomerDTO, CustomerVM>()
 .ForMember(dest => dest.PersonFullName, opt => opt.MapFrom(src => src.Person.FirstName + " " + src.Person.LastName))
+.ForMember(dest => dest.PhoneNumber, opt => opt.MapFrom(src => src.Person.PhoneNumber))
            ;
             CreateMap<City, CityVM>();
             CreateMap<Person, PersonVM>();

@@ -137,8 +137,8 @@ namespace NobatPlusDATA.DataLayer.Services
                 }
 
                 bookingsQuery = bookingsQuery
-                    .Include(x => x.Stylist)
-                    .Include(x => x.Customer)
+                    .Include(x => x.Stylist).ThenInclude(x=> x.Person)
+                    .Include(x => x.Customer).ThenInclude(x => x.Person)
                     .AsNoTracking();
 
                 // بعد از ساخت bookingsQuery
@@ -173,8 +173,12 @@ namespace NobatPlusDATA.DataLayer.Services
                         StylistID = b.StylistID,
                         CustomerID = b.CustomerID,
 
-                        BookingStartDate = b.BookingDate,
+                        CreateDate = b.CreateDate,
+                        UpdateDate = b.UpdateDate,
+                        Description = b.Description,
 
+                        BookingStartDate = b.BookingDate,
+                        
                         TotalDurationMinutes = d != null ? d.TotalDurationMinutes : 0,
 
                         BookingEndDate = b.BookingDate
@@ -214,8 +218,8 @@ namespace NobatPlusDATA.DataLayer.Services
             try
             {
                 var bookingQuery = _context.Bookings
-                    .Include(x => x.Stylist)
-                    .Include(x => x.Customer)
+                    .Include(x => x.Stylist).ThenInclude(x => x.Person)
+                    .Include(x => x.Customer).ThenInclude(x => x.Person)
                     .AsNoTracking()
                     .Where(x => x.ID == bookingId);
                 var bookingDurations =
@@ -243,6 +247,10 @@ namespace NobatPlusDATA.DataLayer.Services
                         ID = b.ID,
                         StylistID = b.StylistID,
                         CustomerID = b.CustomerID,
+
+                        CreateDate = b.CreateDate,
+                        UpdateDate = b.UpdateDate,
+                        Description = b.Description,
 
                         BookingStartDate = b.BookingDate,
 

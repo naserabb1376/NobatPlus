@@ -16,6 +16,7 @@ namespace NobatPlusDATA.ViewModels
         public string StylistName { get; set; }
         public string SalonName { get; set; }
         public string CustomerName { get; set; }
+        public string CustomerPhoneNumber { get; set; }
 
     }
 }
