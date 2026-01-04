@@ -10,7 +10,7 @@ namespace NobatPlusDATA.DataLayer.Repositories
 {
     public interface IPaymentHistoryRep
     {
-        public Task<ListResultObject<PaymentHistory>> GetAllPaymentHistoriesAsync(long bookingId = 0, int pageIndex = 1, int pageSize = 20, string searchText = "",string sortQuery ="");
+        public Task<ListResultObject<PaymentHistory>> GetAllPaymentHistoriesAsync(long bookingId = 0, long paymentId = 0, int pageIndex = 1, int pageSize = 20, string searchText = "",string sortQuery ="");
         public Task<RowResultObject<PaymentHistory>> GetPaymentHistoryByIdAsync(long PaymentHistoryId);
         public Task<BitResultObject> AddPaymentHistoryAsync(PaymentHistory PaymentHistory);
         public Task<BitResultObject> EditPaymentHistoryAsync(PaymentHistory PaymentHistory);

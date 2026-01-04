@@ -26,6 +26,13 @@ namespace NobatPlusDATA.Tools
             StylistService = 7,
         }
 
+        public sealed class BookingDurationRow
+        {
+            public long BookingID { get; set; }
+            public int TotalDurationMinutes { get; set; }
+        }
+
+
         public static List<T> ToPaging<T>(this List<T> list, int pageIndex = 1, int pageSize = 20)
         {
             if (pageSize > 0)

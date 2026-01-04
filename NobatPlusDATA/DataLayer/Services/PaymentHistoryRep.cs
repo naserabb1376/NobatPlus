@@ -79,12 +79,13 @@ namespace NobatPlusDATA.DataLayer.Services
             
         }
 
-        public async Task<ListResultObject<PaymentHistory>> GetAllPaymentHistoriesAsync(long bookingId = 0, int pageIndex = 1, int pageSize = 20, string searchText = "",string sortQuery ="")
+        public async Task<ListResultObject<PaymentHistory>> GetAllPaymentHistoriesAsync(long bookingId = 0, long paymentId = 0, int pageIndex = 1, int pageSize = 20, string searchText = "",string sortQuery ="")
         {
             ListResultObject<PaymentHistory> results = new ListResultObject<PaymentHistory>();
             try
             {
-                IQueryable<PaymentHistory> query;
+                IQueryable<PaymentHistory> query = _context.PaymentHistories.Include(x=> x.Payment).Include(x => x.Booking).ThenInclude(x => x.Customer).Include(x => x.Booking).ThenInclude(x => x.Stylist)
+                         .AsNoTracking();
 
                 if (bookingId == 0)
                 {
@@ -93,28 +94,17 @@ namespace NobatPlusDATA.DataLayer.Services
                          .Where(x =>
                              (!string.IsNullOrEmpty(x.PaymentMethod) && x.PaymentMethod.Contains(searchText)) ||
                              (!string.IsNullOrEmpty(x.Description) && x.Description.Contains(searchText)) ||
-                             (!string.IsNullOrEmpty(x.Amount.ToString()) && x.Amount.ToString().Contains(searchText)) ||
+                             (!string.IsNullOrEmpty(x.ReservationFeeAmount.ToString()) && x.ReservationFeeAmount.ToString().Contains(searchText)) ||
+                             (!string.IsNullOrEmpty(x.DepositAmount.ToString()) && x.DepositAmount.ToString().Contains(searchText)) ||
+                             (!string.IsNullOrEmpty(x.TotalServiceAmount.ToString()) && x.TotalServiceAmount.ToString().Contains(searchText)) ||
+                             (!string.IsNullOrEmpty(x.StylistAmount.ToString()) && x.StylistAmount.ToString().Contains(searchText)) ||
+                             (!string.IsNullOrEmpty(x.PlatformAmount.ToString()) && x.PlatformAmount.ToString().Contains(searchText)) ||
                              (!string.IsNullOrEmpty(x.PaymentDate.ToString()) && x.PaymentDate.ToString().Contains(searchText)) ||
                              (x.CreateDate.HasValue && x.CreateDate.Value.ToString().Contains(searchText)) ||
                              (x.UpdateDate.HasValue && x.UpdateDate.Value.ToString().Contains(searchText))
                          );
                 }
-                else
-                {
-                    query = _context.PaymentHistories.Include(x => x.Booking).ThenInclude(x => x.Customer).Include(x => x.Booking).ThenInclude(x => x.Stylist)
-                        .AsNoTracking()
-                        .Where(x =>
-                            x.BookingID == bookingId &&
-                            (
-                                (!string.IsNullOrEmpty(x.PaymentMethod) && x.PaymentMethod.Contains(searchText)) ||
-                                (!string.IsNullOrEmpty(x.Description) && x.Description.Contains(searchText)) ||
-                                (!string.IsNullOrEmpty(x.Amount.ToString()) && x.Amount.ToString().Contains(searchText)) ||
-                                (!string.IsNullOrEmpty(x.PaymentDate.ToString()) && x.PaymentDate.ToString().Contains(searchText)) ||
-                                (x.CreateDate.HasValue && x.CreateDate.Value.ToString().Contains(searchText)) ||
-                                (x.UpdateDate.HasValue && x.UpdateDate.Value.ToString().Contains(searchText))
-                            )
-                        );
-                }
+             
                 results.TotalCount = query.Count();
                 results.PageCount = DbTools.GetPageCount(results.TotalCount, pageSize);
                 results.Results = await query.OrderByDescending(x => x.CreateDate)
