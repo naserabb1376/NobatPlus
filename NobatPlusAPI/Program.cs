@@ -1,4 +1,5 @@
-﻿using AutoMapper;
+﻿using AITechDATA.DataLayer.Services;
+using AutoMapper;
 using Hangfire;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.RateLimiting;
@@ -195,6 +196,7 @@ namespace NobatPlusAPI
             builder.Services.AddScoped<ISMSMessageRep, SMSMessageRep>();
             builder.Services.AddScoped<IRateQuestionRep, RateQuestionRep>();
             builder.Services.AddScoped<IRateHistoryRep, RateHistoryRep>();
+            builder.Services.AddScoped<ISettingRep, SettingRep>();
 
             #endregion ImportDbServices
 

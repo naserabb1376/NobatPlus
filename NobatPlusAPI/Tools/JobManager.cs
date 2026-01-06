@@ -10,17 +10,20 @@ namespace NobatPlusAPI.Tools
     {
         private readonly IBookingRep _BookingRep;
         private readonly ISMSMessageRep _sMSMessageRep;
+        private readonly ISettingRep _settingRep;
         private readonly INotificationRep _notificationRep;
         private readonly ILogRep _logRep;
 
         public JobManager(
             IBookingRep bookingRep,
             ISMSMessageRep sMSMessageRep,
+            ISettingRep settingRep,
             INotificationRep notificationRep,
             ILogRep logRep)
         {
             _BookingRep = bookingRep;
             _sMSMessageRep = sMSMessageRep;
+            _settingRep = settingRep;
             _notificationRep = notificationRep;
             _logRep = logRep;
         }
@@ -29,15 +32,14 @@ namespace NobatPlusAPI.Tools
         {
             var booking = await _BookingRep.GetBookingByIdAsync(bookingId);
 
-            if (booking.Result == null) return;
+            var reminderMessage = await _settingRep.GetSettingRowAsync(0, "BookingRemindMessage");
+
+            if (booking.Result == null || reminderMessage.Result == null) return;
 
 
-            string message = $@"
-{booking.Result.Customer.Person.FirstName} عزیز
-یادت نره که فردا {booking.Result.BookingStartDate.ToShamsiString()}
-پیش {booking.Result.Stylist.Person.FirstName} {booking.Result.Stylist.Person.LastName} نوبت داری
-میبینیمت!
-";
+            string message = reminderMessage.Result.Value.ToLower().Replace("{stylistname}", $"{booking.Result.Stylist.Person.FirstName} {booking.Result.Stylist.Person.LastName}").Replace("{bookingtime}", $"{booking.Result.BookingStartDate.Hour}:{booking.Result.BookingStartDate.Minute}")
+                .Replace("{bookingdate}",booking.Result.BookingStartDate.Date.ToString())
+                .Replace("{bookingtime}", $"{booking.Result.BookingStartDate.Hour}:{booking.Result.BookingStartDate.Minute}");
 
 
             #region SendSMS

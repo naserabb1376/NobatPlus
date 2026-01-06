@@ -92,18 +92,17 @@ namespace NobatPlusDATA.DataLayer.Services
                     query = query.Where(x=> x.BookingID == bookingId);
                 }
 
-                query = _context.Payments.Include(x => x.Booking).ThenInclude(x => x.Customer).Include(x => x.Booking).ThenInclude(x => x.Stylist)
-                       .AsNoTracking()
+                query = query
                        .Where(x =>
                            x.BookingID == bookingId &&
                            (
                                (!string.IsNullOrEmpty(x.PaymentStatus.ToString()) && x.PaymentStatus.ToString().Contains(searchText)) ||
                                (!string.IsNullOrEmpty(x.Description) && x.Description.Contains(searchText)) ||
-                               (!string.IsNullOrEmpty(x.ReservationFeeAmount.ToString()) && x.ReservationFeeAmount.ToString().Contains(searchText)) ||
                                (!string.IsNullOrEmpty(x.DepositAmount.ToString()) && x.DepositAmount.ToString().Contains(searchText)) ||
+                               (!string.IsNullOrEmpty(x.AllPaymentAmount.ToString()) && x.AllPaymentAmount.ToString().Contains(searchText)) ||
                                (!string.IsNullOrEmpty(x.TotalServiceAmount.ToString()) && x.TotalServiceAmount.ToString().Contains(searchText)) ||
+                               (!string.IsNullOrEmpty(x.PlarformAmount.ToString()) && x.PlarformAmount.ToString().Contains(searchText)) ||
                                (!string.IsNullOrEmpty(x.StylistAmount.ToString()) && x.StylistAmount.ToString().Contains(searchText)) ||
-                               (!string.IsNullOrEmpty(x.PlatformAmount.ToString()) && x.PlatformAmount.ToString().Contains(searchText)) ||
                                (!string.IsNullOrEmpty(x.PaymentDate.ToString()) && x.PaymentDate.ToString().Contains(searchText)) ||
                                (x.CreateDate.HasValue && x.CreateDate.Value.ToString().Contains(searchText)) ||
                                (x.UpdateDate.HasValue && x.UpdateDate.Value.ToString().Contains(searchText))
@@ -178,5 +177,50 @@ namespace NobatPlusDATA.DataLayer.Services
             return result;
             
         }
+
+        public async Task<RowResultObject<CalcPaymentDTO>> CalculatePaymentAsync(long bookingId)
+        {
+            RowResultObject<CalcPaymentDTO> result = new RowResultObject<CalcPaymentDTO>();
+            try
+            {
+                var services = await (
+                from bs in _context.BookingServices
+                join ss in _context.StylistServices
+                    on new { bs.ServiceManagementID }
+                    equals new { ss.ServiceManagementID }
+                join b in _context.Bookings
+                    on bs.BookingID equals b.ID
+                where bs.BookingID == bookingId
+                      && ss.StylistID == b.StylistID
+                select new
+                {
+                    ss.ServicePrice,
+                    ss.DepositPercent
+                }
+            ).ToListAsync();
+
+                decimal total = services.Sum(x => x.ServicePrice);
+                decimal deposit = services.Sum(x => x.ServicePrice * x.DepositPercent / 100);
+                decimal platform = decimal.Parse(_context.Settings.FirstOrDefault(x => x.Key.ToLower() == "platformamount").Value ?? "0");
+                decimal stylist = total;
+                decimal allPay = total + platform;
+
+
+                result.Result.StylistAmount = stylist;
+                result.Result.DepositAmount = deposit;
+                result.Result.TotalServiceAmount = total;
+                result.Result.AllPaymentAmount = allPay;
+                result.Result.PlatformAmount =  platform ;
+            }
+            catch (Exception ex)
+            {
+                result.Status = false;
+                result.ErrorMessage = $"{ex.Message} - {ex.InnerException?.Message}";
+            }
+            return result;
+
+        }
+
+      
     }
 }

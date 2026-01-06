@@ -13,7 +13,7 @@ namespace NobatPlusDATA.ViewModels
         public string StylistName { get; set; }
         public string SalonName { get; set; }
         public string CustomerName { get; set; }
-        public decimal ReservationFeeAmount { get; set; }
+        public decimal AllPaymentAmount { get; set; }
         public decimal DepositAmount { get; set; }
         public decimal TotalServiceAmount { get; set; }
         public decimal PlatformAmount { get; set; }

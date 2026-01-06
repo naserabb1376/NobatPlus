@@ -87,24 +87,35 @@ namespace NobatPlusDATA.DataLayer.Services
                 IQueryable<PaymentHistory> query = _context.PaymentHistories.Include(x=> x.Payment).Include(x => x.Booking).ThenInclude(x => x.Customer).Include(x => x.Booking).ThenInclude(x => x.Stylist)
                          .AsNoTracking();
 
-                if (bookingId == 0)
+                if (bookingId > 0)
                 {
-                    query = _context.PaymentHistories.Include(x => x.Booking).ThenInclude(x=> x.Customer).Include(x=> x.Booking).ThenInclude(x=> x.Stylist)
-                         .AsNoTracking()
-                         .Where(x =>
-                             (!string.IsNullOrEmpty(x.PaymentMethod) && x.PaymentMethod.Contains(searchText)) ||
-                             (!string.IsNullOrEmpty(x.Description) && x.Description.Contains(searchText)) ||
-                             (!string.IsNullOrEmpty(x.ReservationFeeAmount.ToString()) && x.ReservationFeeAmount.ToString().Contains(searchText)) ||
-                             (!string.IsNullOrEmpty(x.DepositAmount.ToString()) && x.DepositAmount.ToString().Contains(searchText)) ||
-                             (!string.IsNullOrEmpty(x.TotalServiceAmount.ToString()) && x.TotalServiceAmount.ToString().Contains(searchText)) ||
-                             (!string.IsNullOrEmpty(x.StylistAmount.ToString()) && x.StylistAmount.ToString().Contains(searchText)) ||
-                             (!string.IsNullOrEmpty(x.PlatformAmount.ToString()) && x.PlatformAmount.ToString().Contains(searchText)) ||
-                             (!string.IsNullOrEmpty(x.PaymentDate.ToString()) && x.PaymentDate.ToString().Contains(searchText)) ||
-                             (x.CreateDate.HasValue && x.CreateDate.Value.ToString().Contains(searchText)) ||
-                             (x.UpdateDate.HasValue && x.UpdateDate.Value.ToString().Contains(searchText))
-                         );
+                    query = query.Where(x => x.BookingID == bookingId);
                 }
-             
+
+                if (paymentId > 0)
+                {
+                    query = query.Where(x => x.PaymentID == paymentId);
+                }
+
+
+
+                query = query
+                       .Where(x =>
+                           x.BookingID == bookingId &&
+                           (
+                               (!string.IsNullOrEmpty(x.Payment.PaymentStatus.ToString()) && x.Payment.PaymentStatus.ToString().Contains(searchText)) ||
+                               (!string.IsNullOrEmpty(x.Description) && x.Description.Contains(searchText)) ||
+                               (!string.IsNullOrEmpty(x.Payment.DepositAmount.ToString()) && x.Payment.DepositAmount.ToString().Contains(searchText)) ||
+                               (!string.IsNullOrEmpty(x.Payment.AllPaymentAmount.ToString()) && x.Payment.AllPaymentAmount.ToString().Contains(searchText)) ||
+                               (!string.IsNullOrEmpty(x.Payment.TotalServiceAmount.ToString()) && x.Payment.TotalServiceAmount.ToString().Contains(searchText)) ||
+                               (!string.IsNullOrEmpty(x.Payment.PlarformAmount.ToString()) && x.Payment.PlarformAmount.ToString().Contains(searchText)) ||
+                               (!string.IsNullOrEmpty(x.Payment.StylistAmount.ToString()) && x.Payment.StylistAmount.ToString().Contains(searchText)) ||
+                               (!string.IsNullOrEmpty(x.PaymentDate.ToString()) && x.PaymentDate.ToString().Contains(searchText)) ||
+                               (x.CreateDate.HasValue && x.CreateDate.Value.ToString().Contains(searchText)) ||
+                               (x.UpdateDate.HasValue && x.UpdateDate.Value.ToString().Contains(searchText))
+                           )
+                       );
+
                 results.TotalCount = query.Count();
                 results.PageCount = DbTools.GetPageCount(results.TotalCount, pageSize);
                 results.Results = await query.OrderByDescending(x => x.CreateDate)
@@ -125,7 +136,7 @@ namespace NobatPlusDATA.DataLayer.Services
             RowResultObject<PaymentHistory> result = new RowResultObject<PaymentHistory>();
             try
             {
-                result.Result = await _context.PaymentHistories.Include(x => x.Booking).ThenInclude(x => x.Customer).Include(x => x.Booking).ThenInclude(x => x.Stylist)
+                result.Result = await _context.PaymentHistories.Include(x=> x.Payment).Include(x => x.Booking).ThenInclude(x => x.Customer).Include(x => x.Booking).ThenInclude(x => x.Stylist)
                 .AsNoTracking()
                 .SingleOrDefaultAsync(x => x.ID == PaymentHistoryId);
             }
