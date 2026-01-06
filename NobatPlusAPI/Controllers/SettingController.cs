@@ -1,86 +1,85 @@
-﻿using AutoMapper;
-using Domain;
-using Domains;
+﻿using NobatPlusDATA.DataLayer.Repositories;
+using NobatPlusDATA.DataLayer.Services;
+using NobatPlusDATA.Domain;
+using NobatPlusDATA.ResultObjects;
+using NobatPlusDATA.Tools;
+using NobatPlusAPI.Models;
+using NobatPlusAPI.Models.Public;
+using NobatPlusAPI.Models.Setting;
+using NobatPlusAPI.ViewModels;
+using AutoMapper;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
-using NobatPlusAPI.Models;
-using NobatPlusAPI.Models.Authenticate;
-using NobatPlusAPI.Models.PaymentHistory;
-using NobatPlusAPI.Models.Public;
-using NobatPlusDATA.DataLayer.Repositories;
-using NobatPlusDATA.DataLayer.Services;
-using NobatPlusDATA.Domain;
-using NobatPlusDATA.ResultObjects;
-using NobatPlusDATA.Tools;
-using NobatPlusDATA.ViewModels;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
+using static NobatPlusAPI.Tools.ToolBox;
+using Domains;
 
 namespace NobatPlusAPI.Controllers
 {
-    [Route("PaymentHistory")]
+    [Route("Setting")]
     [ApiController]
     [Authorize]
     [Produces("application/json")]
 
-    public class PaymentHistoryController : ControllerBase
+    public class SettingController : ControllerBase
     {
-        IPaymentHistoryRep _PaymentHistoryRep;
+        ISettingRep _SettingRep;
         ILogRep _logRep;
         private readonly IMapper _mapper;
 
 
-        public PaymentHistoryController(IPaymentHistoryRep PaymentHistoryRep,ILogRep logRep, IMapper mapper)
+        public SettingController(ISettingRep SettingRep,ILogRep logRep,IMapper mapper)
         {
-           _PaymentHistoryRep = PaymentHistoryRep;
+           _SettingRep = SettingRep;
            _logRep = logRep;
             _mapper = mapper;
         }
 
-        [HttpPost("GetAllPaymentHistories_Base")]
-        public async Task<ActionResult<ListResultObject<PaymentHistoryVM>>> GetAllPaymentHistories_Base(GetPaymentHistoryListRequestBody requestBody)
+        [HttpPost("GetAllSettings_Base")]
+        public async Task<ActionResult<ListResultObject<SettingVM>>> GetAllSettings_Base(GetSettingListRequestBody requestBody)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(requestBody);
             }
-            var result = await _PaymentHistoryRep.GetAllPaymentHistoriesAsync(requestBody.BookingId,requestBody.PaymentId,requestBody.PageIndex,requestBody.PageSize,requestBody.SearchText,requestBody.SortQuery);
+            var result = await _SettingRep.GetAllSettingsAsync(requestBody.ParentId,requestBody.PageIndex,requestBody.PageSize,requestBody.SearchText,requestBody.SortQuery);
             if (result.Status)
             {
-                var resultVM = _mapper.Map<ListResultObject<PaymentHistoryVM>>(result);
+                var resultVM = _mapper.Map<ListResultObject<SettingVM>>(result);
                 return Ok(resultVM);
             }
             return BadRequest(result);
         }
 
-        [HttpPost("GetPaymentHistoryById_Base")]
-        public async Task<ActionResult<RowResultObject<PaymentHistoryVM>>> GetPaymentHistoryById_Base(GetRowRequestBody requestBody)
+        [HttpPost("GetSettingById_Base")]
+        public async Task<ActionResult<RowResultObject<SettingVM>>> GetSettingById_Base(GetSettingRowRequestBody requestBody)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(requestBody);
             }
-            var result = await _PaymentHistoryRep.GetPaymentHistoryByIdAsync(requestBody.ID);
+            var result = await _SettingRep.GetSettingRowAsync(requestBody.ID,requestBody.Key);
             if (result.Status)
             {
-                var resultVM = _mapper.Map<RowResultObject<PaymentHistoryVM>>(result);
+                var resultVM = _mapper.Map<RowResultObject<SettingVM>>(result);
                 return Ok(resultVM);
             }
             return BadRequest(result);
         }
 
-        [HttpPost("ExistPaymentHistory_Base")]
-        public async Task<ActionResult<BitResultObject>> ExistPaymentHistory_Base(GetRowRequestBody requestBody)
+        [HttpPost("ExistSetting_Base")]
+        public async Task<ActionResult<BitResultObject>> ExistSetting_Base(GetSettingRowRequestBody requestBody)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(requestBody);
             }
-            var result = await _PaymentHistoryRep.ExistPaymentHistoryAsync(requestBody.ID);
+            var result = await _SettingRep.ExistSettingRowAsync(requestBody.ID,requestBody.Key);
             if (string.IsNullOrEmpty(result.ErrorMessage))
             {
                 return Ok(result);
@@ -88,24 +87,36 @@ namespace NobatPlusAPI.Controllers
             return BadRequest(result);
         }
 
-        [HttpPost("AddPaymentHistory_Base")]
-        public async Task<ActionResult<BitResultObject>> AddPaymentHistory_Base(AddEditPaymentHistoryRequestBody requestBody)
+        [HttpPost("AddSetting_Base")]
+        public async Task<ActionResult<BitResultObject>> AddSetting_Base(AddEditSettingRequestBody requestBody)
         {
+            BitResultObject result = new BitResultObject();
+
             if (!ModelState.IsValid)
             {
                 return BadRequest(requestBody);
             }
-            PaymentHistory PaymentHistory = new PaymentHistory()
+
+            var existSetting = await _SettingRep.ExistSettingRowAsync(0,requestBody.Key);
+
+            if (existSetting.Status)
+            {
+                result.Status = existSetting.Status;
+                result.ErrorMessage = "این کلید تنظیمات در سیستم وجود دارد";
+                return BadRequest(result);
+            }
+
+            Setting Setting = new Setting()
             {
                 CreateDate = DateTime.Now.ToShamsi(),
                 UpdateDate = DateTime.Now.ToShamsi(),
-                BookingID = requestBody.BookingID,
-                PaymentID = requestBody.PaymentID,
-                PaymentMethod = requestBody.PaymentMethod,
-                PaymentDate = requestBody.PaymentDate ?? DateTime.Now.ToShamsi(),
-                Description = requestBody.Description,
+                Key = requestBody.Key,
+                Value = requestBody.Value,
+                ParentId = requestBody.ParentId,
+                //OtherLangs = requestBody.OtherLangs ?? "",
+
             };
-            var result = await _PaymentHistoryRep.AddPaymentHistoryAsync(PaymentHistory);
+             result = await _SettingRep.AddSettingAsync(Setting);
             if (result.Status)
             {
                 #region AddLog
@@ -128,33 +139,43 @@ namespace NobatPlusAPI.Controllers
             return BadRequest(result);
         }
 
-        [HttpPut("EditPaymentHistory_Base")]
-        public async Task<ActionResult<BitResultObject>> EditPaymentHistory_Base(AddEditPaymentHistoryRequestBody requestBody)
+        [HttpPut("EditSetting_Base")]
+        public async Task<ActionResult<BitResultObject>> EditSetting_Base(AddEditSettingRequestBody requestBody)
         {
             var result = new BitResultObject();
             if (!ModelState.IsValid)
             {
                 return BadRequest(requestBody);
             }
-            var theRow = await _PaymentHistoryRep.GetPaymentHistoryByIdAsync(requestBody.ID);
+            var theRow = await _SettingRep.GetSettingRowAsync(requestBody.ID);
             if (!theRow.Status)
             {
                 result.Status = theRow.Status;
                 result.ErrorMessage = theRow.ErrorMessage;
             }
 
-            PaymentHistory PaymentHistory = new PaymentHistory()
+            var existSetting = await _SettingRep.ExistSettingRowAsync(0, requestBody.Key);
+
+            if (existSetting.Status && existSetting.ID != theRow.Result.ID)
+            {
+                result.Status = existSetting.Status;
+                result.ErrorMessage = "این کلید تنظیمات در سیستم وجود دارد";
+                return BadRequest(result);
+            }
+
+
+            Setting Setting = new Setting()
             {
                 CreateDate = theRow.Result.CreateDate,
                 UpdateDate = DateTime.Now.ToShamsi(),
                 ID = requestBody.ID,
-                BookingID = requestBody.BookingID,
-                PaymentID = requestBody.PaymentID,
-                PaymentMethod = requestBody.PaymentMethod,
-                PaymentDate = requestBody.PaymentDate ?? DateTime.Now.ToShamsi(),
-                Description = requestBody.Description,
+                Key = requestBody.Key,
+                Value = requestBody.Value,
+                ParentId = requestBody.ParentId,
+                //OtherLangs = requestBody.OtherLangs ?? "",
+
             };
-            result = await _PaymentHistoryRep.EditPaymentHistoryAsync(PaymentHistory);
+            result = await _SettingRep.EditSettingAsync(Setting);
             if (result.Status)
             {
 
@@ -177,14 +198,14 @@ namespace NobatPlusAPI.Controllers
             return BadRequest(result);
         }
 
-        [HttpDelete("DeletePaymentHistory_Base")]
-        public async Task<ActionResult<BitResultObject>> DeletePaymentHistory_Base(GetRowRequestBody requestBody)
+        [HttpDelete("DeleteSetting_Base")]
+        public async Task<ActionResult<BitResultObject>> DeleteSetting_Base(GetRowRequestBody requestBody)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(requestBody);
             }
-            var result = await _PaymentHistoryRep.RemovePaymentHistoryAsync(requestBody.ID);
+            var result = await _SettingRep.RemoveSettingAsync(requestBody.ID);
             if (result.Status)
             {
 

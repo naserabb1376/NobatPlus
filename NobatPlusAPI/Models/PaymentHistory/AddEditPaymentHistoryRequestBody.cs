@@ -12,13 +12,10 @@ namespace NobatPlusAPI.Models.PaymentHistory
         [Range(1, long.MaxValue, ErrorMessage = "مقدار {0} باید بزرگتر از 0 باشد")]
         public long BookingID { get; set; }
 
-        //[Display(Name = "مبلغ حق نوبت")]
-        //[Required(ErrorMessage = "لطفا {0} را وارد کنید")]
-        //public decimal ReservationFeeAmount { get; set; }
-
-        [Display(Name = "سهم پلتفرم")]
+        [Display(Name = "کد پرداخت")]
         [Required(ErrorMessage = "لطفا {0} را وارد کنید")]
-        public decimal PlatformAmount { get; set; }
+        [Range(1, long.MaxValue, ErrorMessage = "مقدار {0} باید بزرگتر از 0 باشد")]
+        public long PaymentID { get; set; }
 
         [Display(Name = "تاریخ پرداخت")]
         [Required(ErrorMessage = "لطفا {0} را وارد کنید")]

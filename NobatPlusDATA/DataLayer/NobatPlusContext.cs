@@ -56,6 +56,7 @@ namespace NobatPlusDATA.DataLayer
         public DbSet<RateHistory> RateHistories { get; set; }
         public DbSet<Role> Roles { get; set; }
         public DbSet<StylistPacific> StylistPacifics { get; set; }
+        public DbSet<Setting> Settings { get; set; }
 
 
         // Views
@@ -181,6 +182,24 @@ namespace NobatPlusDATA.DataLayer
                 .WithMany(s => s.Reviews)
                 .HasForeignKey(cd => cd.CustomerID)
                 .OnDelete(DeleteBehavior.NoAction);
+
+            modelBuilder.Entity<Payment>()
+        .HasOne(p => p.Booking)
+        .WithMany(b => b.Payments)
+        .HasForeignKey(p => p.BookingID)
+        .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<PaymentHistory>()
+                .HasOne(ph => ph.Payment)
+                .WithMany()
+                .HasForeignKey(ph => ph.PaymentID)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<PaymentHistory>()
+                .HasOne(ph => ph.Booking)
+                .WithMany()
+                .HasForeignKey(ph => ph.BookingID)
+                .OnDelete(DeleteBehavior.NoAction); // 👈 مهم
 
             modelBuilder.Entity<RateHistory>()
      .HasOne(r => r.Customer)

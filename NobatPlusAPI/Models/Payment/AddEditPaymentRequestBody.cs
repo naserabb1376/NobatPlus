@@ -12,14 +12,6 @@ namespace NobatPlusAPI.Models.Payment
         [Range(1, long.MaxValue, ErrorMessage = "مقدار {0} باید بزرگتر از 0 باشد")]
         public long BookingID { get; set; }
 
-        //[Display(Name = "مبلغ حق نوبت")]
-        //[Required(ErrorMessage = "لطفا {0} را وارد کنید")]
-        //public decimal ReservationFeeAmount { get; set; }
-
-        [Display(Name = "سهم پلتفرم")]
-        [Required(ErrorMessage = "لطفا {0} را وارد کنید")]
-        public decimal PlatformAmount { get; set; }
-
         [Display(Name = "تاریخ پرداخت")]
         [Required(ErrorMessage = "لطفا {0} را وارد کنید")]
         public DateTime? PaymentDate { get; set; }

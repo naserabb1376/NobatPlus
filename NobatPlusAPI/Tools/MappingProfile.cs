@@ -2,6 +2,7 @@
 using AutoMapper;
 using Domain;
 using Microsoft.AspNetCore.JsonPatch.Adapters;
+using NobatPlusAPI.ViewModels;
 using NobatPlusDATA.Domain;
 using NobatPlusDATA.ResultObjects;
 using NobatPlusDATA.ViewModels;
@@ -82,6 +83,10 @@ namespace NobatPlusAPI.Tools
          .ForMember(dest => dest.CustomerID, opt => opt.MapFrom(src => src.Booking.Customer.PersonID))
          .ForMember(dest => dest.StylistName, opt => opt.MapFrom(src => src.Booking.Stylist.Person.FirstName + " " + src.Booking.Stylist.Person.LastName))
          .ForMember(dest => dest.CustomerName, opt => opt.MapFrom(src => src.Booking.Customer.Person.FirstName + " " + src.Booking.Customer.Person.LastName))
+         .ForMember(dest => dest.DepositAmount, opt => opt.MapFrom(src => src.Payment.DepositAmount))
+         .ForMember(dest => dest.PlatformAmount, opt => opt.MapFrom(src => src.Payment.PlarformAmount))
+         .ForMember(dest => dest.StylistAmount, opt => opt.MapFrom(src => src.Payment.StylistAmount))
+         .ForMember(dest => dest.TotalServiceAmount, opt => opt.MapFrom(src => src.Payment.TotalServiceAmount))
          ;
 
             CreateMap<CustomerDiscount, CustomerDiscountVM>()
@@ -152,6 +157,7 @@ namespace NobatPlusAPI.Tools
 .ForMember(dest => dest.PhoneNumber, opt => opt.MapFrom(src => src.Person.PhoneNumber))
            ;
             CreateMap<City, CityVM>();
+            CreateMap<Setting, SettingVM>();
             CreateMap<Person, PersonVM>();
             CreateMap<ServiceManagementDTO, ServiceManagementVM>();
 

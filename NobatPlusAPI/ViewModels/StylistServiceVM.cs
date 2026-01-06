@@ -13,7 +13,7 @@ namespace NobatPlusDATA.ViewModels
         public string StylistName { get; set; }
         public string SalonName { get; set; }
         public string ServiceTitle { get; set; }
-        public long ServicePrice { get; set; }
+        public decimal ServicePrice { get; set; }
         public TimeSpan ServiceDuration { get; set; }
         public int DepositPercent { get; set; }
 

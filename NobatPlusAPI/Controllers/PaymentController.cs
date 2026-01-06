@@ -90,21 +90,36 @@ namespace NobatPlusAPI.Controllers
         [HttpPost("AddPayment_Base")]
         public async Task<ActionResult<BitResultObject>> AddPayment_Base(AddEditPaymentRequestBody requestBody)
         {
+            var result = new BitResultObject();
+
             if (!ModelState.IsValid)
             {
                 return BadRequest(requestBody);
             }
+            var calcPayment = await _PaymentRep.CalculatePaymentAsync(requestBody.BookingID);
+
+            if (!calcPayment.Status)
+            {
+                result.Status = calcPayment.Status;
+                result.ErrorMessage = calcPayment.ErrorMessage;
+                return BadRequest(result);
+
+            }
+
             Payment Payment = new Payment()
             {
                 CreateDate = DateTime.Now.ToShamsi(),
                 UpdateDate = DateTime.Now.ToShamsi(),
                 BookingID = requestBody.BookingID,
-                Amount = requestBody.Amount,
+                DepositAmount = calcPayment.Result.DepositAmount,
+                TotalServiceAmount = calcPayment.Result.TotalServiceAmount,
+                PlarformAmount = calcPayment.Result.PlatformAmount,
+                StylistAmount = calcPayment.Result.StylistAmount,
                 PaymentStatus = requestBody.PaymentStatus,
                 PaymentDate = requestBody.PaymentDate ?? DateTime.Now.ToShamsi(),
                 Description = requestBody.Description,
             };
-            var result = await _PaymentRep.AddPaymentAsync(Payment);
+             result = await _PaymentRep.AddPaymentAsync(Payment);
             if (result.Status)
             {
                 #region AddLog
@@ -140,6 +155,17 @@ namespace NobatPlusAPI.Controllers
             {
                 result.Status = theRow.Status;
                 result.ErrorMessage = theRow.ErrorMessage;
+                return BadRequest(result);
+            }
+
+            var calcPayment = await _PaymentRep.CalculatePaymentAsync(requestBody.BookingID);
+
+            if (!calcPayment.Status)
+            {
+                result.Status = calcPayment.Status;
+                result.ErrorMessage = calcPayment.ErrorMessage;
+                return BadRequest(result);
+
             }
 
             Payment Payment = new Payment()
@@ -148,7 +174,10 @@ namespace NobatPlusAPI.Controllers
                 UpdateDate = DateTime.Now.ToShamsi(),
                 ID = requestBody.ID,
                 BookingID = requestBody.BookingID,
-                Amount = requestBody.Amount,
+                DepositAmount = calcPayment.Result.DepositAmount,
+                TotalServiceAmount = calcPayment.Result.TotalServiceAmount,
+                PlarformAmount = calcPayment.Result.PlatformAmount,
+                StylistAmount = calcPayment.Result.StylistAmount,
                 PaymentStatus = requestBody.PaymentStatus,
                 PaymentDate = requestBody.PaymentDate ?? DateTime.Now.ToShamsi(),
                 Description = requestBody.Description,
@@ -205,5 +234,8 @@ namespace NobatPlusAPI.Controllers
             }
             return BadRequest(result);
         }
+
+
+
     }
 }

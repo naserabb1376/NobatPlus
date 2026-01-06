@@ -18,7 +18,7 @@ namespace NobatPlusAPI.Models.StylistService
 
         [Display(Name = "قیمت خدمت")]
         [Required(ErrorMessage = "لطفا {0} را وارد کنید")]
-        public long ServicePrice { get; set; }
+        public decimal ServicePrice { get; set; }
 
         [Display(Name = "درصد بیعانه")]
         [Required(ErrorMessage = "لطفا {0} را وارد کنید")]
