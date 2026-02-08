@@ -194,8 +194,7 @@ namespace NobatPlusDATA.DataLayer.Services
 
                 results.Results = await customerQuery
                     .OrderByDescending(x => x.LastBookingDate)
-                    .Skip((pageIndex - 1) * pageSize)
-                    .Take(pageSize)
+                    .SortBy(sortQuery).ToPaging(pageIndex,pageSize)
                     .ToListAsync();
             }
             catch (Exception ex)

@@ -142,8 +142,6 @@ namespace NobatPlusDATA.DataLayer.Services
                 results.Results = await query
                     .AsNoTracking()
                     .OrderByDescending(x => x.CreateDate)
-                    .SortBy(sortQuery)
-                    .ToPaging(pageIndex, pageSize)
                      .Select(r => new ServiceManagementDTO
                      {
                          ID = r.ID,
@@ -155,6 +153,8 @@ namespace NobatPlusDATA.DataLayer.Services
                          ServiceParentID = r.ServiceParentID,
                          StylistCount = r.StylistServices.Count,
                      })
+                    .SortBy(sortQuery)
+                    .ToPaging(pageIndex, pageSize)
                     .ToListAsync();
             }
             catch (Exception ex)

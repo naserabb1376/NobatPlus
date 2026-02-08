@@ -96,54 +96,56 @@ namespace NobatPlusDATA.DataLayer.Services
         }
 
         public async Task<ListResultObject<StylistDTO>> GetAllStylistsAsync(
-    long parentId = 0,
-    long serviceManagementId = 0,
-    long jobTypeId = 0,
-    long discountId = 0,
-    long cityId = 0,
-    int pageIndex = 1,
-    int pageSize = 20,
-    string searchText = "",
-    string sortQuery = "",
-    FindLocationRequestBody findLocation = null)
+            long parentId = 0,
+            long serviceManagementId = 0,
+            long jobTypeId = 0,
+            long discountId = 0,
+            long cityId = 0,
+            int pageIndex = 1,
+            int pageSize = 20,
+            string searchText = "",
+            string sortQuery = "",
+            FindLocationRequestBody findLocation = null)
         {
-            ListResultObject<StylistDTO> results = new ListResultObject<StylistDTO>();
+            var results = new ListResultObject<StylistDTO>();
 
             try
             {
-                IQueryable<Stylist> query;
+                // ✅ همیشه از Entity Root شروع کن تا Include معتبر بماند
+                IQueryable<Stylist> query = _context.Stylists.AsQueryable();
 
-                // 🟡 منبع داده اصلی بر اساس پارامترهای ورودی
+                // 🟡 فیلترهای اصلی بر اساس پارامترها
                 if (serviceManagementId > 0)
                 {
-                    query = _context.StylistServices
-                        .Where(s => s.ServiceManagementID == serviceManagementId)
-                        .Select(s => s.Stylist);
+                    query = query.Where(st =>
+                        st.StylistServices.Any(ss => ss.ServiceManagementID == serviceManagementId));
                 }
                 else if (jobTypeId > 0)
                 {
-                    query = _context.Stylists.Where(x => x.JobTypeID == jobTypeId);
+                    query = query.Where(x => x.JobTypeID == jobTypeId);
                 }
                 else if (discountId > 0)
                 {
-                    var fromDiscountAssignments = _context.DiscountAssignments
-                        .Where(d => d.DiscountId == discountId)
-                        .Select(d => d.Stylist);
+                    // ✅ به جای Select(d => d.Stylist) از ID ها استفاده کن (entity-root را حفظ می‌کند)
+                    var stylistIds =
+       _context.DiscountAssignments
+           .Where(d => d.DiscountId == discountId && d.StylistId != null)
+           .Select(d => d.StylistId!.Value)
+       .Union(
+       _context.ServiceDiscounts
+           .Where(d => d.DiscountId == discountId && d.StylistId != null)
+           .Select(d => d.StylistId!.Value))
+       .Union(
+       _context.CustomerDiscounts
+           .Where(d => d.DiscountId == discountId && d.StylistId != null)
+           .Select(d => d.StylistId))
+       .Distinct();
 
-                    var fromServiceDiscounts = _context.ServiceDiscounts
-                        .Where(d => d.DiscountId == discountId)
-                        .Select(d => d.Stylist);
 
-                    var fromCustomerDiscounts = _context.CustomerDiscounts
-                        .Where(d => d.DiscountId == discountId)
-                        .Select(d => d.Stylist);
-
-                    query = fromDiscountAssignments.Union(fromServiceDiscounts).Union(fromCustomerDiscounts);
+                    query = query.Where(st => stylistIds.Contains(st.ID));
                 }
                 else
                 {
-                    query = _context.Stylists.AsQueryable();
-
                     if (parentId > 0)
                     {
                         if (parentId >= 0)
@@ -153,27 +155,44 @@ namespace NobatPlusDATA.DataLayer.Services
                     }
                 }
 
-                // 🧭 Include های مشترک
+                // ✅ اگر cityId داری (تو امضای متد هست ولی قبلاً استفاده نشده بود)
+                if (cityId > 0)
+                {
+                    query = query.Where(x =>
+                        x.Person != null &&
+                        x.Person.Address != null &&
+                        x.Person.Address.CityID == cityId);
+                }
+
+                // 🧭 Include های مشترک (الان معتبر است)
                 query = query
                     .Include(x => x.Person).ThenInclude(x => x.Address).ThenInclude(x => x.City)
                     .Include(x => x.JobType)
                     .Include(x => x.StylistServices).ThenInclude(x => x.ServiceManagement)
-                    .Include(x => x.WorkTimes).Include(x => x.SocialNetworks)
+                    .Include(x => x.WorkTimes)
+                    .Include(x => x.SocialNetworks)
                     .AsNoTracking();
 
                 // 📍 فیلتر موقعیت مکانی
                 if (findLocation != null)
                 {
                     double personLat = 0, personLng = 0;
+
                     query = query.Where(p =>
                         p.Person.Address != null &&
                         double.TryParse(p.Person.Address.AddressLocationVerticalPoint, out personLat) &&
                         double.TryParse(p.Person.Address.AddressLocationHorizentalPoint, out personLng) &&
-                        GeoHelper.CalculateDistance(findLocation.LocationLatitude, findLocation.LocationLongitude, personLat, personLng) <= findLocation.RadiusKm);
+                        GeoHelper.CalculateDistance(
+                            findLocation.LocationLatitude,
+                            findLocation.LocationLongitude,
+                            personLat,
+                            personLng
+                        ) <= findLocation.RadiusKm
+                    );
                 }
 
-                // 🔍 فیلتر سرچ (مشترک)
-                if (!string.IsNullOrEmpty(searchText))
+                // 🔍 فیلتر سرچ
+                if (!string.IsNullOrWhiteSpace(searchText))
                 {
                     searchText = searchText.Trim();
 
@@ -188,13 +207,12 @@ namespace NobatPlusDATA.DataLayer.Services
                         (x.Person.FirstName != null && x.Person.FirstName.Contains(searchText)) ||
                         (x.Person.LastName != null && x.Person.LastName.Contains(searchText)) ||
 
-// جستجوی ترکیبی نام و نام خانوادگی
-(x.Person.FirstName != null && x.Person.LastName != null &&
- (
-     (x.Person.FirstName + " " + x.Person.LastName).Contains(searchText) ||
-     (x.Person.FirstName + x.Person.LastName).Contains(searchText)
- ))
- ||
+                        // جستجوی ترکیبی نام و نام خانوادگی
+                        (x.Person.FirstName != null && x.Person.LastName != null &&
+                         (
+                             (x.Person.FirstName + " " + x.Person.LastName).Contains(searchText) ||
+                             (x.Person.FirstName + x.Person.LastName).Contains(searchText)
+                         )) ||
 
                         (x.Person.NaCode != null && x.Person.NaCode.Contains(searchText)) ||
                         (x.Person.PhoneNumber != null && x.Person.PhoneNumber.Contains(searchText)) ||
@@ -203,30 +221,26 @@ namespace NobatPlusDATA.DataLayer.Services
                         (x.Person.Address.City.CityName != null && x.Person.Address.City.CityName.Contains(searchText)) ||
                         (x.JobType.JobTitle != null && x.JobType.JobTitle.Contains(searchText)) ||
                         (x.Specialty != null && x.Specialty.Contains(searchText)) ||
-(
-    tokens.Count == 1
-        ? x.StylistServices.Any(s =>
-            s.ServiceManagement.ServiceName.Contains(tokens[0])
-          )
-        : tokens.All(token =>
-            x.StylistServices.Any(s =>
-                s.ServiceManagement.ServiceName.Contains(token)
-            )
-          )
-)
-||
+
+                        (
+                            tokens.Count == 1
+                                ? x.StylistServices.Any(s => s.ServiceManagement.ServiceName.Contains(tokens[0]))
+                                : tokens.All(token =>
+                                    x.StylistServices.Any(s => s.ServiceManagement.ServiceName.Contains(token))
+                                  )
+                        ) ||
+
                         (x.Description != null && x.Description.Contains(searchText))
                     );
                 }
 
-                // 📊 شمارش و صفحه‌بندی
+                // ✅ شمارش و صفحه‌بندی (حالا CountAsync خطا نمی‌دهد)
                 results.TotalCount = await query.CountAsync();
                 results.PageCount = DbTools.GetPageCount(results.TotalCount, pageSize);
 
-                // 🧾 خروجی با DTO
+                // 🧾 خروجی DTO
                 results.Results = await query
                     .OrderByDescending(x => x.CreateDate)
-                    .SortBy(sortQuery)
                     .ToPaging(pageIndex, pageSize)
                     .Select(r => new StylistDTO
                     {
@@ -250,76 +264,77 @@ namespace NobatPlusDATA.DataLayer.Services
                         WorkShopInteractMode = r.WorkShopInteractMode ?? "",
                         WorkShopRentAmount = r.WorkShopRentAmount,
                         YearsOfExperience = r.YearsOfExperience,
-                        StylistImagePath = _context.Images.Any(x=> x.EntityType.ToLower() == "stylist" && x.ForeignKeyId == r.ID) ? $"https://nobatplusapi.mtcoding.ir/FileCenter/downloadfile?fileType=images&rowId=0&foreignkeyId={r.ID}&entityName=stylist" : "",
-                        StylistServices = r.StylistServices
-    .Select(s => new StylistService
-    {
-        StylistID = s.StylistID,
-        ServiceManagementID = s.ServiceManagementID,
-        ServicePrice = s.ServicePrice,
-        ServiceDuration = s.ServiceDuration,
-        DepositPercent = s.DepositPercent,
-        ServiceManagement = s.ServiceManagement
-    })
-    .ToList(),
-                        SocialNetworks = r.SocialNetworks
-    .Select(s => new SocialNetworkDTO
-    {
-        AccountLink = s.AccountLink,
-        PhoneNumber = s.PhoneNumber,
-        SocialNetworkIcon = s.SocialNetworkIcon,
-        SocialNetworkName = s.SocialNetworkName 
-    })
-    .ToList(),
-                        WorkTimes = r.WorkTimes
-    .Select(s => new WorkTimeDTO
-    {
-        DayOfWeek = s.DayOfWeek,
-        WorkStartTime = s.WorkStartTime,
-        WorkEndTime = s.WorkEndTime,
-    })
-    .ToList(),
 
-                        // محاسبه امتیاز آرایشگر
+                        StylistImagePath =
+                            _context.Images.Any(x => x.EntityType.ToLower() == "stylist" && x.ForeignKeyId == r.ID)
+                                ? $"https://nobatplusapi.mtcoding.ir/FileCenter/downloadfile?fileType=images&rowId=0&foreignkeyId={r.ID}&entityName=stylist"
+                                : "",
+
+                        StylistServices = r.StylistServices
+                            .Select(s => new StylistService
+                            {
+                                StylistID = s.StylistID,
+                                ServiceManagementID = s.ServiceManagementID,
+                                ServicePrice = s.ServicePrice,
+                                ServiceDuration = s.ServiceDuration,
+                                DepositPercent = s.DepositPercent,
+                                ServiceManagement = s.ServiceManagement
+                            })
+                            .ToList(),
+
+                        SocialNetworks = r.SocialNetworks
+                            .Select(s => new SocialNetworkDTO
+                            {
+                                AccountLink = s.AccountLink,
+                                PhoneNumber = s.PhoneNumber,
+                                SocialNetworkIcon = s.SocialNetworkIcon,
+                                SocialNetworkName = s.SocialNetworkName
+                            })
+                            .ToList(),
+
+                        WorkTimes = r.WorkTimes
+                            .Select(s => new WorkTimeDTO
+                            {
+                                DayOfWeek = s.DayOfWeek,
+                                WorkStartTime = s.WorkStartTime,
+                                WorkEndTime = s.WorkEndTime
+                            })
+                            .ToList(),
+
                         AvgScoreForStylist = _context.RateHistories
                             .Where(x => x.StylistID == r.ID)
                             .Any()
-                                ? _context.RateHistories.Where(x => x.StylistID == r.ID).Average(r => r.RateScore)
+                                ? _context.RateHistories.Where(x => x.StylistID == r.ID).Average(rr => rr.RateScore)
                                 : 0,
+
                         RecommendPercent = _context.RateHistories
-    .Where(x => x.StylistID == r.ID && x.RateQuestionID == 5)
-    .Any()
-        ? (
-            _context.RateHistories.Count(x =>
-                x.StylistID == r.ID &&
-                x.RateQuestionID == 5 &&
-                x.RateScore == 5.0
-            ) * 100.0
-            /
-            _context.RateHistories.Count(x =>
-                x.StylistID == r.ID &&
-                x.RateQuestionID == 5
-            )
-          )
-        : 0,
+                            .Where(x => x.StylistID == r.ID && x.RateQuestionID == 5)
+                            .Any()
+                                ? (
+                                    _context.RateHistories.Count(x => x.StylistID == r.ID && x.RateQuestionID == 5 && x.RateScore == 5.0) * 100.0
+                                    /
+                                    _context.RateHistories.Count(x => x.StylistID == r.ID && x.RateQuestionID == 5)
+                                  )
+                                : 0,
 
-
-                                 TodayBookingsCount = _context.Bookings
-                    .Count(b => b.StylistID == r.ID && b.BookingDate.Date == DateTime.Today),
+                        TodayBookingsCount = _context.Bookings
+                            .Count(b => b.StylistID == r.ID && b.BookingDate.Date == DateTime.Today),
 
                         TotalBookingsCount = _context.Bookings
-                    .Count(b => b.StylistID == r.ID),
+                            .Count(b => b.StylistID == r.ID),
 
                         TotalCustomersCount = _context.Bookings
-                    .Where(b => b.StylistID == r.ID)
-                    .Select(b => b.CustomerID)
-                    .Distinct()
-                    .Count(),
-                    IsOnLeaveNow = _context.StylistPacifics
-    .Any(p => p.StylistID == r.ID &&
-              DateTime.Now >= p.PacificStartDate &&
-              DateTime.Now <= p.PacificEndDate)
+                            .Where(b => b.StylistID == r.ID)
+                            .Select(b => b.CustomerID)
+                            .Distinct()
+                            .Count(),
+
+                        IsOnLeaveNow = _context.StylistPacifics
+                            .Any(p => p.StylistID == r.ID &&
+                                      DateTime.Now >= p.PacificStartDate &&
+                                      DateTime.Now <= p.PacificEndDate)
                     })
+                    .SortBy(sortQuery)
                     .ToListAsync();
             }
             catch (Exception ex)
@@ -330,6 +345,7 @@ namespace NobatPlusDATA.DataLayer.Services
 
             return results;
         }
+
 
 
         public async Task<RowResultObject<StylistDTO>> GetStylistByIdAsync(long StylistId)

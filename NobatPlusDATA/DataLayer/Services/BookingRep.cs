@@ -205,6 +205,7 @@ namespace NobatPlusDATA.DataLayer.Services
          Customer = b.Customer
      }
  )
+ .SortBy(sortQuery)
  .ToPaging(pageIndex, pageSize)
  .ToListAsync();
 
