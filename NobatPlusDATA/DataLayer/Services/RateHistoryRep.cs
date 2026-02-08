@@ -132,8 +132,6 @@ namespace NobatPlusDATA.DataLayer.Services
 
                 results.Results = await query
                     .OrderByDescending(x => x.CreateDate)
-                    .SortBy(sortQuery)
-                    .ToPaging(pageIndex, pageSize)
                     .Select(r => new RateHistoryDTO
                     {
                         ID = r.ID,
@@ -158,6 +156,8 @@ namespace NobatPlusDATA.DataLayer.Services
                             .Where(x => x.StylistID == r.StylistID)
                             .Average(x => x.RateScore)
                     })
+                     .SortBy(sortQuery)
+                    .ToPaging(pageIndex, pageSize)
                     .ToListAsync();
             }
             catch (Exception ex)
