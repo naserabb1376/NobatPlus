@@ -108,7 +108,7 @@ namespace NobatPlusDATA.DataLayer.Services
               .Include(x => x.Booking).ThenInclude(x => x.Stylist).ThenInclude(x => x.Person)
               .Include(x => x.Customer).ThenInclude(x => x.Person);
 
-                if (RoleId != 4)
+                if (RoleId > 0 && RoleId != 4)
                 {
                     query = query.Where(x => x.IsAccepted);
                 }
@@ -167,7 +167,7 @@ namespace NobatPlusDATA.DataLayer.Services
                 .Include(x => x.Customer).ThenInclude(x => x.Person)
                 .SingleOrDefaultAsync(x => x.ID == ReviewId);
 
-                if (RoleId != 4 && !result.Result.IsAccepted)
+                if ((RoleId > 0 && RoleId != 4) && !result.Result.IsAccepted)
                 {
                     result.Result = null;
                     throw new Exception("شما دسترسی لازم برای انجام این عملیات را ندارید");
