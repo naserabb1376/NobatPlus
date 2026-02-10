@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using MTPermissionCenter.Abstractions;
 using NobatPlusDATA.DataLayer.Repositories;
 using NobatPlusDATA.Domain;
 using NobatPlusDATA.ResultObjects;
@@ -12,7 +13,7 @@ using System.Threading.Tasks;
 
 namespace NobatPlusDATA.DataLayer.Services
 {
-    public class PersonRep : IPersonRep
+    public class PersonRep : IPersonRep,IUserRoleProvider
     {
 
         private NobatPlusContext _context;
@@ -176,6 +177,14 @@ namespace NobatPlusDATA.DataLayer.Services
             }
             return result;
 
+        }
+
+        public async Task<long?> GetUserRoleIdAsync(long userId, CancellationToken ct = default)
+        {
+            return await _context.Persons.AsNoTracking()
+                       .Where(u => u.ID == userId)
+                       .Select(u => (long?)u.RoleId)
+                       .SingleOrDefaultAsync(ct);
         }
     }
 }

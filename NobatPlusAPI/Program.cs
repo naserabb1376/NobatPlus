@@ -7,11 +7,15 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using MTPermissionCenter.Abstractions;
+using MTPermissionCenter.AspNetCore;
+using MTPermissionCenter.EFCore;
 using Newtonsoft.Json;
 using NobatPlusAPI.DataLayer.Services;
 using NobatPlusAPI.Tools;
 using NobatPlusDATA.DataLayer;
 using NobatPlusDATA.DataLayer.Repositories;
+using NobatPlusDATA.DataLayer.Services;
 using NobatPlusDATA.DataLayer.Services;
 using NobatPlusDATA.Tools;
 using NobatPlusTokenDB.DataLayer;
@@ -158,7 +162,7 @@ namespace NobatPlusAPI
 
             #endregion
 
-
+          //  builder.Services.AddMTPermissionCenter();
 
             #region ImportDbServices
 
@@ -197,8 +201,20 @@ namespace NobatPlusAPI
             builder.Services.AddScoped<IRateQuestionRep, RateQuestionRep>();
             builder.Services.AddScoped<IRateHistoryRep, RateHistoryRep>();
             builder.Services.AddScoped<ISettingRep, SettingRep>();
+            builder.Services.AddScoped<IUserRoleProvider, PersonRep>();
+            builder.Services.AddScoped<IPermissionRep, PermissionRep>();
+            builder.Services.AddScoped<IPermissionRoleRep, PermissionRoleRep>();
+            builder.Services.AddScoped<IUserPermissionRep, UserPermissionRep>();
 
             #endregion ImportDbServices
+
+
+            #region ImportMTPermissionCenterServices
+
+            builder.Services.AddScoped<IPermissionInvalidationService, PermissionInvalidationService>();
+            builder.Services.AddScoped<IPermissionService, EfPermissionService<NobatPlusContext>>();
+
+            #endregion ImportMTPermissionCenterServices
 
             builder.Services.AddAuthentication(options =>
             {
@@ -266,6 +282,9 @@ namespace NobatPlusAPI
             app.UseRouting();
             app.UseAuthentication();
             app.UseAuthorization();
+
+            // IMPORTANT: after authentication
+            //app.UseMTPermissionCenter();
 
             //Controller/Action/Id?
             app.UseEndpoints(endpoints =>

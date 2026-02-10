@@ -1,7 +1,7 @@
 ﻿
 using Domains;
 
-namespace AITechWebAPI.ViewModels
+namespace NobatPlusAPI.ViewModels
 {
     public class AddressVM : BaseEntity
     {

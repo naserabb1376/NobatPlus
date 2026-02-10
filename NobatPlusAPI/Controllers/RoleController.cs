@@ -1,4 +1,4 @@
-﻿using AITechWebAPI.ViewModels;
+﻿using NobatPlusAPI.ViewModels;
 using AutoMapper;
 using Domains;
 using Microsoft.AspNetCore.Authentication;
@@ -17,7 +17,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 
-namespace AITechWebAPI.Controllers
+namespace NobatPlusAPI.Controllers
 {
     [Route("Role")]
     [ApiController]

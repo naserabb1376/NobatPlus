@@ -13,7 +13,7 @@
 
   <ItemGroup>
     <PackageReference Include="AutoMapper" Version="15.0.1" />
-    <PackageReference Include="Azure.Identity" Version="1.16.0" />
+    <PackageReference Include="Azure.Identity" Version="1.17.1" />
     <PackageReference Include="Hangfire" Version="1.8.21" />
     <PackageReference Include="Hangfire.AspNetCore" Version="1.8.21" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.7" />
@@ -93,6 +93,18 @@
     <Folder Include="FileCenter\Stylist\Files\Public\" />
     <Folder Include="FileCenter\Stylist\Images\Public\" />
     <Folder Include="wwwroot\js\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="MTPermissionCenter.Abstractions">
+      <HintPath>..\..\MTPermissionCenter\MTPermissionCenter.AspNetCore\bin\Release\net8.0\MTPermissionCenter.Abstractions.dll</HintPath>
+    </Reference>
+    <Reference Include="MTPermissionCenter.AspNetCore">
+      <HintPath>..\..\MTPermissionCenter\MTPermissionCenter.AspNetCore\bin\Release\net8.0\MTPermissionCenter.AspNetCore.dll</HintPath>
+    </Reference>
+    <Reference Include="MTPermissionCenter.EFCore">
+      <HintPath>..\..\MTPermissionCenter\MTPermissionCenter.EFCore\bin\Release\net8.0\MTPermissionCenter.EFCore.dll</HintPath>
+    </Reference>
   </ItemGroup>
 
 </Project>

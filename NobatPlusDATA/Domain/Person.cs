@@ -1,5 +1,6 @@
 ﻿using Domain;
 using Domains;
+using MTPermissionCenter.Abstractions;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
@@ -9,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace NobatPlusDATA.Domain
 {
-    public class Person : BaseEntity
+    public class Person : BaseEntity,IHasPermissionVersion
     {
         public string FirstName { get; set; }
         public string LastName { get; set; }
@@ -26,6 +27,7 @@ namespace NobatPlusDATA.Domain
         public long? AddressID { get; set; }
         public Address? Address { get; set; }
         public string? NaCode { get; set; }
+        public long PermissionsVersion { get; set; } = 1;
         public bool IsActive { get; set; }
         public DateTime DateOfBirth { get; set; }
 
