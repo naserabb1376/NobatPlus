@@ -116,6 +116,7 @@ namespace NobatPlusAPI.Tools
             new Claim("userId", login.PersonID.ToString()),
             new Claim("firstName", login.Person.FirstName),
             new Claim("lastName", login.Person.LastName),
+            new Claim("permVer", login.Person.PermissionsVersion.ToString()),
             new Claim("Role", login.Person.RoleId.ToString())
         };
 

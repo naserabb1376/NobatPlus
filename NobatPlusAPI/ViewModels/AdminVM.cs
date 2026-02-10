@@ -1,7 +1,7 @@
 ﻿using Domains;
 using NobatPlusDATA.Domain;
 
-namespace AITechWebAPI.ViewModels
+namespace NobatPlusAPI.ViewModels
 {
     public class AdminVM : BaseEntity
     {

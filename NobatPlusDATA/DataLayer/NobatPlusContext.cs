@@ -1,6 +1,8 @@
 ﻿using Domain;
 using Domains;
 using Microsoft.EntityFrameworkCore;
+using MTPermissionCenter.EFCore;
+using MTPermissionCenter.EFCore.Entities;
 using NobatPlusDATA.Domain;
 using NobatPlusDATA.Tools;
 using NobatPlusDATA.Views;
@@ -63,6 +65,15 @@ namespace NobatPlusDATA.DataLayer
 
         public DbSet<V_Customer> V_Customers { get; set; }
 
+
+        // MTPermissionCenter
+
+        public DbSet<MTPermissionCenter_Permission> Permissions { get; set; }
+        public DbSet<MTPermissionCenter_PermissionRole> PermissionRoles { get; set; }
+        public DbSet<MTPermissionCenter_UserPermission> UserPermissions { get; set; }
+
+
+
         //protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         //{
         //    MainDbConfigurationHelper configurationHelper = new MainDbConfigurationHelper();
@@ -72,6 +83,13 @@ namespace NobatPlusDATA.DataLayer
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            // dynamic auth config
+            modelBuilder.AddMTPermissionCenter();
+
+            // demo config
+            modelBuilder.Entity<Role>().HasIndex(x => x.Name).IsUnique();
+
+
             // تعریف کلیدهای ترکیبی
             modelBuilder.Entity<BookingService>()
                 .HasKey(bs => new { bs.BookingID, bs.ServiceManagementID });

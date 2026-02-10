@@ -9,9 +9,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Net.Sockets;
-using NobatPlusDATA.DataLayer;
 
-namespace AITechDATA.DataLayer.Services
+namespace NobatPlusDATA.DataLayer.Services
 {
     public class SettingRep : ISettingRep
     {

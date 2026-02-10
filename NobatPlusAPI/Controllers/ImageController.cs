@@ -14,7 +14,7 @@ using NobatPlusDATA.Tools;
 using Domains;
 using FileIO = System.IO.File;
 
-namespace AITechWebAPI.Controllers
+namespace NobatPlusAPI.Controllers
 {
     [Route("Image")]
     [ApiController]

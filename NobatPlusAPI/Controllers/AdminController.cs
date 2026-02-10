@@ -1,4 +1,4 @@
-﻿using AITechWebAPI.ViewModels;
+﻿using NobatPlusAPI.ViewModels;
 using AutoMapper;
 using Domain;
 using Domains;
