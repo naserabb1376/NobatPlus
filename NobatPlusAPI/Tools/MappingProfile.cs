@@ -1,7 +1,8 @@
-﻿using NobatPlusAPI.ViewModels;
-using AutoMapper;
+﻿using AutoMapper;
 using Domain;
 using Microsoft.AspNetCore.JsonPatch.Adapters;
+using MTPermissionCenter.EFCore.Entities;
+using NobatPlusAPI.ViewModels;
 using NobatPlusAPI.ViewModels;
 using NobatPlusDATA.Domain;
 using NobatPlusDATA.ResultObjects;
@@ -160,6 +161,7 @@ namespace NobatPlusAPI.Tools
             CreateMap<Setting, SettingVM>();
             CreateMap<Person, PersonVM>();
             CreateMap<ServiceManagementDTO, ServiceManagementVM>();
+            CreateMap<MTPermissionCenter_Permission, PermissionVM>();
 
 
             CreateMap<Notification, NotificationVM>()
@@ -170,6 +172,16 @@ namespace NobatPlusAPI.Tools
             CreateMap<SMSMessage, SMSMessageVM>()
 .ForMember(dest => dest.PersonFullName, opt => opt.MapFrom(src => src.Person.FirstName + " " + src.Person.LastName))
           ;
+
+            CreateMap<MTPermissionCenter_PermissionRole, PermissionRoleVM>()
+.ForMember(dest => dest.PermissionName, opt => opt.MapFrom(src => src.Permission.Name))
+.ForMember(dest => dest.RouteName, opt => opt.MapFrom(src => src.Permission.Routename))
+.ForMember(dest => dest.PermissionType, opt => opt.MapFrom(src => src.Permission.PermissionType));
+
+            CreateMap<MTPermissionCenter_UserPermission, UserPermissionVM>()
+.ForMember(dest => dest.PermissionName, opt => opt.MapFrom(src => src.Permission.Name))
+.ForMember(dest => dest.RouteName, opt => opt.MapFrom(src => src.Permission.Routename))
+.ForMember(dest => dest.PermissionType, opt => opt.MapFrom(src => src.Permission.PermissionType));
         }
     }
 
