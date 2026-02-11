@@ -249,65 +249,65 @@ namespace NobatPlusAPI.Controllers
         }
 
 
-        [HttpPost("InitPermissions")]
-        [AllowAnonymous]
-        public async Task<ActionResult<BitResultObject>> InitPermissions([FromBody] List<ControllerActionInfo> requestBody)
-        {
-            var result = new BitResultObject();
-            int addCount = 0, noAddCount = 0;
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(requestBody);
-            }
+        //[HttpPost("InitPermissions")]
+        //[AllowAnonymous]
+        //public async Task<ActionResult<BitResultObject>> InitPermissions([FromBody] List<ControllerActionInfo> requestBody)
+        //{
+        //    var result = new BitResultObject();
+        //    int addCount = 0, noAddCount = 0;
+        //    if (!ModelState.IsValid)
+        //    {
+        //        return BadRequest(requestBody);
+        //    }
 
-            try
-            {
-                foreach (var action in requestBody)
-                {
-                    MTPermissionCenter_Permission Permission = new MTPermissionCenter_Permission()
-                    {
-                        CreateDate = DateTime.Now.ToShamsi(),
-                        UpdateDate = DateTime.Now.ToShamsi(),
-                        Description = "",
-                        Name = action.ActionName,
-                        Key = action.PermissionKey,
-                        Icon = "",
-                        Routename = "",
-                        PermissionType = "Action",
-                        OtherLangs = "",
-                        IsActive = true,
+        //    try
+        //    {
+        //        foreach (var action in requestBody)
+        //        {
+        //            MTPermissionCenter_Permission Permission = new MTPermissionCenter_Permission()
+        //            {
+        //                CreateDate = DateTime.Now.ToShamsi(),
+        //                UpdateDate = DateTime.Now.ToShamsi(),
+        //                Description = "",
+        //                Name = action.ActionName,
+        //                Key = action.PermissionKey,
+        //                Icon = "",
+        //                Routename = "",
+        //                PermissionType = "Action",
+        //                OtherLangs = "",
+        //                IsActive = true,
 
-                    };
-                    result = await _PermissionRep.AddPermissionAsync(Permission);
+        //            };
+        //            result = await _PermissionRep.AddPermissionAsync(Permission);
 
-                    if (result.Status)
-                    {
-                        var roleIds = new long[] { 1, 2, 3, 4 };
-                 foreach (var roleId in roleIds)
-                    {
-                        MTPermissionCenter_PermissionRole permissionRole = new MTPermissionCenter_PermissionRole()
-                        {
-                            CreateDate = DateTime.Now.ToShamsi(),
-                            UpdateDate = DateTime.Now.ToShamsi(),
-                            IsActive = true,
-                            PermissionId = Permission.ID,
-                            RoleId = roleId,
-                            OwnerOnly = roleId < 4,
-                        };
+        //            if (result.Status)
+        //            {
+        //                var roleIds = new long[] { 1, 2, 3, 4 };
+        //         foreach (var roleId in roleIds)
+        //            {
+        //                MTPermissionCenter_PermissionRole permissionRole = new MTPermissionCenter_PermissionRole()
+        //                {
+        //                    CreateDate = DateTime.Now.ToShamsi(),
+        //                    UpdateDate = DateTime.Now.ToShamsi(),
+        //                    IsActive = true,
+        //                    PermissionId = Permission.ID,
+        //                    RoleId = roleId,
+        //                    OwnerOnly = roleId < 4,
+        //                };
 
-                        result = await _PermissionRoleRep.AddPermissionRolesAsync(new List<MTPermissionCenter_PermissionRole>() { permissionRole });
+        //                result = await _PermissionRoleRep.AddPermissionRolesAsync(new List<MTPermissionCenter_PermissionRole>() { permissionRole });
 
 
-                        if (result.Status)
-                        {
-                            addCount++;
-                        }
+        //                if (result.Status)
+        //                {
+        //                    addCount++;
+        //                }
 
-                        else
-                        {
-                            noAddCount++;
-                        }
-                    }
+        //                else
+        //                {
+        //                    noAddCount++;
+        //                }
+        //            }
                 
 
 
@@ -319,42 +319,42 @@ namespace NobatPlusAPI.Controllers
 
 
 
-                    }
+        //            }
 
 
-                    if (result.Status)
-                {
-                    #region AddLog
+        //            if (result.Status)
+        //        {
+        //            #region AddLog
 
-                    Log log = new Log()
-                    {
-                        CreateDate = DateTime.Now.ToShamsi(),
-                        UpdateDate = DateTime.Now.ToShamsi(),
-                        LogTime = DateTime.Now.ToShamsi(),
-                        ActionName = $"{this.ControllerContext.RouteData.Values["action"].ToString()}/AddPermissionRolesAsync",
-                    };
-                    await _logRep.AddLogAsync(log);
+        //            Log log = new Log()
+        //            {
+        //                CreateDate = DateTime.Now.ToShamsi(),
+        //                UpdateDate = DateTime.Now.ToShamsi(),
+        //                LogTime = DateTime.Now.ToShamsi(),
+        //                ActionName = $"{this.ControllerContext.RouteData.Values["action"].ToString()}/AddPermissionRolesAsync",
+        //            };
+        //            await _logRep.AddLogAsync(log);
 
-                        #endregion AddLog
+        //                #endregion AddLog
 
-                        //await _PermissionInvalidationService.BumpRoleUsersVersionAsync(new List<long> { 4 });
+        //                //await _PermissionInvalidationService.BumpRoleUsersVersionAsync(new List<long> { 4 });
 
 
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                result.ErrorMessage = $"{ex.Message}\n{ex.InnerException?.Message}";
-                result.Status = false;
+        //            }
+        //        }
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        result.ErrorMessage = $"{ex.Message}\n{ex.InnerException?.Message}";
+        //        result.Status = false;
 
-                return BadRequest(result);
-            }
+        //        return BadRequest(result);
+        //    }
 
-            result.ErrorMessage = $"AddCount: {addCount} , NoAddCount: {noAddCount}";
+        //    result.ErrorMessage = $"AddCount: {addCount} , NoAddCount: {noAddCount}";
 
-            return Ok(result);
-        }
+        //    return Ok(result);
+        //}
 
 
     }
