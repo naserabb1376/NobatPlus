@@ -77,16 +77,22 @@ namespace NobatPlusDATA.DataLayer.Services
             return result;
         }
 
-        public async Task<ListResultObject<MTPermissionCenter_Permission>> GetAllPermissionsAsync(long roleId = 0,string permissionType="", long MenuParentId = 0, string MenuIds = "", int pageIndex = 1, int pageSize = 20, string searchText = "", string sortQuery = "")
+        public async Task<ListResultObject<MTPermissionCenter_Permission>> GetAllPermissionsAsync(long roleId = 0,long userId = 0,string permissionType="", long MenuParentId = 0, string MenuIds = "", int pageIndex = 1, int pageSize = 20, string searchText = "", string sortQuery = "")
         {
             ListResultObject<MTPermissionCenter_Permission> results = new ListResultObject<MTPermissionCenter_Permission>();
             try
             {
                 IQueryable<MTPermissionCenter_Permission> query = _context.Permissions.AsNoTracking();
-                if (roleId > 0)
+
+                if (roleId > 0 || userId > 0)
                 {
-                    query = _context.PermissionRoles.Where(x => x. RoleId== roleId).Select(x => x.Permission)
-                   .AsNoTracking();
+                    query = query.Where(p =>
+                        (roleId > 0 && _context.PermissionRoles.Any(pr =>
+                            pr.RoleId == roleId && pr.PermissionId == p.ID))
+                        ||
+                        (userId > 0 && _context.UserPermissions.Any(up =>
+                            up.UserId == userId && up.PermissionId == p.ID && up.IsGranted))
+                    );
                 }
 
                 if (!string.IsNullOrEmpty(permissionType))
