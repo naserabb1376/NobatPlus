@@ -132,6 +132,25 @@ namespace NobatPlusAPI.Tools
             return tokenString;
         }
 
+        public static long GetCurrentUserId(this ClaimsPrincipal user)
+        {
+            var idStr = user.FindFirstValue("userId");
+
+            if (string.IsNullOrWhiteSpace(idStr))
+                idStr = "0";
+
+            return long.Parse(idStr);
+        }
+
+        public static long GetCurrentRoleId(this ClaimsPrincipal user)
+        {
+            var idStr = user.FindFirstValue("Role");
+
+            if (string.IsNullOrWhiteSpace(idStr))
+                idStr = "0";
+
+            return long.Parse(idStr);
+        }
 
         public static bool ValidateCaptcha(this string enteredCode,string storedCode)
         {

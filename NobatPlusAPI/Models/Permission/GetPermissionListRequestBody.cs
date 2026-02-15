@@ -6,7 +6,10 @@ namespace NobatPlusAPI.Models.Permission
     public class GetPermissionListRequestBody : GetListRequestBody
     {
         [Display(Name = "کد نقش")]
-        public long RoleId { get; set; } = 0;
+        public long? RoleId { get; set; }
+
+        [Display(Name = "کد کاربر")]
+        public long? UserId { get; set; }
 
         [Display(Name = "نوع دسترسی")]
         public string? PermissionType { get; set; } = "";

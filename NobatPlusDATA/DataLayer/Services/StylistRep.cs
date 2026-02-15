@@ -264,6 +264,7 @@ namespace NobatPlusDATA.DataLayer.Services
                         WorkShopInteractMode = r.WorkShopInteractMode ?? "",
                         WorkShopRentAmount = r.WorkShopRentAmount,
                         YearsOfExperience = r.YearsOfExperience,
+                        RestTime = r.RestTime, 
 
                         StylistImagePath =
                             _context.Images.Any(x => x.EntityType.ToLower() == "stylist" && x.ForeignKeyId == r.ID)
@@ -379,6 +380,8 @@ namespace NobatPlusDATA.DataLayer.Services
                          WorkShopInteractMode = r.WorkShopInteractMode ?? "",
                          WorkShopRentAmount = r.WorkShopRentAmount,
                          YearsOfExperience = r.YearsOfExperience,
+                         RestTime =r.RestTime,
+
                          StylistImagePath = _context.Images.Any(x => x.EntityType.ToLower() == "stylist" && x.ForeignKeyId == r.ID) ? $"https://nobatplusapi.mtcoding.ir/FileCenter/downloadfile?fileType=images&rowId=0&foreignkeyId={r.ID}&entityName=stylist" : "",
                          StylistServices = r.StylistServices
     .Select(s => new StylistService
