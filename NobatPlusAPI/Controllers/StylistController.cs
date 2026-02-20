@@ -50,7 +50,7 @@ namespace NobatPlusAPI.Controllers
             {
                 return BadRequest(requestBody);
             }
-                result = await _StylistRep.GetAllStylistsAsync(requestBody.ParentID,requestBody.ServiceID,requestBody.JobTypeID,requestBody.DiscountID,requestBody.CityID,requestBody.PageIndex,requestBody.PageSize,requestBody.SearchText,requestBody.SortQuery);
+                result = await _StylistRep.GetAllStylistsAsync(requestBody.ParentID,requestBody.ServiceIDs,requestBody.JobTypeID,requestBody.DiscountID,requestBody.FromPrice,requestBody.ToPrice,requestBody.CityID,requestBody.Gender,requestBody.PageIndex,requestBody.PageSize,requestBody.SearchText,requestBody.SortQuery);
             if (result.Status)
             {
                 var resultVM = _mapper.Map<ListResultObject<StylistVM>>(result);

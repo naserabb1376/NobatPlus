@@ -38,7 +38,7 @@ namespace NobatPlusAPI.Tools
 
 
             string message = reminderMessage.Result.Value.ToLower().Replace("{stylistname}", $"{booking.Result.Stylist.Person.FirstName} {booking.Result.Stylist.Person.LastName}").Replace("{bookingtime}", $"{booking.Result.BookingStartDate.Hour}:{booking.Result.BookingStartDate.Minute}")
-                .Replace("{bookingdate}",booking.Result.BookingStartDate.Date.ToString())
+                .Replace("{bookingdate}",booking.Result.BookingStartDate.ToShamsi().ToString("yyyy/MM/dd"))
                 .Replace("{bookingtime}", $"{booking.Result.BookingStartDate.Hour}:{booking.Result.BookingStartDate.Minute}");
 
 
