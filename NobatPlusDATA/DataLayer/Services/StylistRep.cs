@@ -97,16 +97,23 @@ namespace NobatPlusDATA.DataLayer.Services
 
         public async Task<ListResultObject<StylistDTO>> GetAllStylistsAsync(
             long parentId = 0,
-            long serviceManagementId = 0,
+            List<long> serviceIds = null,
             long jobTypeId = 0,
             long discountId = 0,
+            decimal fromPrice = 0,
+            decimal toPrice = 0,
             long cityId = 0,
+            int gender = 0,
             int pageIndex = 1,
             int pageSize = 20,
             string searchText = "",
             string sortQuery = "",
             FindLocationRequestBody findLocation = null)
         {
+            if (serviceIds == null)
+            {
+                serviceIds = new List<long>();
+            }
             var results = new ListResultObject<StylistDTO>();
 
             try
@@ -114,17 +121,25 @@ namespace NobatPlusDATA.DataLayer.Services
                 // ✅ همیشه از Entity Root شروع کن تا Include معتبر بماند
                 IQueryable<Stylist> query = _context.Stylists.AsQueryable();
 
+                if (parentId > 0)
+                {
+                    if (parentId >= 0)
+                        query = query.Where(x => x.StylistParentID == parentId);
+                    else
+                        query = query.Where(x => x.StylistParentID > 0 || !x.IsWorkShop);
+                }
+
                 // 🟡 فیلترهای اصلی بر اساس پارامترها
-                if (serviceManagementId > 0)
+                if (serviceIds.Count > 0)
                 {
                     query = query.Where(st =>
-                        st.StylistServices.Any(ss => ss.ServiceManagementID == serviceManagementId));
+                        st.StylistServices.Any(ss => serviceIds.Contains( ss.ServiceManagementID)));
                 }
-                else if (jobTypeId > 0)
+                if (jobTypeId > 0)
                 {
                     query = query.Where(x => x.JobTypeID == jobTypeId);
                 }
-                else if (discountId > 0)
+                if (discountId > 0)
                 {
                     // ✅ به جای Select(d => d.Stylist) از ID ها استفاده کن (entity-root را حفظ می‌کند)
                     var stylistIds =
@@ -144,16 +159,7 @@ namespace NobatPlusDATA.DataLayer.Services
 
                     query = query.Where(st => stylistIds.Contains(st.ID));
                 }
-                else
-                {
-                    if (parentId > 0)
-                    {
-                        if (parentId >= 0)
-                            query = query.Where(x => x.StylistParentID == parentId);
-                        else
-                            query = query.Where(x => x.StylistParentID > 0 || !x.IsWorkShop);
-                    }
-                }
+            
 
                 // ✅ اگر cityId داری (تو امضای متد هست ولی قبلاً استفاده نشده بود)
                 if (cityId > 0)
@@ -162,6 +168,23 @@ namespace NobatPlusDATA.DataLayer.Services
                         x.Person != null &&
                         x.Person.Address != null &&
                         x.Person.Address.CityID == cityId);
+                }
+
+                if (gender > 0)
+                {
+                    query = query.Where(x => x.Person.Gender == gender);
+                }
+
+                if (fromPrice > 0)
+                {
+                    query = query.Where(st =>
+                        st.StylistServices.Any(ss => ss.ServicePrice >= fromPrice));
+                }
+
+                if (toPrice > 0)
+                {
+                    query = query.Where(st =>
+                        st.StylistServices.Any(ss => ss.ServicePrice <= toPrice));
                 }
 
                 // 🧭 Include های مشترک (الان معتبر است)
