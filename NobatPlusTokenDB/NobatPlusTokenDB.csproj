@@ -26,4 +26,13 @@
     <PackageReference Include="System.Text.RegularExpressions" Version="4.3.1" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Reference Include="MTPermissionCenter.Abstractions">
+      <HintPath>..\NobatPlusAPI\MTPermissionCenter.Abstractions.dll</HintPath>
+    </Reference>
+    <Reference Include="MTPermissionCenter.AspNetCore">
+      <HintPath>..\NobatPlusAPI\MTPermissionCenter.AspNetCore.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
 </Project>

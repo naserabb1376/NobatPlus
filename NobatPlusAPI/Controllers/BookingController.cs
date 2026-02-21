@@ -117,7 +117,6 @@ namespace NobatPlusAPI.Controllers
                 StylistID = requestBody.StylistID,
                 Description = requestBody.Description,
             };
-            var result = await _BookingRep.AddBookingAsync(Booking);
 
             var bookingServices = new List<BookingService>();
 
@@ -125,17 +124,18 @@ namespace NobatPlusAPI.Controllers
             {
                 bookingServices.Add(new BookingService()
                 {
-                    BookingID = result.ID,
                     ServiceManagementID = serviceId,
                 });
+
+                Booking.BookingServices= bookingServices;
             }
 
-             result = await _BookingServiceRep.AddBookingServicesAsync(bookingServices);
+            var result = await _BookingRep.AddBookingAsync(Booking);
 
             if (result.Status)
             {
                 BackgroundJob.Schedule<JobManager>(
-       job => job.SendBookingRemindMessage(bookingServices.FirstOrDefault().BookingID),
+       job => job.SendBookingRemindMessage(result.ID),
        requestBody.BookingDate.AddDays(-1)
    );
                 #region AddLog
@@ -203,8 +203,7 @@ namespace NobatPlusAPI.Controllers
                 });
             }
 
-            result = await _BookingServiceRep.EditBookingServicesAsync(bookingServices);
-
+            Booking.BookingServices = bookingServices;
 
             result = await _BookingRep.EditBookingAsync(Booking);
             if (result.Status)

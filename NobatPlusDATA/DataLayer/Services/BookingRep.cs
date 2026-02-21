@@ -28,6 +28,15 @@ namespace NobatPlusDATA.DataLayer.Services
             BitResultObject result = new BitResultObject();
             try
             {
+                var bookingServiceIds = Booking.BookingServices.Select(x => x.ServiceManagementID).ToList();
+
+                bool hasConfilict = await HasBookingConflictForStylistOrCustomerAsync(Booking.StylistID,Booking.CustomerID,Booking.BookingDate,bookingServiceIds);
+
+                if (hasConfilict)
+                {
+                    throw new Exception("ثبت این نوبت به دلیل وجود تداخل برای مشتری / آرایشگر امکان پذیر نیست");
+                }
+
                 await _context.Bookings.AddAsync(Booking);
                 await _context.SaveChangesAsync();
                 result.ID = Booking.ID;
@@ -47,6 +56,16 @@ namespace NobatPlusDATA.DataLayer.Services
             BitResultObject result = new BitResultObject();
             try
             {
+                var bookingServiceIds = Booking.BookingServices.Select(x => x.ServiceManagementID).ToList();
+
+                bool hasConfilict = await HasBookingConflictForStylistOrCustomerAsync(Booking.StylistID, Booking.CustomerID, Booking.BookingDate, bookingServiceIds,Booking.ID);
+
+                if (hasConfilict)
+                {
+                    throw new Exception("ثبت این نوبت به دلیل وجود تداخل برای مشتری / آرایشگر امکان پذیر نیست");
+                }
+
+
                 _context.Bookings.Update(Booking);
                 await _context.SaveChangesAsync();
                 result.ID = Booking.ID;
@@ -363,6 +382,77 @@ namespace NobatPlusDATA.DataLayer.Services
             }
             return result;
           
+        }
+
+        public async Task<bool> HasBookingConflictForStylistOrCustomerAsync(
+    long stylistId,
+    long customerId,
+    DateTime newStart,
+    List<long> serviceManagementIds,
+    long bookingId = 0)
+        {
+            if (serviceManagementIds == null || serviceManagementIds.Count == 0)
+                throw new ArgumentException("حداقل یک سرویس باید انتخاب شود.", nameof(serviceManagementIds));
+
+            // -------- 1) RestTime minutes for stylist --------
+            var restMinutes = await _context.Stylists.AsNoTracking()
+                .Where(s => s.ID == stylistId)
+                .Select(s => EF.Functions.DateDiffMinute(TimeSpan.Zero, s.RestTime))
+                .SingleOrDefaultAsync();
+
+            // -------- 2) NEW booking duration minutes (selected services for this stylist) --------
+            var newDurationMinutes = await _context.StylistServices.AsNoTracking()
+                .Where(ss => ss.StylistID == stylistId && serviceManagementIds.Contains(ss.ServiceManagementID))
+                .Select(ss => ss.ServiceDuration == null
+                    ? 0
+                    : EF.Functions.DateDiffMinute(TimeSpan.Zero, ss.ServiceDuration))
+                .SumAsync();
+
+            // block time = duration + rest
+            var newBlockMinutes = newDurationMinutes + restMinutes;
+            var newEnd = newStart.AddMinutes(newBlockMinutes);
+
+            // -------- 3) Durations for EXISTING bookings (same algo as your GetBookingByIdAsync) --------
+            IQueryable<BookingDurationRow> bookingDurations =
+                from bs in _context.BookingServices.AsNoTracking()
+                join b in _context.Bookings.AsNoTracking() on bs.BookingID equals b.ID
+                join ss in _context.StylistServices.AsNoTracking()
+                    on new { b.StylistID, bs.ServiceManagementID }
+                    equals new { ss.StylistID, ss.ServiceManagementID }
+                group ss by bs.BookingID into g
+                select new BookingDurationRow
+                {
+                    BookingID = g.Key,
+                    TotalDurationMinutes = g.Sum(x =>
+                        x.ServiceDuration == null
+                            ? 0
+                            : EF.Functions.DateDiffMinute(TimeSpan.Zero, x.ServiceDuration)
+                    )
+                };
+
+            // -------- 4) Base query: bookings that belong to stylist OR customer, and are active --------
+            var existingBookings = _context.Bookings.AsNoTracking()
+                .Where(b => (b.StylistID == stylistId) || (b.CustomerID == customerId))
+                .Where(b => !b.IsCancelled);
+
+            if (bookingId > 0)
+            {
+                existingBookings = existingBookings.Where(b=> b.ID != bookingId);
+            }
+
+            // -------- 5) Overlap check (SQL-side) --------
+            var conflictQuery =
+                from b in existingBookings
+                join d in bookingDurations on b.ID equals d.BookingID into gj
+                from d in gj.DefaultIfEmpty()
+                let existingDuration = (d == null ? 0 : d.TotalDurationMinutes)
+                let existingBlockMinutes = existingDuration + restMinutes
+                let existingStart = b.BookingDate
+                let existingEnd = b.BookingDate.AddMinutes(existingBlockMinutes)
+                where existingStart < newEnd && existingEnd > newStart
+                select b.ID;
+
+            return await conflictQuery.AnyAsync();
         }
     }
 }
