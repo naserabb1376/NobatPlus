@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
-using Microsoft.OpenApi.Models;
+using Microsoft.OpenApi;
 using MTPermissionCenter.Abstractions;
 using MTPermissionCenter.AspNetCore;
 using MTPermissionCenter.EFCore;
@@ -131,19 +131,21 @@ namespace NobatPlusAPI
                     In = ParameterLocation.Header,
                     Description = "Please enter your JWT with Bearer into the field",
 
-                    Reference = new OpenApiReference
-                    {
-                        Id = JwtBearerDefaults.AuthenticationScheme,
-                        Type = ReferenceType.SecurityScheme
-                    }
+                    //Reference = new OpenApiReference
+                    //{
+                    //    Id = JwtBearerDefaults.AuthenticationScheme,
+                    //    Type = ReferenceType.SecurityScheme
+                    //}
                 };
 
-                c.AddSecurityDefinition(securityScheme.Reference.Id, securityScheme);
+                c.AddSecurityDefinition(JwtBearerDefaults.AuthenticationScheme, securityScheme);
 
-                c.AddSecurityRequirement(new OpenApiSecurityRequirement
-    {
-        { securityScheme, new string[] { } }
-    });
+
+                c.AddSecurityRequirement(document => new OpenApiSecurityRequirement
+                {
+                    [new OpenApiSecuritySchemeReference(JwtBearerDefaults.AuthenticationScheme, document)] = new List<string>()
+                });
+
             });
 
             #region AddDbContext

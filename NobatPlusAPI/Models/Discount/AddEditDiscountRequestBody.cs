@@ -8,7 +8,7 @@ namespace NobatPlusAPI.Models.Discount
         public long ID { get; set; } = 0;
 
         [Display(Name = "کد تخفیف")]
-        [Required(ErrorMessage = "لطفا {0} را وارد کنید")]
+        //[Required(ErrorMessage = "لطفا {0} را وارد کنید")]
         public string DiscountCode { get; set; }
 
         [Display(Name = "میزان تخفیف")]
@@ -24,6 +24,10 @@ namespace NobatPlusAPI.Models.Discount
         [Required(ErrorMessage = "لطفا {0} را وارد کنید")]
         public DateTime EndDate { get; set; }
 
+        [Display(Name = "اعمال با کد تخفیف")]
+        public bool CodeRequired { get; set; } = false;
+
+        [Display(Name = "توضیحات")]
         public string? Description { get; set; }
 
     }
