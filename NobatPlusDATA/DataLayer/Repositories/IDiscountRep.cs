@@ -17,6 +17,6 @@ namespace NobatPlusDATA.DataLayer.Repositories
         public Task<BitResultObject> EditDiscountAsync(Discount Discount);
         public Task<BitResultObject> RemoveDiscountAsync(Discount Discount);
         public Task<BitResultObject> RemoveDiscountAsync(long DiscountId);
-        public Task<BitResultObject> ExistDiscountAsync(long DiscountId);
+        Task<BitResultObject> ExistDiscountAsync(string existType, string keyValue);
     }
 }

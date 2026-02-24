@@ -62,15 +62,33 @@ namespace NobatPlusDATA.DataLayer.Services
            
         }
 
-        public async Task<BitResultObject> ExistDiscountAsync(long DiscountId)
+        public async Task<BitResultObject> ExistDiscountAsync(string existType, string keyValue)
         {
             BitResultObject result = new BitResultObject();
+
+            long discountId = 0;
             try
             {
-                result.Status = await _context.Discounts
-                .AsNoTracking()
-                .AnyAsync(x => x.ID == DiscountId);
-                result.ID = DiscountId;
+                switch (existType.ToLower().Trim())
+                {
+                    case "id":
+                    default:
+                        {
+                            var theDiscount = await _context.Discounts.AsNoTracking().FirstOrDefaultAsync(x => x.ID == long.Parse(keyValue)) ?? new Discount();
+                            discountId = theDiscount.ID;
+                            break;
+                        }
+                    case "validatecode":
+                        {
+                            var theDiscount = await _context.Discounts.AsNoTracking().FirstOrDefaultAsync(x => x.DiscountCode.ToLower() == keyValue.ToLower() && x.StartDate <= DateTime.Now.ToShamsi() && x.EndDate >= DateTime.Now.ToShamsi()) ?? new Discount();
+                            discountId = theDiscount.ID;
+                            break;
+                        }
+
+                }
+                result.ID = discountId;
+                result.Status = discountId > 0;
+
             }
             catch (Exception ex)
             {

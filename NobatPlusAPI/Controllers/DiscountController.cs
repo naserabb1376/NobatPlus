@@ -10,6 +10,7 @@ using NobatPlusAPI.Models;
 using NobatPlusAPI.Models.City;
 using NobatPlusAPI.Models.Discount;
 using NobatPlusAPI.Models.Public;
+using NobatPlusAPI.Tools;
 using NobatPlusDATA.DataLayer.Repositories;
 using NobatPlusDATA.DataLayer.Services;
 using NobatPlusDATA.Domain;
@@ -75,13 +76,13 @@ namespace NobatPlusAPI.Controllers
         }
 
         [HttpPost("ExistDiscount_Base")]
-        public async Task<ActionResult<BitResultObject>> ExistDiscount_Base(GetRowRequestBody requestBody)
+        public async Task<ActionResult<BitResultObject>> ExistDiscount_Base(ExistDiscountRequestBody requestBody)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(requestBody);
             }
-            var result = await _DiscountRep.ExistDiscountAsync(requestBody.ID);
+            var result = await _DiscountRep.ExistDiscountAsync(requestBody.ExistType,requestBody.KeyValue);
             if (string.IsNullOrEmpty(result.ErrorMessage))
             {
                 return Ok(result);
@@ -103,8 +104,10 @@ namespace NobatPlusAPI.Controllers
                 StartDate = requestBody.StartDate,
                 EndDate = requestBody.EndDate,
                 DiscountAmount = requestBody.DiscountAmount,
-                DiscountCode = requestBody.DiscountCode,
+                DiscountCode = requestBody.DiscountCode.GenerateDiscountCode(),
                 UpdateDate = DateTime.Now.ToShamsi(),
+                CodeRequired = requestBody.CodeRequired,
+                
             };
             var result = await _DiscountRep.AddDiscountAsync(Discount);
             if (result.Status)
@@ -153,7 +156,7 @@ namespace NobatPlusAPI.Controllers
                 StartDate = requestBody.StartDate,
                 EndDate = requestBody.EndDate,
                 DiscountAmount = requestBody.DiscountAmount,
-                DiscountCode = requestBody.DiscountCode,
+                DiscountCode = requestBody.DiscountCode.GenerateDiscountCode(),
             };
             result = await _DiscountRep.EditDiscountAsync(Discount);
             if (result.Status)

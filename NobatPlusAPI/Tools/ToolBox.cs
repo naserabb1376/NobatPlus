@@ -293,6 +293,40 @@ namespace NobatPlusAPI.Tools
             return ApiVersion;
         }
 
+        public static string GenerateDiscountCode(this string? inCode)
+        {
+            if (!string.IsNullOrEmpty(inCode.Trim())) return inCode;
+
+            int length = 12, groupSize = 4;
+            if (length <= 0) throw new ArgumentOutOfRangeException(nameof(length));
+            if (groupSize <= 0) throw new ArgumentOutOfRangeException(nameof(groupSize));
+
+            #region GenerateRaw
+
+
+            string Alphabet = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+            var bytes = new byte[length];
+            RandomNumberGenerator.Fill(bytes);
+
+            var chars = new char[length];
+            for (int i = 0; i < length; i++)
+                chars[i] = Alphabet[bytes[i] % Alphabet.Length];
+
+            var raw = new string(chars);
+
+            #endregion GenerateRaw
+
+
+            // گروه‌بندی: XXXX-XXXX-XXXX
+            var sb = new StringBuilder();
+            for (int i = 0; i < raw.Length; i++)
+            {
+                if (i > 0 && i % groupSize == 0) sb.Append('-');
+                sb.Append(raw[i]);
+            }
+
+            return sb.ToString();
+        }
 
     }
 }

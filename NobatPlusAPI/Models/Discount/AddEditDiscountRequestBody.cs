@@ -9,7 +9,7 @@ namespace NobatPlusAPI.Models.Discount
 
         [Display(Name = "کد تخفیف")]
         //[Required(ErrorMessage = "لطفا {0} را وارد کنید")]
-        public string DiscountCode { get; set; }
+        public string? DiscountCode { get; set; }
 
         [Display(Name = "میزان تخفیف")]
         [Required(ErrorMessage = "لطفا {0} را وارد کنید")]

@@ -28,10 +28,10 @@
 
   <ItemGroup>
     <Reference Include="MTPermissionCenter.Abstractions">
-      <HintPath>..\..\MTPermissionCenter\MTPermissionCenter.Abstractions.dll</HintPath>
+      <HintPath>..\..\MTPermissionCenter\MTPermissionCenter.EFCore\bin\Release\net8.0\MTPermissionCenter.Abstractions.dll</HintPath>
     </Reference>
     <Reference Include="MTPermissionCenter.EFCore">
-      <HintPath>..\..\MTPermissionCenter\MTPermissionCenter.EFCore.dll</HintPath>
+      <HintPath>..\..\MTPermissionCenter\MTPermissionCenter.EFCore\bin\Release\net8.0\MTPermissionCenter.EFCore.dll</HintPath>
     </Reference>
   </ItemGroup>
 
