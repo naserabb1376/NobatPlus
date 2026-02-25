@@ -6,6 +6,20 @@ namespace NobatPlusAPI.Models.StylistService
 {
     public class GetStylistServiceListRequestBody: GetListRequestBody
     {
+        [Display(Name = "کد رزرو")]
+        //[Required(ErrorMessage = "لطفا {0} را وارد کنید")]
+        //[Range(1, long.MaxValue, ErrorMessage = "مقدار {0} باید بزرگتر از 0 باشد")]
+        public long? BookingID { get; set; } = 0;
+
+        [Display(Name = "کد مشتری")]
+        //[Required(ErrorMessage = "لطفا {0} را وارد کنید")]
+        //[Range(1, long.MaxValue, ErrorMessage = "مقدار {0} باید بزرگتر از 0 باشد")]
+        public long? CustomerID { get; set; }
+
+        [Display(Name = "شناسه تخفیف")]
+        //[Required(ErrorMessage = "لطفا {0} را وارد کنید")]
+        //[Range(1, long.MaxValue, ErrorMessage = "مقدار {0} باید بزرگتر از 0 باشد")]
+        public long? DiscountID { get; set; }
     }
 }
 

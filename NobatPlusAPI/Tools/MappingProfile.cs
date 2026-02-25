@@ -113,7 +113,7 @@ namespace NobatPlusAPI.Tools
      .ForMember(dest => dest.AdminFullName, opt => opt.MapFrom(src => src.Admin.Person.FirstName + " " + src.Admin.Person.LastName))
      .ForMember(dest => dest.ServiceTitle, opt => opt.MapFrom(src => src.ServiceManagement.ServiceName))
      ;
-            CreateMap<StylistService, StylistServiceVM>()
+            CreateMap<StylistServiceWithDiscountDto, StylistServiceVM>()
   .ForMember(dest => dest.SalonName, opt => opt.MapFrom(src => src.Stylist.StylistName))
   .ForMember(dest => dest.StylistName, opt => opt.MapFrom(src => src.Stylist.Person.FirstName + " " + src.Stylist.Person.LastName))
   .ForMember(dest => dest.ServiceTitle, opt => opt.MapFrom(src => src.ServiceManagement.ServiceName))

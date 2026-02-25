@@ -15,6 +15,16 @@ namespace NobatPlusAPI.Models.StylistService
         [Required(ErrorMessage = "لطفا {0} را وارد کنید")]
         [Range(1, long.MaxValue, ErrorMessage = "مقدار {0} باید بزرگتر از 0 باشد")]
         public long ServiceID { get; set; }
+
+        [Display(Name = "کد مشتری")]
+        //[Required(ErrorMessage = "لطفا {0} را وارد کنید")]
+        //[Range(1, long.MaxValue, ErrorMessage = "مقدار {0} باید بزرگتر از 0 باشد")]
+        public long? CustomerID { get; set; }
+
+        [Display(Name = "شناسه تخفیف")]
+        //[Required(ErrorMessage = "لطفا {0} را وارد کنید")]
+        //[Range(1, long.MaxValue, ErrorMessage = "مقدار {0} باید بزرگتر از 0 باشد")]
+        public long? DiscountID { get; set; }
     }
 }
 

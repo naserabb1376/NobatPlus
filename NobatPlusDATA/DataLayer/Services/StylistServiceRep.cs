@@ -229,57 +229,168 @@ namespace NobatPlusDATA.DataLayer.Services
          
         }
 
-        public async Task<ListResultObject<StylistService>> GetAllStylistServicesAsync(int pageIndex = 1, int pageSize = 20, string searchText = "",string sortQuery ="")
+        public async Task<ListResultObject<StylistServiceWithDiscountDto>> GetAllStylistServicesAsync(
+    long customerId = 0,
+    long bookingId = 0,
+    long discountId = 0,
+    int pageIndex = 1,
+    int pageSize = 20,
+    string searchText = "",
+    string sortQuery = ""
+)
         {
-            ListResultObject<StylistService> results = new ListResultObject<StylistService>();
+            var results = new ListResultObject<StylistServiceWithDiscountDto>();
             try
             {
-                var query = _context.StylistServices
-                .Include(x => x.Stylist).ThenInclude(x => x.Person)
-                .Include(x => x.ServiceManagement)
-                .AsNoTracking()
-                .Where(x =>
-                    (!string.IsNullOrEmpty(x.ServiceManagement.ServiceName) && x.ServiceManagement.ServiceName.Contains(searchText)) ||
-                    (!string.IsNullOrEmpty(x.ServiceManagement.Description) && x.ServiceManagement.Description.Contains(searchText)) ||
-                    (!string.IsNullOrEmpty(x.ServiceDuration.ToString()) && x.ServiceDuration.ToString().Contains(searchText)) ||
-                    (!string.IsNullOrEmpty(x.Stylist.Specialty) && x.Stylist.Specialty.Contains(searchText)) ||
-                    (!string.IsNullOrEmpty(x.Stylist.Person.FirstName) && x.Stylist.Person.FirstName.Contains(searchText)) ||
-                    (!string.IsNullOrEmpty(x.Stylist.Person.LastName) && x.Stylist.Person.LastName.Contains(searchText))
-                );
+                var now = DateTime.Now; // یا UtcNow طبق سیاست پروژه‌ات
 
-                results.TotalCount = query.Count();
+                var query = _context.StylistServices
+                    .Include(x => x.Stylist).ThenInclude(x => x.Person)
+                    .Include(x => x.ServiceManagement).ThenInclude(x => x.BookingServices)
+                    .AsNoTracking()
+                    .AsQueryable();
+
+                if (bookingId > 0)
+                {
+                    query = query.Where(ss =>
+                        ss.ServiceManagement.BookingServices.Any(bs => bs.BookingID == bookingId)
+                    );
+                }
+
+                if (!string.IsNullOrWhiteSpace(searchText))
+                {
+                    query = query.Where(x =>
+                        (x.ServiceManagement.ServiceName != null && x.ServiceManagement.ServiceName.Contains(searchText)) ||
+                        (x.ServiceManagement.Description != null && x.ServiceManagement.Description.Contains(searchText)) ||
+                        (x.Stylist.Specialty != null && x.Stylist.Specialty.Contains(searchText)) ||
+                        (x.Stylist.StylistName != null && x.Stylist.StylistName.Contains(searchText)) ||
+                        (x.Stylist.Specialty != null && x.Stylist.Specialty.Contains(searchText)) ||
+                        (x.Stylist.Person.FirstName != null && x.Stylist.Person.FirstName.Contains(searchText)) ||
+                        (x.Stylist.Person.LastName != null && x.Stylist.Person.LastName.Contains(searchText))
+                    );
+                }
+
+                // ✅ Projection to DTO + Discount calc
+                var dtoQuery = query.Select(ss => new StylistServiceWithDiscountDto
+                {
+                    StylistID = ss.StylistID,
+                    ServiceManagementID = ss.ServiceManagementID,
+
+                    ServiceName = ss.ServiceManagement.ServiceName,
+                    ServiceDescription = ss.ServiceManagement.Description ?? "",
+
+                    ServicePrice = ss.ServicePrice,
+                    ServiceDuration = ss.ServiceDuration,
+                    DepositPercent = ss.DepositPercent,
+                    
+                    
+
+                    DiscountPercent =
+                        GetApplicableDiscountPercentsQuery(
+                            ss.StylistID,
+                            ss.ServiceManagementID,
+                            customerId,
+                            discountId,
+                            now
+                        )
+                        .DefaultIfEmpty(0)
+                        .Max(),
+
+                    PriceAfterDiscount =
+                        ss.ServicePrice *
+                        (1m - (
+                            GetApplicableDiscountPercentsQuery(
+                                ss.StylistID,
+                                ss.ServiceManagementID,
+                                customerId,
+                                discountId,
+                                now
+                            )
+                            .DefaultIfEmpty(0)
+                            .Max() / 100m
+                        ))
+                });
+
+                // شمارش و صفحه‌بندی
+                results.TotalCount = await dtoQuery.CountAsync();
                 results.PageCount = DbTools.GetPageCount(results.TotalCount, pageSize);
-                results.Results = await query.OrderByDescending(x => x.ServiceManagement.CreateDate)
-                .SortBy(sortQuery).ToPaging(pageIndex, pageSize)
-                .ToListAsync();
+
+                results.Results = await dtoQuery
+                    // اگر SortBy فقط روی Entity کار می‌کنه باید SortBy را بعداً برای DTO سازگار کنی
+                    .OrderByDescending(x => x.ServiceManagementID) // یا CreateDate اگر داخل DTO آوردی
+                    .ToPaging(pageIndex, pageSize)
+                    .ToListAsync();
             }
             catch (Exception ex)
             {
                 results.Status = false;
                 results.ErrorMessage = $"{ex.Message} - {ex.InnerException?.Message}";
             }
+
             return results;
-           
         }
 
-        public async Task<RowResultObject<StylistService>> GetStylistServiceByIdAsync(long StylistId, long ServiceManagementId)
+        public async Task<RowResultObject<StylistServiceWithDiscountDto>> GetStylistServiceByIdAsync(
+      long stylistId,
+      long serviceManagementId,
+      long customerId = 0,
+      long discountId = 0
+  )
         {
-            RowResultObject<StylistService> result = new RowResultObject<StylistService>();
+            var result = new RowResultObject<StylistServiceWithDiscountDto>();
             try
             {
-                result.Result = await _context.StylistServices
-                .Include(x => x.Stylist).ThenInclude(x => x.Person)
-                .Include(x => x.ServiceManagement)
-                .AsNoTracking()
-                .SingleOrDefaultAsync(x => x.StylistID == StylistId && x.ServiceManagementID == ServiceManagementId);
+                var now = DateTime.Now;
+
+                result.Result = await _context.StylistServices.Include(x=> x.ServiceManagement).Include(x=> x.Stylist)
+                    .AsNoTracking()
+                    .Where(x => x.StylistID == stylistId && x.ServiceManagementID == serviceManagementId)
+                    .Select(ss => new StylistServiceWithDiscountDto
+                    {
+                        StylistID = ss.StylistID,
+                        ServiceManagementID = ss.ServiceManagementID,
+
+                        ServiceTitle = ss.ServiceManagement.ServiceName,
+                        ServiceDescription = ss.ServiceManagement.Description,
+
+                        ServicePrice = ss.ServicePrice,
+                        ServiceDuration = ss.ServiceDuration,
+                        DepositPercent = ss.DepositPercent,
+
+                        DiscountPercent =
+                            GetApplicableDiscountPercentsQuery(
+                                ss.StylistID,
+                                ss.ServiceManagementID,
+                                customerId,
+                                discountId,
+                                now
+                            )
+                            .DefaultIfEmpty(0)
+                            .Max(),
+                        
+                        PriceAfterDiscount =
+                            ss.ServicePrice *
+                            (1m - (
+                                GetApplicableDiscountPercentsQuery(
+                                    ss.StylistID,
+                                    ss.ServiceManagementID,
+                                    customerId,
+                                    discountId,
+                                    now
+                                )
+                                .DefaultIfEmpty(0)
+                                .Max() / 100m
+                            ))
+                    })
+                    .SingleOrDefaultAsync();
             }
             catch (Exception ex)
             {
                 result.Status = false;
                 result.ErrorMessage = $"{ex.Message} - {ex.InnerException?.Message}";
             }
+
             return result;
-           
         }
 
         private async Task<List<ServiceManagement>> GetServiceHierarchyAsync(long serviceId)
@@ -322,6 +433,59 @@ namespace NobatPlusDATA.DataLayer.Services
 
             await LoadChildren(serviceId);
             return result;
+        }
+
+        private IQueryable<int> GetApplicableDiscountPercentsQuery(
+    long stylistId,
+    long serviceManagementId,
+    long customerId,
+    long discountId,
+    DateTime now
+)
+        {
+            // حالت 1: تخفیف‌های سرویس
+            var serviceDiscounts =
+                from sd in _context.ServiceDiscounts
+                join d in _context.Discounts on sd.DiscountId equals d.ID
+                where sd.ServiceManagementId == serviceManagementId
+                      && (sd.StylistId == null || sd.StylistId == stylistId)
+                      && d.StartDate <= now && d.EndDate >= now
+                      && (
+                            (discountId <= 0 && d.CodeRequired == false) ||
+                            (discountId > 0 && d.ID == discountId)
+                         )
+                select d.DiscountAmount;
+
+            // حالت 2: تخفیف‌های مشتری
+            var customerDiscounts =
+                from cd in _context.CustomerDiscounts
+                join d in _context.Discounts on cd.DiscountId equals d.ID
+                where ( customerId > 0 && cd.CustomerId == customerId)
+                      && cd.StylistId == stylistId
+                      && d.StartDate <= now && d.EndDate >= now
+                      && (
+                            (discountId <= 0 && d.CodeRequired == false) ||
+                            (discountId > 0 && d.ID == discountId)
+                         )
+                select d.DiscountAmount;
+
+            // حالت 3: تخفیف‌های عمومی (assignment)
+            var assignmentDiscounts =
+                from da in _context.DiscountAssignments
+                join d in _context.Discounts on da.DiscountId equals d.ID
+                where (da.StylistId == stylistId
+                       // اگر می‌خوای AdminId هم "عمومی" حساب شود:
+                       || (da.StylistId == null && da.AdminId != null))
+                      && d.StartDate <= now && d.EndDate >= now
+                      && (
+                            (discountId <= 0 && d.CodeRequired == false) ||
+                            (discountId > 0 && d.ID == discountId)
+                         )
+                select d.DiscountAmount;
+
+            return serviceDiscounts
+                .Concat(customerDiscounts)
+                .Concat(assignmentDiscounts);
         }
 
     }
