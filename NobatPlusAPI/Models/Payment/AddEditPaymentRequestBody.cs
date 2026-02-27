@@ -12,6 +12,9 @@ namespace NobatPlusAPI.Models.Payment
         [Range(1, long.MaxValue, ErrorMessage = "مقدار {0} باید بزرگتر از 0 باشد")]
         public long BookingID { get; set; }
 
+        [Display(Name = "شناسه تخفیف")]
+        public long? DiscountID { get; set; }
+
         [Display(Name = "تاریخ پرداخت")]
         [Required(ErrorMessage = "لطفا {0} را وارد کنید")]
         public DateTime? PaymentDate { get; set; }
@@ -19,6 +22,12 @@ namespace NobatPlusAPI.Models.Payment
         [Display(Name = "وضعیت پرداخت")]
         [Required(ErrorMessage = "لطفا {0} را وارد کنید")]
         public string PaymentStatus { get; set; }
+
+        [Display(Name = "مرحله پرداخت")]
+        public int PaymentLevel { get; set; } = 0;
+
+        [Display(Name = "وضعیت نهایی شدن پرداخت")]
+        public bool PaymentFinished { get; set; } = false;
         public string? Description { get; set; }
     }
 }

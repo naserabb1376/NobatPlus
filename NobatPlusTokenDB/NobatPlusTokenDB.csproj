@@ -26,13 +26,4 @@
     <PackageReference Include="System.Text.RegularExpressions" Version="4.3.1" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Reference Include="MTPermissionCenter.Abstractions">
-      <HintPath>..\..\MTPermissionCenter\MTPermissionCenter.EFCore\bin\Release\net8.0\MTPermissionCenter.Abstractions.dll</HintPath>
-    </Reference>
-    <Reference Include="MTPermissionCenter.EFCore">
-      <HintPath>..\..\MTPermissionCenter\MTPermissionCenter.EFCore\bin\Release\net8.0\MTPermissionCenter.EFCore.dll</HintPath>
-    </Reference>
-  </ItemGroup>
-
 </Project>

@@ -10,6 +10,7 @@ using NobatPlusAPI.Models;
 using NobatPlusAPI.Models.Authenticate;
 using NobatPlusAPI.Models.Payment;
 using NobatPlusAPI.Models.Public;
+using NobatPlusAPI.Tools;
 using NobatPlusDATA.DataLayer.Repositories;
 using NobatPlusDATA.DataLayer.Services;
 using NobatPlusDATA.Domain;
@@ -30,12 +31,16 @@ namespace NobatPlusAPI.Controllers
     public class PaymentController : ControllerBase
     {
         IPaymentRep _PaymentRep;
+        ICustomerRep _customerRep;
+        IStylistServiceRep _stylistServiceRep;
         ILogRep _logRep;
         private readonly IMapper _mapper;
 
-        public PaymentController(IPaymentRep PaymentRep,ILogRep logRep, IMapper mapper)
+        public PaymentController(IPaymentRep PaymentRep,ICustomerRep customerRep,IStylistServiceRep stylistServiceRep,ILogRep logRep, IMapper mapper)
         {
            _PaymentRep = PaymentRep;
+            _customerRep = customerRep;
+            _stylistServiceRep = stylistServiceRep;
            _logRep = logRep;
             _mapper = mapper;
         }
@@ -96,7 +101,14 @@ namespace NobatPlusAPI.Controllers
             {
                 return BadRequest(requestBody);
             }
-            var calcPayment = await _PaymentRep.CalculatePaymentAsync(requestBody.BookingID);
+
+            var userId = User.GetCurrentUserId();
+            var dbcustomer = await _customerRep.ExistCustomerAsync(userId.ToString(), "personid");
+            var customerId = dbcustomer.ID;
+            var discountId = requestBody.DiscountID ?? 0;
+
+
+            var calcPayment = await _PaymentRep.CalculatePaymentAsync(customerId,requestBody.BookingID,discountId);
 
             if (!calcPayment.Status)
             {
@@ -115,8 +127,16 @@ namespace NobatPlusAPI.Controllers
                 TotalServiceAmount = calcPayment.Result.TotalServiceAmount,
                 PlarformAmount = calcPayment.Result.PlatformAmount,
                 StylistAmount = calcPayment.Result.StylistAmount,
+                AllPaymentAmount = calcPayment.Result.AllPaymentAmount,
+                PayedAmount = calcPayment.Result.PayedAmount,
+                RemainAmount = calcPayment.Result.RemainAmount,
+                DiscountedServiceAmount = calcPayment.Result.DiscountedServiceAmount,
+                VatAmount = calcPayment.Result.VatAmount,
                 PaymentStatus = requestBody.PaymentStatus,
                 PaymentDate = requestBody.PaymentDate ?? DateTime.Now.ToShamsi(),
+                PaymentLevel = requestBody.PaymentLevel,
+                PaymentFinished = requestBody.PaymentFinished,
+                DiscountID = discountId,
                 Description = requestBody.Description,
             };
              result = await _PaymentRep.AddPaymentAsync(Payment);
@@ -158,7 +178,12 @@ namespace NobatPlusAPI.Controllers
                 return BadRequest(result);
             }
 
-            var calcPayment = await _PaymentRep.CalculatePaymentAsync(requestBody.BookingID);
+            var userId = User.GetCurrentUserId();
+            var dbcustomer = await _customerRep.ExistCustomerAsync(userId.ToString(), "personid");
+            var customerId = dbcustomer.ID;
+            var discountId = requestBody.DiscountID ?? 0;
+
+            var calcPayment = await _PaymentRep.CalculatePaymentAsync(customerId, requestBody.BookingID, discountId);
 
             if (!calcPayment.Status)
             {
@@ -178,8 +203,16 @@ namespace NobatPlusAPI.Controllers
                 TotalServiceAmount = calcPayment.Result.TotalServiceAmount,
                 PlarformAmount = calcPayment.Result.PlatformAmount,
                 StylistAmount = calcPayment.Result.StylistAmount,
+                AllPaymentAmount = calcPayment.Result.AllPaymentAmount,
+                PayedAmount = calcPayment.Result.PayedAmount,
+                RemainAmount = calcPayment.Result.RemainAmount,
+                DiscountedServiceAmount = calcPayment.Result.DiscountedServiceAmount,
+                VatAmount = calcPayment.Result.VatAmount,
                 PaymentStatus = requestBody.PaymentStatus,
                 PaymentDate = requestBody.PaymentDate ?? DateTime.Now.ToShamsi(),
+                PaymentLevel = requestBody.PaymentLevel,
+                PaymentFinished = requestBody.PaymentFinished,
+                DiscountID = discountId,
                 Description = requestBody.Description,
             };
             result = await _PaymentRep.EditPaymentAsync(Payment);

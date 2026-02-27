@@ -12,7 +12,7 @@ namespace NobatPlusDATA.Domain
         public long BookingID { get; set; }
         public long PaymentID { get; set; }
         public DateTime PaymentDate { get; set; }
-        public string PaymentMethod { get; set; }
+        public int PaymentMethod { get; set; }
 
         public Booking Booking { get; set; }
         public Payment Payment { get; set; }

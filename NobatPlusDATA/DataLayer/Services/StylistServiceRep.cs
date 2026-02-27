@@ -276,8 +276,11 @@ namespace NobatPlusDATA.DataLayer.Services
                     StylistID = ss.StylistID,
                     ServiceManagementID = ss.ServiceManagementID,
 
-                    ServiceName = ss.ServiceManagement.ServiceName,
+                    ServiceTitle = ss.ServiceManagement.ServiceName,
                     ServiceDescription = ss.ServiceManagement.Description ?? "",
+
+                    SalonName = ss.Stylist.StylistName,
+                    StylistName = $"{ss.Stylist.Person.FirstName} {ss.Stylist.Person.LastName}",
 
                     ServicePrice = ss.ServicePrice,
                     ServiceDuration = ss.ServiceDuration,
@@ -352,6 +355,9 @@ namespace NobatPlusDATA.DataLayer.Services
 
                         ServiceTitle = ss.ServiceManagement.ServiceName,
                         ServiceDescription = ss.ServiceManagement.Description,
+
+                        SalonName = ss.Stylist.StylistName,
+                        StylistName = $"{ss.Stylist.Person.FirstName} {ss.Stylist.Person.LastName}",
 
                         ServicePrice = ss.ServicePrice,
                         ServiceDuration = ss.ServiceDuration,

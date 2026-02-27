@@ -231,5 +231,7 @@ namespace NobatPlusDATA.Tools
             string stringDate = $"{date.Year}/{date.Month}/{date.Day} {date.Hour}:{date.Minute}";
             return stringDate;
         }
+
+   
     }
 }

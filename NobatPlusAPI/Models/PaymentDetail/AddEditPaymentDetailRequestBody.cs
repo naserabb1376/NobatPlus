@@ -1,29 +1,29 @@
 ﻿using Domain;
 using System.ComponentModel.DataAnnotations;
 
-namespace NobatPlusAPI.Models.PaymentHistory
+namespace NobatPlusAPI.Models.PaymentDetail
 {
-    public class AddEditPaymentHistoryRequestBody
+    public class AddEditPaymentDetailRequestBody
     {
         public long ID { get; set; } = 0;
 
-        [Display(Name = "کد رزرو")]
+        [Display(Name = "کد خدمت آرایشگر")]
         [Required(ErrorMessage = "لطفا {0} را وارد کنید")]
         [Range(1, long.MaxValue, ErrorMessage = "مقدار {0} باید بزرگتر از 0 باشد")]
-        public long BookingID { get; set; }
+        public long StylistServiceID { get; set; }
 
         [Display(Name = "کد پرداخت")]
         [Required(ErrorMessage = "لطفا {0} را وارد کنید")]
         [Range(1, long.MaxValue, ErrorMessage = "مقدار {0} باید بزرگتر از 0 باشد")]
         public long PaymentID { get; set; }
 
-        [Display(Name = "تاریخ پرداخت")]
+        [Display(Name = "هزینه خدمت")]
         [Required(ErrorMessage = "لطفا {0} را وارد کنید")]
-        public DateTime? PaymentDate { get; set; }
+        public decimal StylistServiceAmount { get; set; }
 
-        [Display(Name = "روش پرداخت")]
+        [Display(Name = "هزینه با تخفیف")]
         [Required(ErrorMessage = "لطفا {0} را وارد کنید")]
-        public int PaymentMethod { get; set; }
+        public decimal DiscountAmount { get; set; }
         public string? Description { get; set; }
     }
 }
