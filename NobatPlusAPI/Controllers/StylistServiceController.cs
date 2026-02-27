@@ -10,6 +10,7 @@ using NobatPlusAPI.Models;
 using NobatPlusAPI.Models.Authenticate;
 using NobatPlusAPI.Models.Public;
 using NobatPlusAPI.Models.StylistService;
+using NobatPlusAPI.Tools;
 using NobatPlusDATA.DataLayer.Repositories;
 using NobatPlusDATA.DataLayer.Services;
 using NobatPlusDATA.Domain;
@@ -30,13 +31,15 @@ namespace NobatPlusAPI.Controllers
     public class StylistServiceController : ControllerBase
     {
         IStylistServiceRep _StylistServiceRep;
+        ICustomerRep _customerRep;
         ILogRep _logRep;
         private readonly IMapper _mapper;
 
 
-        public StylistServiceController(IStylistServiceRep StylistServiceRep,ILogRep logRep, IMapper mapper)
+        public StylistServiceController(IStylistServiceRep StylistServiceRep,ICustomerRep customerRep,ILogRep logRep, IMapper mapper)
         {
            _StylistServiceRep = StylistServiceRep;
+            _customerRep = customerRep;
             _logRep = logRep;
             _mapper = mapper;
         }
@@ -45,12 +48,17 @@ namespace NobatPlusAPI.Controllers
         [AllowAnonymous]
         public async Task<ActionResult<ListResultObject<StylistServiceVM>>> GetAllStylistServices_Base(GetStylistServiceListRequestBody requestBody)
         {
-            var result = new ListResultObject<StylistService>();
+            var result = new ListResultObject<StylistServiceWithDiscountDto>();
             if (!ModelState.IsValid)
             {
                 return BadRequest(requestBody);
             }
-            result = await _StylistServiceRep.GetAllStylistServicesAsync(requestBody.PageIndex, requestBody.PageSize, requestBody.SearchText,requestBody.SortQuery);
+            var userId = User.GetCurrentUserId();
+            var dbcustomer = await _customerRep.ExistCustomerAsync(userId.ToString(), "personid");
+            var customerId = requestBody.CustomerID ?? dbcustomer.ID;
+            var discountId = requestBody.DiscountID ?? 0;
+
+            result = await _StylistServiceRep.GetAllStylistServicesAsync(customerId,requestBody.BookingID,discountId,requestBody.PageIndex, requestBody.PageSize, requestBody.SearchText,requestBody.SortQuery);
             if (result.Status)
             {
                 var resultVM = _mapper.Map<ListResultObject<StylistServiceVM>>(result);
@@ -68,7 +76,14 @@ namespace NobatPlusAPI.Controllers
             {
                 return BadRequest(requestBody);
             }
-            var result = await _StylistServiceRep.GetStylistServiceByIdAsync(requestBody.StylistID,requestBody.ServiceID);
+
+            var userId = User.GetCurrentUserId();
+            var dbcustomer = await _customerRep.ExistCustomerAsync(userId.ToString(), "personid");
+            var customerId = requestBody.CustomerID ?? dbcustomer.ID;
+            var discountId = requestBody.DiscountID ?? 0;
+
+
+            var result = await _StylistServiceRep.GetStylistServiceByIdAsync(requestBody.StylistID,requestBody.ServiceID,customerId,discountId);
             if (result.Status)
             {
                 var resultVM = _mapper.Map<RowResultObject<StylistServiceVM>>(result);
