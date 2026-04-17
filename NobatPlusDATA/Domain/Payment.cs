@@ -41,6 +41,7 @@ namespace NobatPlusDATA.Domain
         public decimal StylistAmount { get; set; }
         public decimal PlatformAmount { get; set; }
         public decimal VatAmount { get; set; }
+        public List<StylistServiceWithDiscountDto> stylistServiceWithDiscountDtos { get; set; } = new List<StylistServiceWithDiscountDto>();
 
     }
 }

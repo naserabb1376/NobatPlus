@@ -7,10 +7,9 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 using NobatPlusAPI.Models;
-using NobatPlusAPI.Models.City;
-using NobatPlusAPI.Models.Discount;
+using NobatPlusAPI.Models.Authenticate;
+using NobatPlusAPI.Models.PaymentDetail;
 using NobatPlusAPI.Models.Public;
-using NobatPlusAPI.Tools;
 using NobatPlusDATA.DataLayer.Repositories;
 using NobatPlusDATA.DataLayer.Services;
 using NobatPlusDATA.Domain;
@@ -20,69 +19,68 @@ using NobatPlusDATA.ViewModels;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
-using static NobatPlusDATA.Tools.DbTools;
 
 namespace NobatPlusAPI.Controllers
 {
-    [Route("Discount")]
+    [Route("PaymentDetail")]
     [ApiController]
     [Authorize]
     [Produces("application/json")]
 
-    public class DiscountController : ControllerBase
+    public class PaymentDetailController : ControllerBase
     {
-        IDiscountRep _DiscountRep;
+        IPaymentDetailRep _PaymentDetailRep;
         ILogRep _logRep;
         private readonly IMapper _mapper;
 
 
-        public DiscountController(IDiscountRep DiscountRep,ILogRep logRep, IMapper mapper)
+        public PaymentDetailController(IPaymentDetailRep PaymentDetailRep,ILogRep logRep, IMapper mapper)
         {
-           _DiscountRep = DiscountRep;
+           _PaymentDetailRep = PaymentDetailRep;
            _logRep = logRep;
             _mapper = mapper;
         }
 
-        [HttpPost("GetAllDiscounts_Base")]
-        public async Task<ActionResult<ListResultObject<DiscountVM>>> GetAllDiscounts_Base(GetDiscountListRequestBody requestBody)
+        [HttpPost("GetAllPaymentHistories_Base")]
+        public async Task<ActionResult<ListResultObject<PaymentDetailVM>>> GetAllPaymentDetails_Base(GetPaymentDetailListRequestBody requestBody)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(requestBody);
             }
-            var result = await _DiscountRep.GetAllDiscountsAsync((DiscountType)requestBody.DiscountType,requestBody.AdminId,requestBody.StylistId,requestBody.CustomerId,requestBody.StylistId,requestBody.PageIndex,requestBody.PageSize,requestBody.SearchText,requestBody.SortQuery);
+            var result = await _PaymentDetailRep.GetAllPaymentDetailsAsync(requestBody.StylistId,requestBody.ServiceId,requestBody.PaymentId,requestBody.PageIndex,requestBody.PageSize,requestBody.SearchText,requestBody.SortQuery);
             if (result.Status)
             {
-                var resultVM = _mapper.Map<ListResultObject<DiscountVM>>(result);
+                var resultVM = _mapper.Map<ListResultObject<PaymentDetailVM>>(result);
                 return Ok(resultVM);
             }
             return BadRequest(result);
         }
 
-        [HttpPost("GetDiscountById_Base")]
-        public async Task<ActionResult<RowResultObject<DiscountVM>>> GetDiscountById_Base(GetRowRequestBody requestBody)
+        [HttpPost("GetPaymentDetailById_Base")]
+        public async Task<ActionResult<RowResultObject<PaymentDetailVM>>> GetPaymentDetailById_Base(GetRowRequestBody requestBody)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(requestBody);
             }
-            var result = await _DiscountRep.GetDiscountByIdAsync(requestBody.ID);
+            var result = await _PaymentDetailRep.GetPaymentDetailByIdAsync(requestBody.ID);
             if (result.Status)
             {
-                var resultVM = _mapper.Map<RowResultObject<DiscountVM>>(result);
+                var resultVM = _mapper.Map<RowResultObject<PaymentDetailVM>>(result);
                 return Ok(resultVM);
             }
             return BadRequest(result);
         }
 
-        [HttpPost("ExistDiscount_Base")]
-        public async Task<ActionResult<BitResultObject>> ExistDiscount_Base(ExistDiscountRequestBody requestBody)
+        [HttpPost("ExistPaymentDetail_Base")]
+        public async Task<ActionResult<BitResultObject>> ExistPaymentDetail_Base(GetRowRequestBody requestBody)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(requestBody);
             }
-            var result = await _DiscountRep.ExistDiscountAsync(requestBody.ExistType,requestBody.KeyValue);
+            var result = await _PaymentDetailRep.ExistPaymentDetailAsync(requestBody.ID);
             if (string.IsNullOrEmpty(result.ErrorMessage))
             {
                 return Ok(result);
@@ -90,68 +88,26 @@ namespace NobatPlusAPI.Controllers
             return BadRequest(result);
         }
 
-        [HttpPost("AddDiscount")]
-        public async Task<ActionResult<BitResultObject>> AddDiscount(AddEditDiscountRequestBody requestBody)
+        [HttpPost("AddPaymentDetail_Base")]
+        public async Task<ActionResult<BitResultObject>> AddPaymentDetail_Base(AddEditPaymentDetailRequestBody requestBody)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(requestBody);
             }
-            var discountAssignment = new DiscountAssignment
+            PaymentDetail PaymentDetail = new PaymentDetail()
             {
                 CreateDate = DateTime.Now.ToShamsi(),
                 UpdateDate = DateTime.Now.ToShamsi(),
-                Description = requestBody.Description,
-
-                AdminId = requestBody.AdminId ?? 0,
-                StylistId = requestBody.StylistId ?? 0,
-
-            };
-
-            var customerDiscounts = requestBody.CustomerIds.Select(cid => new CustomerDiscount()
-            {
-                CreateDate = DateTime.Now.ToShamsi(),
-                UpdateDate = DateTime.Now.ToShamsi(),
-                Description = requestBody.Description,
-
-              
-                StylistId = requestBody.StylistId ?? 0,
-
-                CustomerId = cid,
-
-            }).ToList();
-
-            var serviceDiscounts = requestBody.ServiceIds.Select(sid=> new ServiceDiscount()
-            {
-                CreateDate = DateTime.Now.ToShamsi(),
-                UpdateDate = DateTime.Now.ToShamsi(),
-                Description = requestBody.Description,
-
-                AdminId = requestBody.AdminId ?? 0,
-                StylistId = requestBody.StylistId ?? 0,
-
-                ServiceManagementId = sid,
-
-            }).ToList();
-
-            Discount Discount = new Discount()
-            {
-                CreateDate = DateTime.Now.ToShamsi(),
-                Description = requestBody.Description,
-                StartDate = requestBody.StartDate,
-                EndDate = requestBody.EndDate,
+                PaymentID = requestBody.PaymentID,
+                StylistID = requestBody.StylistID,
+                ServiceManagementID = requestBody.ServiceManagemntID,
+                DiscountPercent = requestBody.DiscountPercent,
                 DiscountAmount = requestBody.DiscountAmount,
-                DiscountCode = requestBody.DiscountCode.GenerateDiscountCode(),
-                UpdateDate = DateTime.Now.ToShamsi(),
-                CodeRequired = requestBody.CodeRequired,
-                DiscountAssignments = new List<DiscountAssignment>()
-                {
-                    discountAssignment
-                },
-                CustomerDiscounts = customerDiscounts,
-                ServiceDiscounts = serviceDiscounts,
+                StylistServiceAmount = requestBody.StylistServiceAmount,
+                Description = requestBody.Description,
             };
-            var result = await _DiscountRep.AddDiscountAsync(Discount);
+            var result = await _PaymentDetailRep.AddPaymentDetailAsync(PaymentDetail);
             if (result.Status)
             {
                 #region AddLog
@@ -174,33 +130,35 @@ namespace NobatPlusAPI.Controllers
             return BadRequest(result);
         }
 
-        [HttpPut("EditDiscount_Base")]
-        public async Task<ActionResult<BitResultObject>> EditDiscount_Base(AddEditDiscountRequestBody requestBody)
+        [HttpPut("EditPaymentDetail_Base")]
+        public async Task<ActionResult<BitResultObject>> EditPaymentDetail_Base(AddEditPaymentDetailRequestBody requestBody)
         {
             var result = new BitResultObject();
             if (!ModelState.IsValid)
             {
                 return BadRequest(requestBody);
             }
-            var theRow = await _DiscountRep.GetDiscountByIdAsync(requestBody.ID);
+            var theRow = await _PaymentDetailRep.GetPaymentDetailByIdAsync(requestBody.ID);
             if (!theRow.Status)
             {
                 result.Status = theRow.Status;
                 result.ErrorMessage = theRow.ErrorMessage;
             }
 
-            Discount Discount = new Discount()
+            PaymentDetail PaymentDetail = new PaymentDetail()
             {
                 CreateDate = theRow.Result.CreateDate,
                 UpdateDate = DateTime.Now.ToShamsi(),
                 ID = requestBody.ID,
-                Description = requestBody.Description,
-                StartDate = requestBody.StartDate,
-                EndDate = requestBody.EndDate,
+                PaymentID = requestBody.PaymentID,
+                StylistID = requestBody.StylistID,
+                ServiceManagementID = requestBody.ServiceManagemntID,
+                DiscountPercent = requestBody.DiscountPercent,
                 DiscountAmount = requestBody.DiscountAmount,
-                DiscountCode = requestBody.DiscountCode.GenerateDiscountCode(),
+                StylistServiceAmount = requestBody.StylistServiceAmount,
+                Description = requestBody.Description,
             };
-            result = await _DiscountRep.EditDiscountAsync(Discount);
+            result = await _PaymentDetailRep.EditPaymentDetailAsync(PaymentDetail);
             if (result.Status)
             {
 
@@ -223,14 +181,14 @@ namespace NobatPlusAPI.Controllers
             return BadRequest(result);
         }
 
-        [HttpDelete("DeleteDiscount")]
-        public async Task<ActionResult<BitResultObject>> DeleteDiscount(GetRowRequestBody requestBody)
+        [HttpDelete("DeletePaymentDetail_Base")]
+        public async Task<ActionResult<BitResultObject>> DeletePaymentDetail_Base(GetRowRequestBody requestBody)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(requestBody);
             }
-            var result = await _DiscountRep.RemoveDiscountAsync(requestBody.ID);
+            var result = await _PaymentDetailRep.RemovePaymentDetailAsync(requestBody.ID);
             if (result.Status)
             {
 

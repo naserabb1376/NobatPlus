@@ -6,9 +6,13 @@ namespace NobatPlusAPI.Models.PaymentDetail
 {
     public class GetPaymentDetailListRequestBody : GetListRequestBody
     {
-        [Display(Name = "کد خدمت آرایشگر")]
+        [Display(Name = "کد آرایشگر")]
         //[Required(ErrorMessage = "لطفا {0} را وارد کنید")]
-        public long StylistServiceId { get; set; } = 0;
+        public long StylistId { get; set; } = 0;
+
+        [Display(Name = "کد خدمت")]
+        //[Required(ErrorMessage = "لطفا {0} را وارد کنید")]
+        public long ServiceId { get; set; } = 0;
 
         [Display(Name = "کد پرداخت")]
         //[Required(ErrorMessage = "لطفا {0} را وارد کنید")]

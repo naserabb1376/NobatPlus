@@ -76,7 +76,22 @@ namespace NobatPlusAPI.Tools
          .ForMember(dest => dest.CustomerID, opt => opt.MapFrom(src => src.Booking.Customer.Person.ID))
          .ForMember(dest => dest.StylistName, opt => opt.MapFrom(src => src.Booking.Stylist.Person.FirstName + " " + src.Booking.Stylist.Person.LastName))
          .ForMember(dest => dest.CustomerName, opt => opt.MapFrom(src => src.Booking.Customer.Person.FirstName + " " + src.Booking.Customer.Person.LastName))
-         ;
+         .ForMember(dest => dest.PaymentItems,
+        opt => opt.MapFrom(src => src.PaymentDetails
+            .Select(ss => new PaymentItemVM()
+            {
+                DiscountAmount  = ss.DiscountAmount,
+                StylistID = ss.StylistID,
+                DiscountPercent = ss.DiscountPercent,
+                ServiceManagementID = ss.ServiceManagementID,
+                StylistServiceAmount    = ss.StylistServiceAmount,
+                SalonName = ss.Stylist.StylistName,
+                StylistName = $"{ss.Stylist.Person.FirstName} {ss.Stylist.Person.LastName}",
+                ServiceTitle = ss.ServiceManagement.ServiceName,
+                
+            }).ToList()));
+
+            ;
 
             CreateMap<PaymentHistory, PaymentHistoryVM>()
          .ForMember(dest => dest.SalonName, opt => opt.MapFrom(src => src.Booking.Stylist.StylistName))
