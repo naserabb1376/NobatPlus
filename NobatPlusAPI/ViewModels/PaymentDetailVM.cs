@@ -10,6 +10,7 @@ namespace NobatPlusDATA.ViewModels
         public long PaymentID { get; set; }
         public long StylistServiceID { get; set; }
         public decimal StylistServiceAmount { get; set; }
+        public int DiscountPercent { get; set; }
         public decimal DiscountAmount { get; set; }
 
         public long StylistID { get; set; }
@@ -23,6 +24,21 @@ namespace NobatPlusDATA.ViewModels
         public string PaymentStatus { get; set; }
         public bool PaymentFinished { get; set; }
         public int PaymentLevel { get; set; }
+
+
+    }
+
+    public class PaymentItemVM
+    {
+        public decimal StylistServiceAmount { get; set; }
+        public decimal DiscountAmount { get; set; }
+        public int DiscountPercent { get; set; }
+
+        public long StylistID { get; set; }
+        public long ServiceManagementID { get; set; }
+        public string ServiceTitle { get; set; }
+        public string StylistName { get; set; }
+        public string? SalonName { get; set; }
 
 
     }

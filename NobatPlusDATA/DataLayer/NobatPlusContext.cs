@@ -35,6 +35,7 @@ namespace NobatPlusDATA.DataLayer
         public DbSet<WorkTime> WorkTimes { get; set; }
         public DbSet<SocialNetwork> SocialNetworks { get; set; }
         public DbSet<PaymentHistory> PaymentHistories { get; set; }
+        public DbSet<PaymentDetail> PaymentDetails { get; set; }
         public DbSet<Login> Logins { get; set; }
         public DbSet<Register> Registers { get; set; }
         public DbSet<Payment> Payments { get; set; }
@@ -123,7 +124,8 @@ namespace NobatPlusDATA.DataLayer
             modelBuilder.Entity<DiscountAssignment>()
                 .HasOne(da => da.Discount)
                 .WithMany(d => d.DiscountAssignments)
-                .HasForeignKey(da => da.DiscountId);
+                .HasForeignKey(da => da.DiscountId)
+                .OnDelete(DeleteBehavior.Cascade);
 
             modelBuilder.Entity<DiscountAssignment>()
                 .HasOne(da => da.Admin)
@@ -141,7 +143,8 @@ namespace NobatPlusDATA.DataLayer
             modelBuilder.Entity<ServiceDiscount>()
                 .HasOne(sd => sd.Discount)
                 .WithMany(d => d.ServiceDiscounts)
-                .HasForeignKey(sd => sd.DiscountId);
+                .HasForeignKey(sd => sd.DiscountId)
+                .OnDelete(DeleteBehavior.Cascade);
 
             modelBuilder.Entity<ServiceDiscount>()
                 .HasOne(sd => sd.ServiceManagement)
@@ -164,7 +167,8 @@ namespace NobatPlusDATA.DataLayer
             modelBuilder.Entity<CustomerDiscount>()
                 .HasOne(cd => cd.Discount)
                 .WithMany(d => d.CustomerDiscounts)
-                .HasForeignKey(cd => cd.DiscountId);
+                .HasForeignKey(cd => cd.DiscountId)
+                 .OnDelete(DeleteBehavior.Cascade);
 
             modelBuilder.Entity<CustomerDiscount>()
                 .HasOne(cd => cd.Customer)
@@ -206,6 +210,12 @@ namespace NobatPlusDATA.DataLayer
         .WithMany(b => b.Payments)
         .HasForeignKey(p => p.BookingID)
         .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<PaymentDetail>()
+                     .HasOne(ss => ss.Payment)
+                     .WithMany(s => s.PaymentDetails)
+                     .HasForeignKey(ss => ss.PaymentID)
+                     .OnDelete(DeleteBehavior.Cascade);
 
             modelBuilder.Entity<PaymentHistory>()
                 .HasOne(ph => ph.Payment)

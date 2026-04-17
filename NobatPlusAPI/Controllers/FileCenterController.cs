@@ -29,7 +29,7 @@ public class FileCenterController : ControllerBase
     }
 
     [HttpPost("uploadfile")]
-    public async Task<IActionResult> UploadFile(IFormFile file, [FromQuery] bool isPublic, [FromQuery] string entityName, [FromQuery] string fileType, [FromQuery] long rowId)
+    public async Task<IActionResult> UploadFile(IFormFile file, [FromQuery] bool isPublic, [FromQuery] string entityName, [FromQuery] string fileType, [FromQuery] long rowId = 0)
     {
         try
         {
@@ -64,7 +64,7 @@ public class FileCenterController : ControllerBase
                     FileName = fileName,
                     FilePath = fullPath,
                     EntityType = entityName,
-                    ForeignKeyId = rowId,
+                    ForeignKeyId = rowId <= 0 ? RowNumber : rowId,
                     CreatorId = long.Parse(userId),
                 };
                 var removeoldResult = await _imageRep.RemoveOldImagesAsync(rowId, entityName);
@@ -92,7 +92,7 @@ public class FileCenterController : ControllerBase
                     FileName = fileName,
                     FilePath = fullPath,
                     EntityType = entityName,
-                    ForeignKeyId = rowId,
+                    ForeignKeyId = rowId <= 0 ? RowNumber : rowId,
                     ContentType = GetContentType(fullPath),
                     Description = isPublic ? "Public" : "Private",
                     CreatorId = long.Parse(userId),

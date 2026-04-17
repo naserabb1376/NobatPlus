@@ -27,6 +27,7 @@ namespace NobatPlusDATA.ViewModels
         public string PaymentStatus { get; set; }
         public bool PaymentFinished { get; set; }
         public int PaymentLevel { get; set; }
+        public List<PaymentItemVM> PaymentItems { get; set; }
 
     }
 }

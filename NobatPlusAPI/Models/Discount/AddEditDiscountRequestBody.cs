@@ -30,5 +30,17 @@ namespace NobatPlusAPI.Models.Discount
         [Display(Name = "توضیحات")]
         public string? Description { get; set; }
 
+        [Display(Name = "کد مدیر")]
+        public long? AdminId { get; set; }
+
+        [Display(Name = "کد ارائه دهنده خدمات")]
+        public long? StylistId { get; set; }
+
+        [Display(Name = "کد مشتریان")]
+        public List<long> CustomerIds { get; set; } = new List<long>();
+
+        [Display(Name = "کد خدمات")]
+        public List<long> ServiceIds { get; set; } = new List<long>();
+
     }
 }

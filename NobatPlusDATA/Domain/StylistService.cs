@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace NobatPlusDATA.Domain
 {
-    public class StylistService
+    public class StylistService : basee
     {
         public long StylistID { get; set; }
         public Stylist Stylist { get; set; }

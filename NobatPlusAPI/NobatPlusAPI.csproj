@@ -12,25 +12,29 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="AutoMapper" Version="16.0.0" />
-    <PackageReference Include="Azure.Identity" Version="1.17.1" />
+    <PackageReference Include="AutoMapper" Version="16.1.1" />
+    <PackageReference Include="Azure.Identity" Version="1.19.0" />
     <PackageReference Include="Hangfire" Version="1.8.23" />
     <PackageReference Include="Hangfire.AspNetCore" Version="1.8.23" />
-    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.3" />
-    <PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="10.0.3" />
-    <PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="10.0.3" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.5" />
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="10.0.5" />
+    <PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="10.0.5" />
     <PackageReference Include="Microsoft.IdentityModel.Tokens" Version="8.16.0" />
+    <PackageReference Include="Parbad" Version="3.11.3" />
+    <PackageReference Include="Parbad.AspNetCore" Version="1.5.0" />
+    <PackageReference Include="Parbad.Gateway.ZarinPal" Version="1.7.1" />
+    <PackageReference Include="Parbad.Storage.Cache" Version="1.5.0" />
     <PackageReference Include="SixLabors.ImageSharp" Version="3.1.12" />
     <PackageReference Include="SixLabors.ImageSharp.Drawing" Version="2.1.7" />
-    <PackageReference Include="Swashbuckle.AspNetCore" Version="10.1.4" />
-    <PackageReference Include="System.Formats.Asn1" Version="10.0.3" />
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="10.1.5" />
+    <PackageReference Include="System.Formats.Asn1" Version="10.0.5" />
     <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.16.0" />
     <PackageReference Include="System.ServiceModel.Duplex" Version="6.0.*" />
     <PackageReference Include="System.ServiceModel.Federation" Version="10.0.652802" />
     <PackageReference Include="System.ServiceModel.Http" Version="10.0.652802" />
     <PackageReference Include="System.ServiceModel.NetTcp" Version="10.0.652802" />
     <PackageReference Include="System.ServiceModel.Security" Version="6.0.*" />
-    <PackageReference Include="System.Text.Json" Version="10.0.3" />
+    <PackageReference Include="System.Text.Json" Version="10.0.5" />
     <PackageReference Include="System.Text.RegularExpressions" Version="4.3.1" />
   </ItemGroup>
 

@@ -79,22 +79,38 @@ namespace NobatPlusDATA.DataLayer.Services
             
         }
 
-        public async Task<ListResultObject<Payment>> GetAllPaymentsAsync(long bookingId = 0, int pageIndex = 1, int pageSize = 20, string searchText = "",string sortQuery ="")
+        public async Task<ListResultObject<Payment>> GetAllPaymentsAsync(long bookingId = 0,long customerId =0,int paymentIncludes = 0, int pageIndex = 1, int pageSize = 20, string searchText = "",string sortQuery ="")
         {
             ListResultObject<Payment> results = new ListResultObject<Payment>();
             try
             {
-                IQueryable<Payment> query = _context.Payments.Include(x => x.Booking).ThenInclude(x => x.Customer).Include(x => x.Booking).ThenInclude(x => x.Stylist)
+                IQueryable<Payment> query = _context.Payments.Include(x => x.PaymentDetails).ThenInclude(x=> x.Stylist).ThenInclude(x=> x.Person).Include(x => x.PaymentDetails).ThenInclude(x => x.ServiceManagement)
+                    .Include(x => x.Booking).ThenInclude(x => x.Customer)
                         .AsNoTracking();
+
+                if (customerId > 0)
+                {
+                    query = query.Where(x => x.Booking.CustomerID == customerId);
+                }
 
                 if (bookingId > 0)
                 {
                     query = query.Where(x=> x.BookingID == bookingId);
                 }
+                if(paymentIncludes == 0)
+                {
+                    query = query.Where(x => !x.PaymentFinished);
+
+                }
+
+                if (paymentIncludes == 1)
+                {
+                    query = query.Where(x => x.PaymentFinished);
+
+                }
 
                 query = query
                        .Where(x =>
-                           x.BookingID == bookingId &&
                            (
                                (!string.IsNullOrEmpty(x.PaymentStatus.ToString()) && x.PaymentStatus.ToString().Contains(searchText)) ||
                                (!string.IsNullOrEmpty(x.Description) && x.Description.Contains(searchText)) ||
@@ -103,6 +119,10 @@ namespace NobatPlusDATA.DataLayer.Services
                                (!string.IsNullOrEmpty(x.TotalServiceAmount.ToString()) && x.TotalServiceAmount.ToString().Contains(searchText)) ||
                                (!string.IsNullOrEmpty(x.PlarformAmount.ToString()) && x.PlarformAmount.ToString().Contains(searchText)) ||
                                (!string.IsNullOrEmpty(x.StylistAmount.ToString()) && x.StylistAmount.ToString().Contains(searchText)) ||
+                               (!string.IsNullOrEmpty(x.DiscountedServiceAmount.ToString()) && x.DiscountedServiceAmount.ToString().Contains(searchText)) ||
+                               (!string.IsNullOrEmpty(x.PayedAmount.ToString()) && x.PayedAmount.ToString().Contains(searchText)) ||
+                               (!string.IsNullOrEmpty(x.RemainAmount.ToString()) && x.RemainAmount.ToString().Contains(searchText)) ||
+                               (!string.IsNullOrEmpty(x.VatAmount.ToString()) && x.VatAmount.ToString().Contains(searchText)) ||
                                (!string.IsNullOrEmpty(x.PaymentDate.ToString()) && x.PaymentDate.ToString().Contains(searchText)) ||
                                (x.CreateDate.HasValue && x.CreateDate.Value.ToString().Contains(searchText)) ||
                                (x.UpdateDate.HasValue && x.UpdateDate.Value.ToString().Contains(searchText))
@@ -129,7 +149,8 @@ namespace NobatPlusDATA.DataLayer.Services
             RowResultObject<Payment> result = new RowResultObject<Payment>();
             try
             {
-                result.Result = await _context.Payments.Include(x => x.Booking).ThenInclude(x => x.Customer).Include(x => x.Booking).ThenInclude(x => x.Stylist)
+                result.Result = await _context.Payments.Include(x=> x.PaymentDetails).ThenInclude(x => x.Stylist).ThenInclude(x=> x.Person).Include(x => x.PaymentDetails).ThenInclude(x => x.ServiceManagement)
+                    .Include(x => x.Booking).ThenInclude(x => x.Customer)
                 .AsNoTracking()
                 .SingleOrDefaultAsync(x => x.ID == PaymentId);
             }
@@ -204,7 +225,7 @@ namespace NobatPlusDATA.DataLayer.Services
 
                 decimal total = ssService.Sum(x => x.ServicePrice);
                 decimal discounted = ssService.Sum(x => x.PriceAfterDiscount);
-                decimal deposit = ssService.Sum(x => x.ServicePrice * x.DepositPercent / 100);
+                decimal deposit = ssService.Sum(x => x.PriceAfterDiscount * x.DepositPercent / 100);
                 decimal platform = decimal.Parse(_context.Settings.FirstOrDefault(x => x.Key.ToLower() == "platformamount").Value ?? "0");
                 decimal stylist = discounted;
                 decimal allPay = discounted + platform;
@@ -219,6 +240,8 @@ namespace NobatPlusDATA.DataLayer.Services
                 result.Result.PlatformAmount =  platform ;
                 result.Result.VatAmount =  vatAmount ;
                 result.Result.PayedAmount =  vatAmount + deposit + platform ;
+                result.Result.RemainAmount = allPay - result.Result.PayedAmount;
+                result.Result.stylistServiceWithDiscountDtos = ssService;
             }
             catch (Exception ex)
             {
