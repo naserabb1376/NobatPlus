@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Domains;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -6,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace NobatPlusDATA.Domain
 {
-    public class StylistService : basee
+    public class StylistService : BaseEntity
     {
         public long StylistID { get; set; }
         public Stylist Stylist { get; set; }
