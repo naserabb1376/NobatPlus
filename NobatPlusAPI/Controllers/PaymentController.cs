@@ -315,7 +315,7 @@ namespace NobatPlusAPI.Controllers
             return BadRequest(result);
         }
 
-
+#if false
         [HttpPost("RequestPayment")]
         public async Task<ActionResult<RowResultObject<RequestPaymentResultBody>>> RequestPayment(RequestPaymentRequestBody requestBody)
         {
@@ -633,5 +633,6 @@ namespace NobatPlusAPI.Controllers
             }
 
         }
+#endif
     }
 }
