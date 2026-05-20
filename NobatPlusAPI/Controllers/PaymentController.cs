@@ -50,6 +50,7 @@ namespace NobatPlusAPI.Controllers
         }
 
         [HttpPost("GetAllPayments")]
+        [HttpPost("GetAllPayments_Base")]
         public async Task<ActionResult<ListResultObject<PaymentVM>>> GetAllPayments(GetPaymentListRequestBody requestBody)
         {
             if (!ModelState.IsValid)
@@ -58,8 +59,17 @@ namespace NobatPlusAPI.Controllers
             }
 
             var userId = User.GetCurrentUserId();
-            var dbcustomer = await _customerRep.ExistCustomerAsync(userId.ToString(), "personid");
-            var customerId = requestBody.CustomerId ?? dbcustomer.ID;
+            var roleId = User.GetCurrentRoleId();
+            long customerId = requestBody.CustomerId ?? 0;
+            if (roleId != 4)
+            {
+                var dbcustomer = await _customerRep.ExistCustomerAsync(userId.ToString(), "personid");
+                if (!dbcustomer.Status)
+                {
+                    return Forbid();
+                }
+                customerId = dbcustomer.ID;
+            }
 
             var result = await _PaymentRep.GetAllPaymentsAsync(requestBody.BookingId,customerId,requestBody.PaymentIncludes,requestBody.PageIndex,requestBody.PageSize,requestBody.SearchText,requestBody.SortQuery);
             if (result.Status)
@@ -71,6 +81,7 @@ namespace NobatPlusAPI.Controllers
         }
 
         [HttpPost("GetPaymentById")]
+        [HttpPost("GetPaymentById_Base")]
         public async Task<ActionResult<RowResultObject<PaymentVM>>> GetPaymentById(GetRowRequestBody requestBody)
         {
             if (!ModelState.IsValid)
@@ -81,6 +92,15 @@ namespace NobatPlusAPI.Controllers
             if (result.Status)
             {
                 var resultVM = _mapper.Map<RowResultObject<PaymentVM>>(result);
+                if (User.GetCurrentRoleId() != 4)
+                {
+                    var userId = User.GetCurrentUserId();
+                    var dbcustomer = await _customerRep.ExistCustomerAsync(userId.ToString(), "personid");
+                    if (!dbcustomer.Status || resultVM.Result?.CustomerID != dbcustomer.ID)
+                    {
+                        return Forbid();
+                    }
+                }
                 return Ok(resultVM);
             }
             return BadRequest(result);
@@ -102,6 +122,7 @@ namespace NobatPlusAPI.Controllers
         }
 
         [HttpPost("AddPayment")]
+        [HttpPost("AddPayment_Base")]
         public async Task<ActionResult<BitResultObject>> AddPayment(AddEditPaymentRequestBody requestBody)
         {
             var result = new BitResultObject();
@@ -113,6 +134,10 @@ namespace NobatPlusAPI.Controllers
 
             var userId = User.GetCurrentUserId();
             var dbcustomer = await _customerRep.ExistCustomerAsync(userId.ToString(), "personid");
+            if (!dbcustomer.Status)
+            {
+                return Forbid();
+            }
             var customerId = dbcustomer.ID;
             var discountId = requestBody.DiscountID ?? 0;
 
@@ -286,6 +311,7 @@ namespace NobatPlusAPI.Controllers
         }
 
         [HttpDelete("DeletePayment")]
+        [HttpDelete("DeletePayment_Base")]
         public async Task<ActionResult<BitResultObject>> DeletePayment(GetRowRequestBody requestBody)
         {
             if (!ModelState.IsValid)

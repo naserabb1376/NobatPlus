@@ -202,6 +202,7 @@ namespace NobatPlusDATA.DataLayer.Services
         public async Task<RowResultObject<CalcPaymentDTO>> CalculatePaymentAsync(long customerId,long bookingId,long discountId)
         {
             RowResultObject<CalcPaymentDTO> result = new RowResultObject<CalcPaymentDTO>();
+            result.Result = new CalcPaymentDTO();
             try
             {
 
@@ -222,6 +223,12 @@ namespace NobatPlusDATA.DataLayer.Services
             //).ToListAsync();
 
                 var ssService = await GetAllStylistServicesAsync(customerId,bookingId,discountId);
+                if (!ssService.Any())
+                {
+                    result.Status = false;
+                    result.ErrorMessage = "خدمتی برای این رزرو یافت نشد";
+                    return result;
+                }
 
                 decimal total = ssService.Sum(x => x.ServicePrice);
                 decimal discounted = ssService.Sum(x => x.PriceAfterDiscount);
@@ -273,7 +280,8 @@ long discountId = 0
                 if (bookingId > 0)
                 {
                     query = query.Where(ss =>
-                        ss.ServiceManagement.BookingServices.Any(bs => bs.BookingID == bookingId)
+                        ss.ServiceManagement.BookingServices.Any(bs => bs.BookingID == bookingId) &&
+                        _context.Bookings.Any(b => b.ID == bookingId && b.StylistID == ss.StylistID)
                     );
                 }
 

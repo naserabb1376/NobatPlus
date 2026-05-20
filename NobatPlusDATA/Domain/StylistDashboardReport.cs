@@ -16,6 +16,11 @@ namespace NobatPlusDATA.Domain
         public List<NameValueDto> DiscountBreakdown { get; set; } = new();
     }
 
+    public class SalonDashboardReport : StylistDashboardReport
+    {
+        public List<StylistPerformanceDto> StylistPerformance { get; set; } = new();
+    }
+
     public class StylistDashboardSummary
     {
         public int TodayBookingsCount { get; set; }
@@ -70,6 +75,21 @@ namespace NobatPlusDATA.Domain
         public int BookingCount { get; set; }
         public DateTime? LastBookingDate { get; set; }
         public decimal PaidAmount { get; set; }
+    }
+
+    public class StylistPerformanceDto
+    {
+        public long StylistId { get; set; }
+        public string StylistName { get; set; } = "";
+        public int BookingCount { get; set; }
+        public int CompletedBookingCount { get; set; }
+        public int CancelledBookingCount { get; set; }
+        public int CustomerCount { get; set; }
+        public decimal Revenue { get; set; }
+        public decimal PaidAmount { get; set; }
+        public decimal RemainAmount { get; set; }
+        public float AverageRating { get; set; }
+        public double CancellationPercent { get; set; }
     }
 
     public class RatingQuestionDto

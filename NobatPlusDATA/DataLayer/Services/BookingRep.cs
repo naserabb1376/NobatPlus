@@ -56,6 +56,17 @@ namespace NobatPlusDATA.DataLayer.Services
             BitResultObject result = new BitResultObject();
             try
             {
+                var previousBooking = await _context.Bookings
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(x => x.ID == Booking.ID);
+
+                if (previousBooking == null)
+                {
+                    result.Status = false;
+                    result.ErrorMessage = "رزرو یافت نشد";
+                    return result;
+                }
+
                 var bookingServiceIds = Booking.BookingServices.Select(x => x.ServiceManagementID).ToList();
 
                 bool hasConfilict = await HasBookingConflictForStylistOrCustomerAsync(Booking.StylistID, Booking.CustomerID, Booking.BookingDate, bookingServiceIds,Booking.ID);
@@ -67,6 +78,11 @@ namespace NobatPlusDATA.DataLayer.Services
 
 
                 _context.Bookings.Update(Booking);
+                if (!previousBooking.IsCancelled && Booking.IsCancelled)
+                {
+                    await RefundWalletPaymentsForCancelledBookingAsync(Booking.ID);
+                }
+
                 await _context.SaveChangesAsync();
                 result.ID = Booking.ID;
                 _context.Entry(Booking).State = EntityState.Detached;
@@ -78,6 +94,49 @@ namespace NobatPlusDATA.DataLayer.Services
             }
             return result;
            
+        }
+
+        private async Task RefundWalletPaymentsForCancelledBookingAsync(long bookingId)
+        {
+            var now = DateTime.Now.ToShamsi();
+            var walletPayments = await _context.WalletTransactions
+                .Include(x => x.Wallet)
+                .Where(x =>
+                    x.BookingID == bookingId &&
+                    x.TransactionType == "payment" &&
+                    x.Status == "success")
+                .ToListAsync();
+
+            foreach (var paymentTransaction in walletPayments)
+            {
+                var reference = $"refund:{paymentTransaction.ID}";
+                var alreadyRefunded = await _context.WalletTransactions
+                    .AnyAsync(x => x.ReferenceNumber == reference && x.TransactionType == "refund");
+
+                if (alreadyRefunded)
+                {
+                    continue;
+                }
+
+                paymentTransaction.Wallet.Balance += paymentTransaction.Amount;
+                paymentTransaction.Wallet.UpdateDate = now;
+                _context.Wallets.Update(paymentTransaction.Wallet);
+
+                await _context.WalletTransactions.AddAsync(new WalletTransaction
+                {
+                    CreateDate = now,
+                    UpdateDate = now,
+                    WalletID = paymentTransaction.WalletID,
+                    BookingID = bookingId,
+                    PaymentID = paymentTransaction.PaymentID,
+                    Amount = paymentTransaction.Amount,
+                    TransactionType = "refund",
+                    Status = "success",
+                    TransactionDate = now,
+                    ReferenceNumber = reference,
+                    Description = "برگشت وجه رزرو لغو شده"
+                });
+            }
         }
 
         public async Task<BitResultObject> ExistBookingAsync(long BookingId)

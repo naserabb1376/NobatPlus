@@ -11,6 +11,7 @@ using NobatPlusAPI.Models.Authenticate;
 using NobatPlusAPI.Models.City;
 using NobatPlusAPI.Models.Customer;
 using NobatPlusAPI.Models.Public;
+using NobatPlusAPI.Tools;
 using NobatPlusDATA.DataLayer.Repositories;
 using NobatPlusDATA.DataLayer.Services;
 using NobatPlusDATA.Domain;
@@ -31,13 +32,15 @@ namespace NobatPlusAPI.Controllers
     public class CustomerController : ControllerBase
     {
         ICustomerRep _CustomerRep;
+        IStylistRep _StylistRep;
         ILogRep _logRep;
         private readonly IMapper _mapper;
 
 
-        public CustomerController(ICustomerRep CustomerRep,ILogRep logRep, IMapper mapper)
+        public CustomerController(ICustomerRep CustomerRep,IStylistRep stylistRep,ILogRep logRep, IMapper mapper)
         {
            _CustomerRep = CustomerRep;
+            _StylistRep = stylistRep;
             _logRep = logRep;
             _mapper = mapper;
         }
@@ -48,6 +51,10 @@ namespace NobatPlusAPI.Controllers
             if (!ModelState.IsValid)
             {
                 return BadRequest(requestBody);
+            }
+            if (!await NormalizeCustomerListScopeAsync(requestBody))
+            {
+                return Forbid();
             }
             var result = await _CustomerRep.GetAllCustomersAsync(requestBody.StylistId,requestBody.CityId,requestBody.DiscountId,requestBody.PageIndex,requestBody.PageSize,requestBody.SearchText,requestBody.SortQuery);
             if (result.Status)
@@ -69,6 +76,10 @@ namespace NobatPlusAPI.Controllers
             var result = await _CustomerRep.GetCustomerByIdAsync(requestBody.ID);
             if (result.Status)
             {
+                if (!await CanAccessCustomerAsync(result.Result))
+                {
+                    return Forbid();
+                }
                 var resultVM = _mapper.Map<RowResultObject<CustomerVM>>(result);
                 return Ok(resultVM);
             }
@@ -76,6 +87,7 @@ namespace NobatPlusAPI.Controllers
         }
 
         [HttpPost("ExistCustomer_Base")]
+        [RequireRole(4)]
         public async Task<ActionResult<BitResultObject>> ExistCustomer_Base(ExistCustomerRequestBody requestBody)
         {
             if (!ModelState.IsValid)
@@ -96,6 +108,10 @@ namespace NobatPlusAPI.Controllers
             if (!ModelState.IsValid)
             {
                 return BadRequest(requestBody);
+            }
+            if (User.GetCurrentRoleId() != 4)
+            {
+                requestBody.PersonID = User.GetCurrentUserId();
             }
             Customer Customer = new Customer()
             {
@@ -137,6 +153,10 @@ namespace NobatPlusAPI.Controllers
             }
 
             var theRow = await _CustomerRep.GetCustomerByIdAsync(requestBody.ID);
+            if (!theRow.Status || !await CanAccessCustomerAsync(theRow.Result))
+            {
+                return Forbid();
+            }
 
             if (!theRow.Status)
             {
@@ -149,7 +169,7 @@ namespace NobatPlusAPI.Controllers
                  UpdateDate = DateTime.Now.ToShamsi(),
                  ID = requestBody.ID,
                  CreateDate = theRow.Result.CreateDate,
-                 PersonID = requestBody.PersonID,
+                 PersonID = User.GetCurrentRoleId() == 4 ? requestBody.PersonID : theRow.Result.PersonID,
                  Description = requestBody.Description,
             };
              result = await _CustomerRep.EditCustomerAsync(Customer);
@@ -176,6 +196,7 @@ namespace NobatPlusAPI.Controllers
         }
 
         [HttpDelete("DeleteCustomer_Base")]
+        [RequireRole(4)]
         public async Task<ActionResult<BitResultObject>> DeleteCustomer_Base(GetRowRequestBody requestBody)
         {
             if (!ModelState.IsValid)
@@ -203,6 +224,54 @@ namespace NobatPlusAPI.Controllers
                 return Ok(result);
             }
             return BadRequest(result);
+        }
+
+        private async Task<bool> NormalizeCustomerListScopeAsync(GetCustomerListRequestBody requestBody)
+        {
+            var roleId = User.GetCurrentRoleId();
+            var personId = User.GetCurrentUserId();
+
+            if (roleId == 4) return true;
+
+            if (roleId == 2)
+            {
+                var stylist = await _StylistRep.ExistStylistAsync(personId.ToString(), "personid");
+                if (!stylist.Status) return false;
+                requestBody.StylistId = stylist.ID;
+                return true;
+            }
+
+            if (roleId == 3)
+            {
+                var salon = await _StylistRep.ExistStylistAsync(personId.ToString(), "personid");
+                if (!salon.Status) return false;
+                if (requestBody.StylistId <= 0)
+                {
+                    requestBody.StylistId = salon.ID;
+                    return true;
+                }
+                var stylist = await _StylistRep.GetStylistByIdAsync(requestBody.StylistId);
+                return stylist.Status && stylist.Result != null && stylist.Result.StylistParentID == salon.ID;
+            }
+
+            return false;
+        }
+
+        private async Task<bool> CanAccessCustomerAsync(CustomerDTO customer)
+        {
+            if (customer == null) return false;
+            var roleId = User.GetCurrentRoleId();
+            var personId = User.GetCurrentUserId();
+
+            if (roleId == 4) return true;
+
+            if (roleId == 1)
+            {
+                var current = await _CustomerRep.ExistCustomerAsync(personId.ToString(), "personid");
+                return current.Status && current.ID == customer.ID;
+            }
+
+            return false;
         }
     }
 }

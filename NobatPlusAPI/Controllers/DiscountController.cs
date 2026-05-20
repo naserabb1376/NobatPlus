@@ -46,6 +46,7 @@ namespace NobatPlusAPI.Controllers
         [HttpPost("GetAllDiscounts_Base")]
         public async Task<ActionResult<ListResultObject<DiscountVM>>> GetAllDiscounts_Base(GetDiscountListRequestBody requestBody)
         {
+            if (User.GetCurrentRoleId() != 4) return Forbid();
             if (!ModelState.IsValid)
             {
                 return BadRequest(requestBody);
@@ -93,6 +94,7 @@ namespace NobatPlusAPI.Controllers
         [HttpPost("AddDiscount")]
         public async Task<ActionResult<BitResultObject>> AddDiscount(AddEditDiscountRequestBody requestBody)
         {
+            if (User.GetCurrentRoleId() != 4) return Forbid();
             if (!ModelState.IsValid)
             {
                 return BadRequest(requestBody);
@@ -177,6 +179,7 @@ namespace NobatPlusAPI.Controllers
         [HttpPut("EditDiscount_Base")]
         public async Task<ActionResult<BitResultObject>> EditDiscount_Base(AddEditDiscountRequestBody requestBody)
         {
+            if (User.GetCurrentRoleId() != 4) return Forbid();
             var result = new BitResultObject();
             if (!ModelState.IsValid)
             {
@@ -226,6 +229,7 @@ namespace NobatPlusAPI.Controllers
         [HttpDelete("DeleteDiscount")]
         public async Task<ActionResult<BitResultObject>> DeleteDiscount(GetRowRequestBody requestBody)
         {
+            if (User.GetCurrentRoleId() != 4) return Forbid();
             if (!ModelState.IsValid)
             {
                 return BadRequest(requestBody);

@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 using NobatPlusAPI.Models.Public;
 using NobatPlusAPI.Models.Role;
+using NobatPlusAPI.Tools;
 using NobatPlusAPI.ViewModels;
 using NobatPlusDATA.DataLayer.Repositories;
 using NobatPlusDATA.Domain;
@@ -42,6 +43,7 @@ namespace NobatPlusAPI.Controllers
         [HttpPost("GetAllRoles_Base")]
         public async Task<ActionResult<ListResultObject<RoleVM>>> GetAllRoles_Base(GetRoleListRequestBody requestBody)
         {
+            if (User.GetCurrentRoleId() != 4) return Forbid();
             if (!ModelState.IsValid)
             {
                 return BadRequest(requestBody);
@@ -59,6 +61,7 @@ namespace NobatPlusAPI.Controllers
         [HttpPost("GetRoleById_Base")]
         public async Task<ActionResult<RowResultObject<RoleVM>>> GetRoleById_Base(GetRowRequestBody requestBody)
         {
+            if (User.GetCurrentRoleId() != 4) return Forbid();
             if (!ModelState.IsValid)
             {
                 return BadRequest(requestBody);
@@ -75,6 +78,7 @@ namespace NobatPlusAPI.Controllers
         [HttpPost("ExistRole_Base")]
         public async Task<ActionResult<BitResultObject>> ExistRole_Base(GetRowRequestBody requestBody)
         {
+            if (User.GetCurrentRoleId() != 4) return Forbid();
             if (!ModelState.IsValid)
             {
                 return BadRequest(requestBody);
@@ -90,6 +94,7 @@ namespace NobatPlusAPI.Controllers
         [HttpPost("AddRole_Base")]
         public async Task<ActionResult<BitResultObject>> AddRole_Base(AddEditRoleRequestBody requestBody)
         {
+            if (User.GetCurrentRoleId() != 4) return Forbid();
             if (!ModelState.IsValid)
             {
                 return BadRequest(requestBody);
@@ -128,6 +133,7 @@ namespace NobatPlusAPI.Controllers
         [HttpPut("EditRole_Base")]
         public async Task<ActionResult<BitResultObject>> EditRole_Base(AddEditRoleRequestBody requestBody)
         {
+            if (User.GetCurrentRoleId() != 4) return Forbid();
             var result = new BitResultObject();
             if (!ModelState.IsValid)
             {
@@ -175,6 +181,7 @@ namespace NobatPlusAPI.Controllers
         [HttpDelete("DeleteRole_Base")]
         public async Task<ActionResult<BitResultObject>> DeleteRole_Base(GetRowRequestBody requestBody)
         {
+            if (User.GetCurrentRoleId() != 4) return Forbid();
             if (!ModelState.IsValid)
             {
                 return BadRequest(requestBody);

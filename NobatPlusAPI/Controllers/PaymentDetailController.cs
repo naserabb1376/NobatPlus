@@ -10,6 +10,7 @@ using NobatPlusAPI.Models;
 using NobatPlusAPI.Models.Authenticate;
 using NobatPlusAPI.Models.PaymentDetail;
 using NobatPlusAPI.Models.Public;
+using NobatPlusAPI.Tools;
 using NobatPlusDATA.DataLayer.Repositories;
 using NobatPlusDATA.DataLayer.Services;
 using NobatPlusDATA.Domain;
@@ -30,13 +31,19 @@ namespace NobatPlusAPI.Controllers
     public class PaymentDetailController : ControllerBase
     {
         IPaymentDetailRep _PaymentDetailRep;
+        IPaymentRep _PaymentRep;
+        ICustomerRep _CustomerRep;
+        IStylistRep _StylistRep;
         ILogRep _logRep;
         private readonly IMapper _mapper;
 
 
-        public PaymentDetailController(IPaymentDetailRep PaymentDetailRep,ILogRep logRep, IMapper mapper)
+        public PaymentDetailController(IPaymentDetailRep PaymentDetailRep,IPaymentRep paymentRep,ICustomerRep customerRep,IStylistRep stylistRep,ILogRep logRep, IMapper mapper)
         {
            _PaymentDetailRep = PaymentDetailRep;
+           _PaymentRep = paymentRep;
+           _CustomerRep = customerRep;
+           _StylistRep = stylistRep;
            _logRep = logRep;
             _mapper = mapper;
         }
@@ -47,6 +54,10 @@ namespace NobatPlusAPI.Controllers
             if (!ModelState.IsValid)
             {
                 return BadRequest(requestBody);
+            }
+            if (!await NormalizePaymentDetailScopeAsync(requestBody))
+            {
+                return Forbid();
             }
             var result = await _PaymentDetailRep.GetAllPaymentDetailsAsync(requestBody.StylistId,requestBody.ServiceId,requestBody.PaymentId,requestBody.PageIndex,requestBody.PageSize,requestBody.SearchText,requestBody.SortQuery);
             if (result.Status)
@@ -67,6 +78,10 @@ namespace NobatPlusAPI.Controllers
             var result = await _PaymentDetailRep.GetPaymentDetailByIdAsync(requestBody.ID);
             if (result.Status)
             {
+                if (!await CanAccessPaymentDetailAsync(result.Result))
+                {
+                    return Forbid();
+                }
                 var resultVM = _mapper.Map<RowResultObject<PaymentDetailVM>>(result);
                 return Ok(resultVM);
             }
@@ -74,6 +89,7 @@ namespace NobatPlusAPI.Controllers
         }
 
         [HttpPost("ExistPaymentDetail_Base")]
+        [RequireRole(4)]
         public async Task<ActionResult<BitResultObject>> ExistPaymentDetail_Base(GetRowRequestBody requestBody)
         {
             if (!ModelState.IsValid)
@@ -89,6 +105,7 @@ namespace NobatPlusAPI.Controllers
         }
 
         [HttpPost("AddPaymentDetail_Base")]
+        [RequireRole(4)]
         public async Task<ActionResult<BitResultObject>> AddPaymentDetail_Base(AddEditPaymentDetailRequestBody requestBody)
         {
             if (!ModelState.IsValid)
@@ -131,6 +148,7 @@ namespace NobatPlusAPI.Controllers
         }
 
         [HttpPut("EditPaymentDetail_Base")]
+        [RequireRole(4)]
         public async Task<ActionResult<BitResultObject>> EditPaymentDetail_Base(AddEditPaymentDetailRequestBody requestBody)
         {
             var result = new BitResultObject();
@@ -182,6 +200,7 @@ namespace NobatPlusAPI.Controllers
         }
 
         [HttpDelete("DeletePaymentDetail_Base")]
+        [RequireRole(4)]
         public async Task<ActionResult<BitResultObject>> DeletePaymentDetail_Base(GetRowRequestBody requestBody)
         {
             if (!ModelState.IsValid)
@@ -209,6 +228,81 @@ namespace NobatPlusAPI.Controllers
                 return Ok(result);
             }
             return BadRequest(result);
+        }
+
+        private async Task<bool> NormalizePaymentDetailScopeAsync(GetPaymentDetailListRequestBody requestBody)
+        {
+            var roleId = User.GetCurrentRoleId();
+            var personId = User.GetCurrentUserId();
+
+            if (roleId == 4) return true;
+
+            if (roleId == 1)
+            {
+                if (requestBody.PaymentId <= 0) return false;
+                var customer = await _CustomerRep.ExistCustomerAsync(personId.ToString(), "personid");
+                if (!customer.Status) return false;
+                var payment = await _PaymentRep.GetPaymentByIdAsync(requestBody.PaymentId);
+                return payment.Status && payment.Result != null && payment.Result.Booking.CustomerID == customer.ID;
+            }
+
+            if (roleId == 2)
+            {
+                var stylist = await _StylistRep.ExistStylistAsync(personId.ToString(), "personid");
+                if (!stylist.Status) return false;
+                requestBody.StylistId = stylist.ID;
+                return true;
+            }
+
+            if (roleId == 3)
+            {
+                var salon = await _StylistRep.ExistStylistAsync(personId.ToString(), "personid");
+                if (!salon.Status) return false;
+                if (requestBody.StylistId <= 0)
+                {
+                    requestBody.StylistId = salon.ID;
+                    return true;
+                }
+                var stylist = await _StylistRep.GetStylistByIdAsync(requestBody.StylistId);
+                return stylist.Status && stylist.Result != null && stylist.Result.StylistParentID == salon.ID;
+            }
+
+            return false;
+        }
+
+        private async Task<bool> CanAccessPaymentDetailAsync(PaymentDetail detail)
+        {
+            if (detail == null) return false;
+
+            var roleId = User.GetCurrentRoleId();
+            var personId = User.GetCurrentUserId();
+
+            if (roleId == 4) return true;
+
+            if (roleId == 1)
+            {
+                var customer = await _CustomerRep.ExistCustomerAsync(personId.ToString(), "personid");
+                if (!customer.Status) return false;
+                var payment = await _PaymentRep.GetPaymentByIdAsync(detail.PaymentID);
+                return payment.Status && payment.Result != null && payment.Result.Booking.CustomerID == customer.ID;
+            }
+
+            if (roleId == 2)
+            {
+                var stylist = await _StylistRep.ExistStylistAsync(personId.ToString(), "personid");
+                return stylist.Status && detail.StylistID == stylist.ID;
+            }
+
+            if (roleId == 3)
+            {
+                var salon = await _StylistRep.ExistStylistAsync(personId.ToString(), "personid");
+                if (!salon.Status) return false;
+                if (detail.StylistID == salon.ID) return true;
+                var stylist = await _StylistRep.GetStylistByIdAsync(detail.StylistID);
+                return stylist.Status && stylist.Result != null && stylist.Result.StylistParentID == salon.ID;
+            }
+
+            return false;
         }
     }
 }

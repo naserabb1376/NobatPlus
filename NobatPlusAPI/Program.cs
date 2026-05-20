@@ -169,12 +169,14 @@ namespace NobatPlusAPI
 
             builder.Services.AddScoped<IAddressRep, AddressRep>();
             builder.Services.AddScoped<IAdminRep, AdminRep>();
+            builder.Services.AddScoped<IAdminDashboardRep, AdminDashboardRep>();
             builder.Services.AddScoped<IBookingRep, BookingRep>();
             builder.Services.AddScoped<IBookingServiceRep, BookingServiceRep>();
             builder.Services.AddScoped<ICheckAvailabilityRep, CheckAvailabilityRep>();
             builder.Services.AddScoped<ICityRep, CityRep>();
             builder.Services.AddScoped<ICustomerDiscountRep, CustomerDiscountRep>();
             builder.Services.AddScoped<ICustomerRep, CustomerRep>();
+            builder.Services.AddScoped<ICustomerDashboardRep, CustomerDashboardRep>();
             builder.Services.AddScoped<IDiscountAssignmentRep, DiscountAssignmentRep>();
             builder.Services.AddScoped<IDiscountRep, DiscountRep>();
             builder.Services.AddScoped<IJobTypeRep, JobTypeRep>();
@@ -183,9 +185,11 @@ namespace NobatPlusAPI
             builder.Services.AddScoped<ILogRep, LogRep>();
             builder.Services.AddScoped<IImageRep, ImageRep>();
             builder.Services.AddScoped<IFileUploadRep, FileUploadRep>();
+            builder.Services.AddScoped<IFinancialAccountRep, FinancialAccountRep>();
             builder.Services.AddScoped<INotificationRep, NotificationRep>();
             builder.Services.AddScoped<IPaymentHistoryRep, PaymentHistoryRep>();
             builder.Services.AddScoped<IPaymentRep, PaymentRep>();
+            builder.Services.AddScoped<IWalletRep, WalletRep>();
             builder.Services.AddScoped<IPersonRep, PersonRep>();
             builder.Services.AddScoped<IRegisterRep, RegisterRep>();
             builder.Services.AddScoped<IReviewRep, ReviewRep>();
