@@ -28,6 +28,9 @@ namespace Domain
         public long CityID { get; set; }
     }
 
+
+
+
     public class FindLocationRequestBody
     {
         [Display(Name = "عرض جغرافیایی")]

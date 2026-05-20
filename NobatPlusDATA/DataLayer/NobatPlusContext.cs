@@ -39,6 +39,11 @@ namespace NobatPlusDATA.DataLayer
         public DbSet<Login> Logins { get; set; }
         public DbSet<Register> Registers { get; set; }
         public DbSet<Payment> Payments { get; set; }
+        public DbSet<Wallet> Wallets { get; set; }
+        public DbSet<WalletTransaction> WalletTransactions { get; set; }
+        public DbSet<FinancialAccount> FinancialAccounts { get; set; }
+        public DbSet<FinancialTransaction> FinancialTransactions { get; set; }
+        public DbSet<SettlementRequest> SettlementRequests { get; set; }
         public DbSet<Notification> Notifications { get; set; }
         public DbSet<SMSMessage> SMSMessages { get; set; }
         public DbSet<CheckAvailability> CheckAvailabilities { get; set; }
@@ -86,6 +91,14 @@ namespace NobatPlusDATA.DataLayer
         {
             // dynamic auth config
             modelBuilder.AddMTPermissionCenter();
+
+            foreach (var property in modelBuilder.Model.GetEntityTypes()
+                         .SelectMany(entityType => entityType.GetProperties())
+                         .Where(property => property.ClrType == typeof(decimal) || property.ClrType == typeof(decimal?)))
+            {
+                property.SetPrecision(18);
+                property.SetScale(2);
+            }
 
             // demo config
             modelBuilder.Entity<Role>().HasIndex(x => x.Name).IsUnique();
@@ -211,11 +224,26 @@ namespace NobatPlusDATA.DataLayer
         .HasForeignKey(p => p.BookingID)
         .OnDelete(DeleteBehavior.Cascade);
 
+            modelBuilder.Entity<Payment>()
+                .Ignore(p => p.Discount);
+
             modelBuilder.Entity<PaymentDetail>()
                      .HasOne(ss => ss.Payment)
                      .WithMany(s => s.PaymentDetails)
                      .HasForeignKey(ss => ss.PaymentID)
                      .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<PaymentDetail>()
+                .HasOne(pd => pd.Stylist)
+                .WithMany(s => s.PaymentDetails)
+                .HasForeignKey(pd => pd.StylistID)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            modelBuilder.Entity<PaymentDetail>()
+                .HasOne(pd => pd.ServiceManagement)
+                .WithMany(s => s.PaymentDetails)
+                .HasForeignKey(pd => pd.ServiceManagementID)
+                .OnDelete(DeleteBehavior.NoAction);
 
             modelBuilder.Entity<PaymentHistory>()
                 .HasOne(ph => ph.Payment)
@@ -228,6 +256,74 @@ namespace NobatPlusDATA.DataLayer
                 .WithMany()
                 .HasForeignKey(ph => ph.BookingID)
                 .OnDelete(DeleteBehavior.NoAction); // 👈 مهم
+
+            modelBuilder.Entity<Wallet>()
+                .HasOne(w => w.Customer)
+                .WithOne(c => c.Wallet)
+                .HasForeignKey<Wallet>(w => w.CustomerID)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<Wallet>()
+                .HasIndex(w => w.CustomerID)
+                .IsUnique();
+
+            modelBuilder.Entity<WalletTransaction>()
+                .HasOne(wt => wt.Wallet)
+                .WithMany(w => w.Transactions)
+                .HasForeignKey(wt => wt.WalletID)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<WalletTransaction>()
+                .HasOne(wt => wt.Booking)
+                .WithMany()
+                .HasForeignKey(wt => wt.BookingID)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            modelBuilder.Entity<WalletTransaction>()
+                .HasOne(wt => wt.Payment)
+                .WithMany()
+                .HasForeignKey(wt => wt.PaymentID)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            modelBuilder.Entity<FinancialAccount>()
+                .HasOne(fa => fa.Stylist)
+                .WithOne(s => s.FinancialAccount)
+                .HasForeignKey<FinancialAccount>(fa => fa.StylistID)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<FinancialAccount>()
+                .HasIndex(fa => fa.StylistID)
+                .IsUnique();
+
+            modelBuilder.Entity<FinancialTransaction>()
+                .HasOne(ft => ft.FinancialAccount)
+                .WithMany(fa => fa.Transactions)
+                .HasForeignKey(ft => ft.FinancialAccountID)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<FinancialTransaction>()
+                .HasOne(ft => ft.Booking)
+                .WithMany()
+                .HasForeignKey(ft => ft.BookingID)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            modelBuilder.Entity<FinancialTransaction>()
+                .HasOne(ft => ft.Payment)
+                .WithMany()
+                .HasForeignKey(ft => ft.PaymentID)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            modelBuilder.Entity<FinancialTransaction>()
+                .HasOne(ft => ft.SettlementRequest)
+                .WithMany(sr => sr.Transactions)
+                .HasForeignKey(ft => ft.SettlementRequestID)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            modelBuilder.Entity<SettlementRequest>()
+                .HasOne(sr => sr.FinancialAccount)
+                .WithMany(fa => fa.SettlementRequests)
+                .HasForeignKey(sr => sr.FinancialAccountID)
+                .OnDelete(DeleteBehavior.Cascade);
 
             modelBuilder.Entity<RateHistory>()
      .HasOne(r => r.Customer)

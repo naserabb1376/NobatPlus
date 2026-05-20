@@ -10,6 +10,7 @@ using NobatPlusAPI.Models;
 using NobatPlusAPI.Models.Authenticate;
 using NobatPlusAPI.Models.Public;
 using NobatPlusAPI.Models.Review;
+using NobatPlusAPI.Tools;
 using NobatPlusDATA.DataLayer.Repositories;
 using NobatPlusDATA.DataLayer.Services;
 using NobatPlusDATA.Domain;
@@ -31,20 +32,23 @@ namespace NobatPlusAPI.Controllers
     {
         IReviewRep _ReviewRep;
         IBookingRep _BookingRep;
+        ICustomerRep _CustomerRep;
+        IStylistRep _StylistRep;
         ILogRep _logRep;
         private readonly IMapper _mapper;
 
 
-        public ReviewController(IReviewRep ReviewRep,IBookingRep bookingRep,ILogRep logRep, IMapper mapper)
+        public ReviewController(IReviewRep ReviewRep,IBookingRep bookingRep,ICustomerRep customerRep,IStylistRep stylistRep,ILogRep logRep, IMapper mapper)
         {
            _ReviewRep = ReviewRep;
             _BookingRep = bookingRep;
+            _CustomerRep = customerRep;
+            _StylistRep = stylistRep;
            _logRep = logRep;
             _mapper = mapper;
         }
 
         [HttpPost("GetAllReviews_Base")]
-        [AllowAnonymous]
         public async Task<ActionResult<ListResultObject<ReviewVM>>> GetAllReviews_Base(GetReviewListRequestBody requestBody)
         {
             if (!ModelState.IsValid)
@@ -52,8 +56,13 @@ namespace NobatPlusAPI.Controllers
                 return BadRequest(requestBody);
             }
 
-            long roleId = long.Parse(User.FindFirst("Role")?.Value ?? "0");
-            var result = await _ReviewRep.GetAllReviewsAsync(roleId,requestBody.BookingId,requestBody.CustomerId,requestBody.StylistId,requestBody.PageIndex,requestBody.PageSize,requestBody.SearchText,requestBody.SortQuery);
+            long roleId = User.GetCurrentRoleId();
+            if (!await NormalizeReviewListScopeAsync(requestBody))
+            {
+                return Forbid();
+            }
+            var queryRoleId = roleId == 1 ? 4 : roleId;
+            var result = await _ReviewRep.GetAllReviewsAsync(queryRoleId,requestBody.BookingId,requestBody.CustomerId,requestBody.StylistId,requestBody.PageIndex,requestBody.PageSize,requestBody.SearchText,requestBody.SortQuery);
             if (result.Status)
             {
                 var resultVM = _mapper.Map<ListResultObject<ReviewVM>>(result);
@@ -70,10 +79,14 @@ namespace NobatPlusAPI.Controllers
                 return BadRequest(requestBody);
             }
 
-            long roleId = long.Parse(User.FindFirst("Role")?.Value ?? "0");
-            var result = await _ReviewRep.GetReviewByIdAsync(requestBody.ID,roleId);
+            long roleId = User.GetCurrentRoleId();
+            var result = await _ReviewRep.GetReviewByIdAsync(requestBody.ID,roleId == 1 ? 4 : roleId);
             if (result.Status)
             {
+                if (!await CanAccessReviewAsync(result.Result))
+                {
+                    return Forbid();
+                }
                 var resultVM = _mapper.Map<RowResultObject<ReviewVM>>(result);
                 return Ok(resultVM);
             }
@@ -81,6 +94,7 @@ namespace NobatPlusAPI.Controllers
         }
 
         [HttpPost("ExistReview_Base")]
+        [RequireRole(4)]
         public async Task<ActionResult<BitResultObject>> ExistReview_Base(GetRowRequestBody requestBody)
         {
             if (!ModelState.IsValid)
@@ -104,6 +118,12 @@ namespace NobatPlusAPI.Controllers
             {
                 return BadRequest(requestBody);
             }
+            var customer = await _CustomerRep.ExistCustomerAsync(User.GetCurrentUserId().ToString(), "personid");
+            if (!customer.Status)
+            {
+                return Forbid();
+            }
+            requestBody.CustomerID = customer.ID;
 
             var theBooking = await _BookingRep.GetBookingByIdAsync(requestBody.BookingID);
             if (!theBooking.Status)
@@ -113,7 +133,7 @@ namespace NobatPlusAPI.Controllers
                 return BadRequest(result);
             }
 
-            if (theBooking.Result.CustomerID != requestBody.CustomerID || theBooking.Result.Status.Trim() != "4")
+            if (theBooking.Result.CustomerID != customer.ID || theBooking.Result.Status.Trim() != "4")
             {
                 result.Status = false;
                 result.ErrorMessage = "شما اجازه ثبت بازخورد درباره این نوبت را ندارید";
@@ -126,7 +146,7 @@ namespace NobatPlusAPI.Controllers
                 BookingID = requestBody.BookingID,
                 Comments = requestBody.Comments,
                 CustomerID = requestBody.CustomerID,
-                StylistID = requestBody.StylistID,
+                StylistID = theBooking.Result.StylistID,
                 DislikeCount = requestBody.DislikeCount,
                 LikeCount = requestBody.LikeCount,
                 Rating = requestBody.Rating,
@@ -160,6 +180,7 @@ namespace NobatPlusAPI.Controllers
         }
 
         [HttpPut("AcceptReview_Base")]
+        [RequireRole(4)]
         public async Task<ActionResult<BitResultObject>> AcceptReview_Base(GetRowRequestBody requestBody)
         {
             var result = new BitResultObject();
@@ -167,7 +188,7 @@ namespace NobatPlusAPI.Controllers
             {
                 return BadRequest(requestBody);
             }
-            long roleId = long.Parse(User.FindFirst("Role")?.Value ?? "0");
+            long roleId = User.GetCurrentRoleId();
           
             result = await _ReviewRep.AcceptReviewAsync(requestBody.ID,roleId);
             if (result.Status)
@@ -200,12 +221,23 @@ namespace NobatPlusAPI.Controllers
             {
                 return BadRequest(requestBody);
             }
-            long roleId = long.Parse(User.FindFirst("Role")?.Value ?? "0");
-            var theRow = await _ReviewRep.GetReviewByIdAsync(requestBody.ID,roleId);
+            long roleId = User.GetCurrentRoleId();
+            var theRow = await _ReviewRep.GetReviewByIdAsync(requestBody.ID,roleId == 1 ? 4 : roleId);
             if (!theRow.Status)
             {
                 result.Status = theRow.Status;
                 result.ErrorMessage = theRow.ErrorMessage;
+            }
+            if (!await CanAccessReviewAsync(theRow.Result))
+            {
+                return Forbid();
+            }
+
+            var customer = await _CustomerRep.ExistCustomerAsync(User.GetCurrentUserId().ToString(), "personid");
+            if (roleId != 4)
+            {
+                if (!customer.Status) return Forbid();
+                requestBody.CustomerID = customer.ID;
             }
 
             var theBooking = await _BookingRep.GetBookingByIdAsync(requestBody.BookingID);
@@ -231,7 +263,7 @@ namespace NobatPlusAPI.Controllers
                 BookingID = requestBody.BookingID,
                 Comments = requestBody.Comments,
                 CustomerID = requestBody.CustomerID,
-                StylistID = requestBody.StylistID,
+                StylistID = theBooking.Result.StylistID,
                 DislikeCount = requestBody.DislikeCount,
                 LikeCount = requestBody.LikeCount,
                 Rating = requestBody.Rating,
@@ -271,8 +303,13 @@ namespace NobatPlusAPI.Controllers
             {
                 return BadRequest(requestBody);
             }
-            long roleId = long.Parse(User.FindFirst("Role")?.Value ?? "0");
-            var result = await _ReviewRep.RemoveReviewAsync(requestBody.ID,roleId);
+            long roleId = User.GetCurrentRoleId();
+            var review = await _ReviewRep.GetReviewByIdAsync(requestBody.ID, roleId == 1 ? 4 : roleId);
+            if (!review.Status || !await CanAccessReviewAsync(review.Result))
+            {
+                return Forbid();
+            }
+            var result = await _ReviewRep.RemoveReviewAsync(requestBody.ID,roleId == 1 ? 4 : roleId);
             if (result.Status)
             {
 
@@ -293,6 +330,77 @@ namespace NobatPlusAPI.Controllers
                 return Ok(result);
             }
             return BadRequest(result);
+        }
+
+        private async Task<bool> NormalizeReviewListScopeAsync(GetReviewListRequestBody requestBody)
+        {
+            var roleId = User.GetCurrentRoleId();
+            var personId = User.GetCurrentUserId();
+
+            if (roleId == 4) return true;
+
+            if (roleId == 1)
+            {
+                var customer = await _CustomerRep.ExistCustomerAsync(personId.ToString(), "personid");
+                if (!customer.Status) return false;
+                requestBody.CustomerId = customer.ID;
+                return true;
+            }
+
+            if (roleId == 2)
+            {
+                var stylist = await _StylistRep.ExistStylistAsync(personId.ToString(), "personid");
+                if (!stylist.Status) return false;
+                requestBody.StylistId = stylist.ID;
+                return true;
+            }
+
+            if (roleId == 3)
+            {
+                var salon = await _StylistRep.ExistStylistAsync(personId.ToString(), "personid");
+                if (!salon.Status) return false;
+                if (requestBody.StylistId <= 0)
+                {
+                    requestBody.StylistId = salon.ID;
+                    return true;
+                }
+                var stylist = await _StylistRep.GetStylistByIdAsync(requestBody.StylistId);
+                return stylist.Status && stylist.Result != null && stylist.Result.StylistParentID == salon.ID;
+            }
+
+            return false;
+        }
+
+        private async Task<bool> CanAccessReviewAsync(Review review)
+        {
+            if (review == null) return false;
+            var roleId = User.GetCurrentRoleId();
+            var personId = User.GetCurrentUserId();
+
+            if (roleId == 4) return true;
+
+            if (roleId == 1)
+            {
+                var customer = await _CustomerRep.ExistCustomerAsync(personId.ToString(), "personid");
+                return customer.Status && review.CustomerID == customer.ID;
+            }
+
+            if (roleId == 2)
+            {
+                var stylist = await _StylistRep.ExistStylistAsync(personId.ToString(), "personid");
+                return stylist.Status && review.StylistID == stylist.ID;
+            }
+
+            if (roleId == 3)
+            {
+                var salon = await _StylistRep.ExistStylistAsync(personId.ToString(), "personid");
+                if (!salon.Status) return false;
+                if (review.StylistID == salon.ID) return true;
+                var stylist = await _StylistRep.GetStylistByIdAsync(review.StylistID);
+                return stylist.Status && stylist.Result != null && stylist.Result.StylistParentID == salon.ID;
+            }
+
+            return false;
         }
     }
 }

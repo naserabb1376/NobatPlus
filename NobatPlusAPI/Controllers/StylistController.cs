@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 using NobatPlusAPI.Models.Public;
 using NobatPlusAPI.Models.Stylist;
+using NobatPlusAPI.Tools;
 using NobatPlusDATA.DataLayer.Repositories;
 using NobatPlusDATA.DataLayer.Services;
 using NobatPlusDATA.Domain;
@@ -98,6 +99,10 @@ namespace NobatPlusAPI.Controllers
             {
                 return BadRequest(requestBody);
             }
+            if (!await NormalizeStylistWriteScopeAsync(requestBody, isNew: true))
+            {
+                return Forbid();
+            }
             Stylist Stylist = new Stylist()
             {
                 CreateDate = DateTime.Now.ToShamsi(),
@@ -152,6 +157,14 @@ namespace NobatPlusAPI.Controllers
                 return BadRequest(requestBody);
             }
             var theRow = await _StylistRep.GetStylistByIdAsync(requestBody.ID);
+            if (!theRow.Status || !await CanManageStylistAsync(theRow.Result))
+            {
+                return Forbid();
+            }
+            if (!await NormalizeStylistWriteScopeAsync(requestBody, isNew: false))
+            {
+                return Forbid();
+            }
             if (!theRow.Status)
             {
                 result.Status = theRow.Status;
@@ -204,11 +217,17 @@ namespace NobatPlusAPI.Controllers
         }
 
         [HttpDelete("DeleteStylist_Base")]
+        [RequireRole(3, 4)]
         public async Task<ActionResult<BitResultObject>> DeleteStylist_Base(GetRowRequestBody requestBody)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(requestBody);
+            }
+            var stylist = await _StylistRep.GetStylistByIdAsync(requestBody.ID);
+            if (!stylist.Status || !await CanManageStylistAsync(stylist.Result))
+            {
+                return Forbid();
             }
             var result = await _StylistRep.RemoveStylistAsync(requestBody.ID);
             if (result.Status)
@@ -231,6 +250,58 @@ namespace NobatPlusAPI.Controllers
                 return Ok(result);
             }
             return BadRequest(result);
+        }
+
+        private async Task<bool> NormalizeStylistWriteScopeAsync(AddEditStylistRequestBody requestBody, bool isNew)
+        {
+            var roleId = User.GetCurrentRoleId();
+            var personId = User.GetCurrentUserId();
+
+            if (roleId == 4) return true;
+
+            if (roleId == 2 && !isNew)
+            {
+                var stylist = await _StylistRep.ExistStylistAsync(personId.ToString(), "personid");
+                if (!stylist.Status || requestBody.ID != stylist.ID) return false;
+                requestBody.PersonID = personId;
+                return true;
+            }
+
+            if (roleId == 3)
+            {
+                var salon = await _StylistRep.ExistStylistAsync(personId.ToString(), "personid");
+                if (!salon.Status) return false;
+                requestBody.StylistParentID = salon.ID;
+                if (isNew) return true;
+
+                var target = await _StylistRep.GetStylistByIdAsync(requestBody.ID);
+                return target.Status && target.Result != null && target.Result.StylistParentID == salon.ID;
+            }
+
+            return false;
+        }
+
+        private async Task<bool> CanManageStylistAsync(StylistDTO stylist)
+        {
+            if (stylist == null) return false;
+            var roleId = User.GetCurrentRoleId();
+            var personId = User.GetCurrentUserId();
+
+            if (roleId == 4) return true;
+
+            if (roleId == 2)
+            {
+                var current = await _StylistRep.ExistStylistAsync(personId.ToString(), "personid");
+                return current.Status && current.ID == stylist.ID;
+            }
+
+            if (roleId == 3)
+            {
+                var salon = await _StylistRep.ExistStylistAsync(personId.ToString(), "personid");
+                return salon.Status && stylist.StylistParentID == salon.ID;
+            }
+
+            return false;
         }
     }
 }

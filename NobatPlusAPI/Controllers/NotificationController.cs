@@ -10,6 +10,7 @@ using NobatPlusAPI.Models;
 using NobatPlusAPI.Models.Authenticate;
 using NobatPlusAPI.Models.Notification;
 using NobatPlusAPI.Models.Public;
+using NobatPlusAPI.Tools;
 using NobatPlusDATA.DataLayer.Repositories;
 using NobatPlusDATA.DataLayer.Services;
 using NobatPlusDATA.Domain;
@@ -48,7 +49,8 @@ namespace NobatPlusAPI.Controllers
             {
                 return BadRequest(requestBody);
             }
-            var result = await _NotificationRep.GetAllNotificationsAsync(requestBody.PersonId,requestBody.PageIndex,requestBody.PageSize,requestBody.SearchText,requestBody.SortQuery);
+            var personId = User.GetCurrentRoleId() == 4 ? requestBody.PersonId : User.GetCurrentUserId();
+            var result = await _NotificationRep.GetAllNotificationsAsync(personId,requestBody.PageIndex,requestBody.PageSize,requestBody.SearchText,requestBody.SortQuery);
             if (result.Status)
             {
                 var resultVM = _mapper.Map<ListResultObject<NotificationVM>>(result);
@@ -91,6 +93,7 @@ namespace NobatPlusAPI.Controllers
         [HttpPost("AddNotification_Base")]
         public async Task<ActionResult<BitResultObject>> AddNotification_Base(AddEditNotificationRequestBody requestBody)
         {
+            if (User.GetCurrentRoleId() != 4) return Forbid();
             if (!ModelState.IsValid)
             {
                 return BadRequest(requestBody);
@@ -130,6 +133,7 @@ namespace NobatPlusAPI.Controllers
         [HttpPut("EditNotification_Base")]
         public async Task<ActionResult<BitResultObject>> EditNotification_Base(AddEditNotificationRequestBody requestBody)
         {
+            if (User.GetCurrentRoleId() != 4) return Forbid();
             var result = new BitResultObject();
             if (!ModelState.IsValid)
             {
@@ -178,6 +182,7 @@ namespace NobatPlusAPI.Controllers
         [HttpDelete("DeleteNotification_Base")]
         public async Task<ActionResult<BitResultObject>> DeleteNotification_Base(GetRowRequestBody requestBody)
         {
+            if (User.GetCurrentRoleId() != 4) return Forbid();
             if (!ModelState.IsValid)
             {
                 return BadRequest(requestBody);

@@ -16,6 +16,7 @@ namespace NobatPlusDATA.Domain
         public ICollection<Review> Reviews { get; set; }
         public ICollection<RateHistory> RateHistories { get; set; }
         public ICollection<CustomerDiscount> CustomerDiscounts { get; set; }
+        public Wallet Wallet { get; set; }
     }
 
     public class CustomerDTO : BaseEntity

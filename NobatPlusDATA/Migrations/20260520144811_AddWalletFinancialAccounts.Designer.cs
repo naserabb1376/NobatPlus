@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using NobatPlusDATA.DataLayer;
 
@@ -11,13 +12,15 @@ using NobatPlusDATA.DataLayer;
 namespace NobatPlusDATA.Migrations
 {
     [DbContext(typeof(NobatPlusContext))]
-    partial class NobatPlusContextModelSnapshot : ModelSnapshot
+    [Migration("20260520144811_AddWalletFinancialAccounts")]
+    partial class AddWalletFinancialAccounts
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "10.0.3")
+                .HasAnnotation("ProductVersion", "10.0.5")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);

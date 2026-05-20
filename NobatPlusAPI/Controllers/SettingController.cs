@@ -17,6 +17,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 using static NobatPlusAPI.Tools.ToolBox;
+using NobatPlusAPI.Tools;
 using Domains;
 
 namespace NobatPlusAPI.Controllers
@@ -43,6 +44,7 @@ namespace NobatPlusAPI.Controllers
         [HttpPost("GetAllSettings_Base")]
         public async Task<ActionResult<ListResultObject<SettingVM>>> GetAllSettings_Base(GetSettingListRequestBody requestBody)
         {
+            if (User.GetCurrentRoleId() != 4) return Forbid();
             if (!ModelState.IsValid)
             {
                 return BadRequest(requestBody);
@@ -90,6 +92,7 @@ namespace NobatPlusAPI.Controllers
         [HttpPost("AddSetting_Base")]
         public async Task<ActionResult<BitResultObject>> AddSetting_Base(AddEditSettingRequestBody requestBody)
         {
+            if (User.GetCurrentRoleId() != 4) return Forbid();
             BitResultObject result = new BitResultObject();
 
             if (!ModelState.IsValid)
@@ -142,6 +145,7 @@ namespace NobatPlusAPI.Controllers
         [HttpPut("EditSetting_Base")]
         public async Task<ActionResult<BitResultObject>> EditSetting_Base(AddEditSettingRequestBody requestBody)
         {
+            if (User.GetCurrentRoleId() != 4) return Forbid();
             var result = new BitResultObject();
             if (!ModelState.IsValid)
             {
@@ -201,6 +205,7 @@ namespace NobatPlusAPI.Controllers
         [HttpDelete("DeleteSetting_Base")]
         public async Task<ActionResult<BitResultObject>> DeleteSetting_Base(GetRowRequestBody requestBody)
         {
+            if (User.GetCurrentRoleId() != 4) return Forbid();
             if (!ModelState.IsValid)
             {
                 return BadRequest(requestBody);

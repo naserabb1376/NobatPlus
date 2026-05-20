@@ -36,5 +36,22 @@ namespace NobatPlusAPI.Controllers
 
             return BadRequest(result);
         }
+
+        [HttpPost("GetSalonDashboardReport_Base")]
+        public async Task<ActionResult<RowResultObject<SalonDashboardReport>>> GetSalonDashboardReport_Base(GetStylistDashboardReportRequestBody requestBody)
+        {
+            if (!ModelState.IsValid || requestBody.StylistId <= 0)
+            {
+                return BadRequest(requestBody);
+            }
+
+            var result = await _stylistDashboardRep.GetSalonDashboardReportAsync(requestBody.StylistId, requestBody.FromDate, requestBody.ToDate);
+            if (result.Status)
+            {
+                return Ok(result);
+            }
+
+            return BadRequest(result);
+        }
     }
 }

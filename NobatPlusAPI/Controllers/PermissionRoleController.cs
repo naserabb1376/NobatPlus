@@ -18,6 +18,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 using static NobatPlusAPI.Tools.ToolBox;
+using NobatPlusAPI.Tools;
 using Domains;
 
 namespace NobatPlusAPI.Controllers
@@ -26,6 +27,7 @@ namespace NobatPlusAPI.Controllers
     [ApiController]
     [Authorize]
     [Produces("application/json")]
+    [RequireRole(4)]
     // [CheckRoleBase(new[] { (int)BaseRole.GeneralAdmin })]
 
     public class PermissionRoleController : ControllerBase
