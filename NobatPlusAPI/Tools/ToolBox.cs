@@ -293,6 +293,37 @@ namespace NobatPlusAPI.Tools
             return ApiVersion;
         }
 
+        public static string GetContentType(this string path)
+        {
+            var types = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+            {
+                [".jpg"] = "image/jpeg",
+                [".jpeg"] = "image/jpeg",
+                [".png"] = "image/png",
+                [".pdf"] = "application/pdf",
+                [".mp4"] = "video/mp4",
+                [".txt"] = "text/plain",
+                [".docx"] = "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+            };
+
+            var ext = Path.GetExtension(path);
+            return types.TryGetValue(ext, out var contentType) ? contentType : "application/octet-stream";
+        }
+
+        public static string GenerateFileName(this string filePath)
+        {
+            string oldFileName = Path.GetFileName(filePath);
+            int fileCounter = 2;
+
+            while (File.Exists(filePath))
+            {
+                string newFileName = $"{oldFileName}({fileCounter})";
+                filePath = filePath.Replace(oldFileName, newFileName);
+                fileCounter++;
+            }
+            return filePath;
+        }
+
         public static string GenerateDiscountCode(this string? inCode)
         {
             if (!string.IsNullOrEmpty(inCode.Trim())) return inCode;

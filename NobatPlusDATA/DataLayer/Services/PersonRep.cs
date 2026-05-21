@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Domain;
+using Microsoft.EntityFrameworkCore;
 using MTPermissionCenter.Abstractions;
 using NobatPlusDATA.DataLayer.Repositories;
 using NobatPlusDATA.Domain;
@@ -27,8 +28,17 @@ namespace NobatPlusDATA.DataLayer.Services
             BitResultObject result = new BitResultObject();
             try
             {
+                person.IdentificationCode = string.IsNullOrWhiteSpace(person.IdentificationCode)
+                   ? null
+                   : person.IdentificationCode.Trim();
                 await _context.Persons.AddAsync(person);
                 await _context.SaveChangesAsync();
+
+                if (string.IsNullOrWhiteSpace(person.IdentificationCode))
+                {
+                    person.IdentificationCode = $"Nobatix{person.ID + 1000}";
+                    await _context.SaveChangesAsync();
+                }
                 result.ID = person.ID;
                 _context.Entry(person).State = EntityState.Detached;
             }

@@ -10,6 +10,7 @@ using System.Linq;
 using System.Reflection.Metadata;
 using System.Text;
 using System.Threading.Tasks;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
 namespace NobatPlusDATA.DataLayer.Services
 {
@@ -207,7 +208,7 @@ namespace NobatPlusDATA.DataLayer.Services
 
         }
 
-        public async Task<BitResultObject> ExistLoginAsync(string fieldValue, string fieldName)
+        public async Task<BitResultObject> ExistLoginAsync(string fieldValue, string fieldName, long personId = 0)
         {
             BitResultObject result = new BitResultObject();
             long userId = 0;
@@ -217,7 +218,7 @@ namespace NobatPlusDATA.DataLayer.Services
                 {
                     case "personid":
                         {
-                            var theUser = await _context.Persons.AsNoTracking().FirstOrDefaultAsync(x => x.ID == long.Parse(fieldValue)) ?? new Person();
+                            var theUser = await _context.Persons.AsNoTracking().FirstOrDefaultAsync(x => (personId <= 0 || x.ID == personId) && x.ID == long.Parse(fieldValue)) ?? new Person();
                             userId = theUser.ID;
                             break;
                         }
@@ -230,25 +231,31 @@ namespace NobatPlusDATA.DataLayer.Services
                     case "username":
                     default:
                         {
-                            var theUser = await _context.Logins.AsNoTracking().FirstOrDefaultAsync(x => x.Username == fieldValue) ?? new Login();
+                            var theUser = await _context.Logins.AsNoTracking().FirstOrDefaultAsync(x => (personId <= 0 || x.PersonID == personId) && x.Username == fieldValue) ?? new Login();
                             userId = theUser.PersonID;
                             break;
                         }
                     case "email":
                         {
-                            var theUser = await _context.Persons.AsNoTracking().FirstOrDefaultAsync(x => x.Email == fieldValue) ?? new Person();
+                            var theUser = await _context.Persons.AsNoTracking().FirstOrDefaultAsync(x => (personId <= 0 || x.ID == personId) && x.Email == fieldValue) ?? new Person();
                             userId = theUser.ID;
                             break;
                         }
                     case "nationalcode":
                         {
-                            var theUser = await _context.Persons.AsNoTracking().FirstOrDefaultAsync(x => x.NaCode == fieldValue) ?? new Person();
+                            var theUser = await _context.Persons.AsNoTracking().FirstOrDefaultAsync(x => (personId <= 0 || x.ID == personId) && x.NaCode == fieldValue) ?? new Person();
                             userId = theUser.ID;
                             break;
                         }
                     case "phonenumber":
                         {
-                            var theUser = await _context.Persons.AsNoTracking().FirstOrDefaultAsync(x => x.PhoneNumber == fieldValue) ?? new Person();
+                            var theUser = await _context.Persons.AsNoTracking().FirstOrDefaultAsync(x => (personId <= 0 || x.ID == personId) && x.PhoneNumber == fieldValue) ?? new Person();
+                            userId = theUser.ID;
+                            break;
+                        }
+                    case "identificationcode":
+                        {
+                            var theUser = await _context.Persons.AsNoTracking().FirstOrDefaultAsync(x => (personId <= 0 || x.ID == personId) && x.IdentificationCode == fieldValue) ?? new Person();
                             userId = theUser.ID;
                             break;
                         }

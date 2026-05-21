@@ -58,7 +58,7 @@ namespace NobatPlusAPI.Controllers
             var customerId = requestBody.CustomerID ?? dbcustomer.ID;
             var discountId = requestBody.DiscountID ?? 0;
 
-            result = await _StylistServiceRep.GetAllStylistServicesAsync(customerId,requestBody.BookingID,discountId,requestBody.PageIndex, requestBody.PageSize, requestBody.SearchText,requestBody.SortQuery);
+            result = await _StylistServiceRep.GetAllStylistServicesAsync(requestBody.StylistID,requestBody.ServiceID,customerId,requestBody.BookingID,discountId,requestBody.PageIndex, requestBody.PageSize, requestBody.SearchText,requestBody.SortQuery);
             if (result.Status)
             {
                 var resultVM = _mapper.Map<ListResultObject<StylistServiceVM>>(result);
@@ -114,6 +114,16 @@ namespace NobatPlusAPI.Controllers
             {
                 return BadRequest(requestBodyList);
             }
+
+            //var validUserName = await _StylistServiceRep.ExistStylistServiceAsync(requestBody.PhoneNumber, "PhoneNumber", requestBody.ID);
+
+            //if (validUserName.Status)
+            //{
+            //    result.Status = !validUserName.Status;
+            //    result.ErrorMessage = "نام کاربری (شماره موبایل) تکراری است";
+            //    return BadRequest(result);
+            //}
+
 
             var stylistServices = requestBodyList.Select(requestBody => new StylistService()
             {

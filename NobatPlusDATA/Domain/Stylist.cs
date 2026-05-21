@@ -58,6 +58,8 @@ namespace NobatPlusDATA.Domain
         public float AvgScoreForStylist { get; set; }
         public long JobTypeID { get; set; }
         public int TodayBookingsCount { get; set; }
+        public int SalonStylistCount { get; set; }
+        public int SuccededBokingCount { get; set; }
         public int TotalBookingsCount { get; set; }
         public int TotalCustomersCount { get; set; }
         public bool IsOnLeaveNow { get; set; }

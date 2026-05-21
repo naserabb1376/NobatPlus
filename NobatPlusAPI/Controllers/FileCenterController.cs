@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.FileProviders;
 using NobatPlusAPI.Models.FileCenter;
+using NobatPlusAPI.Tools;
 using NobatPlusDATA.DataLayer.Repositories;
 using NobatPlusDATA.Domain;
 using NobatPlusDATA.ResultObjects;
@@ -29,32 +30,31 @@ public class FileCenterController : ControllerBase
     }
 
     [HttpPost("uploadfile")]
+    [RequestSizeLimit(2_000_000_000)]           // 2 GB
+    [RequestFormLimits(MultipartBodyLengthLimit = 2_000_000_000)]
+    [AllowAnonymous]
     public async Task<IActionResult> UploadFile(IFormFile file, [FromQuery] bool isPublic, [FromQuery] string entityName, [FromQuery] string fileType, [FromQuery] long rowId = 0)
     {
         try
         {
             if (file == null || file.Length == 0)
                 return BadRequest("فایلی انتخاب نشده است.");
-
             fileType = fileType.ToLower();
             entityName = entityName.ToLower();
-
-            string fileName = "", fullPath = ""; long RowNumber = 0;
-            var userId = User?.FindFirst("userId")?.Value;
-            if (string.IsNullOrEmpty(userId)) return Unauthorized();
-
+            string fileName = file.FileName.GenerateFileName();
+            string fullPath = ""; long RowNumber = 0;
+            var userId =  User?.FindFirst("userId")?.Value;
+            if ((string.IsNullOrEmpty(userId) || userId == "0")) return Unauthorized();
             string savePath = isPublic
                 ? Path.Combine(_env.ContentRootPath, "FileCenter", entityName, fileType, "Public")
                 : Path.Combine(_env.ContentRootPath, "FileCenter", entityName, fileType, userId);
-
             Directory.CreateDirectory(savePath);
             long resultId = 0;
             string downloadUrl = "";
-
             if (fileType == "images")
             {
                 RowNumber = await _imageRep.GetNewRowNumber();
-                fileName = $"{entityName}_{RowNumber}_{userId}{Path.GetExtension(file.FileName)}";
+                //fileName = $"{entityName}_{RowNumber}_{userId}{Path.GetExtension(file.FileName)}";
                 fullPath = Path.Combine(savePath, fileName);
                 Image theImage = new()
                 {
@@ -65,26 +65,26 @@ public class FileCenterController : ControllerBase
                     FilePath = fullPath,
                     EntityType = entityName,
                     ForeignKeyId = rowId <= 0 ? RowNumber : rowId,
+                    FileNumber = RowNumber,
                     CreatorId = long.Parse(userId),
+                    
                 };
-                var removeoldResult = await _imageRep.RemoveOldImagesAsync(rowId, entityName);
+
+                var removeoldResult = await _imageRep.RemoveOldImagesAsync(theImage.ForeignKeyId, entityName);
                 if (!removeoldResult.Status) return BadRequest(removeoldResult);
 
                 var saveResult = await _imageRep.AddImagesAsync(new List<Image> { theImage });
                 if (!saveResult.Status) return BadRequest(saveResult);
                 resultId = saveResult.ID;
-
                 downloadUrl = $"/filecenter/downloadfile?fileType={fileType}&rowId={resultId}&entityName={entityName}";
                 theImage.GetUrl = downloadUrl;
                 await _imageRep.EditImagesAsync(new List<Image>() { theImage });
-
             }
             else if (fileType == "files")
             {
                 RowNumber = await _fileUploadRep.GetNewRowNumber();
-                fileName = $"{entityName}_{RowNumber}_{userId}{Path.GetExtension(file.FileName)}";
+                //fileName = $"{entityName}_{RowNumber}_{userId}{Path.GetExtension(file.FileName)}";
                 fullPath = Path.Combine(savePath, fileName);
-
                 FileUpload theFile = new()
                 {
                     CreateDate = DateTime.Now.ToShamsi(),
@@ -93,28 +93,24 @@ public class FileCenterController : ControllerBase
                     FilePath = fullPath,
                     EntityType = entityName,
                     ForeignKeyId = rowId <= 0 ? RowNumber : rowId,
-                    ContentType = GetContentType(fullPath),
+                    ContentType = fullPath.GetContentType(),
                     Description = isPublic ? "Public" : "Private",
                     CreatorId = long.Parse(userId),
                 };
-                var removeoldResult = await _fileUploadRep.RemoveOldFilesAsync(rowId, entityName);
+
+                var removeoldResult = await _fileUploadRep.RemoveOldFilesAsync(theFile.ForeignKeyId, entityName);
                 if (!removeoldResult.Status) return BadRequest(removeoldResult);
 
                 var saveResult = await _fileUploadRep.AddFileUploadAsync(theFile);
                 if (!saveResult.Status) return BadRequest(saveResult);
                 resultId = saveResult.ID;
-
                 downloadUrl = $"/filecenter/downloadfile?fileType={fileType}&rowId={resultId}&entityName={entityName}";
                 theFile.GetUrl = downloadUrl;
                 await _fileUploadRep.EditFileUploadAsync(theFile);
-
-
             }
             else return BadRequest("Invalid File Category!");
-
             using var stream = new FileStream(fullPath, FileMode.Create);
             await file.CopyToAsync(stream);
-
             Log log = new()
             {
                 CreateDate = DateTime.Now.ToShamsi(),
@@ -123,7 +119,6 @@ public class FileCenterController : ControllerBase
                 ActionName = $"UploadFile:{{Entity={entityName},Type={fileType},Row={rowId},Path={fullPath},Id={resultId}}}",
             };
             await _logRep.AddLogAsync(log);
-
             return Ok(new
             {
                 success = true,
@@ -144,29 +139,59 @@ public class FileCenterController : ControllerBase
     {
         try
         {
+            if (string.IsNullOrWhiteSpace(fileType))
+                return BadRequest("نوع فایل مشخص نشده است.");
+
+            fileType = fileType.Trim().ToLower();
+            entityName = entityName?.Trim().ToLower() ?? string.Empty;
+
             string filePath = string.Empty;
             long userId = 0;
             long roleId = 0;
 
-            if (User.Identity != null && User.Identity.IsAuthenticated)
+            if (User.Identity?.IsAuthenticated == true)
             {
-                userId = long.Parse(User.FindFirst("userId")?.Value ?? "0");
-                roleId = long.Parse(User.FindFirst("Role")?.Value ?? "0");
+                long.TryParse(User.FindFirst("userId")?.Value, out userId);
+                long.TryParse(User.FindFirst("Role")?.Value, out roleId);
             }
 
             if (fileType.ToLower() == "images")
             {
                 var theImage = await _imageRep.GetImageForShowAsync(rowId, foreignkeyId, entityName, userId, roleId);
-                if (theImage != null) filePath = theImage.Result.FilePath;
+                if (theImage == null || !theImage.Status || theImage.Result == null)
+                {
+                    return BadRequest(theImage?.ErrorMessage ?? "تصویر یافت نشد.");
+                }
+
+                filePath = theImage.Result.FilePath;
             }
             else if (fileType.ToLower() == "files")
             {
                 var theFile = await _fileUploadRep.GetFileForDownloadAsync(rowId, foreignkeyId, entityName, userId, roleId);
-                if (theFile != null) filePath = theFile.Result.FilePath;
-            }
-            else return BadRequest("Invalid File Category!");
+                if (theFile == null || !theFile.Status || theFile.Result == null)
+                {
+                    return BadRequest(theFile?.ErrorMessage ?? "فایل یافت نشد.");
+                }
 
-            if (!System.IO.File.Exists(filePath)) return NotFound();
+                filePath = theFile.Result.FilePath;
+            }
+            else
+            {
+                return BadRequest("نوع فایل نامعتبر است.");
+            }
+
+            if (string.IsNullOrWhiteSpace(filePath))
+            {
+                return BadRequest("مسیر فایل ثبت نشده است.");
+            }
+
+            if (!System.IO.File.Exists(filePath))
+            {
+                return NotFound("فایل روی سرور پیدا نشد.");
+            }
+
+            var contentType = filePath.GetContentType();
+            var fileName = Path.GetFileName(filePath);
 
             Log log = new()
             {
@@ -177,10 +202,15 @@ public class FileCenterController : ControllerBase
             };
             await _logRep.AddLogAsync(log);
 
-            var contentType = GetContentType(filePath);
-            var fileName = Path.GetFileName(filePath);
-            var bytes = await System.IO.File.ReadAllBytesAsync(filePath);
-            return File(bytes, contentType, fileName);
+            var stream = new FileStream(
+                filePath,
+                FileMode.Open,
+                FileAccess.Read,
+                FileShare.Read,
+                bufferSize: 64 * 1024,
+                useAsync: true);
+
+            return File(stream, contentType, fileName, enableRangeProcessing: true);
         }
         catch (Exception ex)
         {
@@ -214,7 +244,6 @@ public class FileCenterController : ControllerBase
                     resultrecords = await _imageRep.GetAllImagesAsync(requestBody.entityType, requestBody.ForeignKeyId, 0, requestBody.PageIndex, requestBody.PageSize, requestBody.SearchText, requestBody.SortQuery);
                 }
                 break;
-
         }
 
         result.ErrorMessage = resultrecords.ErrorMessage;
@@ -222,15 +251,15 @@ public class FileCenterController : ControllerBase
         result.PageCount = resultrecords.PageCount;
         result.TotalCount = resultrecords.TotalCount;
 
-        if (requestBody.fileType=="images")
+        if (requestBody.fileType == "images")
         {
             result.Results = ((List<Image>)resultrecords.Results)
-  .Select(x => x.FilePath).ToList();
+  .Select(x => $"{Request.Scheme}://{Request.Host}{x.GetUrl}").ToList();
         }
         if (requestBody.fileType == "files")
         {
             result.Results = ((List<FileUpload>)resultrecords.Results)
-  .Select(x => x.FilePath).ToList();
+  .Select(x => $"{Request.Scheme}://{Request.Host}{x.GetUrl}").ToList();
         }
 
         if (result.Status)
@@ -241,20 +270,5 @@ public class FileCenterController : ControllerBase
     }
 
 
-    private string GetContentType(string path)
-    {
-        var types = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
-        {
-            [".jpg"] = "image/jpeg",
-            [".jpeg"] = "image/jpeg",
-            [".png"] = "image/png",
-            [".pdf"] = "application/pdf",
-            [".mp4"] = "video/mp4",
-            [".txt"] = "text/plain",
-            [".docx"] = "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-        };
 
-        var ext = Path.GetExtension(path);
-        return types.TryGetValue(ext, out var contentType) ? contentType : "application/octet-stream";
-    }
 }

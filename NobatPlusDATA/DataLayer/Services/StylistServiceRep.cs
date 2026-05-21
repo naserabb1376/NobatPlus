@@ -230,6 +230,8 @@ namespace NobatPlusDATA.DataLayer.Services
         }
 
         public async Task<ListResultObject<StylistServiceWithDiscountDto>> GetAllStylistServicesAsync(
+    long stylistId = 0,
+    long serviceId = 0,
     long customerId = 0,
     long bookingId = 0,
     long discountId = 0,
@@ -249,6 +251,16 @@ namespace NobatPlusDATA.DataLayer.Services
                     .Include(x => x.ServiceManagement).ThenInclude(x => x.BookingServices)
                     .AsNoTracking()
                     .AsQueryable();
+
+                if (stylistId > 0)
+                {
+                    query = query.Where(ss => ss.StylistID == stylistId);
+                }
+
+                if (serviceId > 0)
+                {
+                    query = query.Where(ss => ss.ServiceManagementID == serviceId);
+                }
 
                 if (bookingId > 0)
                 {

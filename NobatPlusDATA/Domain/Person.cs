@@ -17,8 +17,9 @@ namespace NobatPlusDATA.Domain
         public string? Email { get; set; }
         public string PhoneNumber { get; set; }
         public int Gender { get; set; }
+        public string? IdentificationCode { get; set; }
 
-       // [NotMapped]   // ⛔ در دیتابیس ساخته نمی‌شود
+        // [NotMapped]   // ⛔ در دیتابیس ساخته نمی‌شود
         public long RoleId { get; set; } // 1.User 2.Stylist 3.Salon 4.Admin
 
        // [NotMapped]   // ⛔ در دیتابیس ساخته نمی‌شود

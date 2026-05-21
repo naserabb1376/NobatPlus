@@ -147,7 +147,7 @@ namespace NobatPlusAPI.Tools
 .ForMember(dest => dest.AddressStreet, opt => opt.MapFrom(src => src.Person.Address.AddressStreet))
 .ForMember(dest => dest.AddressPostalCode, opt => opt.MapFrom(src => src.Person.Address.AddressPostalCode))
   .ForMember(dest => dest.ServiceNames,
-        opt => opt.MapFrom(src => src.StylistServices
+        opt => opt.MapFrom(src => src.StylistServices.Where(x=> x.ServiceManagement.ServiceParentID <= 0)
             .Select(ss => ss.ServiceManagement.ServiceName).ToList()));
             ;
             CreateMap<Address, AddressVM>()

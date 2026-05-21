@@ -12,6 +12,7 @@ namespace NobatPlusDATA.ViewModels
         public string LastName { get; set; }
         public string? Email { get; set; }
         public string PhoneNumber { get; set; }
+        public string? IdentificationCode { get; set; }
         public int Gender { get; set; }
         public int RoleId { get; set; } // 1. User 2.Stylist 3. Salon
         public long? AddressID { get; set; }

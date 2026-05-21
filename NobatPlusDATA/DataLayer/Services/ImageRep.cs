@@ -26,6 +26,13 @@ namespace NobatPlusDATA.DataLayer.Services
             BitResultObject result = new BitResultObject();
             try
             {
+                for (int i = 0; i < images.Count; i++)
+                {
+                    if (!images[i].FileNumber.HasValue || images[i].FileNumber <= 0)
+                    {
+                        images[i].FileNumber = await GetNewRowNumber() + ++i;
+                    }
+                }
                 await _context.Images.AddRangeAsync(images);
                 await _context.SaveChangesAsync();
                 result.ID = images.FirstOrDefault().ID;
@@ -190,14 +197,14 @@ namespace NobatPlusDATA.DataLayer.Services
 
         public async Task<long> GetNewRowNumber()
         {
-            long rowNumber = await _context.Images.CountAsync() + 1;
+            long rowNumber = await _context.Images.MaxAsync(x => x.FileNumber ?? x.ID) + 1;
 
-            bool existRow = await _context.Images.AnyAsync(x => x.FileName.Contains($"_{rowNumber}_"));
+            bool existRow = await _context.Images.AnyAsync(x => x.FileNumber == rowNumber);
 
             while (existRow)
             {
                 rowNumber++;
-                existRow = await _context.Images.AnyAsync(x => x.FileName.Contains($"_{rowNumber}_"));
+                existRow = await _context.Images.AnyAsync(x => x.FileNumber == rowNumber);
             }
             return rowNumber;
         }

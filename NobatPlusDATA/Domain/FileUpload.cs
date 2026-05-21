@@ -18,5 +18,7 @@ namespace NobatPlusDATA.Domain
         public long ForeignKeyId { get; set; } // کلید خارجی به رکورد اصلی
         public string EntityType { get; set; } // نوع جدول مرتبط (مثلاً "User", "Course", "Event")
         public string? GetUrl { get; set; } // لینک دانلود
+        public long? FileNumber { get; set; } //کد فایل
+
     }
 }

@@ -281,14 +281,14 @@ namespace NobatPlusDATA.DataLayer.Services
                         PersonID = r.PersonID,
                         Specialty = r.Specialty ?? "",
                         StylistBio = r.StylistBio ?? "",
-                        StylistName = r.StylistName ?? "",
+                        StylistName = r.StylistParentID > 0 ? _context.Stylists.FirstOrDefault(x=> x.ID == r.StylistParentID).StylistName : r.StylistName,
                         StylistParentID = r.StylistParentID,
                         WorkShopDepositAmount = r.WorkShopDepositAmount,
                         WorkShopInteractMode = r.WorkShopInteractMode ?? "",
                         WorkShopRentAmount = r.WorkShopRentAmount,
                         YearsOfExperience = r.YearsOfExperience,
                         RestTime = r.RestTime, 
-
+                        
                         StylistImagePath =
                             _context.Images.Any(x => x.EntityType.ToLower() == "stylist" && x.ForeignKeyId == r.ID)
                                 ? $"https://nobatplusapi.mtcoding.ir/FileCenter/downloadfile?fileType=images&rowId=0&foreignkeyId={r.ID}&entityName=stylist"
@@ -346,6 +346,13 @@ namespace NobatPlusDATA.DataLayer.Services
 
                         TotalBookingsCount = _context.Bookings
                             .Count(b => b.StylistID == r.ID),
+
+                        SuccededBokingCount = _context.Bookings
+                    .Count(b => GetAllChildStylistIds(r.ID).Contains(b.StylistID) && !b.IsCancelled),
+
+                        SalonStylistCount = _context.Stylists
+                    .Count(b => b.StylistParentID == r.ID),
+
 
                         TotalCustomersCount = _context.Bookings
                             .Where(b => b.StylistID == r.ID)
@@ -461,6 +468,13 @@ namespace NobatPlusDATA.DataLayer.Services
                          TodayBookingsCount = _context.Bookings
                     .Count(b => b.StylistID == r.ID && b.BookingDate.Date == DateTime.Today),
 
+                         SuccededBokingCount = _context.Bookings
+                    .Count(b => GetAllChildStylistIds(r.ID).Contains(b.StylistID) && !b.IsCancelled),
+
+                         SalonStylistCount = _context.Stylists
+                    .Count(b => b.StylistParentID == r.ID),
+
+
                          TotalBookingsCount = _context.Bookings
                     .Count(b => b.StylistID == r.ID),
 
@@ -550,6 +564,21 @@ namespace NobatPlusDATA.DataLayer.Services
             }
             return result;
           
+        }
+
+        public List<long> GetAllChildStylistIds(long stylistId)
+        {
+            var result = new List<long> { stylistId };
+
+            var children = _context.Stylists
+                .Where(s => s.StylistParentID == stylistId)
+                .Select(s => s.ID)
+                .ToList();
+
+            foreach (var childId in children)
+                result.AddRange(GetAllChildStylistIds(childId));
+
+            return result;
         }
     }
 }

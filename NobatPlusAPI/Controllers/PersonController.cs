@@ -30,14 +30,16 @@ namespace NobatPlusAPI.Controllers
     public class PersonController : ControllerBase
     {
         IPersonRep _PersonRep;
+        ILoginRep _loginRep;
         ILogRep _logRep;
         IAddressRep _addressRep;
         private readonly IMapper _mapper;
 
 
-        public PersonController(IPersonRep PersonRep,IAddressRep addressRep,ILogRep logRep, IMapper mapper)
+        public PersonController(IPersonRep PersonRep,ILoginRep loginRep,IAddressRep addressRep,ILogRep logRep, IMapper mapper)
         {
            _PersonRep = PersonRep;
+            _loginRep = loginRep;
            _logRep = logRep;
            _addressRep = addressRep;
             _mapper = mapper;
@@ -101,6 +103,34 @@ namespace NobatPlusAPI.Controllers
             {
                 return BadRequest(requestBody);
             }
+
+            var validUserName = await _loginRep.ExistLoginAsync(requestBody.PhoneNumber, "PhoneNumber");
+
+            if (validUserName.Status)
+            {
+                result.Status = !validUserName.Status;
+                result.ErrorMessage = "نام کاربری (شماره موبایل) تکراری است";
+                return BadRequest(result);
+            }
+
+            var validPhoneNumber = await _loginRep.ExistLoginAsync(requestBody.PhoneNumber, "PhoneNumber");
+
+            if (validPhoneNumber.Status)
+            {
+                result.Status = !validPhoneNumber.Status;
+                result.ErrorMessage = "شماره موبایل تکراری است";
+                return BadRequest(result);
+            }
+
+            var validNaCode = await _loginRep.ExistLoginAsync(requestBody.NaCode, "NationalCode");
+
+            if (validNaCode.Status)
+            {
+                result.Status = !validNaCode.Status;
+                result.ErrorMessage = "کد ملی تکراری است";
+                return BadRequest(result);
+            }
+
             if (requestBody.Address != null)
             {
                 address = new Address()
@@ -175,6 +205,34 @@ namespace NobatPlusAPI.Controllers
             {
                 return BadRequest(requestBody);
             }
+
+            var validUserName = await _loginRep.ExistLoginAsync(requestBody.PhoneNumber, "PhoneNumber",requestBody.ID);
+
+            if (validUserName.Status)
+            {
+                result.Status = !validUserName.Status;
+                result.ErrorMessage = "نام کاربری (شماره موبایل) تکراری است";
+                return BadRequest(result);
+            }
+
+            var validPhoneNumber = await _loginRep.ExistLoginAsync(requestBody.PhoneNumber, "PhoneNumber", requestBody.ID);
+
+            if (validPhoneNumber.Status)
+            {
+                result.Status = !validPhoneNumber.Status;
+                result.ErrorMessage = "شماره موبایل تکراری است";
+                return BadRequest(result);
+            }
+
+            var validNaCode = await _loginRep.ExistLoginAsync(requestBody.NaCode, "NationalCode", requestBody.ID);
+
+            if (validNaCode.Status)
+            {
+                result.Status = !validNaCode.Status;
+                result.ErrorMessage = "کد ملی تکراری است";
+                return BadRequest(result);
+            }
+
             var theRow = await _PersonRep.GetPersonByIdAsync(requestBody.ID);
             if (!theRow.Status)
             {
@@ -250,10 +308,40 @@ namespace NobatPlusAPI.Controllers
         [HttpPost("AddPerson_Base")]
         public async Task<ActionResult<BitResultObject>> AddPerson_Base(AddEditPersonRequestBody requestBody)
         {
+            BitResultObject result = new BitResultObject();
+
             if (!ModelState.IsValid)
             {
                 return BadRequest(requestBody);
             }
+
+            var validUserName = await _loginRep.ExistLoginAsync(requestBody.PhoneNumber, "PhoneNumber");
+
+            if (validUserName.Status)
+            {
+                result.Status = !validUserName.Status;
+                result.ErrorMessage = "نام کاربری (شماره موبایل) تکراری است";
+                return BadRequest(result);
+            }
+
+            var validPhoneNumber = await _loginRep.ExistLoginAsync(requestBody.PhoneNumber, "PhoneNumber");
+
+            if (validPhoneNumber.Status)
+            {
+                result.Status = !validPhoneNumber.Status;
+                result.ErrorMessage = "شماره موبایل تکراری است";
+                return BadRequest(result);
+            }
+
+            var validNaCode = await _loginRep.ExistLoginAsync(requestBody.NaCode, "NationalCode");
+
+            if (validNaCode.Status)
+            {
+                result.Status = !validNaCode.Status;
+                result.ErrorMessage = "کد ملی تکراری است";
+                return BadRequest(result);
+            }
+
             Person Person = new Person()
             {
                 CreateDate = DateTime.Now.ToShamsi(),
@@ -271,7 +359,7 @@ namespace NobatPlusAPI.Controllers
                 IsActive = requestBody.IsActive,
                 PermissionsVersion = requestBody.PermissionsVersion,
             };
-            var result = await _PersonRep.AddPersonAsync(Person);
+            result = await _PersonRep.AddPersonAsync(Person);
             if (result.Status)
             {
                 #region AddLog
@@ -302,6 +390,34 @@ namespace NobatPlusAPI.Controllers
             {
                 return BadRequest(requestBody);
             }
+
+            var validUserName = await _loginRep.ExistLoginAsync(requestBody.PhoneNumber, "PhoneNumber", requestBody.ID);
+
+            if (validUserName.Status)
+            {
+                result.Status = !validUserName.Status;
+                result.ErrorMessage = "نام کاربری (شماره موبایل) تکراری است";
+                return BadRequest(result);
+            }
+
+            var validPhoneNumber = await _loginRep.ExistLoginAsync(requestBody.PhoneNumber, "PhoneNumber", requestBody.ID);
+
+            if (validPhoneNumber.Status)
+            {
+                result.Status = !validPhoneNumber.Status;
+                result.ErrorMessage = "شماره موبایل تکراری است";
+                return BadRequest(result);
+            }
+
+            var validNaCode = await _loginRep.ExistLoginAsync(requestBody.NaCode, "NationalCode", requestBody.ID);
+
+            if (validNaCode.Status)
+            {
+                result.Status = !validNaCode.Status;
+                result.ErrorMessage = "کد ملی تکراری است";
+                return BadRequest(result);
+            }
+
             var theRow = await _PersonRep.GetPersonByIdAsync(requestBody.ID);
             if (!theRow.Status)
             {
