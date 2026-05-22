@@ -9,33 +9,72 @@ namespace NobatPlusAPI.Tools
 {
     public class ApiCaller
     {
-        public async Task<T> Call<T>(string apiUrl,string apiMethod,string apiBody, List<ReqHeader> apiHeaders = null,Encoding encoding = null) where T : new()
+        public async Task<T> Call<T>(
+    string apiUrl,
+    string apiMethod,
+    string apiBody,
+    List<ReqHeader> apiHeaders = null,
+    Encoding encoding = null,
+    string contentType = "application/json"  // ✅ پارامتر جدید برای تعیین نوع Content-Type
+) where T : new()
         {
             string resultJson = "";
             T res = new T();
-            if(apiHeaders == null) apiHeaders = new List<ReqHeader>();
-            var client = new HttpClient();
-            var request = new HttpRequestMessage(GetHttpMethod(apiMethod), apiUrl);
-           foreach( ReqHeader header in apiHeaders)
+            if (apiHeaders == null) apiHeaders = new List<ReqHeader>();
+            if (encoding == null) encoding = Encoding.UTF8;
+
+            using (var client = new HttpClient())
             {
-                request.Headers.Add(header.Key, header.Value);
-            }
-            var content = new StringContent(apiBody, encoding, "application/json");
-            request.Content = content;
-            var response = await client.SendAsync(request);
-            resultJson = await response.Content.ReadAsStringAsync();
-            if (response != null)
-            {
-                res = JsonConvert.DeserializeObject<T>(resultJson);
-                if (response.StatusCode == System.Net.HttpStatusCode.OK)
+                var request = new HttpRequestMessage(GetHttpMethod(apiMethod), apiUrl);
+
+                // ✅ اضافه کردن Headerها
+                foreach (ReqHeader header in apiHeaders)
                 {
-                    response.EnsureSuccessStatusCode();
+                    request.Headers.TryAddWithoutValidation(header.Key, header.Value);
                 }
 
+                // ✅ تنظیم Body بر اساس contentType
+                if (!string.IsNullOrEmpty(apiBody))
+                {
+                    if (contentType == "application/x-www-form-urlencoded")
+                    {
+                        request.Content = new StringContent(apiBody, encoding, "application/x-www-form-urlencoded");
+                    }
+                    else if (contentType == "application/json")
+                    {
+                        request.Content = new StringContent(apiBody, encoding, "application/json");
+                    }
+                    else
+                    {
+                        // fallback برای هر نوع دیگر
+                        request.Content = new StringContent(apiBody, encoding, contentType);
+                    }
+                }
 
+                var response = await client.SendAsync(request);
+                resultJson = await response.Content.ReadAsStringAsync();
+
+                if (response != null)
+                {
+                    try
+                    {
+                        res = JsonConvert.DeserializeObject<T>(resultJson);
+                    }
+                    catch
+                    {
+                        // اگر پاسخ JSON نبود، res رو همونطور خالی می‌ذاره
+                    }
+
+                    if (response.StatusCode == System.Net.HttpStatusCode.OK)
+                    {
+                        response.EnsureSuccessStatusCode();
+                    }
+                }
             }
+
             return res;
         }
+
 
 
         private HttpMethod GetHttpMethod(string method)

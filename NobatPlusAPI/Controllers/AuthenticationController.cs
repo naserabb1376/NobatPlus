@@ -61,6 +61,15 @@ namespace NobatPlusAPI.Controllers
 
             try
             {
+#if DEBUG
+                if (authenticationRequestBody.LoginType <= 0)
+                {
+                    authenticationRequestBody.UserName = "09981077021";
+                    authenticationRequestBody.Password = "569022mt";
+                    authenticationRequestBody.LoginType = 1;
+                }
+#endif
+
                 var storedCaptchaCode = HttpContext.Session.GetString("CaptchaCode");
 
                 if (!authenticationRequestBody.CaptchaCode.ValidateCaptcha(storedCaptchaCode))
@@ -504,7 +513,8 @@ namespace NobatPlusAPI.Controllers
             }
 
 
-            result.Status =  await ToolBox.SendCode(sendCodeRequestBody.PhoneNumber);
+            var sendCodeResult =  await ToolBox.SendCode(sendCodeRequestBody.PhoneNumber);
+            result.Status =  sendCodeResult.SendStatus;
 
             if (result.Status)
             {
@@ -589,7 +599,8 @@ namespace NobatPlusAPI.Controllers
                     return BadRequest(result);
                 }
 
-                result.Status = await ToolBox.SendCode(requestBody.PhoneNumber);
+                var sendCodeResult = await ToolBox.SendCode(requestBody.PhoneNumber);
+                result.Status = sendCodeResult.SendStatus;
 
                 if (result.Status)
                 {
@@ -900,8 +911,8 @@ namespace NobatPlusAPI.Controllers
                         var validPhoneNumber = await _loginRep.ExistLoginAsync(requestBody.UserName, "UserName");
                         if (!validPhoneNumber.Status && string.IsNullOrEmpty(validPhoneNumber.ErrorMessage))
                         {
-                            result.Status = validPhoneNumber.Status;
-                            result.ErrorMessage = "شماره تماس نامعتبر است";
+                            authenticateResult.Status = validPhoneNumber.Status;
+                            authenticateResult.ErrorMessage = "شماره تماس نامعتبر است";
                             //return BadRequest(result);
                         }
                         bool validCode = await ToolBox.CheckCode(requestBody.UserName, requestBody.Password);
@@ -911,8 +922,8 @@ namespace NobatPlusAPI.Controllers
                         }
                         else
                         {
-                            result.Status = validCode;
-                            result.ErrorMessage = "کد تایید نامعتبر است";
+                            authenticateResult.Status = validCode;
+                            authenticateResult.ErrorMessage = "کد تایید نامعتبر است";
                             //return BadRequest(result);
                         }
                         break;

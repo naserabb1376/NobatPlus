@@ -110,19 +110,23 @@ namespace NobatPlusAPI.Controllers
         [HttpPost("AddStylistServices_Base")]
         public async Task<ActionResult<BitResultObject>> AddStylistServices_Base(List<AddEditStylistServiceRequestBody> requestBodyList)
         {
+            var result = new BitResultObject();
             if (!ModelState.IsValid)
             {
                 return BadRequest(requestBodyList);
             }
+            foreach (var item in requestBodyList)
+            {
+                var validrecord = await _StylistServiceRep.ExistStylistServiceAsync(item.StylistID,item.ServiceID);
 
-            //var validUserName = await _StylistServiceRep.ExistStylistServiceAsync(requestBody.PhoneNumber, "PhoneNumber", requestBody.ID);
-
-            //if (validUserName.Status)
-            //{
-            //    result.Status = !validUserName.Status;
-            //    result.ErrorMessage = "نام کاربری (شماره موبایل) تکراری است";
-            //    return BadRequest(result);
-            //}
+                if (validrecord.Status)
+                {
+                    result.Status = !validrecord.Status;
+                    result.ErrorMessage = $"این اطلاعات (انجام دهنده خدمت: {item.StylistID}, خدمت: {item.ServiceID}) قبلا در سیسستم ثبت شده است";
+                    return BadRequest(result);
+                }
+            }
+         
 
 
             var stylistServices = requestBodyList.Select(requestBody => new StylistService()
@@ -134,7 +138,7 @@ namespace NobatPlusAPI.Controllers
                 ServicePrice = requestBody.ServicePrice,
             }).ToList();
 
-            var result = await _StylistServiceRep.AddStylistServicesAsync(stylistServices);
+            result = await _StylistServiceRep.AddStylistServicesAsync(stylistServices);
 
             if (result.Status)
             {

@@ -30,74 +30,88 @@ namespace NobatPlusAPI.Tools
           .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true);
             Configuration = builder.Build();
         }
-        public async static Task<bool> SendCode(string mobileNumber)
+        public async static Task<VerifyCodeResult> SendCode(string mobileNumber)
         {
-            string AppName = Configuration["Jwt:Issuer"];
-            string UserName = Configuration["VerifyCode:PanelUserName"];
-            string Password = Configuration["VerifyCode:PanelPassword"];
-
-            bool send = false;
+            var result = new VerifyCodeResult();
             try
             {
-                AutoSendCodeResponse x = null;
-                using (FastSendSoapClient client = new FastSendSoapClient(FastSendSoapClient.EndpointConfiguration.FastSendSoap))
+                var PanelProvider = Configuration["SmsSender:PanelProvider"].ToLower();
+
+                if (PanelProvider.Contains("faraz"))
                 {
-                    x = await client.AutoSendCodeAsync(UserName, Password, mobileNumber, AppName);
-                    send = true;
+                    var smsSender = new FarazSMSSender();
+
+                    result = await smsSender.SendCode(mobileNumber);
                 }
-            }
-            catch (Exception ex)
-            {
-                send = false;
-            }
-            return send;
-        }
+                else
+                {
+                    var smsSender = new RayganSMSSender();
 
-        public async static Task<bool> SendSMSMessage(string mobileNumber,string message)
-        {
-            string AppName = Configuration["Jwt:Issuer"];
-            string UserName = Configuration["VerifyCode:PanelUserName"];
-            string Password = Configuration["VerifyCode:PanelPassword"];
-            string lineNumber = Configuration["VerifyCode:PanelLineNumber"];
-            string apiUrl = $"https://RayganSMS.com/SendMessageWithUrl.ashx?Username={UserName}&Password={Password}&PhoneNumber={lineNumber}&MessageBody={message}&RecNumber={mobileNumber}&Smsclass=1";
-
-                     List<ReqHeader> reqHeaders = new List<ReqHeader>();
-           
-            bool send = false;
-            try
-            {
-                ApiCaller apiCaller = new ApiCaller();
-
-                var SendSmsMessageResponse = await apiCaller.Call<long>(apiUrl, "GET","",reqHeaders,Encoding.UTF8);
-                if (SendSmsMessageResponse > 2000) send = true;
-                else send = false;
+                    result = await smsSender.SendCode(mobileNumber);
+                }
 
             }
             catch (Exception ex)
             {
-                send = false;
+                result.SendStatus = false;
             }
-            return send;
+            return result;
         }
 
         public async static Task<bool> CheckCode(string mobileNumber, string code)
         {
-            string UserName = Configuration["VerifyCode:PanelUserName"];
-            string Password = Configuration["VerifyCode:PanelPassword"];
-            bool currect = false;
+            bool correct = false;
             try
             {
-                using (FastSendSoapClient client = new FastSendSoapClient(FastSendSoapClient.EndpointConfiguration.FastSendSoap))
+                var PanelProvider = Configuration["SmsSender:PanelProvider"].ToLower();
+
+                if (PanelProvider.Contains("faraz"))
                 {
-                    CheckSendCodeResponse response = await client.CheckSendCodeAsync(UserName, Password, mobileNumber, code);
-                    currect = response.Body.CheckSendCodeResult;
+                    var smsSender = new FarazSMSSender();
+
+                    correct = await smsSender.CheckCode(mobileNumber, code);
                 }
+                else
+                {
+                    var smsSender = new RayganSMSSender();
+
+                    correct = await smsSender.CheckCode(mobileNumber, code);
+                }
+
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                currect = false;
+                correct = false;
             }
-            return currect;
+            return correct;
+        }
+
+        public async static Task<bool> SendSMSMessage(string mobileNumber, string message)
+        {
+            bool send = false;
+            try
+            {
+                var PanelProvider = Configuration["SmsSender:PanelProvider"].ToLower();
+
+                if (PanelProvider.Contains("faraz"))
+                {
+                    var smsSender = new FarazSMSSender();
+
+                    send = await smsSender.SendMessage(mobileNumber, message);
+                }
+                else
+                {
+                    var smsSender = new RayganSMSSender();
+
+                    send = await smsSender.SendMessage(mobileNumber, message);
+                }
+
+            }
+            catch (Exception ex)
+            {
+                send = false;
+            }
+            return send;
         }
 
         // تابع تولید Access Token (JWT)
