@@ -230,25 +230,24 @@ namespace NobatPlusDATA.DataLayer.Services
         }
 
         public async Task<ListResultObject<StylistServiceWithDiscountDto>> GetAllStylistServicesAsync(
-    long stylistId = 0,
-    long serviceId = 0,
-    long customerId = 0,
-    long bookingId = 0,
-    long discountId = 0,
-    int pageIndex = 1,
-    int pageSize = 20,
-    string searchText = "",
-    string sortQuery = ""
-)
+     long stylistId = 0,
+     long serviceId = 0,
+     long customerId = 0,
+     long bookingId = 0,
+     long discountId = 0,
+     int pageIndex = 1,
+     int pageSize = 20,
+     string searchText = "",
+     string sortQuery = ""
+ )
         {
             var results = new ListResultObject<StylistServiceWithDiscountDto>();
+
             try
             {
-                var now = DateTime.Now; // یا UtcNow طبق سیاست پروژه‌ات
+                var now = DateTime.Now;
 
                 var query = _context.StylistServices
-                    .Include(x => x.Stylist).ThenInclude(x => x.Person)
-                    .Include(x => x.ServiceManagement).ThenInclude(x => x.BookingServices)
                     .AsNoTracking()
                     .AsQueryable();
 
@@ -272,69 +271,92 @@ namespace NobatPlusDATA.DataLayer.Services
                 if (!string.IsNullOrWhiteSpace(searchText))
                 {
                     query = query.Where(x =>
-                        (x.ServiceManagement.ServiceName != null && x.ServiceManagement.ServiceName.Contains(searchText)) ||
-                        (x.ServiceManagement.Description != null && x.ServiceManagement.Description.Contains(searchText)) ||
-                        (x.Stylist.Specialty != null && x.Stylist.Specialty.Contains(searchText)) ||
-                        (x.Stylist.StylistName != null && x.Stylist.StylistName.Contains(searchText)) ||
-                        (x.Stylist.Specialty != null && x.Stylist.Specialty.Contains(searchText)) ||
-                        (x.Stylist.Person.FirstName != null && x.Stylist.Person.FirstName.Contains(searchText)) ||
-                        (x.Stylist.Person.LastName != null && x.Stylist.Person.LastName.Contains(searchText))
+                        (x.ServiceManagement.ServiceName != null &&
+                         x.ServiceManagement.ServiceName.Contains(searchText)) ||
+
+                        (x.ServiceManagement.Description != null &&
+                         x.ServiceManagement.Description.Contains(searchText)) ||
+
+                        (x.Stylist.Specialty != null &&
+                         x.Stylist.Specialty.Contains(searchText)) ||
+
+                        (x.Stylist.StylistName != null &&
+                         x.Stylist.StylistName.Contains(searchText)) ||
+
+                        (x.Stylist.Person.FirstName != null &&
+                         x.Stylist.Person.FirstName.Contains(searchText)) ||
+
+                        (x.Stylist.Person.LastName != null &&
+                         x.Stylist.Person.LastName.Contains(searchText))
                     );
                 }
 
-                // ✅ Projection to DTO + Discount calc
-                var dtoQuery = query.Select(ss => new StylistServiceWithDiscountDto
+                var baseQuery = query.Select(ss => new
                 {
-                    StylistID = ss.StylistID,
-                    ServiceManagementID = ss.ServiceManagementID,
+                    ss.StylistID,
+                    ss.ServiceManagementID,
 
                     ServiceTitle = ss.ServiceManagement.ServiceName,
                     ServiceDescription = ss.ServiceManagement.Description ?? "",
 
                     SalonName = ss.Stylist.StylistName,
-                    StylistName = $"{ss.Stylist.Person.FirstName} {ss.Stylist.Person.LastName}",
 
-                    ServicePrice = ss.ServicePrice,
-                    ServiceDuration = ss.ServiceDuration,
-                    DepositPercent = ss.DepositPercent,
-                    
-                    
+                    FirstName = ss.Stylist.Person.FirstName,
+                    LastName = ss.Stylist.Person.LastName,
 
-                    DiscountPercent =
-                        GetApplicableDiscountPercentsQuery(
-                            ss.StylistID,
-                            ss.ServiceManagementID,
-                            customerId,
-                            discountId,
-                            now
-                        )
-                        .DefaultIfEmpty(0)
-                        .Max(),
-
-                    PriceAfterDiscount =
-                        ss.ServicePrice *
-                        (1m - (
-                            GetApplicableDiscountPercentsQuery(
-                                ss.StylistID,
-                                ss.ServiceManagementID,
-                                customerId,
-                                discountId,
-                                now
-                            )
-                            .DefaultIfEmpty(0)
-                            .Max() / 100m
-                        ))
+                    ss.ServicePrice,
+                    ss.ServiceDuration,
+                    ss.DepositPercent
                 });
 
-                // شمارش و صفحه‌بندی
-                results.TotalCount = await dtoQuery.CountAsync();
+                results.TotalCount = await baseQuery.CountAsync();
                 results.PageCount = DbTools.GetPageCount(results.TotalCount, pageSize);
 
-                results.Results = await dtoQuery
-                    // اگر SortBy فقط روی Entity کار می‌کنه باید SortBy را بعداً برای DTO سازگار کنی
-                    .OrderByDescending(x => x.ServiceManagementID) // یا CreateDate اگر داخل DTO آوردی
+                var pageItems = await baseQuery
+                    .OrderByDescending(x => x.ServiceManagementID)
                     .ToPaging(pageIndex, pageSize)
                     .ToListAsync();
+
+                var finalList = new List<StylistServiceWithDiscountDto>();
+
+                foreach (var item in pageItems)
+                {
+                    var discountPercent = await GetApplicableDiscountPercentsQuery(
+         item.StylistID,
+         item.ServiceManagementID,
+         customerId,
+         discountId,
+         now
+     )
+     .Select(x => (decimal?)x)
+     .MaxAsync() ?? 0m;
+
+                    var discountPercentDecimal = Convert.ToDecimal(discountPercent);
+
+                    var priceAfterDiscount =
+                        item.ServicePrice * (1m - (discountPercentDecimal / 100m));
+
+                    finalList.Add(new StylistServiceWithDiscountDto
+                    {
+                        StylistID = item.StylistID,
+                        ServiceManagementID = item.ServiceManagementID,
+
+                        ServiceTitle = item.ServiceTitle,
+                        ServiceDescription = item.ServiceDescription,
+
+                        SalonName = item.SalonName,
+                        StylistName = $"{item.FirstName} {item.LastName}".Trim(),
+
+                        ServicePrice = item.ServicePrice,
+                        ServiceDuration = item.ServiceDuration,
+                        DepositPercent = item.DepositPercent,
+
+                        DiscountPercent = Convert.ToInt32(discountPercentDecimal),
+                        PriceAfterDiscount = priceAfterDiscount
+                    });
+                }
+
+                results.Results = finalList;
             }
             catch (Exception ex)
             {
@@ -346,61 +368,80 @@ namespace NobatPlusDATA.DataLayer.Services
         }
 
         public async Task<RowResultObject<StylistServiceWithDiscountDto>> GetStylistServiceByIdAsync(
-      long stylistId,
-      long serviceManagementId,
-      long customerId = 0,
-      long discountId = 0
-  )
+            long stylistId,
+            long serviceManagementId,
+            long customerId = 0,
+            long discountId = 0
+        )
         {
             var result = new RowResultObject<StylistServiceWithDiscountDto>();
+
             try
             {
                 var now = DateTime.Now;
 
-                result.Result = await _context.StylistServices.Include(x=> x.ServiceManagement).Include(x=> x.Stylist)
+                var item = await _context.StylistServices
                     .AsNoTracking()
-                    .Where(x => x.StylistID == stylistId && x.ServiceManagementID == serviceManagementId)
-                    .Select(ss => new StylistServiceWithDiscountDto
+                    .Where(x =>
+                        x.StylistID == stylistId &&
+                        x.ServiceManagementID == serviceManagementId
+                    )
+                    .Select(ss => new
                     {
-                        StylistID = ss.StylistID,
-                        ServiceManagementID = ss.ServiceManagementID,
+                        ss.StylistID,
+                        ss.ServiceManagementID,
 
                         ServiceTitle = ss.ServiceManagement.ServiceName,
-                        ServiceDescription = ss.ServiceManagement.Description,
+                        ServiceDescription = ss.ServiceManagement.Description ?? "",
 
                         SalonName = ss.Stylist.StylistName,
-                        StylistName = $"{ss.Stylist.Person.FirstName} {ss.Stylist.Person.LastName}",
 
-                        ServicePrice = ss.ServicePrice,
-                        ServiceDuration = ss.ServiceDuration,
-                        DepositPercent = ss.DepositPercent,
+                        FirstName = ss.Stylist.Person.FirstName,
+                        LastName = ss.Stylist.Person.LastName,
 
-                        DiscountPercent =
-                            GetApplicableDiscountPercentsQuery(
-                                ss.StylistID,
-                                ss.ServiceManagementID,
-                                customerId,
-                                discountId,
-                                now
-                            )
-                            .DefaultIfEmpty(0)
-                            .Max(),
-                        
-                        PriceAfterDiscount =
-                            ss.ServicePrice *
-                            (1m - (
-                                GetApplicableDiscountPercentsQuery(
-                                    ss.StylistID,
-                                    ss.ServiceManagementID,
-                                    customerId,
-                                    discountId,
-                                    now
-                                )
-                                .DefaultIfEmpty(0)
-                                .Max() / 100m
-                            ))
+                        ss.ServicePrice,
+                        ss.ServiceDuration,
+                        ss.DepositPercent
                     })
                     .SingleOrDefaultAsync();
+
+                if (item == null)
+                {
+                    result.Result = null;
+                    return result;
+                }
+
+                var discountPercent = await GetApplicableDiscountPercentsQuery(
+                        item.StylistID,
+                        item.ServiceManagementID,
+                        customerId,
+                        discountId,
+                        now
+                    )
+                    .Select(x => (decimal?)x)
+                    .MaxAsync() ?? 0m;
+
+                var priceAfterDiscount =
+                    item.ServicePrice * (1m - (discountPercent / 100m));
+
+                result.Result = new StylistServiceWithDiscountDto
+                {
+                    StylistID = item.StylistID,
+                    ServiceManagementID = item.ServiceManagementID,
+
+                    ServiceTitle = item.ServiceTitle,
+                    ServiceDescription = item.ServiceDescription,
+
+                    SalonName = item.SalonName,
+                    StylistName = $"{item.FirstName} {item.LastName}".Trim(),
+
+                    ServicePrice = item.ServicePrice,
+                    ServiceDuration = item.ServiceDuration,
+                    DepositPercent = item.DepositPercent,
+
+                    DiscountPercent = Convert.ToInt32(discountPercent),
+                    PriceAfterDiscount = priceAfterDiscount
+                };
             }
             catch (Exception ex)
             {
