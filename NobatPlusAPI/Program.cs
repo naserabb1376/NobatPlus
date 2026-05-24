@@ -163,7 +163,7 @@ namespace NobatPlusAPI
 
             #endregion
 
-          //  builder.Services.AddMTPermissionCenter();
+            builder.Services.AddMTPermissionCenter();
 
             #region ImportDbServices
 
@@ -290,7 +290,7 @@ namespace NobatPlusAPI
             app.UseAuthorization();
 
             // IMPORTANT: after authentication
-            //app.UseMTPermissionCenter();
+            app.UseMTPermissionCenter();
 
             //Controller/Action/Id?
             app.UseEndpoints(endpoints =>
