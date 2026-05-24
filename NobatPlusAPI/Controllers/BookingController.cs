@@ -50,18 +50,13 @@ namespace NobatPlusAPI.Controllers
         }
 
         [HttpPost("GetAllBookings_Base")]
+        [AllowAnonymous]
         public async Task<ActionResult<ListResultObject<BookingVM>>> GetAllBookings_Base(GetBookingListRequestBody requestBody)
         {
             var result = new ListResultObject<BookingDTO>();
             if (!ModelState.IsValid)
             {
                 return BadRequest(requestBody);
-            }
-
-            var access = await NormalizeBookingListScopeAsync(requestBody);
-            if (!access.Status)
-            {
-                return Forbid();
             }
 
             result = await _BookingRep.GetAllBookingsAsync(requestBody.ServiceId,requestBody.CustomerId,requestBody.StylistId,requestBody.CancelState,requestBody.FromDate,requestBody.ToDate, requestBody.PageIndex, requestBody.PageSize, requestBody.SearchText, requestBody.SortQuery);
@@ -85,10 +80,6 @@ namespace NobatPlusAPI.Controllers
             var result = await _BookingRep.GetBookingByIdAsync(requestBody.ID);
             if (result.Status)
             {
-                if (!await CanAccessBookingAsync(result.Result))
-                {
-                    return Forbid();
-                }
                 var resultVM = _mapper.Map<RowResultObject<BookingVM>>(result);
                 return Ok(resultVM);
             }
@@ -117,10 +108,7 @@ namespace NobatPlusAPI.Controllers
             {
                 return BadRequest(requestBody);
             }
-            if (!await NormalizeBookingWriteScopeAsync(requestBody))
-            {
-                return Forbid();
-            }
+           
             Booking Booking = new Booking()
             {
                 CreateDate = DateTime.Now.ToShamsi(),
@@ -187,14 +175,7 @@ namespace NobatPlusAPI.Controllers
             }
 
             var theRow = await _BookingRep.GetBookingByIdAsync(requestBody.ID);
-            if (!theRow.Status || !await CanAccessBookingAsync(theRow.Result))
-            {
-                return Forbid();
-            }
-            if (!await NormalizeBookingWriteScopeAsync(requestBody))
-            {
-                return Forbid();
-            }
+        
 
             if (!theRow.Status)
             {
@@ -259,12 +240,7 @@ namespace NobatPlusAPI.Controllers
             if (!ModelState.IsValid)
             {
                 return BadRequest(requestBody);
-            }
-            var booking = await _BookingRep.GetBookingByIdAsync(requestBody.ID);
-            if (!booking.Status || !await CanAccessBookingAsync(booking.Result))
-            {
-                return Forbid();
-            }
+            }      
             var result = await _BookingRep.RemoveBookingAsync(requestBody.ID);
             if (result.Status)
             {
@@ -286,121 +262,6 @@ namespace NobatPlusAPI.Controllers
                 return Ok(result);
             }
             return BadRequest(result);
-        }
-
-        private async Task<BitResultObject> NormalizeBookingListScopeAsync(GetBookingListRequestBody requestBody)
-        {
-            var roleId = User.GetCurrentRoleId();
-            var personId = User.GetCurrentUserId();
-
-            if (roleId == 4)
-            {
-                return new BitResultObject { Status = true };
-            }
-
-            if (roleId == 1)
-            {
-                var customer = await _CustomerRep.ExistCustomerAsync(personId.ToString(), "personid");
-                if (!customer.Status) return customer;
-                requestBody.CustomerId = customer.ID;
-                return new BitResultObject { Status = true };
-            }
-
-            if (roleId == 2)
-            {
-                var stylist = await _StylistRep.ExistStylistAsync(personId.ToString(), "personid");
-                if (!stylist.Status) return stylist;
-                requestBody.StylistId = stylist.ID;
-                return new BitResultObject { Status = true };
-            }
-
-            if (roleId == 3)
-            {
-                var salon = await _StylistRep.ExistStylistAsync(personId.ToString(), "personid");
-                if (!salon.Status) return salon;
-
-                if (requestBody.StylistId <= 0)
-                {
-                    requestBody.StylistId = salon.ID;
-                    return new BitResultObject { Status = true };
-                }
-
-                return await IsSalonStylistAsync(salon.ID, requestBody.StylistId)
-                    ? new BitResultObject { Status = true }
-                    : new BitResultObject { Status = false };
-            }
-
-            return new BitResultObject { Status = false };
-        }
-
-        private async Task<bool> NormalizeBookingWriteScopeAsync(AddEditBookingRequestBody requestBody)
-        {
-            var roleId = User.GetCurrentRoleId();
-            var personId = User.GetCurrentUserId();
-
-            if (roleId == 4) return true;
-
-            if (roleId == 1)
-            {
-                var customer = await _CustomerRep.ExistCustomerAsync(personId.ToString(), "personid");
-                if (!customer.Status) return false;
-                requestBody.CustomerID = customer.ID;
-                return true;
-            }
-
-            if (roleId == 2)
-            {
-                var stylist = await _StylistRep.ExistStylistAsync(personId.ToString(), "personid");
-                if (!stylist.Status) return false;
-                requestBody.StylistID = stylist.ID;
-                return true;
-            }
-
-            if (roleId == 3)
-            {
-                var salon = await _StylistRep.ExistStylistAsync(personId.ToString(), "personid");
-                if (!salon.Status) return false;
-                return requestBody.StylistID == salon.ID || await IsSalonStylistAsync(salon.ID, requestBody.StylistID);
-            }
-
-            return false;
-        }
-
-        private async Task<bool> CanAccessBookingAsync(BookingDTO booking)
-        {
-            if (booking == null) return false;
-
-            var roleId = User.GetCurrentRoleId();
-            var personId = User.GetCurrentUserId();
-
-            if (roleId == 4) return true;
-
-            if (roleId == 1)
-            {
-                var customer = await _CustomerRep.ExistCustomerAsync(personId.ToString(), "personid");
-                return customer.Status && booking.CustomerID == customer.ID;
-            }
-
-            if (roleId == 2)
-            {
-                var stylist = await _StylistRep.ExistStylistAsync(personId.ToString(), "personid");
-                return stylist.Status && booking.StylistID == stylist.ID;
-            }
-
-            if (roleId == 3)
-            {
-                var salon = await _StylistRep.ExistStylistAsync(personId.ToString(), "personid");
-                return salon.Status && (booking.StylistID == salon.ID || await IsSalonStylistAsync(salon.ID, booking.StylistID));
-            }
-
-            return false;
-        }
-
-        private async Task<bool> IsSalonStylistAsync(long salonStylistId, long stylistId)
-        {
-            if (salonStylistId <= 0 || stylistId <= 0) return false;
-            var stylist = await _StylistRep.GetStylistByIdAsync(stylistId);
-            return stylist.Status && stylist.Result != null && stylist.Result.StylistParentID == salonStylistId;
         }
     }
 }

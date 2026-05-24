@@ -158,16 +158,16 @@ namespace NobatPlusDATA.DataLayer.Services
 
 
         public async Task<ListResultObject<BookingDTO>> GetAllBookingsAsync(
-     long serviceManagementId = 0,
-     long customerId = 0,
-     long stylistId = 0,
-     int cancelState = 0,
-     DateTime? fromDate = null,
-     DateTime? toDate = null,
-     int pageIndex = 1,
-     int pageSize = 20,
-     string searchText = "",
-     string sortQuery = "")
+            long serviceManagementId = 0,
+            long customerId = 0,
+            long stylistId = 0,
+            int cancelState = 0,
+            DateTime? fromDate = null,
+            DateTime? toDate = null,
+            int pageIndex = 1,
+            int pageSize = 20,
+            string searchText = "",
+            string sortQuery = "")
         {
             ListResultObject<BookingDTO> results = new();
 
@@ -179,11 +179,12 @@ namespace NobatPlusDATA.DataLayer.Services
                 {
                     bookingsQuery = _context.BookingServices
                         .Where(bs => bs.ServiceManagementID == serviceManagementId)
-                        .Select(bs => bs.Booking);
+                        .Select(bs => bs.Booking)
+                        .AsNoTracking();
                 }
                 else
                 {
-                    bookingsQuery = _context.Bookings;
+                    bookingsQuery = _context.Bookings.AsNoTracking();
                 }
 
                 if (customerId > 0)
@@ -199,12 +200,14 @@ namespace NobatPlusDATA.DataLayer.Services
 
                 if (fromDate != null)
                 {
-                    bookingsQuery = bookingsQuery.Where(x=> x.BookingDate >= fromDate.Value.ToShamsi());
+                    var from = fromDate.Value.ToShamsi();
+                    bookingsQuery = bookingsQuery.Where(x => x.BookingDate >= from);
                 }
 
                 if (toDate != null)
                 {
-                    bookingsQuery = bookingsQuery.Where(x => x.BookingDate <= toDate.Value.ToShamsi());
+                    var to = toDate.Value.ToShamsi();
+                    bookingsQuery = bookingsQuery.Where(x => x.BookingDate <= to);
                 }
 
                 if (!string.IsNullOrEmpty(searchText))
@@ -216,78 +219,72 @@ namespace NobatPlusDATA.DataLayer.Services
                 }
 
                 bookingsQuery = bookingsQuery
-                    .Include(x => x.Stylist).ThenInclude(x=> x.Person)
+                    .Include(x => x.Stylist).ThenInclude(x => x.Person)
                     .Include(x => x.Customer).ThenInclude(x => x.Person)
                     .AsNoTracking();
-
-                IQueryable<BookingDurationRow> bookingDurations;
-
-                try
-                {
-                    bookingDurations =
-                        from bs in _context.BookingServices
-                        join b in _context.Bookings on bs.BookingID equals b.ID
-                        join ss in _context.StylistServices
-                            on new { b.StylistID, bs.ServiceManagementID }
-                            equals new { ss.StylistID, ss.ServiceManagementID }
-                        group ss by bs.BookingID into g
-                        select new BookingDurationRow
-                        {
-                            BookingID = g.Key,
-                            TotalDurationMinutes = g.Sum(x =>
-                                EF.Functions.DateDiffMinute(TimeSpan.Zero, x.ServiceDuration)
-                            )
-                        };
-                }
-                catch
-                {
-                    bookingDurations =
-                        Enumerable.Empty<BookingDurationRow>()
-                                  .AsQueryable();
-                }
-
 
                 results.TotalCount = await bookingsQuery.CountAsync();
                 results.PageCount = DbTools.GetPageCount(results.TotalCount, pageSize);
 
                 results.Results = await (
-     from b in bookingsQuery
-     join d in bookingDurations on b.ID equals d.BookingID into gj
-     from d in gj.DefaultIfEmpty()
-     orderby b.CreateDate descending
-     select new BookingDTO
-     {
-         ID = b.ID,
-         StylistID = b.StylistID,
-         CustomerID = b.CustomerID,
+                    from b in bookingsQuery
 
-         CreateDate = b.CreateDate,
-         UpdateDate = b.UpdateDate,
-         Description = b.Description,
+                    let totalDurationMinutes =
+                        (
+                            from bs in _context.BookingServices
+                            join ss in _context.StylistServices
+                                on new { b.StylistID, bs.ServiceManagementID }
+                                equals new { ss.StylistID, ss.ServiceManagementID }
+                            where bs.BookingID == b.ID
+                            select ss.ServiceDuration == null
+                                ? (int?)0
+                                : EF.Functions.DateDiffMinute(
+                                    TimeSpan.Zero,
+                                    ss.ServiceDuration
+                                )
+                        ).Sum() ?? 0
 
-         BookingStartDate = b.BookingDate,
+                    let restMinutes =
+                        b.Stylist.RestTime == null
+                            ? 0
+                            : EF.Functions.DateDiffMinute(
+                                TimeSpan.Zero,
+                                b.Stylist.RestTime
+                            )
 
-         TotalDurationMinutes = d == null ? 0 : d.TotalDurationMinutes,
+                    orderby b.CreateDate descending
 
-         BookingEndDate = b.BookingDate.AddMinutes(d == null ? 0 : d.TotalDurationMinutes),
+                    select new BookingDTO
+                    {
+                        ID = b.ID,
+                        StylistID = b.StylistID,
+                        CustomerID = b.CustomerID,
 
-         TotalBlockMinutes =
-             (d == null ? 0 : d.TotalDurationMinutes) +
-             EF.Functions.DateDiffMinute(TimeSpan.Zero, b.Stylist.RestTime),
+                        CreateDate = b.CreateDate,
+                        UpdateDate = b.UpdateDate,
+                        Description = b.Description,
 
-         Status = b.Status,
-         IsCancelled = b.IsCancelled,
-         CancelReason = b.CancelReason,
+                        BookingStartDate = b.BookingDate,
 
-         Stylist = b.Stylist,
-         Customer = b.Customer
-     }
- )
- .SortBy(sortQuery)
- .ToPaging(pageIndex, pageSize)
- .ToListAsync();
+                        TotalDurationMinutes = totalDurationMinutes,
 
+                        BookingEndDate = b.BookingDate.AddMinutes(totalDurationMinutes),
 
+                        TotalBlockMinutes = totalDurationMinutes + restMinutes,
+
+                        Status = b.Status,
+                        IsCancelled = b.IsCancelled,
+                        CancelReason = b.CancelReason,
+
+                        Stylist = b.Stylist,
+                        Customer = b.Customer
+                    }
+                )
+                .SortBy(sortQuery)
+                .ToPaging(pageIndex, pageSize)
+                .ToListAsync();
+
+                results.Status = true;
             }
             catch (Exception ex)
             {
@@ -310,43 +307,34 @@ namespace NobatPlusDATA.DataLayer.Services
                     .AsNoTracking()
                     .Where(x => x.ID == bookingId);
 
-                // -------- Safe bookingDurations --------
-                IQueryable<BookingDurationRow> bookingDurations;
-
-                try
-                {
-                    bookingDurations =
-                        from bs in _context.BookingServices
-                        join b in _context.Bookings on bs.BookingID equals b.ID
-                        join ss in _context.StylistServices
-                            on new { b.StylistID, bs.ServiceManagementID }
-                            equals new { ss.StylistID, ss.ServiceManagementID }
-                        group ss by bs.BookingID into g
-                        select new BookingDurationRow
-                        {
-                            BookingID = g.Key,
-                            TotalDurationMinutes = g.Sum(x =>
-                                x.ServiceDuration == null
-                                    ? 0
-                                    : EF.Functions.DateDiffMinute(
-                                        TimeSpan.Zero,
-                                        x.ServiceDuration
-                                    )
-                            )
-                        };
-                }
-                catch
-                {
-                    bookingDurations =
-                        Enumerable.Empty<BookingDurationRow>().AsQueryable();
-                }
-
-                // -------- Main Query --------
                 result.Result = await (
                     from b in bookingQuery
-                    join d in bookingDurations
-                        on b.ID equals d.BookingID into gj
-                    from d in gj.DefaultIfEmpty()
+
+                    let totalDurationMinutes =
+                        (
+                            from bs in _context.BookingServices
+                            join ss in _context.StylistServices
+                                on new { b.StylistID, bs.ServiceManagementID }
+                                equals new { ss.StylistID, ss.ServiceManagementID }
+                            where bs.BookingID == b.ID
+                            select ss.ServiceDuration == null
+                                ? (int?)0
+                                : EF.Functions.DateDiffMinute(
+                                    TimeSpan.Zero,
+                                    ss.ServiceDuration
+                                )
+                        ).Sum() ?? 0
+
+                    let restMinutes =
+                        (
+                            b.Stylist.RestTime == null
+                                ? (int?)0
+                                : EF.Functions.DateDiffMinute(
+                                    TimeSpan.Zero,
+                                    b.Stylist.RestTime
+                                )
+                        ) ?? 0
+
                     select new BookingDTO
                     {
                         ID = b.ID,
@@ -359,18 +347,11 @@ namespace NobatPlusDATA.DataLayer.Services
 
                         BookingStartDate = b.BookingDate,
 
-                        TotalDurationMinutes = d == null ? 0 : d.TotalDurationMinutes,
+                        TotalDurationMinutes = totalDurationMinutes,
 
-                        BookingEndDate = b.BookingDate.AddMinutes(
-                            d == null ? 0 : d.TotalDurationMinutes
-                        ),
+                        BookingEndDate = b.BookingDate.AddMinutes(totalDurationMinutes),
 
-                        TotalBlockMinutes =
-                            (d == null ? 0 : d.TotalDurationMinutes) +
-                            EF.Functions.DateDiffMinute(
-                                TimeSpan.Zero,
-                                b.Stylist.RestTime
-                            ),
+                        TotalBlockMinutes = totalDurationMinutes + restMinutes,
 
                         Status = b.Status,
                         IsCancelled = b.IsCancelled,
@@ -380,6 +361,8 @@ namespace NobatPlusDATA.DataLayer.Services
                         Customer = b.Customer
                     }
                 ).SingleOrDefaultAsync();
+
+                result.Status = true;
             }
             catch (Exception ex)
             {

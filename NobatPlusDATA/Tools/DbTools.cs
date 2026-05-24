@@ -14,6 +14,14 @@ namespace NobatPlusDATA.Tools
     {
         private static NobatPlusContext _context;
 
+        public enum BaseRole : long
+        {
+            Customer = 1,
+            Stylist = 2,
+            Salon = 3,
+            Admin = 4
+        }
+
         public enum DiscountType
         {
             All = 0,

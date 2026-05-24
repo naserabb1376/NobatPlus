@@ -1,14 +1,15 @@
-﻿using NobatPlusDATA.DataLayer.Repositories;
+﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Internal;
+using NobatPlusDATA.DataLayer.Repositories;
+using NobatPlusDATA.Domain;
 using NobatPlusDATA.ResultObjects;
-using Microsoft.EntityFrameworkCore;
 using NobatPlusDATA.Tools;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using NobatPlusDATA.Domain;
-using Microsoft.EntityFrameworkCore.Metadata.Internal;
+using static NobatPlusDATA.Tools.DbTools;
 
 namespace NobatPlusDATA.DataLayer.Services
 {
@@ -167,7 +168,7 @@ namespace NobatPlusDATA.DataLayer.Services
                 {
                     if (!string.IsNullOrEmpty(entityType))
                     {
-                        query = query.Where(x => x.EntityType == entityType);
+                        query = query.Where(x => x.EntityType.ToLower() == entityType.ToLower());
                     }
                     if (foreignKeyId > 0)
                     {
@@ -176,7 +177,9 @@ namespace NobatPlusDATA.DataLayer.Services
                 }
                 var theRow = await query.OrderByDescending(x => x.ID).FirstOrDefaultAsync();
 
-                if (theRow.Description.ToLower() != "public" && (roleId != 3 && theRow.CreatorId != userId))
+                var theRole = _context.Roles.AsNoTracking().FirstOrDefault(x => x.ID == roleId) ?? new Role();
+                var alowRoles = new long[] { (long)BaseRole.Admin };
+                if (theRow.Description.ToLower() != "public" && (!alowRoles.Contains(theRole.ID) && theRow.CreatorId != userId))
                 {
                     result.Status = false;
                     result.ErrorMessage = $"The User Has No Access To This Image";
