@@ -66,7 +66,23 @@ namespace NobatPlusDATA.DataLayer.Services
                                 ServiceManagementID = service.ID,
                                 ServicePrice = isParent ? 0 : inputService.ServicePrice,
                                 DepositPercent = isParent ? 0 : inputService.DepositPercent,
-                                ServiceDuration = isParent ? TimeSpan.Zero : inputService.ServiceDuration
+                                ServiceDuration = isParent ? TimeSpan.Zero : inputService.ServiceDuration,
+                                HasDynamicPricing = !isParent && inputService.HasDynamicPricing,
+                                PriceVariants = isParent
+                                    ? new List<StylistServicePriceVariant>()
+                                    : inputService.PriceVariants?.Select(variant => new StylistServicePriceVariant
+                                    {
+                                        StylistID = stylistId,
+                                        ServiceManagementID = service.ID,
+                                        Price = variant.Price,
+                                        Duration = variant.Duration,
+                                        DepositPercent = variant.DepositPercent,
+                                        IsActive = variant.IsActive,
+                                        OptionValues = variant.OptionValues?.Select(optionValue => new StylistServicePriceVariantOptionValue
+                                        {
+                                            ServiceOptionValueID = optionValue.ServiceOptionValueID
+                                        }).ToList() ?? new List<StylistServicePriceVariantOptionValue>()
+                                    }).ToList() ?? new List<StylistServicePriceVariant>()
                             });
 
                             existingServiceIds.Add(service.ID);
@@ -235,6 +251,7 @@ namespace NobatPlusDATA.DataLayer.Services
      long customerId = 0,
      long bookingId = 0,
      long discountId = 0,
+     List<long>? optionValueIds = null,
      int pageIndex = 1,
      int pageSize = 20,
      string searchText = "",
@@ -291,6 +308,8 @@ namespace NobatPlusDATA.DataLayer.Services
                     );
                 }
 
+                optionValueIds = NormalizeOptionValueIds(optionValueIds);
+
                 var baseQuery = query.Select(ss => new
                 {
                     ss.StylistID,
@@ -306,7 +325,8 @@ namespace NobatPlusDATA.DataLayer.Services
 
                     ss.ServicePrice,
                     ss.ServiceDuration,
-                    ss.DepositPercent
+                    ss.DepositPercent,
+                    ss.HasDynamicPricing
                 });
 
                 results.TotalCount = await baseQuery.CountAsync();
@@ -321,6 +341,16 @@ namespace NobatPlusDATA.DataLayer.Services
 
                 foreach (var item in pageItems)
                 {
+                    var resolvedPricing = await ResolvePricingAsync(
+                        item.StylistID,
+                        item.ServiceManagementID,
+                        item.ServicePrice,
+                        item.ServiceDuration,
+                        item.DepositPercent,
+                        item.HasDynamicPricing,
+                        bookingId,
+                        optionValueIds);
+
                     var discountPercent = await GetApplicableDiscountPercentsQuery(
          item.StylistID,
          item.ServiceManagementID,
@@ -334,7 +364,7 @@ namespace NobatPlusDATA.DataLayer.Services
                     var discountPercentDecimal = Math.Clamp(Convert.ToDecimal(discountPercent), 0m, 100m);
 
                     var priceAfterDiscount =
-                        item.ServicePrice * (1m - (discountPercentDecimal / 100m));
+                        resolvedPricing.Price * (1m - (discountPercentDecimal / 100m));
 
                     finalList.Add(new StylistServiceWithDiscountDto
                     {
@@ -348,9 +378,13 @@ namespace NobatPlusDATA.DataLayer.Services
                         SalonName = item.SalonName,
                         StylistName = $"{item.FirstName} {item.LastName}".Trim(),
 
-                        ServicePrice = item.ServicePrice,
-                        ServiceDuration = item.ServiceDuration,
-                        DepositPercent = item.DepositPercent,
+                        ServicePrice = resolvedPricing.Price,
+                        ServiceDuration = resolvedPricing.Duration,
+                        DepositPercent = resolvedPricing.DepositPercent,
+                        HasDynamicPricing = item.HasDynamicPricing,
+                        StylistServicePriceVariantID = resolvedPricing.VariantId,
+                        AppliedOptionValueIDs = resolvedPricing.OptionValueIds,
+                        AppliedOptionSummary = resolvedPricing.OptionSummary,
 
                         DiscountPercent = Convert.ToInt32(discountPercentDecimal),
                         PriceAfterDiscount = priceAfterDiscount
@@ -372,7 +406,8 @@ namespace NobatPlusDATA.DataLayer.Services
             long stylistId,
             long serviceManagementId,
             long customerId = 0,
-            long discountId = 0
+            long discountId = 0,
+            List<long>? optionValueIds = null
         )
         {
             var result = new RowResultObject<StylistServiceWithDiscountDto>();
@@ -402,7 +437,8 @@ namespace NobatPlusDATA.DataLayer.Services
 
                         ss.ServicePrice,
                         ss.ServiceDuration,
-                        ss.DepositPercent
+                        ss.DepositPercent,
+                        ss.HasDynamicPricing
                     })
                     .SingleOrDefaultAsync();
 
@@ -411,6 +447,18 @@ namespace NobatPlusDATA.DataLayer.Services
                     result.Result = null;
                     return result;
                 }
+
+                optionValueIds = NormalizeOptionValueIds(optionValueIds);
+
+                var resolvedPricing = await ResolvePricingAsync(
+                    item.StylistID,
+                    item.ServiceManagementID,
+                    item.ServicePrice,
+                    item.ServiceDuration,
+                    item.DepositPercent,
+                    item.HasDynamicPricing,
+                    0,
+                    optionValueIds);
 
                 var discountPercent = await GetApplicableDiscountPercentsQuery(
                         item.StylistID,
@@ -425,7 +473,7 @@ namespace NobatPlusDATA.DataLayer.Services
                 discountPercent = Math.Clamp(discountPercent, 0m, 100m);
 
                 var priceAfterDiscount =
-                    item.ServicePrice * (1m - (discountPercent / 100m));
+                    resolvedPricing.Price * (1m - (discountPercent / 100m));
 
                 result.Result = new StylistServiceWithDiscountDto
                 {
@@ -438,9 +486,13 @@ namespace NobatPlusDATA.DataLayer.Services
                     SalonName = item.SalonName,
                     StylistName = $"{item.FirstName} {item.LastName}".Trim(),
 
-                    ServicePrice = item.ServicePrice,
-                    ServiceDuration = item.ServiceDuration,
-                    DepositPercent = item.DepositPercent,
+                    ServicePrice = resolvedPricing.Price,
+                    ServiceDuration = resolvedPricing.Duration,
+                    DepositPercent = resolvedPricing.DepositPercent,
+                    HasDynamicPricing = item.HasDynamicPricing,
+                    StylistServicePriceVariantID = resolvedPricing.VariantId,
+                    AppliedOptionValueIDs = resolvedPricing.OptionValueIds,
+                    AppliedOptionSummary = resolvedPricing.OptionSummary,
 
                     DiscountPercent = Convert.ToInt32(discountPercent),
                     PriceAfterDiscount = priceAfterDiscount
@@ -454,6 +506,100 @@ namespace NobatPlusDATA.DataLayer.Services
 
             return result;
         }
+
+        private async Task<ResolvedServicePricing> ResolvePricingAsync(
+            long stylistId,
+            long serviceManagementId,
+            decimal basePrice,
+            TimeSpan baseDuration,
+            int baseDepositPercent,
+            bool hasDynamicPricing,
+            long bookingId,
+            List<long>? optionValueIds)
+        {
+            optionValueIds = NormalizeOptionValueIds(optionValueIds);
+
+            if (bookingId > 0)
+            {
+                optionValueIds = await _context.BookingServiceOptionValues
+                    .AsNoTracking()
+                    .Where(x => x.BookingID == bookingId && x.ServiceManagementID == serviceManagementId)
+                    .Select(x => x.ServiceOptionValueID)
+                    .Distinct()
+                    .ToListAsync();
+            }
+
+            if (!hasDynamicPricing || !optionValueIds.Any())
+            {
+                return new ResolvedServicePricing(basePrice, baseDuration, baseDepositPercent, null, optionValueIds, await BuildOptionSummaryAsync(optionValueIds));
+            }
+
+            var variants = await _context.StylistServicePriceVariants
+                .AsNoTracking()
+                .Include(x => x.OptionValues)
+                .Where(x => x.StylistID == stylistId &&
+                            x.ServiceManagementID == serviceManagementId &&
+                            x.IsActive)
+                .ToListAsync();
+
+            var selected = optionValueIds.OrderBy(x => x).ToList();
+            var matchedVariant = variants.FirstOrDefault(x =>
+                x.OptionValues.Select(ov => ov.ServiceOptionValueID).OrderBy(id => id).SequenceEqual(selected));
+
+            if (matchedVariant == null)
+            {
+                return new ResolvedServicePricing(basePrice, baseDuration, baseDepositPercent, null, optionValueIds, await BuildOptionSummaryAsync(optionValueIds));
+            }
+
+            return new ResolvedServicePricing(
+                matchedVariant.Price,
+                matchedVariant.Duration,
+                matchedVariant.DepositPercent,
+                matchedVariant.ID,
+                optionValueIds,
+                await BuildOptionSummaryAsync(optionValueIds));
+        }
+
+        private async Task<string> BuildOptionSummaryAsync(List<long> optionValueIds)
+        {
+            if (optionValueIds == null || !optionValueIds.Any())
+                return "";
+
+            var optionValues = await _context.ServiceOptionValues
+                .AsNoTracking()
+                .Where(x => optionValueIds.Contains(x.ID))
+                .Select(x => new
+                {
+                    x.ID,
+                    x.ValueName,
+                    x.ServiceOption.OptionName,
+                    OptionSortOrder = x.ServiceOption.SortOrder,
+                    ValueSortOrder = x.SortOrder
+                })
+                .ToListAsync();
+
+            return string.Join("، ", optionValues
+                .OrderBy(x => x.OptionSortOrder)
+                .ThenBy(x => x.ValueSortOrder)
+                .Select(x => $"{x.OptionName}: {x.ValueName}"));
+        }
+
+        private static List<long> NormalizeOptionValueIds(List<long>? optionValueIds)
+        {
+            return optionValueIds?
+                .Where(x => x > 0)
+                .Distinct()
+                .OrderBy(x => x)
+                .ToList() ?? new List<long>();
+        }
+
+        private record ResolvedServicePricing(
+            decimal Price,
+            TimeSpan Duration,
+            int DepositPercent,
+            long? VariantId,
+            List<long> OptionValueIds,
+            string OptionSummary);
 
         private async Task<List<ServiceManagement>> GetServiceHierarchyAsync(long serviceId)
         {

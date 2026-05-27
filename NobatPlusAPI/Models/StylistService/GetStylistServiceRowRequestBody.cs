@@ -25,6 +25,8 @@ namespace NobatPlusAPI.Models.StylistService
         //[Required(ErrorMessage = "لطفا {0} را وارد کنید")]
         //[Range(1, long.MaxValue, ErrorMessage = "مقدار {0} باید بزرگتر از 0 باشد")]
         public long? DiscountID { get; set; }
+
+        public List<long> OptionValueIDs { get; set; } = new List<long>();
     }
 }
 

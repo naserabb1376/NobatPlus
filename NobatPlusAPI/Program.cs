@@ -196,9 +196,12 @@ namespace NobatPlusAPI
             builder.Services.AddScoped<IRoleRep, RoleRep>();
             builder.Services.AddScoped<IServiceDiscountRep, ServiceDiscountRep>();
             builder.Services.AddScoped<IServiceManagementRep, ServiceManagementRep>();
+            builder.Services.AddScoped<IServiceOptionRep, ServiceOptionRep>();
+            builder.Services.AddScoped<IServiceOptionValueRep, ServiceOptionValueRep>();
             builder.Services.AddScoped<IStylistRep, StylistRep>();
             builder.Services.AddScoped<IStylistDashboardRep, StylistDashboardRep>();
             builder.Services.AddScoped<IStylistServiceRep, StylistServiceRep>();
+            builder.Services.AddScoped<IStylistServicePriceVariantRep, StylistServicePriceVariantRep>();
             builder.Services.AddScoped<IStylistPacificRep, StylistPacificRep>();
             builder.Services.AddScoped<ITokenRep, TokenRep>();
             builder.Services.AddScoped<ISocialNetworkRep, SocialNetworkRep>();

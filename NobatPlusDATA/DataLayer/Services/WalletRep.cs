@@ -227,9 +227,15 @@ namespace NobatPlusDATA.DataLayer.Services
                         BookingID = d.BookingID,
                         StylistID = d.StylistID,
                         ServiceManagementID = d.ServiceManagementID,
+                        StylistServicePriceVariantID = d.StylistServicePriceVariantID,
+                        AppliedOptionSummary = d.AppliedOptionSummary,
                         StylistServiceAmount = d.ServicePrice,
                         DiscountAmount = d.ServicePrice - d.PriceAfterDiscount,
                         DiscountPercent = d.DiscountPercent,
+                        OptionValues = d.AppliedOptionValueIDs.Select(optionValueId => new PaymentDetailOptionValue
+                        {
+                            ServiceOptionValueID = optionValueId
+                        }).ToList()
                     }).ToList()
                 };
 

@@ -14,6 +14,9 @@ namespace NobatPlusDATA.ViewModels
         public int DiscountPercent { get; set; }
         public decimal DiscountAmount { get; set; }
         public decimal PriceAfterDiscount { get; set; }
+        public long? StylistServicePriceVariantID { get; set; }
+        public string AppliedOptionSummary { get; set; }
+        public List<long> AppliedOptionValueIDs { get; set; }
 
         public long StylistID { get; set; }
         public long ServiceManagementID { get; set; }
@@ -35,6 +38,9 @@ namespace NobatPlusDATA.ViewModels
         public decimal DiscountAmount { get; set; }
         public decimal PriceAfterDiscount { get; set; }
         public int DiscountPercent { get; set; }
+        public long? StylistServicePriceVariantID { get; set; }
+        public string AppliedOptionSummary { get; set; }
+        public List<long> AppliedOptionValueIDs { get; set; }
 
         public long BookingID { get; set; }
         public long StylistID { get; set; }

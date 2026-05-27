@@ -50,7 +50,13 @@ namespace NobatPlusDATA.DataLayer
         public DbSet<CheckAvailability> CheckAvailabilities { get; set; }
         public DbSet<ServiceManagement> ServiceManagements { get; set; }
         public DbSet<BookingService> BookingServices { get; set; }
+        public DbSet<BookingServiceOptionValue> BookingServiceOptionValues { get; set; }
         public DbSet<StylistService> StylistServices { get; set; }
+        public DbSet<ServiceOption> ServiceOptions { get; set; }
+        public DbSet<ServiceOptionValue> ServiceOptionValues { get; set; }
+        public DbSet<StylistServicePriceVariant> StylistServicePriceVariants { get; set; }
+        public DbSet<StylistServicePriceVariantOptionValue> StylistServicePriceVariantOptionValues { get; set; }
+        public DbSet<PaymentDetailOptionValue> PaymentDetailOptionValues { get; set; }
         public DbSet<Review> Reviews { get; set; }
         public DbSet<JobType> JobTypes { get; set; }
         public DbSet<Discount> Discounts { get; set; }
@@ -120,6 +126,21 @@ namespace NobatPlusDATA.DataLayer
                 .WithMany(sm => sm.BookingServices)
                 .HasForeignKey(bs => bs.ServiceManagementID);
 
+            modelBuilder.Entity<BookingServiceOptionValue>()
+                .HasKey(x => new { x.BookingID, x.ServiceManagementID, x.ServiceOptionValueID });
+
+            modelBuilder.Entity<BookingServiceOptionValue>()
+                .HasOne(x => x.BookingService)
+                .WithMany(x => x.OptionValues)
+                .HasForeignKey(x => new { x.BookingID, x.ServiceManagementID })
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<BookingServiceOptionValue>()
+                .HasOne(x => x.ServiceOptionValue)
+                .WithMany()
+                .HasForeignKey(x => x.ServiceOptionValueID)
+                .OnDelete(DeleteBehavior.NoAction);
+
             modelBuilder.Entity<StylistService>()
                 .HasKey(bs => new { bs.StylistID, bs.ServiceManagementID });
 
@@ -133,6 +154,44 @@ namespace NobatPlusDATA.DataLayer
                 .HasOne(bs => bs.ServiceManagement)
                 .WithMany(sm => sm.StylistServices)
                 .HasForeignKey(bs => bs.ServiceManagementID);
+
+            modelBuilder.Entity<ServiceOption>()
+                .HasOne(x => x.ServiceManagement)
+                .WithMany()
+                .HasForeignKey(x => x.ServiceManagementID)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<ServiceOption>()
+                .HasIndex(x => new { x.ServiceManagementID, x.OptionKey })
+                .IsUnique();
+
+            modelBuilder.Entity<ServiceOptionValue>()
+                .HasOne(x => x.ServiceOption)
+                .WithMany(x => x.Values)
+                .HasForeignKey(x => x.ServiceOptionID)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<StylistServicePriceVariant>()
+                .HasOne(x => x.StylistService)
+                .WithMany(x => x.PriceVariants)
+                .HasForeignKey(x => new { x.StylistID, x.ServiceManagementID })
+                .HasPrincipalKey(x => new { x.StylistID, x.ServiceManagementID })
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<StylistServicePriceVariantOptionValue>()
+                .HasKey(x => new { x.StylistServicePriceVariantID, x.ServiceOptionValueID });
+
+            modelBuilder.Entity<StylistServicePriceVariantOptionValue>()
+                .HasOne(x => x.StylistServicePriceVariant)
+                .WithMany(x => x.OptionValues)
+                .HasForeignKey(x => x.StylistServicePriceVariantID)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<StylistServicePriceVariantOptionValue>()
+                .HasOne(x => x.ServiceOptionValue)
+                .WithMany()
+                .HasForeignKey(x => x.ServiceOptionValueID)
+                .OnDelete(DeleteBehavior.NoAction);
 
             // تعریف روابط برای تخفیف‌ها
             modelBuilder.Entity<DiscountAssignment>()
@@ -272,6 +331,27 @@ namespace NobatPlusDATA.DataLayer
                 .WithMany()
                 .HasForeignKey(pd => new { pd.StylistID, pd.ServiceManagementID })
                 .HasPrincipalKey(ss => new { ss.StylistID, ss.ServiceManagementID })
+                .OnDelete(DeleteBehavior.NoAction);
+
+            modelBuilder.Entity<PaymentDetail>()
+                .HasOne(pd => pd.StylistServicePriceVariant)
+                .WithMany()
+                .HasForeignKey(pd => pd.StylistServicePriceVariantID)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            modelBuilder.Entity<PaymentDetailOptionValue>()
+                .HasKey(x => new { x.PaymentDetailID, x.ServiceOptionValueID });
+
+            modelBuilder.Entity<PaymentDetailOptionValue>()
+                .HasOne(x => x.PaymentDetail)
+                .WithMany(x => x.OptionValues)
+                .HasForeignKey(x => x.PaymentDetailID)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<PaymentDetailOptionValue>()
+                .HasOne(x => x.ServiceOptionValue)
+                .WithMany()
+                .HasForeignKey(x => x.ServiceOptionValueID)
                 .OnDelete(DeleteBehavior.NoAction);
 
             modelBuilder.Entity<PaymentHistory>()

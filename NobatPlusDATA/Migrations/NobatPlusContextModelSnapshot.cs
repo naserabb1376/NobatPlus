@@ -363,6 +363,24 @@ namespace NobatPlusDATA.Migrations
                     b.ToTable("BookingServices");
                 });
 
+            modelBuilder.Entity("NobatPlusDATA.Domain.BookingServiceOptionValue", b =>
+                {
+                    b.Property<long>("BookingID")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("ServiceManagementID")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("ServiceOptionValueID")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("BookingID", "ServiceManagementID", "ServiceOptionValueID");
+
+                    b.HasIndex("ServiceOptionValueID");
+
+                    b.ToTable("BookingServiceOptionValues");
+                });
+
             modelBuilder.Entity("NobatPlusDATA.Domain.CheckAvailability", b =>
                 {
                     b.Property<long>("ID")
@@ -976,6 +994,10 @@ namespace NobatPlusDATA.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("ID"));
 
+                    b.Property<string>("AppliedOptionSummary")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<long>("BookingID")
                         .HasColumnType("bigint");
 
@@ -1005,6 +1027,9 @@ namespace NobatPlusDATA.Migrations
                         .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
+                    b.Property<long?>("StylistServicePriceVariantID")
+                        .HasColumnType("bigint");
+
                     b.Property<DateTime?>("UpdateDate")
                         .HasColumnType("datetime2");
 
@@ -1016,9 +1041,26 @@ namespace NobatPlusDATA.Migrations
 
                     b.HasIndex("ServiceManagementID");
 
+                    b.HasIndex("StylistServicePriceVariantID");
+
                     b.HasIndex("StylistID", "ServiceManagementID");
 
                     b.ToTable("PaymentDetails");
+                });
+
+            modelBuilder.Entity("NobatPlusDATA.Domain.PaymentDetailOptionValue", b =>
+                {
+                    b.Property<long>("PaymentDetailID")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("ServiceOptionValueID")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("PaymentDetailID", "ServiceOptionValueID");
+
+                    b.HasIndex("ServiceOptionValueID");
+
+                    b.ToTable("PaymentDetailOptionValues");
                 });
 
             modelBuilder.Entity("NobatPlusDATA.Domain.PaymentHistory", b =>
@@ -1436,6 +1478,88 @@ namespace NobatPlusDATA.Migrations
                     b.ToTable("ServiceManagements");
                 });
 
+            modelBuilder.Entity("NobatPlusDATA.Domain.ServiceOption", b =>
+                {
+                    b.Property<long>("ID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("ID"));
+
+                    b.Property<DateTime?>("CreateDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsRequired")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("OptionKey")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("OptionName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<long>("ServiceManagementID")
+                        .HasColumnType("bigint");
+
+                    b.Property<int>("SortOrder")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("UpdateDate")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("ID");
+
+                    b.HasIndex("ServiceManagementID", "OptionKey")
+                        .IsUnique();
+
+                    b.ToTable("ServiceOptions");
+                });
+
+            modelBuilder.Entity("NobatPlusDATA.Domain.ServiceOptionValue", b =>
+                {
+                    b.Property<long>("ID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("ID"));
+
+                    b.Property<DateTime?>("CreateDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<long>("ServiceOptionID")
+                        .HasColumnType("bigint");
+
+                    b.Property<int>("SortOrder")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("UpdateDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("ValueName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("ID");
+
+                    b.HasIndex("ServiceOptionID");
+
+                    b.ToTable("ServiceOptionValues");
+                });
+
             modelBuilder.Entity("NobatPlusDATA.Domain.Setting", b =>
                 {
                     b.Property<long>("ID")
@@ -1691,6 +1815,9 @@ namespace NobatPlusDATA.Migrations
                     b.Property<int>("DepositPercent")
                         .HasColumnType("int");
 
+                    b.Property<bool>("HasDynamicPricing")
+                        .HasColumnType("bit");
+
                     b.Property<TimeSpan>("ServiceDuration")
                         .HasColumnType("time");
 
@@ -1703,6 +1830,64 @@ namespace NobatPlusDATA.Migrations
                     b.HasIndex("ServiceManagementID");
 
                     b.ToTable("StylistServices");
+                });
+
+            modelBuilder.Entity("NobatPlusDATA.Domain.StylistServicePriceVariant", b =>
+                {
+                    b.Property<long>("ID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("ID"));
+
+                    b.Property<DateTime?>("CreateDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("DepositPercent")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<TimeSpan>("Duration")
+                        .HasColumnType("time");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<decimal>("Price")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<long>("ServiceManagementID")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("StylistID")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTime?>("UpdateDate")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("ID");
+
+                    b.HasIndex("StylistID", "ServiceManagementID");
+
+                    b.ToTable("StylistServicePriceVariants");
+                });
+
+            modelBuilder.Entity("NobatPlusDATA.Domain.StylistServicePriceVariantOptionValue", b =>
+                {
+                    b.Property<long>("StylistServicePriceVariantID")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("ServiceOptionValueID")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("StylistServicePriceVariantID", "ServiceOptionValueID");
+
+                    b.HasIndex("ServiceOptionValueID");
+
+                    b.ToTable("StylistServicePriceVariantOptionValues");
                 });
 
             modelBuilder.Entity("NobatPlusDATA.Domain.Wallet", b =>
@@ -2002,6 +2187,25 @@ namespace NobatPlusDATA.Migrations
                     b.Navigation("ServiceManagement");
                 });
 
+            modelBuilder.Entity("NobatPlusDATA.Domain.BookingServiceOptionValue", b =>
+                {
+                    b.HasOne("NobatPlusDATA.Domain.ServiceOptionValue", "ServiceOptionValue")
+                        .WithMany()
+                        .HasForeignKey("ServiceOptionValueID")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.HasOne("NobatPlusDATA.Domain.BookingService", "BookingService")
+                        .WithMany("OptionValues")
+                        .HasForeignKey("BookingID", "ServiceManagementID")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("BookingService");
+
+                    b.Navigation("ServiceOptionValue");
+                });
+
             modelBuilder.Entity("NobatPlusDATA.Domain.CheckAvailability", b =>
                 {
                     b.HasOne("NobatPlusDATA.Domain.Stylist", "Stylist")
@@ -2197,6 +2401,11 @@ namespace NobatPlusDATA.Migrations
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
+                    b.HasOne("NobatPlusDATA.Domain.StylistServicePriceVariant", "StylistServicePriceVariant")
+                        .WithMany()
+                        .HasForeignKey("StylistServicePriceVariantID")
+                        .OnDelete(DeleteBehavior.NoAction);
+
                     b.HasOne("NobatPlusDATA.Domain.StylistService", "StylistService")
                         .WithMany()
                         .HasForeignKey("StylistID", "ServiceManagementID")
@@ -2212,6 +2421,27 @@ namespace NobatPlusDATA.Migrations
                     b.Navigation("Stylist");
 
                     b.Navigation("StylistService");
+
+                    b.Navigation("StylistServicePriceVariant");
+                });
+
+            modelBuilder.Entity("NobatPlusDATA.Domain.PaymentDetailOptionValue", b =>
+                {
+                    b.HasOne("NobatPlusDATA.Domain.PaymentDetail", "PaymentDetail")
+                        .WithMany("OptionValues")
+                        .HasForeignKey("PaymentDetailID")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("NobatPlusDATA.Domain.ServiceOptionValue", "ServiceOptionValue")
+                        .WithMany()
+                        .HasForeignKey("ServiceOptionValueID")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.Navigation("PaymentDetail");
+
+                    b.Navigation("ServiceOptionValue");
                 });
 
             modelBuilder.Entity("NobatPlusDATA.Domain.PaymentHistory", b =>
@@ -2367,6 +2597,28 @@ namespace NobatPlusDATA.Migrations
                     b.Navigation("Stylist");
                 });
 
+            modelBuilder.Entity("NobatPlusDATA.Domain.ServiceOption", b =>
+                {
+                    b.HasOne("NobatPlusDATA.Domain.ServiceManagement", "ServiceManagement")
+                        .WithMany()
+                        .HasForeignKey("ServiceManagementID")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("ServiceManagement");
+                });
+
+            modelBuilder.Entity("NobatPlusDATA.Domain.ServiceOptionValue", b =>
+                {
+                    b.HasOne("NobatPlusDATA.Domain.ServiceOption", "ServiceOption")
+                        .WithMany("Values")
+                        .HasForeignKey("ServiceOptionID")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("ServiceOption");
+                });
+
             modelBuilder.Entity("NobatPlusDATA.Domain.Setting", b =>
                 {
                     b.HasOne("NobatPlusDATA.Domain.Setting", "Parent")
@@ -2447,6 +2699,36 @@ namespace NobatPlusDATA.Migrations
                     b.Navigation("Stylist");
                 });
 
+            modelBuilder.Entity("NobatPlusDATA.Domain.StylistServicePriceVariant", b =>
+                {
+                    b.HasOne("NobatPlusDATA.Domain.StylistService", "StylistService")
+                        .WithMany("PriceVariants")
+                        .HasForeignKey("StylistID", "ServiceManagementID")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("StylistService");
+                });
+
+            modelBuilder.Entity("NobatPlusDATA.Domain.StylistServicePriceVariantOptionValue", b =>
+                {
+                    b.HasOne("NobatPlusDATA.Domain.ServiceOptionValue", "ServiceOptionValue")
+                        .WithMany()
+                        .HasForeignKey("ServiceOptionValueID")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.HasOne("NobatPlusDATA.Domain.StylistServicePriceVariant", "StylistServicePriceVariant")
+                        .WithMany("OptionValues")
+                        .HasForeignKey("StylistServicePriceVariantID")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("ServiceOptionValue");
+
+                    b.Navigation("StylistServicePriceVariant");
+                });
+
             modelBuilder.Entity("NobatPlusDATA.Domain.Wallet", b =>
                 {
                     b.HasOne("NobatPlusDATA.Domain.Customer", "Customer")
@@ -2521,6 +2803,11 @@ namespace NobatPlusDATA.Migrations
                     b.Navigation("Reviews");
                 });
 
+            modelBuilder.Entity("NobatPlusDATA.Domain.BookingService", b =>
+                {
+                    b.Navigation("OptionValues");
+                });
+
             modelBuilder.Entity("NobatPlusDATA.Domain.City", b =>
                 {
                     b.Navigation("Addresses");
@@ -2568,6 +2855,11 @@ namespace NobatPlusDATA.Migrations
                     b.Navigation("PaymentDetails");
                 });
 
+            modelBuilder.Entity("NobatPlusDATA.Domain.PaymentDetail", b =>
+                {
+                    b.Navigation("OptionValues");
+                });
+
             modelBuilder.Entity("NobatPlusDATA.Domain.Person", b =>
                 {
                     b.Navigation("Notifications");
@@ -2584,6 +2876,11 @@ namespace NobatPlusDATA.Migrations
                     b.Navigation("ServiceDiscounts");
 
                     b.Navigation("StylistServices");
+                });
+
+            modelBuilder.Entity("NobatPlusDATA.Domain.ServiceOption", b =>
+                {
+                    b.Navigation("Values");
                 });
 
             modelBuilder.Entity("NobatPlusDATA.Domain.Setting", b =>
@@ -2622,6 +2919,16 @@ namespace NobatPlusDATA.Migrations
                     b.Navigation("StylistServices");
 
                     b.Navigation("WorkTimes");
+                });
+
+            modelBuilder.Entity("NobatPlusDATA.Domain.StylistService", b =>
+                {
+                    b.Navigation("PriceVariants");
+                });
+
+            modelBuilder.Entity("NobatPlusDATA.Domain.StylistServicePriceVariant", b =>
+                {
+                    b.Navigation("OptionValues");
                 });
 
             modelBuilder.Entity("NobatPlusDATA.Domain.Wallet", b =>

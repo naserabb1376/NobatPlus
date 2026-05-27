@@ -110,6 +110,9 @@ namespace NobatPlusAPI.Tools
                         PriceAfterDiscount = ss.StylistServiceAmount - ss.DiscountAmount,
                         StylistID = ss.StylistID,
                         DiscountPercent = ss.DiscountPercent,
+                        StylistServicePriceVariantID = ss.StylistServicePriceVariantID,
+                        AppliedOptionSummary = ss.AppliedOptionSummary,
+                        AppliedOptionValueIDs = ss.OptionValues.Select(x => x.ServiceOptionValueID).ToList(),
                         ServiceManagementID = ss.ServiceManagementID,
                         StylistServiceAmount = ss.StylistServiceAmount,
                         SalonName = ss.Stylist.StylistName,
@@ -136,6 +139,9 @@ namespace NobatPlusAPI.Tools
                             PriceAfterDiscount = ss.StylistServiceAmount - ss.DiscountAmount,
                             StylistID = ss.StylistID,
                             DiscountPercent = ss.DiscountPercent,
+                            StylistServicePriceVariantID = ss.StylistServicePriceVariantID,
+                            AppliedOptionSummary = ss.AppliedOptionSummary,
+                            AppliedOptionValueIDs = ss.OptionValues.Select(x => x.ServiceOptionValueID).ToList(),
                             ServiceManagementID = ss.ServiceManagementID,
                             StylistServiceAmount = ss.StylistServiceAmount,
                             SalonName = ss.Stylist.StylistName,
@@ -182,6 +188,18 @@ namespace NobatPlusAPI.Tools
      .ForMember(dest => dest.AdminFullName, opt => opt.MapFrom(src => src.Admin.Person.FirstName + " " + src.Admin.Person.LastName))
      .ForMember(dest => dest.ServiceTitle, opt => opt.MapFrom(src => src.ServiceManagement.ServiceName))
      ;
+            CreateMap<ServiceOption, ServiceOptionVM>()
+                .ForMember(dest => dest.ServiceName, opt => opt.MapFrom(src => src.ServiceManagement.ServiceName));
+            CreateMap<ServiceOptionValue, ServiceOptionValueVM>()
+                .ForMember(dest => dest.OptionName, opt => opt.MapFrom(src => src.ServiceOption.OptionName));
+            CreateMap<StylistServicePriceVariant, StylistServicePriceVariantVM>()
+                .ForMember(dest => dest.OptionValueIDs, opt => opt.MapFrom(src =>
+                    src.OptionValues.Select(x => x.ServiceOptionValueID).ToList()))
+                .ForMember(dest => dest.OptionSummary, opt => opt.MapFrom(src =>
+                    string.Join("، ", src.OptionValues
+                        .OrderBy(x => x.ServiceOptionValue.ServiceOption.SortOrder)
+                        .ThenBy(x => x.ServiceOptionValue.SortOrder)
+                        .Select(x => x.ServiceOptionValue.ServiceOption.OptionName + ": " + x.ServiceOptionValue.ValueName))));
             CreateMap<StylistServiceWithDiscountDto, StylistServiceVM>()
  
   ;

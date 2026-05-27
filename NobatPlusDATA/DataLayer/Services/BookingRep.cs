@@ -76,6 +76,25 @@ namespace NobatPlusDATA.DataLayer.Services
                     throw new Exception("ثبت این نوبت به دلیل وجود تداخل برای مشتری / آرایشگر امکان پذیر نیست");
                 }
 
+                foreach (var bookingService in Booking.BookingServices ?? new List<BookingService>())
+                {
+                    bookingService.BookingID = Booking.ID;
+                    foreach (var optionValue in bookingService.OptionValues ?? new List<BookingServiceOptionValue>())
+                    {
+                        optionValue.BookingID = Booking.ID;
+                        optionValue.ServiceManagementID = bookingService.ServiceManagementID;
+                    }
+                }
+
+                var oldServices = await _context.BookingServices
+                    .Where(x => x.BookingID == Booking.ID)
+                    .ToListAsync();
+
+                if (oldServices.Any())
+                {
+                    _context.BookingServices.RemoveRange(oldServices);
+                    await _context.SaveChangesAsync();
+                }
 
                 _context.Bookings.Update(Booking);
                 if (!previousBooking.IsCancelled && Booking.IsCancelled)

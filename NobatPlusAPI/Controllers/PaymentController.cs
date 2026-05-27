@@ -49,8 +49,8 @@ namespace NobatPlusAPI.Controllers
             _mapper = mapper;
         }
 
-        [HttpPost("GetAllPayments_Base")]
-        public async Task<ActionResult<ListResultObject<PaymentVM>>> GetAllPayments_Base(GetPaymentListRequestBody requestBody)
+        [HttpPost("GetAllPayments")]
+        public async Task<ActionResult<ListResultObject<PaymentVM>>> GetAllPayments(GetPaymentListRequestBody requestBody)
         {
             if (!ModelState.IsValid)
             {
@@ -79,8 +79,8 @@ namespace NobatPlusAPI.Controllers
             return BadRequest(result);
         }
 
-        [HttpPost("GetPaymentById_Base")]
-        public async Task<ActionResult<RowResultObject<PaymentVM>>> GetPaymentById_Base(GetRowRequestBody requestBody)
+        [HttpPost("GetPaymentById")]
+        public async Task<ActionResult<RowResultObject<PaymentVM>>> GetPaymentById(GetRowRequestBody requestBody)
         {
             if (!ModelState.IsValid)
             {
@@ -182,9 +182,15 @@ namespace NobatPlusAPI.Controllers
                     BookingID = d.BookingID,
                     StylistID = d.StylistID,
                     ServiceManagementID = d.ServiceManagementID,
+                    StylistServicePriceVariantID = d.StylistServicePriceVariantID,
+                    AppliedOptionSummary = d.AppliedOptionSummary,
                     StylistServiceAmount = d.ServicePrice,
                     DiscountAmount = d.ServicePrice - d.PriceAfterDiscount,
                     DiscountPercent = d.DiscountPercent,
+                    OptionValues = d.AppliedOptionValueIDs.Select(optionValueId => new PaymentDetailOptionValue
+                    {
+                        ServiceOptionValueID = optionValueId
+                    }).ToList()
                 }).ToList()
             };
 
@@ -304,9 +310,15 @@ namespace NobatPlusAPI.Controllers
                     BookingID = d.BookingID,
                     StylistID = d.StylistID,
                     ServiceManagementID = d.ServiceManagementID,
+                    StylistServicePriceVariantID = d.StylistServicePriceVariantID,
+                    AppliedOptionSummary = d.AppliedOptionSummary,
                     StylistServiceAmount = d.ServicePrice,
                     DiscountAmount = d.ServicePrice - d.PriceAfterDiscount,
                     DiscountPercent = d.DiscountPercent,
+                    OptionValues = d.AppliedOptionValueIDs.Select(optionValueId => new PaymentDetailOptionValue
+                    {
+                        ServiceOptionValueID = optionValueId
+                    }).ToList()
                 }).ToList()
             };
             result = await _PaymentRep.EditPaymentAsync(Payment);
