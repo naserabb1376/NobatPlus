@@ -7,8 +7,6 @@ namespace NobatPlusDATA.ViewModels
 {
     public class PaymentVM :BaseEntity
     {
-        public long BookingID { get; set; }
-        public long PaymentID { get; set; }
         public long StylistID { get; set; }
         public long CustomerID { get; set; }
         public string StylistName { get; set; }
@@ -27,7 +25,18 @@ namespace NobatPlusDATA.ViewModels
         public string PaymentStatus { get; set; }
         public bool PaymentFinished { get; set; }
         public int PaymentLevel { get; set; }
-        public List<PaymentItemVM> PaymentItems { get; set; }
+        public List<PaymentBookingItemVM> Bookings { get; set; }
 
+    }
+
+    public class PaymentBookingItemVM
+    {
+        public long BookingID { get; set; }
+        public DateTime BookingDate { get; set; }
+        public long StylistID { get; set; }
+        public long CustomerID { get; set; }
+        public string StylistName { get; set; }
+        public string SalonName { get; set; }
+        public List<PaymentItemVM> PaymentItems { get; set; }
     }
 }

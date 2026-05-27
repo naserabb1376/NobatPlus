@@ -13,7 +13,7 @@ namespace NobatPlusAPI.Models.Discount
 
         [Display(Name = "میزان تخفیف")]
         [Required(ErrorMessage = "لطفا {0} را وارد کنید")]
-        [Range(1, int.MaxValue, ErrorMessage = "مقدار {0} باید بزرگتر از 0 باشد")]
+        [Range(1, 100, ErrorMessage = "مقدار {0} باید بین 1 تا 100 باشد")]
         public int DiscountAmount { get; set; }
 
         [Display(Name = "تاریخ شروع")]

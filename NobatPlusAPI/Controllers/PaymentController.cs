@@ -49,9 +49,8 @@ namespace NobatPlusAPI.Controllers
             _mapper = mapper;
         }
 
-        [HttpPost("GetAllPayments")]
         [HttpPost("GetAllPayments_Base")]
-        public async Task<ActionResult<ListResultObject<PaymentVM>>> GetAllPayments(GetPaymentListRequestBody requestBody)
+        public async Task<ActionResult<ListResultObject<PaymentVM>>> GetAllPayments_Base(GetPaymentListRequestBody requestBody)
         {
             if (!ModelState.IsValid)
             {
@@ -80,9 +79,8 @@ namespace NobatPlusAPI.Controllers
             return BadRequest(result);
         }
 
-        [HttpPost("GetPaymentById")]
         [HttpPost("GetPaymentById_Base")]
-        public async Task<ActionResult<RowResultObject<PaymentVM>>> GetPaymentById(GetRowRequestBody requestBody)
+        public async Task<ActionResult<RowResultObject<PaymentVM>>> GetPaymentById_Base(GetRowRequestBody requestBody)
         {
             if (!ModelState.IsValid)
             {
@@ -140,9 +138,9 @@ namespace NobatPlusAPI.Controllers
             }
             var customerId = dbcustomer.ID;
             var discountId = requestBody.DiscountID ?? 0;
+            var bookingIds = NormalizeBookingIds(requestBody);
 
-
-            var calcPayment = await _PaymentRep.CalculatePaymentAsync(customerId,requestBody.BookingID,discountId);
+            var calcPayment = await _PaymentRep.CalculatePaymentAsync(customerId,bookingIds,discountId);
 
             if (!calcPayment.Status)
             {
@@ -156,7 +154,7 @@ namespace NobatPlusAPI.Controllers
             {
                 CreateDate = DateTime.Now.ToShamsi(),
                 UpdateDate = DateTime.Now.ToShamsi(),
-                BookingID = requestBody.BookingID,
+                BookingID = bookingIds.FirstOrDefault(),
                 DepositAmount = calcPayment.Result.DepositAmount,
                 TotalServiceAmount = calcPayment.Result.TotalServiceAmount,
                 PlarformAmount = calcPayment.Result.PlatformAmount,
@@ -172,33 +170,50 @@ namespace NobatPlusAPI.Controllers
                 PaymentFinished = requestBody.PaymentFinished,
                 DiscountID = discountId,
                 Description = requestBody.Description,
+                PaymentBookings = bookingIds.Select(bookingId => new PaymentBooking
+                {
+                    BookingID = bookingId
+                }).ToList(),
                 PaymentDetails = calcPayment.Result.stylistServiceWithDiscountDtos.Select(d=> new PaymentDetail()
                 {
                     CreateDate = DateTime.Now.ToShamsi(),
                     UpdateDate = DateTime.Now.ToShamsi(),
                     Description = requestBody.Description,
+                    BookingID = d.BookingID,
                     StylistID = d.StylistID,
                     ServiceManagementID = d.ServiceManagementID,
                     StylistServiceAmount = d.ServicePrice,
-                    DiscountAmount = d.PriceAfterDiscount,
+                    DiscountAmount = d.ServicePrice - d.PriceAfterDiscount,
                     DiscountPercent = d.DiscountPercent,
                 }).ToList()
             };
 
             result = await _PaymentRep.AddPaymentAsync(Payment);
 
-            PaymentHistory paymentHistory = new PaymentHistory()
+            if (!result.Status)
             {
-                CreateDate = DateTime.Now.ToShamsi(),
-                UpdateDate = DateTime.Now.ToShamsi(),
-                BookingID = requestBody.BookingID,
-                PaymentID = result.ID,
-                PaymentMethod = requestBody.PaymentLevel,
-                PaymentDate = requestBody.PaymentDate ?? DateTime.Now.ToShamsi(),
-                Description = requestBody.Description,
-                
-            };
-            result = await _PaymentHistoryRep.AddPaymentHistoryAsync(paymentHistory);
+                return BadRequest(result);
+            }
+
+            foreach (var bookingId in bookingIds)
+            {
+                PaymentHistory paymentHistory = new PaymentHistory()
+                {
+                    CreateDate = DateTime.Now.ToShamsi(),
+                    UpdateDate = DateTime.Now.ToShamsi(),
+                    BookingID = bookingId,
+                    PaymentID = result.ID,
+                    PaymentMethod = requestBody.PaymentLevel,
+                    PaymentDate = requestBody.PaymentDate ?? DateTime.Now.ToShamsi(),
+                    Description = requestBody.Description,
+                };
+                result = await _PaymentHistoryRep.AddPaymentHistoryAsync(paymentHistory);
+
+                if (!result.Status)
+                {
+                    return BadRequest(result);
+                }
+            }
 
             if (result.Status)
             {
@@ -242,8 +257,9 @@ namespace NobatPlusAPI.Controllers
             var dbcustomer = await _customerRep.ExistCustomerAsync(userId.ToString(), "personid");
             var customerId = dbcustomer.ID;
             var discountId = requestBody.DiscountID ?? 0;
+            var bookingIds = NormalizeBookingIds(requestBody);
 
-            var calcPayment = await _PaymentRep.CalculatePaymentAsync(customerId, requestBody.BookingID, discountId);
+            var calcPayment = await _PaymentRep.CalculatePaymentAsync(customerId, bookingIds, discountId);
 
             if (!calcPayment.Status)
             {
@@ -258,7 +274,7 @@ namespace NobatPlusAPI.Controllers
                 CreateDate = theRow.Result.CreateDate,
                 UpdateDate = DateTime.Now.ToShamsi(),
                 ID = requestBody.ID,
-                BookingID = requestBody.BookingID,
+                BookingID = bookingIds.FirstOrDefault(),
                 DepositAmount = calcPayment.Result.DepositAmount,
                 TotalServiceAmount = calcPayment.Result.TotalServiceAmount,
                 PlarformAmount = calcPayment.Result.PlatformAmount,
@@ -274,17 +290,24 @@ namespace NobatPlusAPI.Controllers
                 PaymentFinished = requestBody.PaymentFinished,
                 DiscountID = discountId,
                 Description = requestBody.Description,
-                //PaymentDetails = calcPayment.Result.stylistServiceWithDiscountDtos.Select(d => new PaymentDetail()
-                //{
-                //    CreateDate = DateTime.Now.ToShamsi(),
-                //    UpdateDate = DateTime.Now.ToShamsi(),
-                //    Description = requestBody.Description,
-                //    StylistID = d.StylistID,
-                //    ServiceManagementID = d.ServiceManagementID,
-                //    StylistServiceAmount = d.ServicePrice,
-                //    DiscountAmount = d.PriceAfterDiscount,
-
-                //}).ToList()
+                PaymentBookings = bookingIds.Select(bookingId => new PaymentBooking
+                {
+                    PaymentID = requestBody.ID,
+                    BookingID = bookingId
+                }).ToList(),
+                PaymentDetails = calcPayment.Result.stylistServiceWithDiscountDtos.Select(d => new PaymentDetail()
+                {
+                    CreateDate = theRow.Result.CreateDate,
+                    UpdateDate = DateTime.Now.ToShamsi(),
+                    Description = requestBody.Description,
+                    PaymentID = requestBody.ID,
+                    BookingID = d.BookingID,
+                    StylistID = d.StylistID,
+                    ServiceManagementID = d.ServiceManagementID,
+                    StylistServiceAmount = d.ServicePrice,
+                    DiscountAmount = d.ServicePrice - d.PriceAfterDiscount,
+                    DiscountPercent = d.DiscountPercent,
+                }).ToList()
             };
             result = await _PaymentRep.EditPaymentAsync(Payment);
 
@@ -339,6 +362,20 @@ namespace NobatPlusAPI.Controllers
                 return Ok(result);
             }
             return BadRequest(result);
+        }
+
+        private static List<long> NormalizeBookingIds(AddEditPaymentRequestBody requestBody)
+        {
+            var bookingIds = requestBody.BookingIDs?
+                .Where(x => x > 0)
+                .ToList() ?? new List<long>();
+
+            if (requestBody.BookingID > 0)
+            {
+                bookingIds.Add(requestBody.BookingID);
+            }
+
+            return bookingIds.Distinct().ToList();
         }
 
 #if false

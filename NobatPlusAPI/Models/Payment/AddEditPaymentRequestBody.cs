@@ -8,9 +8,10 @@ namespace NobatPlusAPI.Models.Payment
         public long ID { get; set; } = 0;
 
         [Display(Name = "کد رزرو")]
-        [Required(ErrorMessage = "لطفا {0} را وارد کنید")]
-        [Range(1, long.MaxValue, ErrorMessage = "مقدار {0} باید بزرگتر از 0 باشد")]
-        public long BookingID { get; set; }
+        public long BookingID { get; set; } = 0;
+
+        [Display(Name = "کدهای رزرو")]
+        public List<long> BookingIDs { get; set; } = new List<long>();
 
         [Display(Name = "شناسه تخفیف")]
         public long? DiscountID { get; set; }

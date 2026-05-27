@@ -36,6 +36,7 @@ namespace NobatPlusDATA.DataLayer
         public DbSet<SocialNetwork> SocialNetworks { get; set; }
         public DbSet<PaymentHistory> PaymentHistories { get; set; }
         public DbSet<PaymentDetail> PaymentDetails { get; set; }
+        public DbSet<PaymentBooking> PaymentBookings { get; set; }
         public DbSet<Login> Logins { get; set; }
         public DbSet<Register> Registers { get; set; }
         public DbSet<Payment> Payments { get; set; }
@@ -224,6 +225,21 @@ namespace NobatPlusDATA.DataLayer
         .HasForeignKey(p => p.BookingID)
         .OnDelete(DeleteBehavior.Cascade);
 
+            modelBuilder.Entity<PaymentBooking>()
+                .HasKey(pb => new { pb.PaymentID, pb.BookingID });
+
+            modelBuilder.Entity<PaymentBooking>()
+                .HasOne(pb => pb.Payment)
+                .WithMany(p => p.PaymentBookings)
+                .HasForeignKey(pb => pb.PaymentID)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<PaymentBooking>()
+                .HasOne(pb => pb.Booking)
+                .WithMany(b => b.PaymentBookings)
+                .HasForeignKey(pb => pb.BookingID)
+                .OnDelete(DeleteBehavior.NoAction);
+
             modelBuilder.Entity<Payment>()
                 .Ignore(p => p.Discount);
 
@@ -232,6 +248,12 @@ namespace NobatPlusDATA.DataLayer
                      .WithMany(s => s.PaymentDetails)
                      .HasForeignKey(ss => ss.PaymentID)
                      .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<PaymentDetail>()
+                .HasOne(pd => pd.Booking)
+                .WithMany()
+                .HasForeignKey(pd => pd.BookingID)
+                .OnDelete(DeleteBehavior.NoAction);
 
             modelBuilder.Entity<PaymentDetail>()
                 .HasOne(pd => pd.Stylist)
@@ -243,6 +265,13 @@ namespace NobatPlusDATA.DataLayer
                 .HasOne(pd => pd.ServiceManagement)
                 .WithMany(s => s.PaymentDetails)
                 .HasForeignKey(pd => pd.ServiceManagementID)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            modelBuilder.Entity<PaymentDetail>()
+                .HasOne(pd => pd.StylistService)
+                .WithMany()
+                .HasForeignKey(pd => new { pd.StylistID, pd.ServiceManagementID })
+                .HasPrincipalKey(ss => new { ss.StylistID, ss.ServiceManagementID })
                 .OnDelete(DeleteBehavior.NoAction);
 
             modelBuilder.Entity<PaymentHistory>()

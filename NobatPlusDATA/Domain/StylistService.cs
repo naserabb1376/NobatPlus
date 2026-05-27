@@ -23,6 +23,7 @@ namespace NobatPlusDATA.Domain
     {
         public long StylistID { get; set; }
         public long ServiceManagementID { get; set; }
+        public long BookingID { get; set; }
 
         public string ServiceTitle { get; set; }
         public string ServiceDescription { get; set; }

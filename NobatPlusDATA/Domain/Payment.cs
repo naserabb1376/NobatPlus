@@ -27,7 +27,17 @@ namespace NobatPlusDATA.Domain
 
         public Booking Booking { get; set; }
         public Discount? Discount { get; set; }
+        public ICollection<PaymentBooking> PaymentBookings { get; set; }
         public ICollection<PaymentDetail> PaymentDetails { get; set; }
+    }
+
+    public class PaymentBooking
+    {
+        public long PaymentID { get; set; }
+        public Payment Payment { get; set; }
+
+        public long BookingID { get; set; }
+        public Booking Booking { get; set; }
     }
 
    public class CalcPaymentDTO

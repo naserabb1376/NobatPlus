@@ -71,25 +71,79 @@ namespace NobatPlusAPI.Tools
           ;
 
             CreateMap<Payment, PaymentVM>()
-         .ForMember(dest => dest.SalonName, opt => opt.MapFrom(src => src.Booking.Stylist.StylistName))
-         .ForMember(dest => dest.StylistID, opt => opt.MapFrom(src => src.Booking.Stylist.Person.ID))
-         .ForMember(dest => dest.CustomerID, opt => opt.MapFrom(src => src.Booking.Customer.Person.ID))
-         .ForMember(dest => dest.StylistName, opt => opt.MapFrom(src => src.Booking.Stylist.Person.FirstName + " " + src.Booking.Stylist.Person.LastName))
-         .ForMember(dest => dest.CustomerName, opt => opt.MapFrom(src => src.Booking.Customer.Person.FirstName + " " + src.Booking.Customer.Person.LastName))
-         .ForMember(dest => dest.PaymentItems,
-        opt => opt.MapFrom(src => src.PaymentDetails
-            .Select(ss => new PaymentItemVM()
+         .ForMember(dest => dest.SalonName, opt => opt.MapFrom(src =>
+            src.PaymentBookings != null && src.PaymentBookings.Any()
+                ? src.PaymentBookings.First().Booking.Stylist.StylistName
+                : src.Booking.Stylist.StylistName))
+         .ForMember(dest => dest.StylistID, opt => opt.MapFrom(src =>
+            src.PaymentBookings != null && src.PaymentBookings.Any()
+                ? src.PaymentBookings.First().Booking.StylistID
+                : src.Booking.StylistID))
+         .ForMember(dest => dest.CustomerID, opt => opt.MapFrom(src =>
+            src.PaymentBookings != null && src.PaymentBookings.Any()
+                ? src.PaymentBookings.First().Booking.CustomerID
+                : src.Booking.CustomerID))
+         .ForMember(dest => dest.StylistName, opt => opt.MapFrom(src =>
+            src.PaymentBookings != null && src.PaymentBookings.Any()
+                ? src.PaymentBookings.First().Booking.Stylist.Person.FirstName + " " + src.PaymentBookings.First().Booking.Stylist.Person.LastName
+                : src.Booking.Stylist.Person.FirstName + " " + src.Booking.Stylist.Person.LastName))
+         .ForMember(dest => dest.CustomerName, opt => opt.MapFrom(src =>
+            src.PaymentBookings != null && src.PaymentBookings.Any()
+                ? src.PaymentBookings.First().Booking.Customer.Person.FirstName + " " + src.PaymentBookings.First().Booking.Customer.Person.LastName
+                : src.Booking.Customer.Person.FirstName + " " + src.Booking.Customer.Person.LastName))
+         .ForMember(dest => dest.Bookings,
+        opt => opt.MapFrom(src => (src.PaymentBookings != null && src.PaymentBookings.Any()
+            ? src.PaymentBookings.Select(pb => new PaymentBookingItemVM()
             {
-                DiscountAmount  = ss.DiscountAmount,
-                StylistID = ss.StylistID,
-                DiscountPercent = ss.DiscountPercent,
-                ServiceManagementID = ss.ServiceManagementID,
-                StylistServiceAmount    = ss.StylistServiceAmount,
-                SalonName = ss.Stylist.StylistName,
-                StylistName = $"{ss.Stylist.Person.FirstName} {ss.Stylist.Person.LastName}",
-                ServiceTitle = ss.ServiceManagement.ServiceName,
-                
-            }).ToList()));
+                BookingID = pb.BookingID,
+                BookingDate = pb.Booking.BookingDate,
+                StylistID = pb.Booking.StylistID,
+                CustomerID = pb.Booking.CustomerID,
+                SalonName = pb.Booking.Stylist.StylistName,
+                StylistName = $"{pb.Booking.Stylist.Person.FirstName} {pb.Booking.Stylist.Person.LastName}",
+                PaymentItems = src.PaymentDetails
+                    .Where(ss => ss.BookingID == pb.BookingID)
+                    .Select(ss => new PaymentItemVM()
+                    {
+                        BookingID = ss.BookingID,
+                        DiscountAmount = ss.DiscountAmount,
+                        PriceAfterDiscount = ss.StylistServiceAmount - ss.DiscountAmount,
+                        StylistID = ss.StylistID,
+                        DiscountPercent = ss.DiscountPercent,
+                        ServiceManagementID = ss.ServiceManagementID,
+                        StylistServiceAmount = ss.StylistServiceAmount,
+                        SalonName = ss.Stylist.StylistName,
+                        StylistName = $"{ss.Stylist.Person.FirstName} {ss.Stylist.Person.LastName}",
+                        ServiceTitle = ss.ServiceManagement.ServiceName,
+                    }).ToList()
+            }).ToList()
+            : new List<PaymentBookingItemVM>
+            {
+                new PaymentBookingItemVM()
+                {
+                    BookingID = src.BookingID,
+                    BookingDate = src.Booking.BookingDate,
+                    StylistID = src.Booking.StylistID,
+                    CustomerID = src.Booking.CustomerID,
+                    SalonName = src.Booking.Stylist.StylistName,
+                    StylistName = $"{src.Booking.Stylist.Person.FirstName} {src.Booking.Stylist.Person.LastName}",
+                    PaymentItems = src.PaymentDetails
+                        .Where(ss => ss.BookingID == src.BookingID)
+                        .Select(ss => new PaymentItemVM()
+                        {
+                            BookingID = ss.BookingID,
+                            DiscountAmount = ss.DiscountAmount,
+                            PriceAfterDiscount = ss.StylistServiceAmount - ss.DiscountAmount,
+                            StylistID = ss.StylistID,
+                            DiscountPercent = ss.DiscountPercent,
+                            ServiceManagementID = ss.ServiceManagementID,
+                            StylistServiceAmount = ss.StylistServiceAmount,
+                            SalonName = ss.Stylist.StylistName,
+                            StylistName = $"{ss.Stylist.Person.FirstName} {ss.Stylist.Person.LastName}",
+                            ServiceTitle = ss.ServiceManagement.ServiceName,
+                        }).ToList()
+                }
+            })));
 
             ;
 

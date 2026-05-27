@@ -245,7 +245,7 @@ namespace NobatPlusDATA.DataLayer.Services
 
             try
             {
-                var now = DateTime.Now;
+                var now = DateTime.Now.ToShamsi();
 
                 var query = _context.StylistServices
                     .AsNoTracking()
@@ -331,7 +331,7 @@ namespace NobatPlusDATA.DataLayer.Services
      .Select(x => (decimal?)x)
      .MaxAsync() ?? 0m;
 
-                    var discountPercentDecimal = Convert.ToDecimal(discountPercent);
+                    var discountPercentDecimal = Math.Clamp(Convert.ToDecimal(discountPercent), 0m, 100m);
 
                     var priceAfterDiscount =
                         item.ServicePrice * (1m - (discountPercentDecimal / 100m));
@@ -340,6 +340,7 @@ namespace NobatPlusDATA.DataLayer.Services
                     {
                         StylistID = item.StylistID,
                         ServiceManagementID = item.ServiceManagementID,
+                        BookingID = bookingId,
 
                         ServiceTitle = item.ServiceTitle,
                         ServiceDescription = item.ServiceDescription,
@@ -378,7 +379,7 @@ namespace NobatPlusDATA.DataLayer.Services
 
             try
             {
-                var now = DateTime.Now;
+                var now = DateTime.Now.ToShamsi();
 
                 var item = await _context.StylistServices
                     .AsNoTracking()
@@ -420,6 +421,8 @@ namespace NobatPlusDATA.DataLayer.Services
                     )
                     .Select(x => (decimal?)x)
                     .MaxAsync() ?? 0m;
+
+                discountPercent = Math.Clamp(discountPercent, 0m, 100m);
 
                 var priceAfterDiscount =
                     item.ServicePrice * (1m - (discountPercent / 100m));
@@ -507,7 +510,7 @@ namespace NobatPlusDATA.DataLayer.Services
                 from sd in _context.ServiceDiscounts
                 join d in _context.Discounts on sd.DiscountId equals d.ID
                 where sd.ServiceManagementId == serviceManagementId
-                      && (sd.StylistId == null || sd.StylistId == stylistId)
+                      && (sd.StylistId == null || sd.StylistId <= 0 || sd.StylistId == stylistId)
                       && d.StartDate <= now && d.EndDate >= now
                       && (
                             (discountId <= 0 && d.CodeRequired == false) ||
@@ -520,7 +523,7 @@ namespace NobatPlusDATA.DataLayer.Services
                 from cd in _context.CustomerDiscounts
                 join d in _context.Discounts on cd.DiscountId equals d.ID
                 where ( customerId > 0 && cd.CustomerId == customerId)
-                      && cd.StylistId == stylistId
+                      && (cd.StylistId <= 0 || cd.StylistId == stylistId)
                       && d.StartDate <= now && d.EndDate >= now
                       && (
                             (discountId <= 0 && d.CodeRequired == false) ||
@@ -534,7 +537,7 @@ namespace NobatPlusDATA.DataLayer.Services
                 join d in _context.Discounts on da.DiscountId equals d.ID
                 where (da.StylistId == stylistId
                        // اگر می‌خوای AdminId هم "عمومی" حساب شود:
-                       || (da.StylistId == null && da.AdminId != null))
+                       || ((da.StylistId == null || da.StylistId <= 0) && da.AdminId != null && da.AdminId > 0))
                       && d.StartDate <= now && d.EndDate >= now
                       && (
                             (discountId <= 0 && d.CodeRequired == false) ||

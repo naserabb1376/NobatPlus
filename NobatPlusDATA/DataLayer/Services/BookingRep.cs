@@ -436,65 +436,160 @@ namespace NobatPlusDATA.DataLayer.Services
             if (serviceManagementIds == null || serviceManagementIds.Count == 0)
                 throw new ArgumentException("حداقل یک سرویس باید انتخاب شود.", nameof(serviceManagementIds));
 
-            // -------- 1) RestTime minutes for stylist --------
-            var restMinutes = await _context.Stylists.AsNoTracking()
+            serviceManagementIds = serviceManagementIds
+                .Where(x => x > 0)
+                .Distinct()
+                .ToList();
+
+            var stylist = await _context.Stylists.AsNoTracking()
                 .Where(s => s.ID == stylistId)
-                .Select(s => EF.Functions.DateDiffMinute(TimeSpan.Zero, s.RestTime))
+                .Select(s => new { s.ID, s.RestTime })
                 .SingleOrDefaultAsync();
 
-            // -------- 2) NEW booking duration minutes (selected services for this stylist) --------
-            var newDurationMinutes = await _context.StylistServices.AsNoTracking()
+            if (stylist == null)
+                throw new ArgumentException("آرایشگر یافت نشد.", nameof(stylistId));
+
+            var restMinutes = GetMinutes(stylist.RestTime);
+
+            var selectedServiceDurations = await _context.StylistServices.AsNoTracking()
                 .Where(ss => ss.StylistID == stylistId && serviceManagementIds.Contains(ss.ServiceManagementID))
-                .Select(ss => ss.ServiceDuration == null
-                    ? 0
-                    : EF.Functions.DateDiffMinute(TimeSpan.Zero, ss.ServiceDuration))
-                .SumAsync();
+                .Select(ss => ss.ServiceDuration)
+                .ToListAsync();
 
-            // block time = duration + rest
-            var newBlockMinutes = newDurationMinutes + restMinutes;
-            var newEnd = newStart.AddMinutes(newBlockMinutes);
+            if (selectedServiceDurations.Count != serviceManagementIds.Count)
+                throw new ArgumentException("یک یا چند سرویس برای این آرایشگر تعریف نشده است.", nameof(serviceManagementIds));
 
-            // -------- 3) Durations for EXISTING bookings (same algo as your GetBookingByIdAsync) --------
-            IQueryable<BookingDurationRow> bookingDurations =
-                from bs in _context.BookingServices.AsNoTracking()
-                join b in _context.Bookings.AsNoTracking() on bs.BookingID equals b.ID
-                join ss in _context.StylistServices.AsNoTracking()
-                    on new { b.StylistID, bs.ServiceManagementID }
-                    equals new { ss.StylistID, ss.ServiceManagementID }
-                group ss by bs.BookingID into g
-                select new BookingDurationRow
-                {
-                    BookingID = g.Key,
-                    TotalDurationMinutes = g.Sum(x =>
-                        x.ServiceDuration == null
-                            ? 0
-                            : EF.Functions.DateDiffMinute(TimeSpan.Zero, x.ServiceDuration)
-                    )
-                };
+            var newDurationMinutes = selectedServiceDurations.Sum(GetMinutes);
+            var newServiceEnd = newStart.AddMinutes(newDurationMinutes);
+            var newBlockEnd = newServiceEnd.AddMinutes(restMinutes);
 
-            // -------- 4) Base query: bookings that belong to stylist OR customer, and are active --------
-            var existingBookings = _context.Bookings.AsNoTracking()
+            await EnsureBookingIsInsideWorkTimeAsync(stylistId, newStart, newServiceEnd);
+            await EnsureBookingIsOutsideStylistPacificAsync(stylistId, newStart, newBlockEnd);
+
+            var existingBookingsQuery = _context.Bookings.AsNoTracking()
                 .Where(b => (b.StylistID == stylistId) || (b.CustomerID == customerId))
                 .Where(b => !b.IsCancelled);
 
             if (bookingId > 0)
             {
-                existingBookings = existingBookings.Where(b=> b.ID != bookingId);
+                existingBookingsQuery = existingBookingsQuery.Where(b => b.ID != bookingId);
             }
 
-            // -------- 5) Overlap check (SQL-side) --------
-            var conflictQuery =
-                from b in existingBookings
-                join d in bookingDurations on b.ID equals d.BookingID into gj
-                from d in gj.DefaultIfEmpty()
-                let existingDuration = (d == null ? 0 : d.TotalDurationMinutes)
-                let existingBlockMinutes = existingDuration + restMinutes
-                let existingStart = b.BookingDate
-                let existingEnd = b.BookingDate.AddMinutes(existingBlockMinutes)
-                where existingStart < newEnd && existingEnd > newStart
-                select b.ID;
+            var existingBookings = await existingBookingsQuery
+                .Select(b => new { b.ID, b.StylistID, b.BookingDate })
+                .ToListAsync();
 
-            return await conflictQuery.AnyAsync();
+            if (!existingBookings.Any())
+                return false;
+
+            var existingBookingIds = existingBookings.Select(x => x.ID).ToList();
+            var existingStylistIds = existingBookings.Select(x => x.StylistID).Distinct().ToList();
+
+            var existingServiceRows = await (
+                from bs in _context.BookingServices.AsNoTracking()
+                join b in _context.Bookings.AsNoTracking() on bs.BookingID equals b.ID
+                join ss in _context.StylistServices.AsNoTracking()
+                    on new { b.StylistID, bs.ServiceManagementID }
+                    equals new { ss.StylistID, ss.ServiceManagementID }
+                where existingBookingIds.Contains(bs.BookingID)
+                select new
+                {
+                    bs.BookingID,
+                    ss.ServiceDuration
+                })
+                .ToListAsync();
+
+            var durationByBookingId = existingServiceRows
+                .GroupBy(x => x.BookingID)
+                .ToDictionary(
+                    x => x.Key,
+                    x => x.Sum(row => GetMinutes(row.ServiceDuration)));
+
+            var restByStylistId = await _context.Stylists.AsNoTracking()
+                .Where(s => existingStylistIds.Contains(s.ID))
+                .Select(s => new { s.ID, s.RestTime })
+                .ToDictionaryAsync(x => x.ID, x => GetMinutes(x.RestTime));
+
+            return existingBookings.Any(existingBooking =>
+            {
+                var existingDuration = durationByBookingId.TryGetValue(existingBooking.ID, out var duration)
+                    ? duration
+                    : 0;
+
+                var existingRest = restByStylistId.TryGetValue(existingBooking.StylistID, out var rest)
+                    ? rest
+                    : 0;
+
+                var existingEnd = existingBooking.BookingDate.AddMinutes(existingDuration + existingRest);
+                return existingBooking.BookingDate < newBlockEnd && existingEnd > newStart;
+            });
+        }
+
+        private async Task EnsureBookingIsInsideWorkTimeAsync(long stylistId, DateTime start, DateTime serviceEnd)
+        {
+            var workTimes = await _context.WorkTimes.AsNoTracking()
+                .Where(x => x.StylistID == stylistId)
+                .ToListAsync();
+
+            var sameDayWorkTimes = workTimes
+                .Where(x => MatchDayOfWeek(x.DayOfWeek, start.DayOfWeek))
+                .ToList();
+
+            if (!sameDayWorkTimes.Any())
+                throw new InvalidOperationException("آرایشگر در روز انتخاب شده زمان کاری ندارد.");
+
+            var startTime = start.TimeOfDay;
+            var endTime = serviceEnd.TimeOfDay;
+
+            var isInsideWorkTime = sameDayWorkTimes.Any(x =>
+                x.WorkStartTime <= startTime &&
+                x.WorkEndTime >= endTime);
+
+            if (!isInsideWorkTime)
+                throw new InvalidOperationException("زمان رزرو خارج از ساعت کاری آرایشگر است.");
+        }
+
+        private async Task EnsureBookingIsOutsideStylistPacificAsync(long stylistId, DateTime start, DateTime end)
+        {
+            var hasPacificConflict = await _context.StylistPacifics.AsNoTracking()
+                .AnyAsync(x =>
+                    x.StylistID == stylistId &&
+                    x.PacificStartDate < end &&
+                    x.PacificEndDate > start);
+
+            if (hasPacificConflict)
+                throw new InvalidOperationException("آرایشگر در زمان انتخاب شده مرخصی دارد.");
+        }
+
+        private static int GetMinutes(TimeSpan? time)
+        {
+            return time == null ? 0 : Convert.ToInt32(time.Value.TotalMinutes);
+        }
+
+        private static int GetMinutes(TimeSpan time)
+        {
+            return Convert.ToInt32(time.TotalMinutes);
+        }
+
+        private static bool MatchDayOfWeek(string dayName, DayOfWeek dayOfWeek)
+        {
+            var normalized = (dayName ?? string.Empty)
+                .Replace("ي", "ی")
+                .Replace("ك", "ک")
+                .Replace("‌", "")
+                .Trim();
+
+            return dayOfWeek switch
+            {
+                DayOfWeek.Saturday => normalized.Contains("شنبه") && !normalized.Contains("یک") && !normalized.Contains("دو") && !normalized.Contains("سه") && !normalized.Contains("چهار") && !normalized.Contains("پنج"),
+                DayOfWeek.Sunday => normalized.Contains("یکشنبه"),
+                DayOfWeek.Monday => normalized.Contains("دوشنبه"),
+                DayOfWeek.Tuesday => normalized.Contains("سهشنبه") || normalized.Contains("سه"),
+                DayOfWeek.Wednesday => normalized.Contains("چهارشنبه") || normalized.Contains("چهار"),
+                DayOfWeek.Thursday => normalized.Contains("پنجشنبه") || normalized.Contains("پنج"),
+                DayOfWeek.Friday => normalized.Contains("جمعه"),
+                _ => false
+            };
         }
     }
 }

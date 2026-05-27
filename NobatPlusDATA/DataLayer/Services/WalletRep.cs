@@ -215,15 +215,20 @@ namespace NobatPlusDATA.DataLayer.Services
                     PaymentFinished = calcPayment.Result.RemainAmount <= 0,
                     DiscountID = discountId,
                     Description = description,
+                    PaymentBookings = new List<PaymentBooking>
+                    {
+                        new PaymentBooking { BookingID = bookingId }
+                    },
                     PaymentDetails = calcPayment.Result.stylistServiceWithDiscountDtos.Select(d => new PaymentDetail
                     {
                         CreateDate = now,
                         UpdateDate = now,
                         Description = description,
+                        BookingID = d.BookingID,
                         StylistID = d.StylistID,
                         ServiceManagementID = d.ServiceManagementID,
                         StylistServiceAmount = d.ServicePrice,
-                        DiscountAmount = d.PriceAfterDiscount,
+                        DiscountAmount = d.ServicePrice - d.PriceAfterDiscount,
                         DiscountPercent = d.DiscountPercent,
                     }).ToList()
                 };
