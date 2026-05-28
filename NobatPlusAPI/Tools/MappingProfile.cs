@@ -70,26 +70,123 @@ namespace NobatPlusAPI.Tools
           .ForMember(dest => dest.CustomerName, opt => opt.MapFrom(src => src.Booking.Customer.Person.FirstName + " " + src.Booking.Customer.Person.LastName))
           ;
 
+            CreateMap<PaymentBooking, PaymentBookingVM>()
+          .ForMember(dest => dest.BookingDate, opt => opt.MapFrom(src => src.Booking.BookingDate))
+          .ForMember(dest => dest.CustomerID, opt => opt.MapFrom(src => src.Booking.CustomerID))
+          .ForMember(dest => dest.StylistID, opt => opt.MapFrom(src => src.Booking.StylistID))
+          .ForMember(dest => dest.CustomerName, opt => opt.MapFrom(src => src.Booking.Customer.Person.FirstName + " " + src.Booking.Customer.Person.LastName))
+          .ForMember(dest => dest.StylistName, opt => opt.MapFrom(src => src.Booking.Stylist.Person.FirstName + " " + src.Booking.Stylist.Person.LastName))
+          .ForMember(dest => dest.PaymentStatus, opt => opt.MapFrom(src => src.Payment.PaymentStatus))
+          .ForMember(dest => dest.AllPaymentAmount, opt => opt.MapFrom(src => src.Payment.AllPaymentAmount))
+          ;
+
+            CreateMap<BookingServiceOptionValue, BookingServiceOptionValueVM>()
+          .ForMember(dest => dest.ServiceName, opt => opt.MapFrom(src => src.BookingService.ServiceManagement.ServiceName))
+          .ForMember(dest => dest.ServiceOptionID, opt => opt.MapFrom(src => src.ServiceOptionValue.ServiceOptionID))
+          .ForMember(dest => dest.OptionName, opt => opt.MapFrom(src => src.ServiceOptionValue.ServiceOption.OptionName))
+          .ForMember(dest => dest.ValueName, opt => opt.MapFrom(src => src.ServiceOptionValue.ValueName))
+          ;
+
+            CreateMap<StylistServicePriceVariantOptionValue, StylistServicePriceVariantOptionValueVM>()
+          .ForMember(dest => dest.StylistID, opt => opt.MapFrom(src => src.StylistServicePriceVariant.StylistID))
+          .ForMember(dest => dest.ServiceManagementID, opt => opt.MapFrom(src => src.StylistServicePriceVariant.ServiceManagementID))
+          .ForMember(dest => dest.Price, opt => opt.MapFrom(src => src.StylistServicePriceVariant.Price))
+          .ForMember(dest => dest.Duration, opt => opt.MapFrom(src => src.StylistServicePriceVariant.Duration))
+          .ForMember(dest => dest.ServiceOptionID, opt => opt.MapFrom(src => src.ServiceOptionValue.ServiceOptionID))
+          .ForMember(dest => dest.OptionName, opt => opt.MapFrom(src => src.ServiceOptionValue.ServiceOption.OptionName))
+          .ForMember(dest => dest.ValueName, opt => opt.MapFrom(src => src.ServiceOptionValue.ValueName))
+          ;
+
+            CreateMap<PaymentDetailOptionValue, PaymentDetailOptionValueVM>()
+          .ForMember(dest => dest.PaymentID, opt => opt.MapFrom(src => src.PaymentDetail.PaymentID))
+          .ForMember(dest => dest.BookingID, opt => opt.MapFrom(src => src.PaymentDetail.BookingID))
+          .ForMember(dest => dest.ServiceManagementID, opt => opt.MapFrom(src => src.PaymentDetail.ServiceManagementID))
+          .ForMember(dest => dest.ServiceName, opt => opt.MapFrom(src => src.PaymentDetail.ServiceManagement.ServiceName))
+          .ForMember(dest => dest.ServiceOptionID, opt => opt.MapFrom(src => src.ServiceOptionValue.ServiceOptionID))
+          .ForMember(dest => dest.OptionName, opt => opt.MapFrom(src => src.ServiceOptionValue.ServiceOption.OptionName))
+          .ForMember(dest => dest.ValueName, opt => opt.MapFrom(src => src.ServiceOptionValue.ValueName))
+          ;
+
             CreateMap<Payment, PaymentVM>()
-         .ForMember(dest => dest.SalonName, opt => opt.MapFrom(src => src.Booking.Stylist.StylistName))
-         .ForMember(dest => dest.StylistID, opt => opt.MapFrom(src => src.Booking.Stylist.Person.ID))
-         .ForMember(dest => dest.CustomerID, opt => opt.MapFrom(src => src.Booking.Customer.Person.ID))
-         .ForMember(dest => dest.StylistName, opt => opt.MapFrom(src => src.Booking.Stylist.Person.FirstName + " " + src.Booking.Stylist.Person.LastName))
-         .ForMember(dest => dest.CustomerName, opt => opt.MapFrom(src => src.Booking.Customer.Person.FirstName + " " + src.Booking.Customer.Person.LastName))
-         .ForMember(dest => dest.PaymentItems,
-        opt => opt.MapFrom(src => src.PaymentDetails
-            .Select(ss => new PaymentItemVM()
+         .ForMember(dest => dest.SalonName, opt => opt.MapFrom(src =>
+            src.PaymentBookings != null && src.PaymentBookings.Any()
+                ? src.PaymentBookings.First().Booking.Stylist.StylistName
+                : src.Booking.Stylist.StylistName))
+         .ForMember(dest => dest.StylistID, opt => opt.MapFrom(src =>
+            src.PaymentBookings != null && src.PaymentBookings.Any()
+                ? src.PaymentBookings.First().Booking.StylistID
+                : src.Booking.StylistID))
+         .ForMember(dest => dest.CustomerID, opt => opt.MapFrom(src =>
+            src.PaymentBookings != null && src.PaymentBookings.Any()
+                ? src.PaymentBookings.First().Booking.CustomerID
+                : src.Booking.CustomerID))
+         .ForMember(dest => dest.StylistName, opt => opt.MapFrom(src =>
+            src.PaymentBookings != null && src.PaymentBookings.Any()
+                ? src.PaymentBookings.First().Booking.Stylist.Person.FirstName + " " + src.PaymentBookings.First().Booking.Stylist.Person.LastName
+                : src.Booking.Stylist.Person.FirstName + " " + src.Booking.Stylist.Person.LastName))
+         .ForMember(dest => dest.CustomerName, opt => opt.MapFrom(src =>
+            src.PaymentBookings != null && src.PaymentBookings.Any()
+                ? src.PaymentBookings.First().Booking.Customer.Person.FirstName + " " + src.PaymentBookings.First().Booking.Customer.Person.LastName
+                : src.Booking.Customer.Person.FirstName + " " + src.Booking.Customer.Person.LastName))
+         .ForMember(dest => dest.Bookings,
+        opt => opt.MapFrom(src => (src.PaymentBookings != null && src.PaymentBookings.Any()
+            ? src.PaymentBookings.Select(pb => new PaymentBookingItemVM()
             {
-                DiscountAmount  = ss.DiscountAmount,
-                StylistID = ss.StylistID,
-                DiscountPercent = ss.DiscountPercent,
-                ServiceManagementID = ss.ServiceManagementID,
-                StylistServiceAmount    = ss.StylistServiceAmount,
-                SalonName = ss.Stylist.StylistName,
-                StylistName = $"{ss.Stylist.Person.FirstName} {ss.Stylist.Person.LastName}",
-                ServiceTitle = ss.ServiceManagement.ServiceName,
-                
-            }).ToList()));
+                BookingID = pb.BookingID,
+                BookingDate = pb.Booking.BookingDate,
+                StylistID = pb.Booking.StylistID,
+                CustomerID = pb.Booking.CustomerID,
+                SalonName = pb.Booking.Stylist.StylistName,
+                StylistName = $"{pb.Booking.Stylist.Person.FirstName} {pb.Booking.Stylist.Person.LastName}",
+                PaymentItems = src.PaymentDetails
+                    .Where(ss => ss.BookingID == pb.BookingID)
+                    .Select(ss => new PaymentItemVM()
+                    {
+                        BookingID = ss.BookingID,
+                        DiscountAmount = ss.DiscountAmount,
+                        PriceAfterDiscount = ss.StylistServiceAmount - ss.DiscountAmount,
+                        StylistID = ss.StylistID,
+                        DiscountPercent = ss.DiscountPercent,
+                        StylistServicePriceVariantID = ss.StylistServicePriceVariantID,
+                        AppliedOptionSummary = ss.AppliedOptionSummary,
+                        AppliedOptionValueIDs = ss.OptionValues.Select(x => x.ServiceOptionValueID).ToList(),
+                        ServiceManagementID = ss.ServiceManagementID,
+                        StylistServiceAmount = ss.StylistServiceAmount,
+                        SalonName = ss.Stylist.StylistName,
+                        StylistName = $"{ss.Stylist.Person.FirstName} {ss.Stylist.Person.LastName}",
+                        ServiceTitle = ss.ServiceManagement.ServiceName,
+                    }).ToList()
+            }).ToList()
+            : new List<PaymentBookingItemVM>
+            {
+                new PaymentBookingItemVM()
+                {
+                    BookingID = src.BookingID,
+                    BookingDate = src.Booking.BookingDate,
+                    StylistID = src.Booking.StylistID,
+                    CustomerID = src.Booking.CustomerID,
+                    SalonName = src.Booking.Stylist.StylistName,
+                    StylistName = $"{src.Booking.Stylist.Person.FirstName} {src.Booking.Stylist.Person.LastName}",
+                    PaymentItems = src.PaymentDetails
+                        .Where(ss => ss.BookingID == src.BookingID)
+                        .Select(ss => new PaymentItemVM()
+                        {
+                            BookingID = ss.BookingID,
+                            DiscountAmount = ss.DiscountAmount,
+                            PriceAfterDiscount = ss.StylistServiceAmount - ss.DiscountAmount,
+                            StylistID = ss.StylistID,
+                            DiscountPercent = ss.DiscountPercent,
+                            StylistServicePriceVariantID = ss.StylistServicePriceVariantID,
+                            AppliedOptionSummary = ss.AppliedOptionSummary,
+                            AppliedOptionValueIDs = ss.OptionValues.Select(x => x.ServiceOptionValueID).ToList(),
+                            ServiceManagementID = ss.ServiceManagementID,
+                            StylistServiceAmount = ss.StylistServiceAmount,
+                            SalonName = ss.Stylist.StylistName,
+                            StylistName = $"{ss.Stylist.Person.FirstName} {ss.Stylist.Person.LastName}",
+                            ServiceTitle = ss.ServiceManagement.ServiceName,
+                        }).ToList()
+                }
+            })));
 
             ;
 
@@ -99,6 +196,7 @@ namespace NobatPlusAPI.Tools
          .ForMember(dest => dest.CustomerID, opt => opt.MapFrom(src => src.Booking.Customer.PersonID))
          .ForMember(dest => dest.StylistName, opt => opt.MapFrom(src => src.Booking.Stylist.Person.FirstName + " " + src.Booking.Stylist.Person.LastName))
          .ForMember(dest => dest.CustomerName, opt => opt.MapFrom(src => src.Booking.Customer.Person.FirstName + " " + src.Booking.Customer.Person.LastName))
+         .ForMember(dest => dest.AllPaymentAmount, opt => opt.MapFrom(src => src.Payment.AllPaymentAmount))
          .ForMember(dest => dest.DepositAmount, opt => opt.MapFrom(src => src.Payment.DepositAmount))
          .ForMember(dest => dest.PlatformAmount, opt => opt.MapFrom(src => src.Payment.PlarformAmount))
          .ForMember(dest => dest.StylistAmount, opt => opt.MapFrom(src => src.Payment.StylistAmount))
@@ -128,6 +226,18 @@ namespace NobatPlusAPI.Tools
      .ForMember(dest => dest.AdminFullName, opt => opt.MapFrom(src => src.Admin.Person.FirstName + " " + src.Admin.Person.LastName))
      .ForMember(dest => dest.ServiceTitle, opt => opt.MapFrom(src => src.ServiceManagement.ServiceName))
      ;
+            CreateMap<ServiceOption, ServiceOptionVM>()
+                .ForMember(dest => dest.ServiceName, opt => opt.MapFrom(src => src.ServiceManagement.ServiceName));
+            CreateMap<ServiceOptionValue, ServiceOptionValueVM>()
+                .ForMember(dest => dest.OptionName, opt => opt.MapFrom(src => src.ServiceOption.OptionName));
+            CreateMap<StylistServicePriceVariant, StylistServicePriceVariantVM>()
+                .ForMember(dest => dest.OptionValueIDs, opt => opt.MapFrom(src =>
+                    src.OptionValues.Select(x => x.ServiceOptionValueID).ToList()))
+                .ForMember(dest => dest.OptionSummary, opt => opt.MapFrom(src =>
+                    string.Join("، ", src.OptionValues
+                        .OrderBy(x => x.ServiceOptionValue.ServiceOption.SortOrder)
+                        .ThenBy(x => x.ServiceOptionValue.SortOrder)
+                        .Select(x => x.ServiceOptionValue.ServiceOption.OptionName + ": " + x.ServiceOptionValue.ValueName))));
             CreateMap<StylistServiceWithDiscountDto, StylistServiceVM>()
  
   ;

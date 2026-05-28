@@ -123,17 +123,7 @@ namespace NobatPlusAPI.Controllers
                 Description = requestBody.Description,
             };
 
-            var bookingServices = new List<BookingService>();
-
-            foreach (long serviceId in requestBody.ServiceIds)
-            {
-                bookingServices.Add(new BookingService()
-                {
-                    ServiceManagementID = serviceId,
-                });
-
-                Booking.BookingServices= bookingServices;
-            }
+            Booking.BookingServices = BuildBookingServices(requestBody);
 
             var result = await _BookingRep.AddBookingAsync(Booking);
 
@@ -198,18 +188,7 @@ namespace NobatPlusAPI.Controllers
                 Description = requestBody.Description,
             };
 
-            var bookingServices = new List<BookingService>();
-
-            foreach (long serviceId in requestBody.ServiceIds)
-            {
-                bookingServices.Add(new BookingService()
-                {
-                    BookingID = Booking.ID,
-                    ServiceManagementID = serviceId,
-                });
-            }
-
-            Booking.BookingServices = bookingServices;
+            Booking.BookingServices = BuildBookingServices(requestBody, Booking.ID);
 
             result = await _BookingRep.EditBookingAsync(Booking);
             if (result.Status)
@@ -262,6 +241,30 @@ namespace NobatPlusAPI.Controllers
                 return Ok(result);
             }
             return BadRequest(result);
+        }
+
+        private static List<BookingService> BuildBookingServices(AddEditBookingRequestBody requestBody, long bookingId = 0)
+        {
+            return requestBody.Services
+                .Where(x => x.ServiceID > 0)
+                .GroupBy(x => x.ServiceID)
+                .Select(x => x.First())
+                .Select(service => new BookingService
+                {
+                    BookingID = bookingId,
+                    ServiceManagementID = service.ServiceID,
+                    OptionValues = service.OptionValueIDs?
+                        .Where(optionValueId => optionValueId > 0)
+                        .Distinct()
+                        .Select(optionValueId => new BookingServiceOptionValue
+                        {
+                            BookingID = bookingId,
+                            ServiceManagementID = service.ServiceID,
+                            ServiceOptionValueID = optionValueId
+                        })
+                        .ToList() ?? new List<BookingServiceOptionValue>()
+                })
+                .ToList();
         }
     }
 }

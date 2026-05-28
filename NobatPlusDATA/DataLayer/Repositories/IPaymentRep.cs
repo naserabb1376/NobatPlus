@@ -18,5 +18,6 @@ namespace NobatPlusDATA.DataLayer.Repositories
         public Task<BitResultObject> RemovePaymentAsync(long PaymentId);
         public Task<BitResultObject> ExistPaymentAsync(long PaymentId);
         public Task<RowResultObject<CalcPaymentDTO>> CalculatePaymentAsync(long customerId, long bookingId, long discountId);
+        public Task<RowResultObject<CalcPaymentDTO>> CalculatePaymentAsync(long customerId, List<long> bookingIds, long discountId);
     }
 }

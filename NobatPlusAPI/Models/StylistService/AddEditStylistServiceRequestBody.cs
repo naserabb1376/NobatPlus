@@ -27,6 +27,29 @@ namespace NobatPlusAPI.Models.StylistService
         [Display(Name = "مدت خدمت")]
         [Required(ErrorMessage = "لطفا {0} را وارد کنید")]
         public TimeSpan Duration { get; set; }
+
+        public bool HasDynamicPricing { get; set; }
+        public List<StylistServicePriceVariantRequestBody> PriceVariants { get; set; } = new List<StylistServicePriceVariantRequestBody>();
+    }
+
+    public class StylistServicePriceVariantRequestBody
+    {
+        public long ID { get; set; }
+
+        [Display(Name = "قیمت متغیر خدمت")]
+        [Required(ErrorMessage = "لطفا {0} را وارد کنید")]
+        public decimal Price { get; set; }
+
+        [Display(Name = "درصد بیعانه")]
+        [Required(ErrorMessage = "لطفا {0} را وارد کنید")]
+        public int DepositPercent { get; set; }
+
+        [Display(Name = "مدت خدمت")]
+        [Required(ErrorMessage = "لطفا {0} را وارد کنید")]
+        public TimeSpan Duration { get; set; }
+
+        public bool IsActive { get; set; } = true;
+        public List<long> OptionValueIDs { get; set; } = new List<long>();
     }
 }
 

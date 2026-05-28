@@ -58,7 +58,7 @@ namespace NobatPlusAPI.Controllers
             var customerId = requestBody.CustomerID ?? dbcustomer.ID;
             var discountId = requestBody.DiscountID ?? 0;
 
-            result = await _StylistServiceRep.GetAllStylistServicesAsync(requestBody.StylistID,requestBody.ServiceID,customerId,requestBody.BookingID,discountId,requestBody.PageIndex, requestBody.PageSize, requestBody.SearchText,requestBody.SortQuery);
+            result = await _StylistServiceRep.GetAllStylistServicesAsync(requestBody.StylistID,requestBody.ServiceID,customerId,requestBody.BookingID,discountId,requestBody.OptionValueIDs,requestBody.PageIndex, requestBody.PageSize, requestBody.SearchText,requestBody.SortQuery);
             if (result.Status)
             {
                 var resultVM = _mapper.Map<ListResultObject<StylistServiceVM>>(result);
@@ -83,7 +83,7 @@ namespace NobatPlusAPI.Controllers
             var discountId = requestBody.DiscountID ?? 0;
 
 
-            var result = await _StylistServiceRep.GetStylistServiceByIdAsync(requestBody.StylistID,requestBody.ServiceID,customerId,discountId);
+            var result = await _StylistServiceRep.GetStylistServiceByIdAsync(requestBody.StylistID,requestBody.ServiceID,customerId,discountId,requestBody.OptionValueIDs);
             if (result.Status)
             {
                 var resultVM = _mapper.Map<RowResultObject<StylistServiceVM>>(result);
@@ -136,6 +136,8 @@ namespace NobatPlusAPI.Controllers
                 DepositPercent = requestBody.DepositPercent,
                 ServiceDuration = requestBody.Duration,
                 ServicePrice = requestBody.ServicePrice,
+                HasDynamicPricing = requestBody.HasDynamicPricing,
+                PriceVariants = BuildPriceVariants(requestBody)
             }).ToList();
 
             result = await _StylistServiceRep.AddStylistServicesAsync(stylistServices);
@@ -177,6 +179,8 @@ namespace NobatPlusAPI.Controllers
                 ServiceDuration = requestBody.Duration,
                 DepositPercent = requestBody.DepositPercent,
                 ServicePrice = requestBody.ServicePrice,
+                HasDynamicPricing = requestBody.HasDynamicPricing,
+                PriceVariants = BuildPriceVariants(requestBody)
             }).ToList();
 
             var result = await _StylistServiceRep.EditStylistServicesAsync(stylistServices);
@@ -236,6 +240,31 @@ namespace NobatPlusAPI.Controllers
             }
 
             return BadRequest(result);
+        }
+
+        private static List<StylistServicePriceVariant> BuildPriceVariants(AddEditStylistServiceRequestBody requestBody)
+        {
+            return requestBody.PriceVariants?
+                .Where(x => x.OptionValueIDs != null && x.OptionValueIDs.Any())
+                .Select(x => new StylistServicePriceVariant
+                {
+                    ID = x.ID,
+                    StylistID = requestBody.StylistID,
+                    ServiceManagementID = requestBody.ServiceID,
+                    Price = x.Price,
+                    DepositPercent = x.DepositPercent,
+                    Duration = x.Duration,
+                    IsActive = x.IsActive,
+                    OptionValues = x.OptionValueIDs
+                        .Where(optionValueId => optionValueId > 0)
+                        .Distinct()
+                        .Select(optionValueId => new StylistServicePriceVariantOptionValue
+                        {
+                            ServiceOptionValueID = optionValueId
+                        })
+                        .ToList()
+                })
+                .ToList() ?? new List<StylistServicePriceVariant>();
         }
 
     }

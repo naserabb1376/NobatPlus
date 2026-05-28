@@ -38,10 +38,20 @@ namespace NobatPlusAPI.Models.Booking
 
         public string? Description { get; set; }
 
-        public List<long> ServiceIds { get; set; } = new List<long>();
+        public List<BookingServiceSelectionRequestBody> Services { get; set; } = new List<BookingServiceSelectionRequestBody>();
 
 
 
+    }
+
+    public class BookingServiceSelectionRequestBody
+    {
+        [Display(Name = "کد خدمت")]
+        [Required(ErrorMessage = "لطفا {0} را وارد کنید")]
+        [Range(1, long.MaxValue, ErrorMessage = "مقدار {0} باید بزرگتر از 0 باشد")]
+        public long ServiceID { get; set; }
+
+        public List<long> OptionValueIDs { get; set; } = new List<long>();
     }
 }
 

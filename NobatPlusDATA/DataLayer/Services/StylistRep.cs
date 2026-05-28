@@ -122,9 +122,13 @@ namespace NobatPlusDATA.DataLayer.Services
                 {
                     query = query.Where(x => x.StylistParentID == parentId);
                 }
-                else if (parentId < 0)
+                else if (parentId < 0 && parentId >= -10)
                 {
                     query = query.Where(x => x.StylistParentID > 0 || !x.IsWorkShop);
+                }
+                else if (parentId < -10)
+                {
+                    query = query.Where(x => x.StylistParentID == 0 && x.IsWorkShop);
                 }
 
                 if (serviceIds.Count > 0)

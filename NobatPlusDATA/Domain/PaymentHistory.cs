@@ -13,6 +13,13 @@ namespace NobatPlusDATA.Domain
         public long PaymentID { get; set; }
         public DateTime PaymentDate { get; set; }
         public int PaymentMethod { get; set; }
+        public decimal Amount { get; set; }
+        public bool PaymentStatus { get; set; }
+        public string? TransactionCode { get; set; }
+        public string? TrackingNumber { get; set; }
+        public string? GatewayName { get; set; }
+        public string? GatewayMessage { get; set; }
+        public string? PaymentToken { get; set; }
 
         public Booking Booking { get; set; }
         public Payment Payment { get; set; }

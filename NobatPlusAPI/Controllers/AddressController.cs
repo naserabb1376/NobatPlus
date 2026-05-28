@@ -171,7 +171,7 @@ namespace NobatPlusAPI.Controllers
                 CityID = requestBody.CityID,
                 AddressLocationHorizentalPoint = requestBody.AddressLocationHorizentalPoint,
                 AddressLocationVerticalPoint = requestBody.AddressLocationVerticalPoint,
-                AddressPostalCode = requestBody.AddressPostalCode,
+                AddressPostalCode = requestBody.AddressPostalCode ?? "",
                 AddressStreet = requestBody.AddressStreet,
                 Description = requestBody.AddressDescription,
             };

@@ -179,6 +179,16 @@ namespace NobatPlusAPI.Tools
             return isValidCaptcha;
         }
 
+        public static PayGatewaySettings GetActivePayGateway()
+        {
+            PayGatewaySettings ActivePayGateway = new PayGatewaySettings();
+            var payGatewaySettings = Configuration.GetSection("PaymentGateways").Get<List<PayGatewaySettings>>().ToList();
+
+            ActivePayGateway = payGatewaySettings.FirstOrDefault(x=> x.IsActive);
+
+            return ActivePayGateway;
+        }
+
         private static string GenerateResetPasswordToken(long loginId)
         {
             byte[] randomBytes = new byte[10]; // اندازه توکن را می‌توانید تغییر دهید

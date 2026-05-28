@@ -215,22 +215,34 @@ namespace NobatPlusDATA.DataLayer.Services
                     PaymentFinished = calcPayment.Result.RemainAmount <= 0,
                     DiscountID = discountId,
                     Description = description,
+                    PaymentBookings = new List<PaymentBooking>
+                    {
+                        new PaymentBooking { BookingID = bookingId }
+                    },
                     PaymentDetails = calcPayment.Result.stylistServiceWithDiscountDtos.Select(d => new PaymentDetail
                     {
                         CreateDate = now,
                         UpdateDate = now,
                         Description = description,
+                        BookingID = d.BookingID,
                         StylistID = d.StylistID,
                         ServiceManagementID = d.ServiceManagementID,
+                        StylistServicePriceVariantID = d.StylistServicePriceVariantID,
+                        AppliedOptionSummary = d.AppliedOptionSummary,
                         StylistServiceAmount = d.ServicePrice,
-                        DiscountAmount = d.PriceAfterDiscount,
+                        DiscountAmount = d.ServicePrice - d.PriceAfterDiscount,
                         DiscountPercent = d.DiscountPercent,
+                        OptionValues = d.AppliedOptionValueIDs.Select(optionValueId => new PaymentDetailOptionValue
+                        {
+                            ServiceOptionValueID = optionValueId
+                        }).ToList()
                     }).ToList()
                 };
 
                 await _context.Payments.AddAsync(payment);
                 await _context.SaveChangesAsync();
 
+                var referenceNumber = Guid.NewGuid().ToString("N");
                 var paymentHistory = new PaymentHistory
                 {
                     CreateDate = now,
@@ -239,6 +251,10 @@ namespace NobatPlusDATA.DataLayer.Services
                     PaymentID = payment.ID,
                     PaymentMethod = 2,
                     PaymentDate = now,
+                    Amount = payableAmount,
+                    PaymentStatus = true,
+                    GatewayName = "Wallet",
+                    TrackingNumber = referenceNumber,
                     Description = description
                 };
                 await _context.PaymentHistories.AddAsync(paymentHistory);
@@ -258,7 +274,7 @@ namespace NobatPlusDATA.DataLayer.Services
                     TransactionType = "payment",
                     Status = "success",
                     TransactionDate = now,
-                    ReferenceNumber = Guid.NewGuid().ToString("N"),
+                    ReferenceNumber = referenceNumber,
                     Description = description
                 };
                 await _context.WalletTransactions.AddAsync(walletTransaction);

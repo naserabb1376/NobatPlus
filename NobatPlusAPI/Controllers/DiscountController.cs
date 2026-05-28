@@ -105,8 +105,8 @@ namespace NobatPlusAPI.Controllers
                 UpdateDate = DateTime.Now.ToShamsi(),
                 Description = requestBody.Description,
 
-                AdminId = requestBody.AdminId ?? 0,
-                StylistId = requestBody.StylistId ?? 0,
+                AdminId = requestBody.AdminId,
+                StylistId = requestBody.StylistId,
 
             };
 
@@ -129,8 +129,8 @@ namespace NobatPlusAPI.Controllers
                 UpdateDate = DateTime.Now.ToShamsi(),
                 Description = requestBody.Description,
 
-                AdminId = requestBody.AdminId ?? 0,
-                StylistId = requestBody.StylistId ?? 0,
+                AdminId = requestBody.AdminId,
+                StylistId = requestBody.StylistId,
 
                 ServiceManagementId = sid,
 

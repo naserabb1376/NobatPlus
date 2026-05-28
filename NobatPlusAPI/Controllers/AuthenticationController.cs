@@ -1,4 +1,5 @@
-﻿using Domain;
+﻿
+using Domain;
 using Domains;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Http;
@@ -314,7 +315,7 @@ namespace NobatPlusAPI.Controllers
                     CityID = signupRequestBody.Address.CityID,
                     AddressLocationHorizentalPoint = signupRequestBody.Address.AddressLocationHorizentalPoint,
                     AddressLocationVerticalPoint = signupRequestBody.Address.AddressLocationVerticalPoint,
-                    AddressPostalCode = signupRequestBody.Address.AddressPostalCode,
+                    AddressPostalCode = signupRequestBody.Address.AddressPostalCode ?? "",
                     AddressStreet = signupRequestBody.Address.AddressStreet,
                     CreateDate = DateTime.Now.ToShamsi(),
                     UpdateDate = DateTime.Now.ToShamsi(),

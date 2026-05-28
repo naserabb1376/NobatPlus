@@ -303,7 +303,7 @@ namespace NobatPlusAPI.Controllers
                                 IsActive = true,
                                 PermissionId = Permission.ID,
                                 RoleId = roleId,
-                                OwnerOnly = roleId < (long)BaseRole.Admin,
+                                OwnerOnly = false //roleId < (long)BaseRole.Admin,
                             };
 
                             result = await _PermissionRoleRep.AddPermissionRolesAsync(new List<MTPermissionCenter_PermissionRole>() { permissionRole });
