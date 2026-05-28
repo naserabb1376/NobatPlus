@@ -22,6 +22,7 @@ using Parbad.Gateway.ZarinPal;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
+using static NobatPlusDATA.Tools.DbTools;
 
 namespace NobatPlusAPI.Controllers
 {
@@ -37,15 +38,17 @@ namespace NobatPlusAPI.Controllers
         ICustomerRep _customerRep;
         IStylistServiceRep _stylistServiceRep;
         ILogRep _logRep;
+        private readonly IOnlinePayment _onlinePayment;
         private readonly IMapper _mapper;
 
-        public PaymentController(IPaymentRep PaymentRep,IPaymentHistoryRep paymentHistoryRep,ICustomerRep customerRep,IStylistServiceRep stylistServiceRep,ILogRep logRep, IMapper mapper)
+        public PaymentController(IPaymentRep PaymentRep,IPaymentHistoryRep paymentHistoryRep,ICustomerRep customerRep,IStylistServiceRep stylistServiceRep,ILogRep logRep, IOnlinePayment onlinePayment, IMapper mapper)
         {
            _PaymentRep = PaymentRep;
             _PaymentHistoryRep = paymentHistoryRep;
             _customerRep = customerRep;
             _stylistServiceRep = stylistServiceRep;
            _logRep = logRep;
+            _onlinePayment = onlinePayment;
             _mapper = mapper;
         }
 
@@ -120,7 +123,6 @@ namespace NobatPlusAPI.Controllers
         }
 
         [HttpPost("AddPayment")]
-        [HttpPost("AddPayment_Base")]
         public async Task<ActionResult<BitResultObject>> AddPayment(AddEditPaymentRequestBody requestBody)
         {
             var result = new BitResultObject();
@@ -211,6 +213,9 @@ namespace NobatPlusAPI.Controllers
                     PaymentID = result.ID,
                     PaymentMethod = requestBody.PaymentLevel,
                     PaymentDate = requestBody.PaymentDate ?? DateTime.Now.ToShamsi(),
+                    Amount = calcPayment.Result.PayedAmount,
+                    PaymentStatus = requestBody.PaymentFinished,
+                    GatewayName = requestBody.PaymentLevel == 1 ? "Cash" : null,
                     Description = requestBody.Description,
                 };
                 result = await _PaymentHistoryRep.AddPaymentHistoryAsync(paymentHistory);
@@ -346,7 +351,6 @@ namespace NobatPlusAPI.Controllers
         }
 
         [HttpDelete("DeletePayment")]
-        [HttpDelete("DeletePayment_Base")]
         public async Task<ActionResult<BitResultObject>> DeletePayment(GetRowRequestBody requestBody)
         {
             if (!ModelState.IsValid)
@@ -376,6 +380,310 @@ namespace NobatPlusAPI.Controllers
             return BadRequest(result);
         }
 
+        [HttpPost("RequestPayment")]
+        public async Task<ActionResult<RowResultObject<RequestPaymentResultBody>>> RequestPayment(RequestPaymentRequestBody requestBody)
+        {
+            var result = new RowResultObject<RequestPaymentResultBody>
+            {
+                Result = new RequestPaymentResultBody()
+            };
+
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(requestBody);
+            }
+
+            var paymentRow = await _PaymentRep.GetPaymentByIdAsync(requestBody.PaymentID);
+            if (!paymentRow.Status || paymentRow.Result == null)
+            {
+                result.Status = false;
+                result.Result = null;
+                result.ErrorMessage = "پرداخت مورد نظر یافت نشد";
+                return BadRequest(result);
+            }
+
+            var payment = paymentRow.Result;
+            if (!await CanCurrentUserAccessPaymentAsync(payment))
+            {
+                return Forbid();
+            }
+
+            if (payment.PaymentFinished)
+            {
+                result.Status = false;
+                result.Result = null;
+                result.ErrorMessage = "این پرداخت قبلا تکمیل شده است";
+                return BadRequest(result);
+            }
+
+            var amount = GetOnlinePayableAmount(payment);
+            if (amount <= 0)
+            {
+                result.Status = false;
+                result.Result = null;
+                result.ErrorMessage = "مبلغ قابل پرداخت معتبر نیست";
+                return BadRequest(result);
+            }
+
+            var bookingId = payment.PaymentBookings?.FirstOrDefault()?.BookingID ?? payment.BookingID;
+            if (bookingId <= 0)
+            {
+                result.Status = false;
+                result.Result = null;
+                result.ErrorMessage = "رزرو مرتبط با پرداخت مشخص نیست";
+                return BadRequest(result);
+            }
+            var activePayGateway = ToolBox.GetActivePayGateway();
+
+            var paymentHistory = new PaymentHistory
+            {
+                CreateDate = DateTime.Now.ToShamsi(),
+                UpdateDate = DateTime.Now.ToShamsi(),
+                BookingID = bookingId,
+                PaymentID = payment.ID,
+                PaymentDate = DateTime.Now.ToShamsi(),
+                PaymentMethod = payment.PaymentLevel,
+                Amount = amount,
+                PaymentStatus = false,
+                GatewayName = activePayGateway.GatewayName,
+                Description = $"Online payment request for payment #{payment.ID}"
+            };
+
+            var addResult = await _PaymentHistoryRep.AddPaymentHistoryAsync(paymentHistory);
+            if (!addResult.Status)
+            {
+                result.Status = false;
+                result.Result = null;
+                result.ErrorMessage = addResult.ErrorMessage;
+                return BadRequest(result);
+            }
+
+            var callbackUrl = Url.Action(nameof(VerifyPayment), "Payment", new { PayId = addResult.ID }, Request.Scheme);
+            var zarInvoice = new ZarinPalInvoice(description: $"{addResult.ID} - Payment {payment.ID}");
+            var invoice = await _onlinePayment.RequestAsync(invoice =>
+            {
+                if (activePayGateway.GatewayName.ToLower() == "zarinpal")
+                {
+                    invoice.SetCallbackUrl(callbackUrl)
+                     .SetAmount(amount)
+                     .SetZarinPalData(zarInvoice)
+                     .UseZarinPal();
+                }
+                else
+                {
+                    invoice.SetCallbackUrl(callbackUrl)
+                     .SetAmount(amount)
+                     .SetGateway(activePayGateway.GatewayName);
+                }
+
+                invoice.SetTrackingNumber(addResult.ID);
+            });
+
+            if (invoice.IsSucceed)
+            {
+                result.Result.PayGatewayUrl = invoice.GatewayTransporter.Descriptor.Url;
+                result.Result.PaymentHistoryID = addResult.ID;
+                result.Result.Amount = amount;
+                result.ErrorMessage = "";
+
+                #region AddLog
+
+                Log log = new Log()
+                {
+                    CreateDate = DateTime.Now.ToShamsi(),
+                    UpdateDate = DateTime.Now.ToShamsi(),
+                    LogTime = DateTime.Now.ToShamsi(),
+                    ActionName = this.ControllerContext.RouteData.Values["action"].ToString(),
+
+                };
+                await _logRep.AddLogAsync(log);
+
+                #endregion
+
+                return Ok(result);
+            }
+
+            var failedHistory = new PaymentHistory
+            {
+                ID = addResult.ID,
+                CreateDate = paymentHistory.CreateDate,
+                UpdateDate = DateTime.Now.ToShamsi(),
+                BookingID = bookingId,
+                PaymentID = payment.ID,
+                PaymentDate = paymentHistory.PaymentDate,
+                PaymentMethod = payment.PaymentLevel,
+                Amount = amount,
+                PaymentStatus = false,
+                GatewayName = activePayGateway.GatewayName,
+                GatewayMessage = invoice.Message,
+                Description = paymentHistory.Description
+            };
+            await _PaymentHistoryRep.EditPaymentHistoryAsync(failedHistory);
+
+
+
+            result.Status = false;
+            result.Result = null;
+            result.ErrorMessage = invoice.Message;
+            return BadRequest(result);
+        }
+
+        [AllowAnonymous]
+        [HttpGet("VerifyPayment")]
+        public async Task<ActionResult<BitResultObject>> VerifyPayment(long PayId = 0, string? paymentToken = "", string? Authority = "", string? Status = "")
+        {
+            var result = new BitResultObject();
+
+            if (PayId <= 0)
+            {
+                result.Status = false;
+                result.ErrorMessage = "شناسه پرداخت معتبر نیست";
+                return BadRequest(result);
+            }
+
+            var paymentHistoryRow = await _PaymentHistoryRep.GetPaymentHistoryByIdAsync(PayId);
+            if (!paymentHistoryRow.Status || paymentHistoryRow.Result == null)
+            {
+                result.Status = false;
+                result.ErrorMessage = "سابقه پرداخت یافت نشد";
+                return BadRequest(result);
+            }
+
+            var paymentHistory = paymentHistoryRow.Result;
+            var invoice = await _onlinePayment.FetchAsync();
+
+            if (invoice.Status != PaymentFetchResultStatus.ReadyForVerifying)
+            {
+                await SaveGatewayResultAsync(paymentHistory, false, null, PayId.ToString(), paymentToken, Authority, invoice.Message);
+                result.Status = false;
+                result.ID = paymentHistory.ID;
+                result.ErrorMessage = string.IsNullOrWhiteSpace(invoice.Message) ? "پرداخت قابل تایید نیست" : invoice.Message;
+                return Ok(result);
+            }
+
+            var verifyResult = await _onlinePayment.VerifyAsync(invoice);
+            var transactionCode = verifyResult.TransactionCode?.ToString();
+            var trackingNumber = verifyResult.TrackingNumber > 0 ? verifyResult.TrackingNumber.ToString() : PayId.ToString();
+            var token = !string.IsNullOrWhiteSpace(Authority) ? Authority : paymentToken;
+
+            if (verifyResult.Status == PaymentVerifyResultStatus.Succeed)
+            {
+                await SaveGatewayResultAsync(paymentHistory, true, transactionCode, trackingNumber, token, Authority, verifyResult.Message);
+
+                var paymentRow = await _PaymentRep.GetPaymentByIdAsync(paymentHistory.PaymentID);
+                if (paymentRow.Status && paymentRow.Result != null)
+                {
+                    var payment = paymentRow.Result;
+                    var paidAmount = payment.PayedAmount > 0 ? payment.PayedAmount : paymentHistory.Amount;
+                    var updatedPayment = new Payment
+                    {
+                        ID = payment.ID,
+                        CreateDate = payment.CreateDate,
+                        UpdateDate = DateTime.Now.ToShamsi(),
+                        BookingID = payment.BookingID,
+                        DiscountID = payment.DiscountID,
+                        AllPaymentAmount = payment.AllPaymentAmount,
+                        DepositAmount = payment.DepositAmount,
+                        PayedAmount = payment.PayedAmount + paidAmount,
+                        RemainAmount = Math.Max(0, payment.AllPaymentAmount - paidAmount),
+                        TotalServiceAmount = payment.TotalServiceAmount,
+                        DiscountedServiceAmount = payment.DiscountedServiceAmount,
+                        StylistAmount = payment.StylistAmount,
+                        PlarformAmount = payment.PlarformAmount,
+                        VatAmount = payment.VatAmount,
+                        PaymentDate = DateTime.Now.ToShamsi(),
+                        PaymentStatus = "paid",
+                        PaymentLevel = payment.PaymentLevel,
+                        Description = payment.Description
+                    };
+
+                    updatedPayment.PaymentFinished = updatedPayment.AllPaymentAmount == 0;
+
+                    await _PaymentRep.EditPaymentAsync(updatedPayment);
+                }
+
+
+                #region AddLog
+
+                Log log = new Log()
+                {
+                    CreateDate = DateTime.Now.ToShamsi(),
+                    UpdateDate = DateTime.Now.ToShamsi(),
+                    LogTime = DateTime.Now.ToShamsi(),
+                    ActionName = this.ControllerContext.RouteData.Values["action"].ToString(),
+
+                };
+                await _logRep.AddLogAsync(log);
+
+                #endregion
+
+                result.Status = true;
+                result.ID = paymentHistory.ID;
+                result.ErrorMessage = "پرداخت موفقیت آمیز بود";
+                return Ok(result);
+            }
+
+            await SaveGatewayResultAsync(paymentHistory, false, transactionCode, trackingNumber, token, Authority, verifyResult.Message);
+
+
+          
+
+
+            result.Status = false;
+            result.ID = paymentHistory.ID;
+            result.ErrorMessage = string.IsNullOrWhiteSpace(verifyResult.Message) ? "پرداخت ناموفق بود" : verifyResult.Message;
+            return Ok(result);
+        }
+
+        #region PaymentTools
+        private async Task<bool> CanCurrentUserAccessPaymentAsync(Payment payment)
+        {
+            if (User.GetCurrentRoleId() == (long) BaseRole.Admin)
+            {
+                return true;
+            }
+
+            var userId = User.GetCurrentUserId();
+            var dbcustomer = await _customerRep.ExistCustomerAsync(userId.ToString(), "personid");
+            if (!dbcustomer.Status)
+            {
+                return false;
+            }
+
+            return payment.Booking?.CustomerID == dbcustomer.ID ||
+                   (payment.PaymentBookings?.Any(x => x.Booking?.CustomerID == dbcustomer.ID) ?? false);
+        }
+
+        private static decimal GetOnlinePayableAmount(Payment payment)
+        {
+            return payment.PayedAmount > 0 ? payment.RemainAmount : payment.DepositAmount;
+        }
+
+        private async Task SaveGatewayResultAsync(PaymentHistory source, bool paymentStatus, string? transactionCode, string? trackingNumber, string? paymentToken, string? authority, string? message)
+        {
+            var paymentHistory = new PaymentHistory
+            {
+                ID = source.ID,
+                CreateDate = source.CreateDate,
+                UpdateDate = DateTime.Now.ToShamsi(),
+                BookingID = source.BookingID,
+                PaymentID = source.PaymentID,
+                PaymentDate = DateTime.Now.ToShamsi(),
+                PaymentMethod = source.PaymentMethod,
+                Amount = source.Amount,
+                PaymentStatus = paymentStatus,
+                TransactionCode = transactionCode,
+                TrackingNumber = trackingNumber,
+                GatewayName = source.GatewayName ?? "ZarinPal",
+                GatewayMessage = message,
+                PaymentToken = !string.IsNullOrWhiteSpace(paymentToken) ? paymentToken : authority,
+                Description = source.Description
+            };
+
+            await _PaymentHistoryRep.EditPaymentHistoryAsync(paymentHistory);
+        }
+
+      
         private static List<long> NormalizeBookingIds(AddEditPaymentRequestBody requestBody)
         {
             var bookingIds = requestBody.BookingIDs?
@@ -390,324 +698,6 @@ namespace NobatPlusAPI.Controllers
             return bookingIds.Distinct().ToList();
         }
 
-#if false
-        [HttpPost("RequestPayment")]
-        public async Task<ActionResult<RowResultObject<RequestPaymentResultBody>>> RequestPayment(RequestPaymentRequestBody requestBody)
-        {
-            RowResultObject<RequestPaymentResultBody> result = new RowResultObject<RequestPaymentResultBody>();
-            result.Result = new RequestPaymentResultBody();
-            decimal rowAmount = 0, discountedrowAmount = 0;
-
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(requestBody);
-            }
-
-            var UserId = User.GetCurrentUserId();
-
-            switch (requestBody.EntityType.ToLower())
-            {
-                default:
-                case "group":
-                    {
-                        var theRow = await _GroupRep.GetGroupByIdAsync(requestBody.ForeignKeyId);
-
-                        if (theRow.Result == null)
-                        {
-                            result.Result = null;
-                            result.Status = false;
-                            result.ErrorMessage = "درخواست نامعتبر است";
-                            return BadRequest(result);
-                        }
-
-                        rowAmount = theRow.Result.Fee;
-                        discountedrowAmount = theRow.Result.DiscountedFee;
-
-                    }
-                    break;
-                case "event":
-                    {
-                        var theRow = await _EventRep.GetEventByIdAsync(requestBody.ForeignKeyId);
-
-                        if (theRow.Result == null)
-                        {
-                            result.Result = null;
-                            result.Status = false;
-                            result.ErrorMessage = "درخواست نامعتبر است";
-                            return BadRequest(result);
-                        }
-
-                        rowAmount = theRow.Result.Fee ?? 0;
-                        discountedrowAmount = theRow.Result.DiscountedFee ?? 0;
-
-
-                    }
-                    break;
-            }
-
-            if (discountedrowAmount == rowAmount && requestBody.DiscountId > 0)
-            {
-                var discount = await _discountRep.GetDiscountByIdAsync(requestBody.DiscountId.Value);
-                if (discount.Result.IsActive && discount.Result.EntityName.ToLower() == requestBody.EntityType.ToLower() && discount.Result.ForeignKeyId == requestBody.ForeignKeyId && DateTime.Now.ToShamsi() >= discount.Result.ExpireDate)
-                {
-                    discountedrowAmount = rowAmount - (rowAmount * discount.Result.DiscountPercent / 100m);
-                }
-            }
-
-            rowAmount = discountedrowAmount;
-
-            if (rowAmount > 0)
-            {
-                PaymentHistory PaymentHistory = new PaymentHistory()
-                {
-                    CreateDate = DateTime.Now.ToShamsi(),
-                    UpdateDate = DateTime.Now.ToShamsi(),
-                    ForeignKeyId = requestBody.ForeignKeyId,
-                    EntityType = requestBody.EntityType,
-                    Amount = rowAmount,
-                    UserId = UserId,
-                    PaymentDate = DateTime.Now.ToShamsi(),
-                    PaymentStatus = false,
-
-                    //  Description = requestBody.Description,
-                };
-                var Addresult = await _PaymentHistoryRep.AddPaymentHistoryAsync(PaymentHistory);
-                if (Addresult.Status)
-                {
-                    #region AddLog
-
-                    Log log = new Log()
-                    {
-                        CreateDate = DateTime.Now.ToShamsi(),
-                        UpdateDate = DateTime.Now.ToShamsi(),
-                        LogTime = DateTime.Now.ToShamsi(),
-                        ActionName = this.ControllerContext.RouteData.Values["action"].ToString(),
-
-                    };
-                    await _logRep.AddLogAsync(log);
-
-                    #endregion
-
-
-                    #region PaymentGateway
-
-                    var zarInvoice = new ZarinPalInvoice(description: $"{Addresult.ID} - {PaymentHistory.PaymentDate}");
-                    // var callbackUrl = Url.Action("VerifyPayment", "PaymentHistory", new { payId = Addresult.ID }, Request.Scheme);
-                    var callbackUrl = $"https://aitechac.com/payment/verify?PayId={Addresult.ID}&UserId={UserId}&EntityType={requestBody.EntityType}&ForeignKeyId={requestBody.ForeignKeyId}";
-
-                    var invoice = await _onlinePayment.RequestAsync(invoice =>
-                    {
-                        invoice.SetCallbackUrl(callbackUrl)
-                               .SetAmount(rowAmount)
-                                .SetZarinPalData(zarInvoice)
-                                .UseZarinPal();
-
-                        invoice.UseAutoIncrementTrackingNumber();
-
-                    });
-
-                    if (invoice.IsSucceed)
-                    {
-                        result.Result.PayGatewayUrl = invoice.GatewayTransporter.Descriptor.Url;
-                        result.ErrorMessage = "";
-                    }
-
-
-
-                    else
-                    {
-                        result.ErrorMessage = invoice.Message;
-                        result.Result.PayGatewayUrl = "";
-                    }
-
-                    #endregion
-
-
-
-                    return Ok(result);
-                }
-            }
-
-            else
-            {
-                var userRow = await _UserRep.GetUserByIdAsync(UserId);
-
-
-                PreRegistration PreRegistration = new PreRegistration()
-                {
-                    CreateDate = DateTime.Now.ToShamsi(),
-                    UpdateDate = DateTime.Now.ToShamsi(),
-                    Email = userRow.Result.Email,
-                    FirstName = userRow.Result.FirstName,
-                    LastName = userRow.Result.LastName,
-                    PhoneNumber = userRow.Result.Username,
-
-                    EducationalClass = null,
-                    SchoolName = null,
-                    FavoriteField = null,
-                    RecognitionLevel = null,
-                    ProgrammingSkillLevel = null,
-
-                    ForeignKeyId = requestBody.ForeignKeyId,
-                    EntityType = requestBody.EntityType ?? "",
-                    RegistrationDate = DateTime.Now.ToShamsi(),
-                    OtherLangs = null,
-                    // Description = requestBody.Description,
-                };
-                var addPreRegistrationResult = await _PreRegistrationRep.AddPreRegistrationAsync(PreRegistration);
-
-                if (addPreRegistrationResult.Status)
-                {
-
-                    #region AddLog
-
-                    Log log = new Log()
-                    {
-                        CreateDate = DateTime.Now.ToShamsi(),
-                        UpdateDate = DateTime.Now.ToShamsi(),
-                        LogTime = DateTime.Now.ToShamsi(),
-                        ActionName = this.ControllerContext.RouteData.Values["action"].ToString(),
-
-                    };
-                    await _logRep.AddLogAsync(log);
-
-                    #endregion
-
-                }
-                else
-                {
-                    return BadRequest(addPreRegistrationResult);
-                }
-            }
-
-            return BadRequest(result);
-        }
-
-        [HttpGet("VerifyPayment")]
-        public async Task<ActionResult<BitResultObject>> VerifyPayment(long PayId = 0, string? EntityType = "", long? ForeignKeyId = 0, string? paymentToken = "", string? Authority = "", string? Status = "")
-        {
-            BitResultObject result = new BitResultObject();
-            try
-            {
-                var paymentHistory = await _PaymentHistoryRep.GetPaymentHistoryByIdAsync(PayId);
-
-                var UserId = User.GetCurrentUserId();
-
-                var userRow = await _UserRep.GetUserByIdAsync(UserId);
-
-                var invoice = await _onlinePayment.FetchAsync();
-
-                // Check if the invoice is new or it's already processed before.
-                if (invoice.Status != PaymentFetchResultStatus.ReadyForVerifying)
-                {
-                    // You can also see if the invoice is already verified before.
-                    paymentHistory.Result.PaymentStatus = false;
-                }
-
-                var verifyResult = await _onlinePayment.VerifyAsync(invoice);
-
-                var originalResult = verifyResult.GetZarinPalOriginalVerificationResult();
-
-                // Note: Save the verifyResult.TransactionCode in your database.
-
-                if (verifyResult.Status == PaymentVerifyResultStatus.Succeed)
-                {
-                    paymentHistory.Result.PaymentStatus = true;
-
-                    PreRegistration PreRegistration = new PreRegistration()
-                    {
-                        CreateDate = DateTime.Now.ToShamsi(),
-                        UpdateDate = DateTime.Now.ToShamsi(),
-                        Email = userRow.Result.Email,
-                        FirstName = userRow.Result.FirstName,
-                        LastName = userRow.Result.LastName,
-                        PhoneNumber = userRow.Result.Username,
-
-                        EducationalClass = null,
-                        SchoolName = null,
-                        FavoriteField = null,
-                        RecognitionLevel = null,
-                        ProgrammingSkillLevel = null,
-
-                        ForeignKeyId = ForeignKeyId ?? 0,
-                        EntityType = EntityType ?? "",
-                        RegistrationDate = DateTime.Now.ToShamsi(),
-                        OtherLangs = null,
-                        // Description = requestBody.Description,
-                    };
-                    var addPreRegistrationResult = await _PreRegistrationRep.AddPreRegistrationAsync(PreRegistration);
-
-                    if (addPreRegistrationResult.Status)
-                    {
-
-                        #region AddLog
-
-                        Log log = new Log()
-                        {
-                            CreateDate = DateTime.Now.ToShamsi(),
-                            UpdateDate = DateTime.Now.ToShamsi(),
-                            LogTime = DateTime.Now.ToShamsi(),
-                            ActionName = this.ControllerContext.RouteData.Values["action"].ToString(),
-
-                        };
-                        await _logRep.AddLogAsync(log);
-
-                        #endregion
-
-                    }
-                }
-
-                else
-                {
-                    paymentHistory.Result.PaymentStatus = false;
-                }
-
-                var saveResult = await _PaymentHistoryRep.EditPaymentHistoryAsync(paymentHistory.Result);
-
-                if (saveResult.Status)
-                {
-
-                    #region AddLog
-
-                    Log log = new Log()
-                    {
-                        CreateDate = DateTime.Now.ToShamsi(),
-                        UpdateDate = DateTime.Now.ToShamsi(),
-                        LogTime = DateTime.Now.ToShamsi(),
-                        ActionName = this.ControllerContext.RouteData.Values["action"].ToString(),
-
-                    };
-                    await _logRep.AddLogAsync(log);
-
-                    #endregion
-
-                }
-
-                if (paymentHistory.Result.PaymentStatus)
-                {
-                    result.Status = true;
-                    result.ErrorMessage = $"پرداخت موفقیت آمیز بود";
-                    result.ID = paymentHistory.Result.ID;
-                    return Ok(result);
-                }
-
-                else
-                {
-                    result.Status = false;
-                    result.ErrorMessage = $"پرداخت ناموفق بود";
-                    result.ID = paymentHistory.Result.ID;
-                    return Ok(result);
-                }
-
-            }
-            catch (Exception ex)
-            {
-                result.Status = false;
-                result.ErrorMessage = $"{ex.Message} - {ex.InnerException?.Message}";
-                return BadRequest(result);
-            }
-
-        }
-#endif
+        #endregion
     }
 }

@@ -70,6 +70,43 @@ namespace NobatPlusAPI.Tools
           .ForMember(dest => dest.CustomerName, opt => opt.MapFrom(src => src.Booking.Customer.Person.FirstName + " " + src.Booking.Customer.Person.LastName))
           ;
 
+            CreateMap<PaymentBooking, PaymentBookingVM>()
+          .ForMember(dest => dest.BookingDate, opt => opt.MapFrom(src => src.Booking.BookingDate))
+          .ForMember(dest => dest.CustomerID, opt => opt.MapFrom(src => src.Booking.CustomerID))
+          .ForMember(dest => dest.StylistID, opt => opt.MapFrom(src => src.Booking.StylistID))
+          .ForMember(dest => dest.CustomerName, opt => opt.MapFrom(src => src.Booking.Customer.Person.FirstName + " " + src.Booking.Customer.Person.LastName))
+          .ForMember(dest => dest.StylistName, opt => opt.MapFrom(src => src.Booking.Stylist.Person.FirstName + " " + src.Booking.Stylist.Person.LastName))
+          .ForMember(dest => dest.PaymentStatus, opt => opt.MapFrom(src => src.Payment.PaymentStatus))
+          .ForMember(dest => dest.AllPaymentAmount, opt => opt.MapFrom(src => src.Payment.AllPaymentAmount))
+          ;
+
+            CreateMap<BookingServiceOptionValue, BookingServiceOptionValueVM>()
+          .ForMember(dest => dest.ServiceName, opt => opt.MapFrom(src => src.BookingService.ServiceManagement.ServiceName))
+          .ForMember(dest => dest.ServiceOptionID, opt => opt.MapFrom(src => src.ServiceOptionValue.ServiceOptionID))
+          .ForMember(dest => dest.OptionName, opt => opt.MapFrom(src => src.ServiceOptionValue.ServiceOption.OptionName))
+          .ForMember(dest => dest.ValueName, opt => opt.MapFrom(src => src.ServiceOptionValue.ValueName))
+          ;
+
+            CreateMap<StylistServicePriceVariantOptionValue, StylistServicePriceVariantOptionValueVM>()
+          .ForMember(dest => dest.StylistID, opt => opt.MapFrom(src => src.StylistServicePriceVariant.StylistID))
+          .ForMember(dest => dest.ServiceManagementID, opt => opt.MapFrom(src => src.StylistServicePriceVariant.ServiceManagementID))
+          .ForMember(dest => dest.Price, opt => opt.MapFrom(src => src.StylistServicePriceVariant.Price))
+          .ForMember(dest => dest.Duration, opt => opt.MapFrom(src => src.StylistServicePriceVariant.Duration))
+          .ForMember(dest => dest.ServiceOptionID, opt => opt.MapFrom(src => src.ServiceOptionValue.ServiceOptionID))
+          .ForMember(dest => dest.OptionName, opt => opt.MapFrom(src => src.ServiceOptionValue.ServiceOption.OptionName))
+          .ForMember(dest => dest.ValueName, opt => opt.MapFrom(src => src.ServiceOptionValue.ValueName))
+          ;
+
+            CreateMap<PaymentDetailOptionValue, PaymentDetailOptionValueVM>()
+          .ForMember(dest => dest.PaymentID, opt => opt.MapFrom(src => src.PaymentDetail.PaymentID))
+          .ForMember(dest => dest.BookingID, opt => opt.MapFrom(src => src.PaymentDetail.BookingID))
+          .ForMember(dest => dest.ServiceManagementID, opt => opt.MapFrom(src => src.PaymentDetail.ServiceManagementID))
+          .ForMember(dest => dest.ServiceName, opt => opt.MapFrom(src => src.PaymentDetail.ServiceManagement.ServiceName))
+          .ForMember(dest => dest.ServiceOptionID, opt => opt.MapFrom(src => src.ServiceOptionValue.ServiceOptionID))
+          .ForMember(dest => dest.OptionName, opt => opt.MapFrom(src => src.ServiceOptionValue.ServiceOption.OptionName))
+          .ForMember(dest => dest.ValueName, opt => opt.MapFrom(src => src.ServiceOptionValue.ValueName))
+          ;
+
             CreateMap<Payment, PaymentVM>()
          .ForMember(dest => dest.SalonName, opt => opt.MapFrom(src =>
             src.PaymentBookings != null && src.PaymentBookings.Any()
@@ -159,6 +196,7 @@ namespace NobatPlusAPI.Tools
          .ForMember(dest => dest.CustomerID, opt => opt.MapFrom(src => src.Booking.Customer.PersonID))
          .ForMember(dest => dest.StylistName, opt => opt.MapFrom(src => src.Booking.Stylist.Person.FirstName + " " + src.Booking.Stylist.Person.LastName))
          .ForMember(dest => dest.CustomerName, opt => opt.MapFrom(src => src.Booking.Customer.Person.FirstName + " " + src.Booking.Customer.Person.LastName))
+         .ForMember(dest => dest.AllPaymentAmount, opt => opt.MapFrom(src => src.Payment.AllPaymentAmount))
          .ForMember(dest => dest.DepositAmount, opt => opt.MapFrom(src => src.Payment.DepositAmount))
          .ForMember(dest => dest.PlatformAmount, opt => opt.MapFrom(src => src.Payment.PlarformAmount))
          .ForMember(dest => dest.StylistAmount, opt => opt.MapFrom(src => src.Payment.StylistAmount))

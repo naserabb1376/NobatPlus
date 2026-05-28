@@ -103,6 +103,13 @@ namespace NobatPlusAPI.Controllers
                 PaymentID = requestBody.PaymentID,
                 PaymentMethod = requestBody.PaymentMethod,
                 PaymentDate = requestBody.PaymentDate ?? DateTime.Now.ToShamsi(),
+                Amount = requestBody.Amount,
+                PaymentStatus = requestBody.PaymentStatus,
+                TransactionCode = requestBody.TransactionCode,
+                TrackingNumber = requestBody.TrackingNumber,
+                GatewayName = requestBody.GatewayName,
+                GatewayMessage = requestBody.GatewayMessage,
+                PaymentToken = requestBody.PaymentToken,
                 Description = requestBody.Description,
             };
             var result = await _PaymentHistoryRep.AddPaymentHistoryAsync(PaymentHistory);
@@ -152,6 +159,13 @@ namespace NobatPlusAPI.Controllers
                 PaymentID = requestBody.PaymentID,
                 PaymentMethod = requestBody.PaymentMethod,
                 PaymentDate = requestBody.PaymentDate ?? DateTime.Now.ToShamsi(),
+                Amount = requestBody.Amount,
+                PaymentStatus = requestBody.PaymentStatus,
+                TransactionCode = requestBody.TransactionCode,
+                TrackingNumber = requestBody.TrackingNumber,
+                GatewayName = requestBody.GatewayName,
+                GatewayMessage = requestBody.GatewayMessage,
+                PaymentToken = requestBody.PaymentToken,
                 Description = requestBody.Description,
             };
             result = await _PaymentHistoryRep.EditPaymentHistoryAsync(PaymentHistory);

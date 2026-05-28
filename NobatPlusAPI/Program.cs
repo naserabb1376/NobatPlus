@@ -18,6 +18,9 @@ using NobatPlusDATA.DataLayer.Repositories;
 using NobatPlusDATA.DataLayer.Services;
 using NobatPlusDATA.Tools;
 using NobatPlusTokenDB.DataLayer;
+using Parbad.Builder;
+using Parbad.Gateway.ParbadVirtual;
+using Parbad.Gateway.ZarinPal;
 using Repositories;
 using Services;
 using System.Globalization;
@@ -35,10 +38,14 @@ namespace NobatPlusAPI
             var cookiesecurity = builder.Configuration["cors:cookiesecurity"].ToString();
 
             var allowedOrigins = builder.Configuration.GetSection("cors:allowedOrigins").Get<List<string>>().ToArray();
+            var payGatewaySettings = builder.Configuration.GetSection("PaymentGateways").Get<List<PayGatewaySettings>>().ToList();
+            var zarinPalGatewaySetting = payGatewaySettings.FirstOrDefault(x => x.GatewayName.ToLower() == "zarinpal");
 
             var key = Encoding.ASCII.GetBytes(builder.Configuration["Jwt:Key"]);
 
             builder.Services.AddDistributedMemoryCache();
+            builder.Services.AddMemoryCache();
+            builder.Services.AddHttpContextAccessor();
             if (cookiesecurity == "default")
             {
                 builder.Services.AddSession();
@@ -172,6 +179,7 @@ namespace NobatPlusAPI
             builder.Services.AddScoped<IAdminDashboardRep, AdminDashboardRep>();
             builder.Services.AddScoped<IBookingRep, BookingRep>();
             builder.Services.AddScoped<IBookingServiceRep, BookingServiceRep>();
+            builder.Services.AddScoped<IBookingServiceOptionValueRep, BookingServiceOptionValueRep>();
             builder.Services.AddScoped<ICheckAvailabilityRep, CheckAvailabilityRep>();
             builder.Services.AddScoped<ICityRep, CityRep>();
             builder.Services.AddScoped<ICustomerDiscountRep, CustomerDiscountRep>();
@@ -188,6 +196,8 @@ namespace NobatPlusAPI
             builder.Services.AddScoped<IFinancialAccountRep, FinancialAccountRep>();
             builder.Services.AddScoped<INotificationRep, NotificationRep>();
             builder.Services.AddScoped<IPaymentHistoryRep, PaymentHistoryRep>();
+            builder.Services.AddScoped<IPaymentBookingRep, PaymentBookingRep>();
+            builder.Services.AddScoped<IPaymentDetailOptionValueRep, PaymentDetailOptionValueRep>();
             builder.Services.AddScoped<IPaymentRep, PaymentRep>();
             builder.Services.AddScoped<IWalletRep, WalletRep>();
             builder.Services.AddScoped<IPersonRep, PersonRep>();
@@ -202,6 +212,7 @@ namespace NobatPlusAPI
             builder.Services.AddScoped<IStylistDashboardRep, StylistDashboardRep>();
             builder.Services.AddScoped<IStylistServiceRep, StylistServiceRep>();
             builder.Services.AddScoped<IStylistServicePriceVariantRep, StylistServicePriceVariantRep>();
+            builder.Services.AddScoped<IStylistServicePriceVariantOptionValueRep, StylistServicePriceVariantOptionValueRep>();
             builder.Services.AddScoped<IStylistPacificRep, StylistPacificRep>();
             builder.Services.AddScoped<ITokenRep, TokenRep>();
             builder.Services.AddScoped<ISocialNetworkRep, SocialNetworkRep>();
@@ -216,6 +227,25 @@ namespace NobatPlusAPI
             builder.Services.AddScoped<IUserPermissionRep, UserPermissionRep>();
 
             #endregion ImportDbServices
+
+            builder.Services.AddParbad()
+                .ConfigureGateways(gateways =>
+                {
+                    gateways
+                        .AddZarinPal()
+                        .WithAccounts(accounts =>
+                        {
+                            accounts.AddInMemory(account =>
+                            {
+                                account.MerchantId = zarinPalGatewaySetting?.MerchantId ?? "";
+                                account.IsSandbox = zarinPalGatewaySetting?.IsSandbox ?? true;
+                            });
+                        });
+                    gateways
+                .AddParbadVirtual()
+                .WithOptions(options => options.GatewayPath = "/MyVirtualGateway");
+                })
+                .ConfigureStorage(storage => storage.UseMemoryCache());
 
 
             #region ImportMTPermissionCenterServices
@@ -280,6 +310,8 @@ namespace NobatPlusAPI
             //}
             app.UseHttpsRedirection();
 
+            app.UseParbadVirtualGateway();
+
             app.UseCors(corsPolicy);
 
 
@@ -300,6 +332,9 @@ namespace NobatPlusAPI
             {
                 endpoints.MapControllers();
             });
+
+            //app.UseParbadVirtualGateway();
+
 
             #endregion Pipeline
 

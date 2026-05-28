@@ -17,7 +17,7 @@ namespace NobatPlusDATA.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "10.0.5")
+                .HasAnnotation("ProductVersion", "10.0.3")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
@@ -1071,6 +1071,10 @@ namespace NobatPlusDATA.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("ID"));
 
+                    b.Property<decimal>("Amount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
                     b.Property<long>("BookingID")
                         .HasColumnType("bigint");
 
@@ -1078,6 +1082,12 @@ namespace NobatPlusDATA.Migrations
                         .HasColumnType("datetime2");
 
                     b.Property<string>("Description")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("GatewayMessage")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("GatewayName")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime>("PaymentDate")
@@ -1088,6 +1098,18 @@ namespace NobatPlusDATA.Migrations
 
                     b.Property<int>("PaymentMethod")
                         .HasColumnType("int");
+
+                    b.Property<bool>("PaymentStatus")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("PaymentToken")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("TrackingNumber")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("TransactionCode")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime?>("UpdateDate")
                         .HasColumnType("datetime2");
