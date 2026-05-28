@@ -228,6 +228,8 @@ namespace NobatPlusAPI
 
             #endregion ImportDbServices
 
+            #region PayGatewayConfigs
+
             builder.Services.AddParbad()
                 .ConfigureGateways(gateways =>
                 {
@@ -247,6 +249,7 @@ namespace NobatPlusAPI
                 })
                 .ConfigureStorage(storage => storage.UseMemoryCache());
 
+            #endregion
 
             #region ImportMTPermissionCenterServices
 
@@ -317,8 +320,19 @@ namespace NobatPlusAPI
 
             app.UseSession();
 
+            #region HangFire
+
             app.UseHangfireDashboard("/hangfire");
-            app.UseHangfireServer();
+            //app.UseHangfireServer();
+
+            // 👇 اینجا دقیقاً محل ثبت Job هست
+            RecurringJob.AddOrUpdate<JobManager>(
+     job => job.ProcessTodayBirthdays(),
+     "0 9 * * *",
+     TimeZoneInfo.Local
+ );
+
+            #endregion
 
             app.UseRouting();
             app.UseAuthentication();

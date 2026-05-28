@@ -196,5 +196,30 @@ namespace NobatPlusDATA.DataLayer.Services
                        .Select(u => (long?)u.RoleId)
                        .SingleOrDefaultAsync(ct);
         }
+
+        public async Task<ListResultObject<Person>> GetPersonsWithBirthdayAsync(int month, int day)
+        {
+            ListResultObject<Person> results = new ListResultObject<Person>();
+
+            try
+            {
+                var users = await _context.Persons
+                    .Where(p =>
+                                p.DateOfBirth.Month == month &&
+                                p.DateOfBirth.Day == day)
+                    .ToListAsync();
+
+                results.Results = users;
+                results.Status = true;
+            }
+            catch (Exception ex)
+            {
+                results.Status = false;
+                results.ErrorMessage = $"{ex.Message} - {ex.InnerException?.Message}";
+            }
+
+
+            return results;
+        }
     }
 }
