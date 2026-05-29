@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using Domains;
+using Hangfire.Dashboard;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -17,10 +18,13 @@ using NobatPlusDATA.Domain;
 using NobatPlusDATA.ResultObjects;
 using NobatPlusDATA.Tools;
 using System.IdentityModel.Tokens.Jwt;
+using System.Runtime.CompilerServices;
+using System.Security;
 using System.Security.Claims;
 using System.Text;
 using static NobatPlusAPI.Tools.ToolBox;
 using static NobatPlusDATA.Tools.DbTools;
+using MenuItem = NobatPlusAPI.Tools.ToolBox.MenuItem;
 
 namespace NobatPlusAPI.Controllers
 {
@@ -355,6 +359,99 @@ namespace NobatPlusAPI.Controllers
             result.ErrorMessage = $"AddCount: {addCount} , NoAddCount: {noAddCount}";
 
             return Ok(result);
+        }
+
+        [HttpPost("InitMenus")]
+        [AllowAnonymous]
+        public async Task<ActionResult<BitResultObject>> InitMenus([FromBody] List<MenuItem> requestBody)
+        {
+            var result = new BitResultObject();
+            int addCount = 0, noAddCount = 0;
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(requestBody);
+            }
+
+            try
+            {
+                var menuPerms = new List<MTPermissionCenter_Permission>();
+                void ProcessItem(MenuItem item, long? parentId)
+                {
+                    var permission = new MTPermissionCenter_Permission
+                    {
+                        CreateDate = DateTime.Now.ToShamsi(),
+                        UpdateDate = DateTime.Now.ToShamsi(),
+                        IsActive = true,
+
+                        Key = new Random().Next(12000,30000).ToString(),
+                        Name = item.label,
+                        Icon = item.icon,
+                        Routename = item.path,
+                        PermissionType = "Menu",
+                        MenuIds = null,
+                        MenuParentId = parentId,
+                        Description = item.Description,
+                        OtherLangs = null
+                    };
+
+                    // تعیین RoleId از روی RoleName
+                    if (Enum.TryParse<BaseRole>(item.RoleName,true, out var roleEnum))
+                    {
+                        permission.PermissionRoles.Add(new MTPermissionCenter_PermissionRole
+                        {
+                            CreateDate = DateTime.Now.ToShamsi(),
+                            UpdateDate = DateTime.Now.ToShamsi(),
+                            IsActive = true,
+
+                            RoleId = (long)roleEnum,
+                            OwnerOnly = false
+                        });
+                    }
+
+                    menuPerms.Add(permission);
+
+                   
+                    // اگر children داشت، بازگشتی پردازش کن
+                    if (item.children != null && item.children.Any())
+                    {
+                        foreach (var child in item.children)
+                        {
+                            ProcessItem(child, long.Parse(permission.Key)); // ParentId = Id همین آیتم
+                        }
+                    }
+                }
+
+                foreach (var item in requestBody)
+                {
+                    ProcessItem(item, null);
+                }
+
+                foreach (var menu in menuPerms)
+                {
+                    result = await _PermissionRep.AddPermissionAsync(menu);
+
+                    if (result.Status)
+                    {
+                        addCount++;
+                    }
+                    else
+                    {
+                        noAddCount++;
+                    }
+                }
+
+                result.ErrorMessage = $"AddCount: {addCount} , NoAddCount: {noAddCount}";
+
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                result.ErrorMessage = $"{ex.Message}\n{ex.InnerException?.Message}";
+                result.Status = false;
+
+                return BadRequest(result);
+            }
+
         }
 
 #endif
