@@ -392,5 +392,15 @@ namespace NobatPlusAPI.Tools
 
         }
 
+        public class MenuItem
+        {
+            public string label { get; set; }
+            public string? icon { get; set; }
+            public string? path { get; set; }
+            public string RoleName { get; set; }
+            public string? Description { get; set; }
+            public List<MenuItem>? children { get; set; }
+        }
+
     }
 }
