@@ -52,10 +52,7 @@ namespace NobatPlusAPI.Controllers
             {
                 return BadRequest(requestBody);
             }
-            if (!await NormalizeCustomerListScopeAsync(requestBody))
-            {
-                return Forbid();
-            }
+         
             var result = await _CustomerRep.GetAllCustomersAsync(requestBody.StylistId,requestBody.CityId,requestBody.DiscountId,requestBody.PageIndex,requestBody.PageSize,requestBody.SearchText,requestBody.SortQuery);
             if (result.Status)
             {
@@ -76,10 +73,7 @@ namespace NobatPlusAPI.Controllers
             var result = await _CustomerRep.GetCustomerByIdAsync(requestBody.ID);
             if (result.Status)
             {
-                if (!await CanAccessCustomerAsync(result.Result))
-                {
-                    return Forbid();
-                }
+             
                 var resultVM = _mapper.Map<RowResultObject<CustomerVM>>(result);
                 return Ok(resultVM);
             }
@@ -153,11 +147,7 @@ namespace NobatPlusAPI.Controllers
             }
 
             var theRow = await _CustomerRep.GetCustomerByIdAsync(requestBody.ID);
-            if (!theRow.Status || !await CanAccessCustomerAsync(theRow.Result))
-            {
-                return Forbid();
-            }
-
+           
             if (!theRow.Status)
             {
                 result.Status = theRow.Status;
@@ -226,52 +216,6 @@ namespace NobatPlusAPI.Controllers
             return BadRequest(result);
         }
 
-        private async Task<bool> NormalizeCustomerListScopeAsync(GetCustomerListRequestBody requestBody)
-        {
-            var roleId = User.GetCurrentRoleId();
-            var personId = User.GetCurrentUserId();
-
-            if (roleId == 4) return true;
-
-            if (roleId == 2)
-            {
-                var stylist = await _StylistRep.ExistStylistAsync(personId.ToString(), "personid");
-                if (!stylist.Status) return false;
-                requestBody.StylistId = stylist.ID;
-                return true;
-            }
-
-            if (roleId == 3)
-            {
-                var salon = await _StylistRep.ExistStylistAsync(personId.ToString(), "personid");
-                if (!salon.Status) return false;
-                if (requestBody.StylistId <= 0)
-                {
-                    requestBody.StylistId = salon.ID;
-                    return true;
-                }
-                var stylist = await _StylistRep.GetStylistByIdAsync(requestBody.StylistId);
-                return stylist.Status && stylist.Result != null && stylist.Result.StylistParentID == salon.ID;
-            }
-
-            return false;
-        }
-
-        private async Task<bool> CanAccessCustomerAsync(CustomerDTO customer)
-        {
-            if (customer == null) return false;
-            var roleId = User.GetCurrentRoleId();
-            var personId = User.GetCurrentUserId();
-
-            if (roleId == 4) return true;
-
-            if (roleId == 1)
-            {
-                var current = await _CustomerRep.ExistCustomerAsync(personId.ToString(), "personid");
-                return current.Status && current.ID == customer.ID;
-            }
-
-            return false;
-        }
+        
     }
 }
