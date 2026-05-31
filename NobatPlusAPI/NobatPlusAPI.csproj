@@ -44,7 +44,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\Closed Projects\MTPermissionCenter\MTPermissionCenter.AspNetCore\MTPermissionCenter.AspNetCore.csproj" />
     <ProjectReference Include="..\NobatPlusDATA\NobatPlusDATA.csproj" />
     <ProjectReference Include="..\NobatPlusTokenDB\NobatPlusTokenDB.csproj" />
   </ItemGroup>

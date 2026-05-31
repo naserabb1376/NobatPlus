@@ -168,7 +168,8 @@ namespace NobatPlusAPI.Controllers
                     Gender = requestBody.Gender,
                     RoleId = requestBody.RoleId,
                     IsActive = requestBody.IsActive,
-                    PermissionsVersion = requestBody.PermissionsVersion,
+                    PermissionsVersion = 1,
+                    
                 };
                 result = await _PersonRep.AddPersonAsync(Person);
             }
@@ -277,7 +278,7 @@ namespace NobatPlusAPI.Controllers
                     Gender = requestBody.Gender,
                     RoleId = requestBody.RoleId,
                     IsActive = requestBody.IsActive,
-                    PermissionsVersion = requestBody.PermissionsVersion,
+                    PermissionsVersion = theRow.Result.PermissionsVersion
                 };
                 result = await _PersonRep.EditPersonAsync(Person);
             }
@@ -357,7 +358,7 @@ namespace NobatPlusAPI.Controllers
                 Gender = requestBody.Gender,
                 RoleId = requestBody.RoleId,
                 IsActive = requestBody.IsActive,
-                PermissionsVersion = requestBody.PermissionsVersion,
+                PermissionsVersion = 1,
             };
             result = await _PersonRep.AddPersonAsync(Person);
             if (result.Status)
@@ -441,7 +442,7 @@ namespace NobatPlusAPI.Controllers
                 Gender = requestBody.Gender,
                 RoleId = requestBody.RoleId,
                 IsActive = requestBody.IsActive,
-                PermissionsVersion = requestBody.PermissionsVersion,
+                PermissionsVersion = theRow.Result.PermissionsVersion,
             };
             result = await _PersonRep.EditPersonAsync(Person);
             if (result.Status)
