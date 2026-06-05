@@ -178,6 +178,10 @@ namespace NobatPlusDATA.DataLayer
                 .HasPrincipalKey(x => new { x.StylistID, x.ServiceManagementID })
                 .OnDelete(DeleteBehavior.Cascade);
 
+            modelBuilder.Entity<StylistServicePriceVariant>()
+                .HasIndex(x => new { x.StylistID, x.ServiceManagementID, x.OptionValueCombinationKey })
+                .IsUnique();
+
             modelBuilder.Entity<StylistServicePriceVariantOptionValue>()
                 .HasKey(x => new { x.StylistServicePriceVariantID, x.ServiceOptionValueID });
 

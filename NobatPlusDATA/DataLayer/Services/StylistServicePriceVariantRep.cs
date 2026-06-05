@@ -20,6 +20,14 @@ namespace NobatPlusDATA.DataLayer.Services
             var result = new BitResultObject();
             try
             {
+                var validationError = await ValidateVariantAsync(stylistServicePriceVariant);
+                if (!string.IsNullOrEmpty(validationError))
+                {
+                    result.Status = false;
+                    result.ErrorMessage = validationError;
+                    return result;
+                }
+
                 await _context.StylistServicePriceVariants.AddAsync(stylistServicePriceVariant);
                 await _context.SaveChangesAsync();
                 result.ID = stylistServicePriceVariant.ID;
@@ -38,6 +46,14 @@ namespace NobatPlusDATA.DataLayer.Services
             var result = new BitResultObject();
             try
             {
+                var validationError = await ValidateVariantAsync(stylistServicePriceVariant, stylistServicePriceVariant.ID);
+                if (!string.IsNullOrEmpty(validationError))
+                {
+                    result.Status = false;
+                    result.ErrorMessage = validationError;
+                    return result;
+                }
+
                 var oldOptions = await _context.StylistServicePriceVariantOptionValues
                     .Where(x => x.StylistServicePriceVariantID == stylistServicePriceVariant.ID)
                     .ToListAsync();
@@ -155,6 +171,54 @@ namespace NobatPlusDATA.DataLayer.Services
                 result.ErrorMessage = $"{ex.Message} - {ex.InnerException?.Message}";
             }
             return result;
+        }
+
+        private async Task<string> ValidateVariantAsync(StylistServicePriceVariant variant, long excludedVariantId = 0)
+        {
+            var optionValueIds = variant.OptionValues?
+                .Select(x => x.ServiceOptionValueID)
+                .Where(x => x > 0)
+                .Distinct()
+                .OrderBy(x => x)
+                .ToList() ?? new List<long>();
+
+            variant.OptionValueCombinationKey = StylistServicePriceVariant.BuildOptionValueCombinationKey(optionValueIds);
+
+            if (!optionValueIds.Any())
+                return "حداقل یک گزینه برای قیمت متغیر خدمت باید انتخاب شود";
+
+            var optionRows = await _context.ServiceOptionValues
+                .AsNoTracking()
+                .Include(x => x.ServiceOption)
+                .Where(x => optionValueIds.Contains(x.ID))
+                .Select(x => new
+                {
+                    x.ID,
+                    x.ServiceOptionID,
+                    x.ServiceOption.ServiceManagementID
+                })
+                .ToListAsync();
+
+            if (optionRows.Count != optionValueIds.Count)
+                return "یک یا چند مقدار گزینه انتخاب شده معتبر نیست";
+
+            if (optionRows.Any(x => x.ServiceManagementID != variant.ServiceManagementID))
+                return "گزینه‌های انتخاب شده باید متعلق به همان خدمت باشند";
+
+            if (optionRows.GroupBy(x => x.ServiceOptionID).Any(x => x.Count() > 1))
+                return "برای هر ویژگی فقط یک مقدار قابل انتخاب است";
+
+            var duplicateExists = await _context.StylistServicePriceVariants
+                .AsNoTracking()
+                .AnyAsync(x =>
+                    x.ID != excludedVariantId &&
+                    x.StylistID == variant.StylistID &&
+                    x.ServiceManagementID == variant.ServiceManagementID &&
+                    x.OptionValueCombinationKey == variant.OptionValueCombinationKey);
+
+            return duplicateExists
+                ? "برای یک آرایشگر و یک خدمت، این ترکیب گزینه‌ها قبلا ثبت شده است"
+                : "";
         }
     }
 }

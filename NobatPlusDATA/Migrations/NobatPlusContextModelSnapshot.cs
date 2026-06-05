@@ -1872,6 +1872,10 @@ namespace NobatPlusDATA.Migrations
                     b.Property<bool>("IsActive")
                         .HasColumnType("bit");
 
+                    b.Property<string>("OptionValueCombinationKey")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
                     b.Property<decimal>("Price")
                         .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
@@ -1887,7 +1891,8 @@ namespace NobatPlusDATA.Migrations
 
                     b.HasKey("ID");
 
-                    b.HasIndex("StylistID", "ServiceManagementID");
+                    b.HasIndex("StylistID", "ServiceManagementID", "OptionValueCombinationKey")
+                        .IsUnique();
 
                     b.ToTable("StylistServicePriceVariants");
                 });

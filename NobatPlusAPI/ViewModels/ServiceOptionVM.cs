@@ -31,6 +31,7 @@ namespace NobatPlusDATA.ViewModels
         public TimeSpan Duration { get; set; }
         public int DepositPercent { get; set; }
         public bool IsActive { get; set; }
+        public string OptionValueCombinationKey { get; set; }
         public List<long> OptionValueIDs { get; set; }
         public string OptionSummary { get; set; }
     }
