@@ -18,7 +18,6 @@ namespace NobatPlusDATA.Domain
 
         public Stylist Stylist { get; set; }
         public Customer Customer { get; set; }
-        public ICollection<Payment> Payments { get; set; }
         public ICollection<PaymentBooking> PaymentBookings { get; set; }
         public ICollection<Review> Reviews { get; set; }
         public ICollection<RateHistory> RateHistories { get; set; }

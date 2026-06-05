@@ -99,7 +99,6 @@ namespace NobatPlusAPI.Controllers
             {
                 CreateDate = DateTime.Now.ToShamsi(),
                 UpdateDate = DateTime.Now.ToShamsi(),
-                BookingID = requestBody.BookingID,
                 PaymentID = requestBody.PaymentID,
                 PaymentMethod = requestBody.PaymentMethod,
                 PaymentDate = requestBody.PaymentDate ?? DateTime.Now.ToShamsi(),
@@ -155,7 +154,6 @@ namespace NobatPlusAPI.Controllers
                 CreateDate = theRow.Result.CreateDate,
                 UpdateDate = DateTime.Now.ToShamsi(),
                 ID = requestBody.ID,
-                BookingID = requestBody.BookingID,
                 PaymentID = requestBody.PaymentID,
                 PaymentMethod = requestBody.PaymentMethod,
                 PaymentDate = requestBody.PaymentDate ?? DateTime.Now.ToShamsi(),

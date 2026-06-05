@@ -165,11 +165,12 @@ namespace NobatPlusAPI.Tools
             ;
 
             CreateMap<PaymentHistory, PaymentHistoryVM>()
-         .ForMember(dest => dest.SalonName, opt => opt.MapFrom(src => src.Booking.Stylist.StylistName))
-         .ForMember(dest => dest.StylistID, opt => opt.MapFrom(src => src.Booking.Stylist.PersonID))
-         .ForMember(dest => dest.CustomerID, opt => opt.MapFrom(src => src.Booking.Customer.PersonID))
-         .ForMember(dest => dest.StylistName, opt => opt.MapFrom(src => src.Booking.Stylist.Person.FirstName + " " + src.Booking.Stylist.Person.LastName))
-         .ForMember(dest => dest.CustomerName, opt => opt.MapFrom(src => src.Booking.Customer.Person.FirstName + " " + src.Booking.Customer.Person.LastName))
+         .ForMember(dest => dest.BookingIDs, opt => opt.MapFrom(src => src.Payment.PaymentBookings.Select(x => x.BookingID).ToList()))
+         .ForMember(dest => dest.SalonName, opt => opt.MapFrom(src => src.Payment.PaymentBookings.Select(x => x.Booking.Stylist.StylistName).FirstOrDefault()))
+         .ForMember(dest => dest.StylistID, opt => opt.MapFrom(src => src.Payment.PaymentBookings.Select(x => x.Booking.Stylist.PersonID).FirstOrDefault()))
+         .ForMember(dest => dest.CustomerID, opt => opt.MapFrom(src => src.Payment.PaymentBookings.Select(x => x.Booking.Customer.PersonID).FirstOrDefault()))
+         .ForMember(dest => dest.StylistName, opt => opt.MapFrom(src => src.Payment.PaymentBookings.Select(x => x.Booking.Stylist.Person.FirstName + " " + x.Booking.Stylist.Person.LastName).FirstOrDefault()))
+         .ForMember(dest => dest.CustomerName, opt => opt.MapFrom(src => src.Payment.PaymentBookings.Select(x => x.Booking.Customer.Person.FirstName + " " + x.Booking.Customer.Person.LastName).FirstOrDefault()))
          .ForMember(dest => dest.AllPaymentAmount, opt => opt.MapFrom(src => src.Payment.AllPaymentAmount))
          .ForMember(dest => dest.DepositAmount, opt => opt.MapFrom(src => src.Payment.DepositAmount))
          .ForMember(dest => dest.PlatformAmount, opt => opt.MapFrom(src => src.Payment.PlarformAmount))
