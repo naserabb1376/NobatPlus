@@ -86,13 +86,20 @@ namespace NobatPlusDATA.DataLayer.Services
             {
                 IQueryable<PaymentHistory> query = _context.PaymentHistories
                     .Include(x=> x.Payment)
-                    .Include(x => x.Booking).ThenInclude(x => x.Customer).ThenInclude(x => x.Person)
-                    .Include(x => x.Booking).ThenInclude(x => x.Stylist).ThenInclude(x => x.Person)
+                        .ThenInclude(x => x.PaymentBookings)
+                            .ThenInclude(x => x.Booking)
+                                .ThenInclude(x => x.Customer)
+                                    .ThenInclude(x => x.Person)
+                    .Include(x => x.Payment)
+                        .ThenInclude(x => x.PaymentBookings)
+                            .ThenInclude(x => x.Booking)
+                                .ThenInclude(x => x.Stylist)
+                                    .ThenInclude(x => x.Person)
                          .AsNoTracking();
 
                 if (bookingId > 0)
                 {
-                    query = query.Where(x => x.BookingID == bookingId);
+                    query = query.Where(x => x.Payment.PaymentBookings.Any(pb => pb.BookingID == bookingId));
                 }
 
                 if (paymentId > 0)
@@ -146,8 +153,15 @@ namespace NobatPlusDATA.DataLayer.Services
             {
                 result.Result = await _context.PaymentHistories
                     .Include(x=> x.Payment)
-                    .Include(x => x.Booking).ThenInclude(x => x.Customer).ThenInclude(x => x.Person)
-                    .Include(x => x.Booking).ThenInclude(x => x.Stylist).ThenInclude(x => x.Person)
+                        .ThenInclude(x => x.PaymentBookings)
+                            .ThenInclude(x => x.Booking)
+                                .ThenInclude(x => x.Customer)
+                                    .ThenInclude(x => x.Person)
+                    .Include(x => x.Payment)
+                        .ThenInclude(x => x.PaymentBookings)
+                            .ThenInclude(x => x.Booking)
+                                .ThenInclude(x => x.Stylist)
+                                    .ThenInclude(x => x.Person)
                 .AsNoTracking()
                 .SingleOrDefaultAsync(x => x.ID == PaymentHistoryId);
             }

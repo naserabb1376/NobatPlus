@@ -282,24 +282,20 @@ namespace NobatPlusDATA.DataLayer
                 .HasForeignKey(cd => cd.CustomerID)
                 .OnDelete(DeleteBehavior.NoAction);
 
-            modelBuilder.Entity<Payment>()
-                .HasMany(p => p.Bookings)
-                .WithMany(b => b.Payments)
-                .UsingEntity<PaymentBooking>(
-                    j => j
-                        .HasOne(pb => pb.Booking)
-                        .WithMany(b => b.PaymentBookings)
-                        .HasForeignKey(pb => pb.BookingID)
-                        .OnDelete(DeleteBehavior.NoAction),
-                    j => j
-                        .HasOne(pb => pb.Payment)
-                        .WithMany(p => p.PaymentBookings)
-                        .HasForeignKey(pb => pb.PaymentID)
-                        .OnDelete(DeleteBehavior.Cascade),
-                    j =>
-                    {
-                        j.HasKey(pb => new { pb.PaymentID, pb.BookingID });
-                    });
+            modelBuilder.Entity<PaymentBooking>()
+                .HasKey(pb => new { pb.PaymentID, pb.BookingID });
+
+            modelBuilder.Entity<PaymentBooking>()
+                .HasOne(pb => pb.Booking)
+                .WithMany(b => b.PaymentBookings)
+                .HasForeignKey(pb => pb.BookingID)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            modelBuilder.Entity<PaymentBooking>()
+                .HasOne(pb => pb.Payment)
+                .WithMany(p => p.PaymentBookings)
+                .HasForeignKey(pb => pb.PaymentID)
+                .OnDelete(DeleteBehavior.Cascade);
 
             modelBuilder.Entity<Payment>()
                 .Ignore(p => p.Discount);
@@ -361,12 +357,6 @@ namespace NobatPlusDATA.DataLayer
                 .WithMany()
                 .HasForeignKey(ph => ph.PaymentID)
                 .OnDelete(DeleteBehavior.Cascade);
-
-            modelBuilder.Entity<PaymentHistory>()
-                .HasOne(ph => ph.Booking)
-                .WithMany()
-                .HasForeignKey(ph => ph.BookingID)
-                .OnDelete(DeleteBehavior.NoAction); // 👈 مهم
 
             modelBuilder.Entity<Wallet>()
                 .HasOne(w => w.Customer)

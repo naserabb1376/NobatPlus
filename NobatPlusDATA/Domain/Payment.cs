@@ -25,7 +25,6 @@ namespace NobatPlusDATA.Domain
         public int PaymentLevel { get; set; }
 
         public Discount? Discount { get; set; }
-        public ICollection<Booking> Bookings { get; set; }
         public ICollection<PaymentBooking> PaymentBookings { get; set; }
         public ICollection<PaymentDetail> PaymentDetails { get; set; }
     }

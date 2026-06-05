@@ -246,7 +246,6 @@ namespace NobatPlusDATA.DataLayer.Services
                 {
                     CreateDate = now,
                     UpdateDate = now,
-                    BookingID = bookingId,
                     PaymentID = payment.ID,
                     PaymentMethod = 2,
                     PaymentDate = now,
