@@ -255,6 +255,7 @@ namespace NobatPlusAPI.Controllers
                     DepositPercent = x.DepositPercent,
                     Duration = x.Duration,
                     IsActive = x.IsActive,
+                    OptionValueCombinationKey = StylistServicePriceVariant.BuildOptionValueCombinationKey(x.OptionValueIDs),
                     OptionValues = x.OptionValueIDs
                         .Where(optionValueId => optionValueId > 0)
                         .Distinct()

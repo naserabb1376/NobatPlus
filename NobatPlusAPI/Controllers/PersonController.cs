@@ -278,6 +278,7 @@ namespace NobatPlusAPI.Controllers
                     Gender = requestBody.Gender,
                     RoleId = requestBody.RoleId,
                     IsActive = requestBody.IsActive,
+                    IdentificationCode = theRow.Result.IdentificationCode,
                     PermissionsVersion = theRow.Result.PermissionsVersion
                 };
                 result = await _PersonRep.EditPersonAsync(Person);
@@ -443,6 +444,7 @@ namespace NobatPlusAPI.Controllers
                 RoleId = requestBody.RoleId,
                 IsActive = requestBody.IsActive,
                 PermissionsVersion = theRow.Result.PermissionsVersion,
+                IdentificationCode = theRow.Result.IdentificationCode,
             };
             result = await _PersonRep.EditPersonAsync(Person);
             if (result.Status)

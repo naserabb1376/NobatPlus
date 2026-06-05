@@ -7,9 +7,6 @@ namespace NobatPlusAPI.Models.Payment
     {
         public long ID { get; set; } = 0;
 
-        [Display(Name = "کد رزرو")]
-        public long BookingID { get; set; } = 0;
-
         [Display(Name = "کدهای رزرو")]
         public List<long> BookingIDs { get; set; } = new List<long>();
 

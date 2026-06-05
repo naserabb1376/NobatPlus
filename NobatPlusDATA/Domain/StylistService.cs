@@ -49,6 +49,7 @@ namespace NobatPlusDATA.Domain
     {
         public long StylistID { get; set; }
         public long ServiceManagementID { get; set; }
+        public string OptionValueCombinationKey { get; set; } = "";
         public decimal Price { get; set; }
         public TimeSpan Duration { get; set; }
         public int DepositPercent { get; set; }
@@ -56,6 +57,14 @@ namespace NobatPlusDATA.Domain
 
         public StylistService StylistService { get; set; }
         public ICollection<StylistServicePriceVariantOptionValue> OptionValues { get; set; }
+
+        public static string BuildOptionValueCombinationKey(IEnumerable<long>? optionValueIds)
+        {
+            return string.Join("|", (optionValueIds ?? Enumerable.Empty<long>())
+                .Where(x => x > 0)
+                .Distinct()
+                .OrderBy(x => x));
+        }
     }
 
     public class StylistServicePriceVariantOptionValue

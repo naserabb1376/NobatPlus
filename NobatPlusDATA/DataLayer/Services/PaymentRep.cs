@@ -126,20 +126,16 @@ namespace NobatPlusDATA.DataLayer.Services
                     .Include(x => x.PaymentDetails).ThenInclude(x => x.OptionValues).ThenInclude(x => x.ServiceOptionValue).ThenInclude(x => x.ServiceOption)
                     .Include(x => x.PaymentBookings).ThenInclude(x => x.Booking).ThenInclude(x => x.Customer).ThenInclude(x => x.Person)
                     .Include(x => x.PaymentBookings).ThenInclude(x => x.Booking).ThenInclude(x => x.Stylist).ThenInclude(x => x.Person)
-                    .Include(x => x.Booking).ThenInclude(x => x.Customer).ThenInclude(x => x.Person)
-                    .Include(x => x.Booking).ThenInclude(x => x.Stylist).ThenInclude(x => x.Person)
                         .AsNoTracking();
 
                 if (customerId > 0)
                 {
-                    query = query.Where(x =>
-                        x.Booking.CustomerID == customerId ||
-                        x.PaymentBookings.Any(pb => pb.Booking.CustomerID == customerId));
+                    query = query.Where(x => x.PaymentBookings.Any(pb => pb.Booking.CustomerID == customerId));
                 }
 
                 if (bookingId > 0)
                 {
-                    query = query.Where(x=> x.BookingID == bookingId || x.PaymentBookings.Any(pb => pb.BookingID == bookingId));
+                    query = query.Where(x=> x.PaymentBookings.Any(pb => pb.BookingID == bookingId));
                 }
                 if(paymentIncludes == 0)
                 {
@@ -201,8 +197,6 @@ namespace NobatPlusDATA.DataLayer.Services
                     .Include(x => x.PaymentDetails).ThenInclude(x => x.OptionValues).ThenInclude(x => x.ServiceOptionValue).ThenInclude(x => x.ServiceOption)
                     .Include(x => x.PaymentBookings).ThenInclude(x => x.Booking).ThenInclude(x => x.Customer).ThenInclude(x => x.Person)
                     .Include(x => x.PaymentBookings).ThenInclude(x => x.Booking).ThenInclude(x => x.Stylist).ThenInclude(x => x.Person)
-                    .Include(x => x.Booking).ThenInclude(x => x.Customer).ThenInclude(x => x.Person)
-                    .Include(x => x.Booking).ThenInclude(x => x.Stylist).ThenInclude(x => x.Person)
                 .AsNoTracking()
                 .SingleOrDefaultAsync(x => x.ID == PaymentId);
             }

@@ -904,9 +904,6 @@ namespace NobatPlusDATA.Migrations
                         .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
-                    b.Property<long>("BookingID")
-                        .HasColumnType("bigint");
-
                     b.Property<DateTime?>("CreateDate")
                         .HasColumnType("datetime2");
 
@@ -965,8 +962,6 @@ namespace NobatPlusDATA.Migrations
                         .HasColumnType("decimal(18,2)");
 
                     b.HasKey("ID");
-
-                    b.HasIndex("BookingID");
 
                     b.ToTable("Payments");
                 });
@@ -1877,6 +1872,10 @@ namespace NobatPlusDATA.Migrations
                     b.Property<bool>("IsActive")
                         .HasColumnType("bit");
 
+                    b.Property<string>("OptionValueCombinationKey")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
                     b.Property<decimal>("Price")
                         .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
@@ -1892,7 +1891,8 @@ namespace NobatPlusDATA.Migrations
 
                     b.HasKey("ID");
 
-                    b.HasIndex("StylistID", "ServiceManagementID");
+                    b.HasIndex("StylistID", "ServiceManagementID", "OptionValueCombinationKey")
+                        .IsUnique();
 
                     b.ToTable("StylistServicePriceVariants");
                 });
@@ -2365,17 +2365,6 @@ namespace NobatPlusDATA.Migrations
                         .IsRequired();
 
                     b.Navigation("Person");
-                });
-
-            modelBuilder.Entity("NobatPlusDATA.Domain.Payment", b =>
-                {
-                    b.HasOne("NobatPlusDATA.Domain.Booking", "Booking")
-                        .WithMany("Payments")
-                        .HasForeignKey("BookingID")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Booking");
                 });
 
             modelBuilder.Entity("NobatPlusDATA.Domain.PaymentBooking", b =>

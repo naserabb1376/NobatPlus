@@ -141,6 +141,12 @@ namespace NobatPlusAPI.Controllers
             var customerId = dbcustomer.ID;
             var discountId = requestBody.DiscountID ?? 0;
             var bookingIds = NormalizeBookingIds(requestBody);
+            if (!bookingIds.Any())
+            {
+                result.Status = false;
+                result.ErrorMessage = "حداقل یک رزرو برای پرداخت انتخاب کنید";
+                return BadRequest(result);
+            }
 
             var calcPayment = await _PaymentRep.CalculatePaymentAsync(customerId,bookingIds,discountId);
 
@@ -156,7 +162,6 @@ namespace NobatPlusAPI.Controllers
             {
                 CreateDate = DateTime.Now.ToShamsi(),
                 UpdateDate = DateTime.Now.ToShamsi(),
-                BookingID = bookingIds.FirstOrDefault(),
                 DepositAmount = calcPayment.Result.DepositAmount,
                 TotalServiceAmount = calcPayment.Result.TotalServiceAmount,
                 PlarformAmount = calcPayment.Result.PlatformAmount,
@@ -269,6 +274,12 @@ namespace NobatPlusAPI.Controllers
             var customerId = dbcustomer.ID;
             var discountId = requestBody.DiscountID ?? 0;
             var bookingIds = NormalizeBookingIds(requestBody);
+            if (!bookingIds.Any())
+            {
+                result.Status = false;
+                result.ErrorMessage = "حداقل یک رزرو برای پرداخت انتخاب کنید";
+                return BadRequest(result);
+            }
 
             var calcPayment = await _PaymentRep.CalculatePaymentAsync(customerId, bookingIds, discountId);
 
@@ -285,7 +296,6 @@ namespace NobatPlusAPI.Controllers
                 CreateDate = theRow.Result.CreateDate,
                 UpdateDate = DateTime.Now.ToShamsi(),
                 ID = requestBody.ID,
-                BookingID = bookingIds.FirstOrDefault(),
                 DepositAmount = calcPayment.Result.DepositAmount,
                 TotalServiceAmount = calcPayment.Result.TotalServiceAmount,
                 PlarformAmount = calcPayment.Result.PlatformAmount,
@@ -425,7 +435,7 @@ namespace NobatPlusAPI.Controllers
                 return BadRequest(result);
             }
 
-            var bookingId = payment.PaymentBookings?.FirstOrDefault()?.BookingID ?? payment.BookingID;
+            var bookingId = payment.PaymentBookings?.FirstOrDefault()?.BookingID ?? 0;
             if (bookingId <= 0)
             {
                 result.Status = false;
@@ -580,7 +590,6 @@ namespace NobatPlusAPI.Controllers
                         ID = payment.ID,
                         CreateDate = payment.CreateDate,
                         UpdateDate = DateTime.Now.ToShamsi(),
-                        BookingID = payment.BookingID,
                         DiscountID = payment.DiscountID,
                         AllPaymentAmount = payment.AllPaymentAmount,
                         DepositAmount = payment.DepositAmount,
@@ -650,8 +659,7 @@ namespace NobatPlusAPI.Controllers
                 return false;
             }
 
-            return payment.Booking?.CustomerID == dbcustomer.ID ||
-                   (payment.PaymentBookings?.Any(x => x.Booking?.CustomerID == dbcustomer.ID) ?? false);
+            return payment.PaymentBookings?.Any(x => x.Booking?.CustomerID == dbcustomer.ID) ?? false;
         }
 
         private static decimal GetOnlinePayableAmount(Payment payment)
@@ -689,11 +697,6 @@ namespace NobatPlusAPI.Controllers
             var bookingIds = requestBody.BookingIDs?
                 .Where(x => x > 0)
                 .ToList() ?? new List<long>();
-
-            if (requestBody.BookingID > 0)
-            {
-                bookingIds.Add(requestBody.BookingID);
-            }
 
             return bookingIds.Distinct().ToList();
         }
