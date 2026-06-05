@@ -904,9 +904,6 @@ namespace NobatPlusDATA.Migrations
                         .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
-                    b.Property<long>("BookingID")
-                        .HasColumnType("bigint");
-
                     b.Property<DateTime?>("CreateDate")
                         .HasColumnType("datetime2");
 
@@ -965,8 +962,6 @@ namespace NobatPlusDATA.Migrations
                         .HasColumnType("decimal(18,2)");
 
                     b.HasKey("ID");
-
-                    b.HasIndex("BookingID");
 
                     b.ToTable("Payments");
                 });
@@ -2365,17 +2360,6 @@ namespace NobatPlusDATA.Migrations
                         .IsRequired();
 
                     b.Navigation("Person");
-                });
-
-            modelBuilder.Entity("NobatPlusDATA.Domain.Payment", b =>
-                {
-                    b.HasOne("NobatPlusDATA.Domain.Booking", "Booking")
-                        .WithMany("Payments")
-                        .HasForeignKey("BookingID")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Booking");
                 });
 
             modelBuilder.Entity("NobatPlusDATA.Domain.PaymentBooking", b =>
