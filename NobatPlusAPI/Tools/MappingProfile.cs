@@ -28,6 +28,9 @@ namespace NobatPlusAPI.Tools
 .ForMember(dest => dest.RateQuestionText, opt => opt.MapFrom(src => src.RateQuestion.RateQuestionText))
 ;
 
+            CreateMap<BookingServiceOptionValueDTO, BookingSelectedServiceOptionValueVM>();
+            CreateMap<BookingServiceSelectionDTO, BookingSelectedServiceVM>();
+
             CreateMap<BookingDTO, BookingVM>()
            .ForMember(dest => dest.SalonName, opt => opt.MapFrom(src => src.Stylist.StylistName))
            .ForMember(dest => dest.StylistName, opt => opt.MapFrom(src => src.Stylist.Person.FirstName + " " + src.Stylist.Person.LastName))
