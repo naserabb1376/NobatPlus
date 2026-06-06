@@ -520,6 +520,7 @@ namespace NobatPlusDATA.DataLayer.Services
         private async Task<string> ValidatePriceVariantsAsync(IEnumerable<StylistServicePriceVariant> variants)
         {
             var variantList = variants.ToList();
+            var rootServiceIds = new Dictionary<long, long>();
             foreach (var variant in variantList)
             {
                 var optionValueIds = variant.OptionValues?
@@ -549,7 +550,16 @@ namespace NobatPlusDATA.DataLayer.Services
                 if (optionRows.Count != optionValueIds.Count)
                     return "یک یا چند مقدار گزینه انتخاب شده معتبر نیست";
 
-                if (optionRows.Any(x => x.ServiceManagementID != variant.ServiceManagementID))
+                if (!rootServiceIds.TryGetValue(variant.ServiceManagementID, out var rootServiceManagementId))
+                {
+                    rootServiceManagementId = await GetRootServiceManagementIdAsync(variant.ServiceManagementID);
+                    rootServiceIds[variant.ServiceManagementID] = rootServiceManagementId;
+                }
+
+                if (rootServiceManagementId <= 0)
+                    return "خدمت انتخاب شده معتبر نیست";
+
+                if (optionRows.Any(x => x.ServiceManagementID != rootServiceManagementId))
                     return "گزینه‌های انتخاب شده باید متعلق به همان خدمت باشند";
 
                 if (optionRows.GroupBy(x => x.ServiceOptionID).Any(x => x.Count() > 1))
@@ -668,6 +678,23 @@ namespace NobatPlusDATA.DataLayer.Services
                 .Distinct()
                 .OrderBy(x => x)
                 .ToList() ?? new List<long>();
+        }
+
+        private async Task<long> GetRootServiceManagementIdAsync(long serviceManagementId)
+        {
+            var visitedIds = new HashSet<long>();
+            var current = await _context.ServiceManagements
+                .AsNoTracking()
+                .FirstOrDefaultAsync(x => x.ID == serviceManagementId);
+
+            while (current != null && current.ServiceParentID > 0 && visitedIds.Add(current.ID))
+            {
+                current = await _context.ServiceManagements
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(x => x.ID == current.ServiceParentID);
+            }
+
+            return current?.ID ?? 0;
         }
 
         private record ResolvedServicePricing(

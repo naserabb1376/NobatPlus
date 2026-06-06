@@ -202,7 +202,11 @@ namespace NobatPlusDATA.DataLayer.Services
             if (optionRows.Count != optionValueIds.Count)
                 return "یک یا چند مقدار گزینه انتخاب شده معتبر نیست";
 
-            if (optionRows.Any(x => x.ServiceManagementID != variant.ServiceManagementID))
+            var rootServiceManagementId = await GetRootServiceManagementIdAsync(variant.ServiceManagementID);
+            if (rootServiceManagementId <= 0)
+                return "خدمت انتخاب شده معتبر نیست";
+
+            if (optionRows.Any(x => x.ServiceManagementID != rootServiceManagementId))
                 return "گزینه‌های انتخاب شده باید متعلق به همان خدمت باشند";
 
             if (optionRows.GroupBy(x => x.ServiceOptionID).Any(x => x.Count() > 1))
@@ -219,6 +223,23 @@ namespace NobatPlusDATA.DataLayer.Services
             return duplicateExists
                 ? "برای یک آرایشگر و یک خدمت، این ترکیب گزینه‌ها قبلا ثبت شده است"
                 : "";
+        }
+
+        private async Task<long> GetRootServiceManagementIdAsync(long serviceManagementId)
+        {
+            var visitedIds = new HashSet<long>();
+            var current = await _context.ServiceManagements
+                .AsNoTracking()
+                .FirstOrDefaultAsync(x => x.ID == serviceManagementId);
+
+            while (current != null && current.ServiceParentID > 0 && visitedIds.Add(current.ID))
+            {
+                current = await _context.ServiceManagements
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(x => x.ID == current.ServiceParentID);
+            }
+
+            return current?.ID ?? 0;
         }
     }
 }
