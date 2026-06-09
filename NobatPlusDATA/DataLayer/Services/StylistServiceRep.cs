@@ -78,6 +78,8 @@ namespace NobatPlusDATA.DataLayer.Services
                                         Duration = variant.Duration,
                                         DepositPercent = variant.DepositPercent,
                                         IsActive = variant.IsActive,
+                                        OptionValueCombinationKey = StylistServicePriceVariant.BuildOptionValueCombinationKey(
+                                            variant.OptionValues?.Select(x => x.ServiceOptionValueID)),
                                         OptionValues = variant.OptionValues?.Select(optionValue => new StylistServicePriceVariantOptionValue
                                         {
                                             ServiceOptionValueID = optionValue.ServiceOptionValueID
@@ -91,6 +93,14 @@ namespace NobatPlusDATA.DataLayer.Services
 
                     if (servicesToInsert.Any())
                     {
+                        var validationError = await ValidatePriceVariantsAsync(servicesToInsert.SelectMany(x => x.PriceVariants ?? new List<StylistServicePriceVariant>()));
+                        if (!string.IsNullOrEmpty(validationError))
+                        {
+                            result.Status = false;
+                            result.ErrorMessage = validationError;
+                            return result;
+                        }
+
                         await _context.StylistServices.AddRangeAsync(servicesToInsert);
                         await _context.SaveChangesAsync();
                     }
@@ -507,6 +517,83 @@ namespace NobatPlusDATA.DataLayer.Services
             return result;
         }
 
+        private async Task<string> ValidatePriceVariantsAsync(IEnumerable<StylistServicePriceVariant> variants)
+        {
+            var variantList = variants.ToList();
+            var rootServiceIds = new Dictionary<long, long>();
+            foreach (var variant in variantList)
+            {
+                var optionValueIds = variant.OptionValues?
+                    .Select(x => x.ServiceOptionValueID)
+                    .Where(x => x > 0)
+                    .Distinct()
+                    .OrderBy(x => x)
+                    .ToList() ?? new List<long>();
+
+                variant.OptionValueCombinationKey = StylistServicePriceVariant.BuildOptionValueCombinationKey(optionValueIds);
+
+                if (!optionValueIds.Any())
+                    return "حداقل یک گزینه برای قیمت متغیر خدمت باید انتخاب شود";
+
+                var optionRows = await _context.ServiceOptionValues
+                    .AsNoTracking()
+                    .Include(x => x.ServiceOption)
+                    .Where(x => optionValueIds.Contains(x.ID))
+                    .Select(x => new
+                    {
+                        x.ID,
+                        x.ServiceOptionID,
+                        x.ServiceOption.ServiceManagementID
+                    })
+                    .ToListAsync();
+
+                if (optionRows.Count != optionValueIds.Count)
+                    return "یک یا چند مقدار گزینه انتخاب شده معتبر نیست";
+
+                if (!rootServiceIds.TryGetValue(variant.ServiceManagementID, out var rootServiceManagementId))
+                {
+                    rootServiceManagementId = await GetRootServiceManagementIdAsync(variant.ServiceManagementID);
+                    rootServiceIds[variant.ServiceManagementID] = rootServiceManagementId;
+                }
+
+                if (rootServiceManagementId <= 0)
+                    return "خدمت انتخاب شده معتبر نیست";
+
+                if (optionRows.Any(x => x.ServiceManagementID != rootServiceManagementId))
+                    return "گزینه‌های انتخاب شده باید متعلق به همان خدمت باشند";
+
+                if (optionRows.GroupBy(x => x.ServiceOptionID).Any(x => x.Count() > 1))
+                    return "برای هر ویژگی فقط یک مقدار قابل انتخاب است";
+            }
+
+            var duplicateInput = variantList
+                .GroupBy(x => new { x.StylistID, x.ServiceManagementID, x.OptionValueCombinationKey })
+                .FirstOrDefault(x => x.Count() > 1);
+
+            if (duplicateInput != null)
+                return "برای یک آرایشگر و یک خدمت، ترکیب گزینه‌های قیمت متغیر نباید تکراری باشد";
+
+            var keysByService = variantList
+                .GroupBy(x => new { x.StylistID, x.ServiceManagementID })
+                .ToList();
+
+            foreach (var group in keysByService)
+            {
+                var keys = group.Select(x => x.OptionValueCombinationKey).ToList();
+                var exists = await _context.StylistServicePriceVariants
+                    .AsNoTracking()
+                    .AnyAsync(x =>
+                        x.StylistID == group.Key.StylistID &&
+                        x.ServiceManagementID == group.Key.ServiceManagementID &&
+                        keys.Contains(x.OptionValueCombinationKey));
+
+                if (exists)
+                    return "برای یک آرایشگر و یک خدمت، این ترکیب گزینه‌ها قبلا ثبت شده است";
+            }
+
+            return "";
+        }
+
         private async Task<ResolvedServicePricing> ResolvePricingAsync(
             long stylistId,
             long serviceManagementId,
@@ -591,6 +678,23 @@ namespace NobatPlusDATA.DataLayer.Services
                 .Distinct()
                 .OrderBy(x => x)
                 .ToList() ?? new List<long>();
+        }
+
+        private async Task<long> GetRootServiceManagementIdAsync(long serviceManagementId)
+        {
+            var visitedIds = new HashSet<long>();
+            var current = await _context.ServiceManagements
+                .AsNoTracking()
+                .FirstOrDefaultAsync(x => x.ID == serviceManagementId);
+
+            while (current != null && current.ServiceParentID > 0 && visitedIds.Add(current.ID))
+            {
+                current = await _context.ServiceManagements
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(x => x.ID == current.ServiceParentID);
+            }
+
+            return current?.ID ?? 0;
         }
 
         private record ResolvedServicePricing(

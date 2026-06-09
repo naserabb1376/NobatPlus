@@ -7,7 +7,8 @@ namespace NobatPlusDATA.ViewModels
 {
     public class PaymentHistoryVM:BaseEntity
     {
-        public long BookingID { get; set; }
+        public long PaymentID { get; set; }
+        public List<long> BookingIDs { get; set; } = new List<long>();
         public long StylistID { get; set; }
         public long CustomerID { get; set; }
         public string StylistName { get; set; }

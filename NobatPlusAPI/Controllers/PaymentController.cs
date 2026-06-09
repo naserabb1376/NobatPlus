@@ -141,6 +141,12 @@ namespace NobatPlusAPI.Controllers
             var customerId = dbcustomer.ID;
             var discountId = requestBody.DiscountID ?? 0;
             var bookingIds = NormalizeBookingIds(requestBody);
+            if (!bookingIds.Any())
+            {
+                result.Status = false;
+                result.ErrorMessage = "حداقل یک رزرو برای پرداخت انتخاب کنید";
+                return BadRequest(result);
+            }
 
             var calcPayment = await _PaymentRep.CalculatePaymentAsync(customerId,bookingIds,discountId);
 
@@ -156,7 +162,6 @@ namespace NobatPlusAPI.Controllers
             {
                 CreateDate = DateTime.Now.ToShamsi(),
                 UpdateDate = DateTime.Now.ToShamsi(),
-                BookingID = bookingIds.FirstOrDefault(),
                 DepositAmount = calcPayment.Result.DepositAmount,
                 TotalServiceAmount = calcPayment.Result.TotalServiceAmount,
                 PlarformAmount = calcPayment.Result.PlatformAmount,
@@ -203,27 +208,23 @@ namespace NobatPlusAPI.Controllers
                 return BadRequest(result);
             }
 
-            foreach (var bookingId in bookingIds)
+            PaymentHistory paymentHistory = new PaymentHistory()
             {
-                PaymentHistory paymentHistory = new PaymentHistory()
-                {
-                    CreateDate = DateTime.Now.ToShamsi(),
-                    UpdateDate = DateTime.Now.ToShamsi(),
-                    BookingID = bookingId,
-                    PaymentID = result.ID,
-                    PaymentMethod = requestBody.PaymentLevel,
-                    PaymentDate = requestBody.PaymentDate ?? DateTime.Now.ToShamsi(),
-                    Amount = calcPayment.Result.PayedAmount,
-                    PaymentStatus = requestBody.PaymentFinished,
-                    GatewayName = requestBody.PaymentLevel == 1 ? "Cash" : null,
-                    Description = requestBody.Description,
-                };
-                result = await _PaymentHistoryRep.AddPaymentHistoryAsync(paymentHistory);
+                CreateDate = DateTime.Now.ToShamsi(),
+                UpdateDate = DateTime.Now.ToShamsi(),
+                PaymentID = result.ID,
+                PaymentMethod = requestBody.PaymentLevel,
+                PaymentDate = requestBody.PaymentDate ?? DateTime.Now.ToShamsi(),
+                Amount = calcPayment.Result.PayedAmount,
+                PaymentStatus = requestBody.PaymentFinished,
+                GatewayName = requestBody.PaymentLevel == 1 ? "Cash" : null,
+                Description = requestBody.Description,
+            };
+            result = await _PaymentHistoryRep.AddPaymentHistoryAsync(paymentHistory);
 
-                if (!result.Status)
-                {
-                    return BadRequest(result);
-                }
+            if (!result.Status)
+            {
+                return BadRequest(result);
             }
 
             if (result.Status)
@@ -269,6 +270,12 @@ namespace NobatPlusAPI.Controllers
             var customerId = dbcustomer.ID;
             var discountId = requestBody.DiscountID ?? 0;
             var bookingIds = NormalizeBookingIds(requestBody);
+            if (!bookingIds.Any())
+            {
+                result.Status = false;
+                result.ErrorMessage = "حداقل یک رزرو برای پرداخت انتخاب کنید";
+                return BadRequest(result);
+            }
 
             var calcPayment = await _PaymentRep.CalculatePaymentAsync(customerId, bookingIds, discountId);
 
@@ -285,7 +292,6 @@ namespace NobatPlusAPI.Controllers
                 CreateDate = theRow.Result.CreateDate,
                 UpdateDate = DateTime.Now.ToShamsi(),
                 ID = requestBody.ID,
-                BookingID = bookingIds.FirstOrDefault(),
                 DepositAmount = calcPayment.Result.DepositAmount,
                 TotalServiceAmount = calcPayment.Result.TotalServiceAmount,
                 PlarformAmount = calcPayment.Result.PlatformAmount,
@@ -425,8 +431,7 @@ namespace NobatPlusAPI.Controllers
                 return BadRequest(result);
             }
 
-            var bookingId = payment.PaymentBookings?.FirstOrDefault()?.BookingID ?? payment.BookingID;
-            if (bookingId <= 0)
+            if (payment.PaymentBookings == null || !payment.PaymentBookings.Any())
             {
                 result.Status = false;
                 result.Result = null;
@@ -439,7 +444,6 @@ namespace NobatPlusAPI.Controllers
             {
                 CreateDate = DateTime.Now.ToShamsi(),
                 UpdateDate = DateTime.Now.ToShamsi(),
-                BookingID = bookingId,
                 PaymentID = payment.ID,
                 PaymentDate = DateTime.Now.ToShamsi(),
                 PaymentMethod = payment.PaymentLevel,
@@ -508,7 +512,6 @@ namespace NobatPlusAPI.Controllers
                 ID = addResult.ID,
                 CreateDate = paymentHistory.CreateDate,
                 UpdateDate = DateTime.Now.ToShamsi(),
-                BookingID = bookingId,
                 PaymentID = payment.ID,
                 PaymentDate = paymentHistory.PaymentDate,
                 PaymentMethod = payment.PaymentLevel,
@@ -580,7 +583,6 @@ namespace NobatPlusAPI.Controllers
                         ID = payment.ID,
                         CreateDate = payment.CreateDate,
                         UpdateDate = DateTime.Now.ToShamsi(),
-                        BookingID = payment.BookingID,
                         DiscountID = payment.DiscountID,
                         AllPaymentAmount = payment.AllPaymentAmount,
                         DepositAmount = payment.DepositAmount,
@@ -650,8 +652,7 @@ namespace NobatPlusAPI.Controllers
                 return false;
             }
 
-            return payment.Booking?.CustomerID == dbcustomer.ID ||
-                   (payment.PaymentBookings?.Any(x => x.Booking?.CustomerID == dbcustomer.ID) ?? false);
+            return payment.PaymentBookings?.Any(x => x.Booking?.CustomerID == dbcustomer.ID) ?? false;
         }
 
         private static decimal GetOnlinePayableAmount(Payment payment)
@@ -666,7 +667,6 @@ namespace NobatPlusAPI.Controllers
                 ID = source.ID,
                 CreateDate = source.CreateDate,
                 UpdateDate = DateTime.Now.ToShamsi(),
-                BookingID = source.BookingID,
                 PaymentID = source.PaymentID,
                 PaymentDate = DateTime.Now.ToShamsi(),
                 PaymentMethod = source.PaymentMethod,
@@ -689,11 +689,6 @@ namespace NobatPlusAPI.Controllers
             var bookingIds = requestBody.BookingIDs?
                 .Where(x => x > 0)
                 .ToList() ?? new List<long>();
-
-            if (requestBody.BookingID > 0)
-            {
-                bookingIds.Add(requestBody.BookingID);
-            }
 
             return bookingIds.Distinct().ToList();
         }

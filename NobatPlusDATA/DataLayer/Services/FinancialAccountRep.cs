@@ -419,14 +419,17 @@ namespace NobatPlusDATA.DataLayer.Services
                 : new List<long> { account.StylistID };
 
             var paidPayments = await _context.Payments
-                .Include(x => x.Booking)
+                .Include(x => x.PaymentBookings).ThenInclude(x => x.Booking)
                 .AsNoTracking()
                 .Where(x => x.PaymentFinished || x.PayedAmount > 0)
-                .Where(x => stylistIds.Contains(x.Booking.StylistID))
+                .Where(x => x.PaymentBookings.Any(pb => stylistIds.Contains(pb.Booking.StylistID)))
                 .Select(x => new
                 {
                     x.ID,
-                    x.BookingID,
+                    BookingID = x.PaymentBookings
+                        .Where(pb => stylistIds.Contains(pb.Booking.StylistID))
+                        .Select(pb => pb.BookingID)
+                        .FirstOrDefault(),
                     x.StylistAmount,
                     x.PayedAmount,
                     x.PaymentDate

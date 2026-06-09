@@ -17,7 +17,7 @@ namespace NobatPlusDATA.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "10.0.3")
+                .HasAnnotation("ProductVersion", "10.0.5")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
@@ -904,9 +904,6 @@ namespace NobatPlusDATA.Migrations
                         .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
-                    b.Property<long>("BookingID")
-                        .HasColumnType("bigint");
-
                     b.Property<DateTime?>("CreateDate")
                         .HasColumnType("datetime2");
 
@@ -965,8 +962,6 @@ namespace NobatPlusDATA.Migrations
                         .HasColumnType("decimal(18,2)");
 
                     b.HasKey("ID");
-
-                    b.HasIndex("BookingID");
 
                     b.ToTable("Payments");
                 });
@@ -1075,9 +1070,6 @@ namespace NobatPlusDATA.Migrations
                         .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
-                    b.Property<long>("BookingID")
-                        .HasColumnType("bigint");
-
                     b.Property<DateTime?>("CreateDate")
                         .HasColumnType("datetime2");
 
@@ -1115,8 +1107,6 @@ namespace NobatPlusDATA.Migrations
                         .HasColumnType("datetime2");
 
                     b.HasKey("ID");
-
-                    b.HasIndex("BookingID");
 
                     b.HasIndex("PaymentID");
 
@@ -1877,6 +1867,10 @@ namespace NobatPlusDATA.Migrations
                     b.Property<bool>("IsActive")
                         .HasColumnType("bit");
 
+                    b.Property<string>("OptionValueCombinationKey")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
                     b.Property<decimal>("Price")
                         .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
@@ -1892,7 +1886,8 @@ namespace NobatPlusDATA.Migrations
 
                     b.HasKey("ID");
 
-                    b.HasIndex("StylistID", "ServiceManagementID");
+                    b.HasIndex("StylistID", "ServiceManagementID", "OptionValueCombinationKey")
+                        .IsUnique();
 
                     b.ToTable("StylistServicePriceVariants");
                 });
@@ -2367,17 +2362,6 @@ namespace NobatPlusDATA.Migrations
                     b.Navigation("Person");
                 });
 
-            modelBuilder.Entity("NobatPlusDATA.Domain.Payment", b =>
-                {
-                    b.HasOne("NobatPlusDATA.Domain.Booking", "Booking")
-                        .WithMany("Payments")
-                        .HasForeignKey("BookingID")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Booking");
-                });
-
             modelBuilder.Entity("NobatPlusDATA.Domain.PaymentBooking", b =>
                 {
                     b.HasOne("NobatPlusDATA.Domain.Booking", "Booking")
@@ -2468,19 +2452,11 @@ namespace NobatPlusDATA.Migrations
 
             modelBuilder.Entity("NobatPlusDATA.Domain.PaymentHistory", b =>
                 {
-                    b.HasOne("NobatPlusDATA.Domain.Booking", "Booking")
-                        .WithMany()
-                        .HasForeignKey("BookingID")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired();
-
                     b.HasOne("NobatPlusDATA.Domain.Payment", "Payment")
                         .WithMany()
                         .HasForeignKey("PaymentID")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-
-                    b.Navigation("Booking");
 
                     b.Navigation("Payment");
                 });
@@ -2817,8 +2793,6 @@ namespace NobatPlusDATA.Migrations
                     b.Navigation("BookingServices");
 
                     b.Navigation("PaymentBookings");
-
-                    b.Navigation("Payments");
 
                     b.Navigation("RateHistories");
 

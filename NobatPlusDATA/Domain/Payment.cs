@@ -9,7 +9,6 @@ namespace NobatPlusDATA.Domain
 {
     public class Payment : BaseEntity
     {
-        public long BookingID { get; set; }
         public long DiscountID { get; set; }
         public decimal AllPaymentAmount { get; set; }
         public decimal DepositAmount { get; set; }
@@ -25,7 +24,6 @@ namespace NobatPlusDATA.Domain
         public bool PaymentFinished { get; set; }
         public int PaymentLevel { get; set; }
 
-        public Booking Booking { get; set; }
         public Discount? Discount { get; set; }
         public ICollection<PaymentBooking> PaymentBookings { get; set; }
         public ICollection<PaymentDetail> PaymentDetails { get; set; }

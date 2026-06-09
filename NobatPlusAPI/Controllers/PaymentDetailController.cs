@@ -243,7 +243,8 @@ namespace NobatPlusAPI.Controllers
                 var customer = await _CustomerRep.ExistCustomerAsync(personId.ToString(), "personid");
                 if (!customer.Status) return false;
                 var payment = await _PaymentRep.GetPaymentByIdAsync(requestBody.PaymentId);
-                return payment.Status && payment.Result != null && payment.Result.Booking.CustomerID == customer.ID;
+                return payment.Status && payment.Result != null &&
+                       (payment.Result.PaymentBookings?.Any(x => x.Booking?.CustomerID == customer.ID) ?? false);
             }
 
             if (roleId == 2)
@@ -284,7 +285,8 @@ namespace NobatPlusAPI.Controllers
                 var customer = await _CustomerRep.ExistCustomerAsync(personId.ToString(), "personid");
                 if (!customer.Status) return false;
                 var payment = await _PaymentRep.GetPaymentByIdAsync(detail.PaymentID);
-                return payment.Status && payment.Result != null && payment.Result.Booking.CustomerID == customer.ID;
+                return payment.Status && payment.Result != null &&
+                       (payment.Result.PaymentBookings?.Any(x => x.Booking?.CustomerID == customer.ID) ?? false);
             }
 
             if (roleId == 2)

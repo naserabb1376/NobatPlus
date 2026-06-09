@@ -18,7 +18,6 @@ namespace NobatPlusDATA.Domain
 
         public Stylist Stylist { get; set; }
         public Customer Customer { get; set; }
-        public ICollection<Payment> Payments { get; set; }
         public ICollection<PaymentBooking> PaymentBookings { get; set; }
         public ICollection<Review> Reviews { get; set; }
         public ICollection<RateHistory> RateHistories { get; set; }
@@ -40,5 +39,22 @@ namespace NobatPlusDATA.Domain
 
         public Stylist Stylist { get; set; }
         public Customer Customer { get; set; }
+        public List<BookingServiceSelectionDTO>? Services { get; set; }
+    }
+
+    public class BookingServiceSelectionDTO
+    {
+        public long ServiceID { get; set; }
+        public string? ServiceName { get; set; }
+        public List<long>? OptionValueIDs { get; set; }
+        public List<BookingServiceOptionValueDTO>? OptionValues { get; set; }
+    }
+
+    public class BookingServiceOptionValueDTO
+    {
+        public long ServiceOptionValueID { get; set; }
+        public long ServiceOptionID { get; set; }
+        public string? OptionName { get; set; }
+        public string? ValueName { get; set; }
     }
 }

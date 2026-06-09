@@ -199,7 +199,6 @@ namespace NobatPlusDATA.DataLayer.Services
                 {
                     CreateDate = now,
                     UpdateDate = now,
-                    BookingID = bookingId,
                     DepositAmount = calcPayment.Result.DepositAmount,
                     TotalServiceAmount = calcPayment.Result.TotalServiceAmount,
                     PlarformAmount = calcPayment.Result.PlatformAmount,
@@ -247,7 +246,6 @@ namespace NobatPlusDATA.DataLayer.Services
                 {
                     CreateDate = now,
                     UpdateDate = now,
-                    BookingID = bookingId,
                     PaymentID = payment.ID,
                     PaymentMethod = 2,
                     PaymentDate = now,

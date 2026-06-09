@@ -300,12 +300,27 @@ namespace NobatPlusDATA.DataLayer.Services
                         CancelReason = b.CancelReason,
 
                         Stylist = b.Stylist,
-                        Customer = b.Customer
+                        Customer = b.Customer,
+                        Services = b.BookingServices.Select(bs => new BookingServiceSelectionDTO
+                        {
+                            ServiceID = bs.ServiceManagementID,
+                            ServiceName = bs.ServiceManagement.ServiceName,
+                            OptionValueIDs = bs.OptionValues.Select(ov => ov.ServiceOptionValueID).ToList(),
+                            OptionValues = bs.OptionValues.Select(ov => new BookingServiceOptionValueDTO
+                            {
+                                ServiceOptionValueID = ov.ServiceOptionValueID,
+                                ServiceOptionID = ov.ServiceOptionValue.ServiceOptionID,
+                                OptionName = ov.ServiceOptionValue.ServiceOption.OptionName,
+                                ValueName = ov.ServiceOptionValue.ValueName
+                            }).ToList()
+                        }).ToList()
                     }
                 )
                 .SortBy(sortQuery)
                 .ToPaging(pageIndex, pageSize)
                 .ToListAsync();
+
+                NormalizeBookingServiceSelections(results.Results);
 
                 results.Status = true;
             }
@@ -385,9 +400,24 @@ namespace NobatPlusDATA.DataLayer.Services
                         CancelReason = b.CancelReason,
 
                         Stylist = b.Stylist,
-                        Customer = b.Customer
+                        Customer = b.Customer,
+                        Services = b.BookingServices.Select(bs => new BookingServiceSelectionDTO
+                        {
+                            ServiceID = bs.ServiceManagementID,
+                            ServiceName = bs.ServiceManagement.ServiceName,
+                            OptionValueIDs = bs.OptionValues.Select(ov => ov.ServiceOptionValueID).ToList(),
+                            OptionValues = bs.OptionValues.Select(ov => new BookingServiceOptionValueDTO
+                            {
+                                ServiceOptionValueID = ov.ServiceOptionValueID,
+                                ServiceOptionID = ov.ServiceOptionValue.ServiceOptionID,
+                                OptionName = ov.ServiceOptionValue.ServiceOption.OptionName,
+                                ValueName = ov.ServiceOptionValue.ValueName
+                            }).ToList()
+                        }).ToList()
                     }
                 ).SingleOrDefaultAsync();
+
+                NormalizeBookingServiceSelections(result.Result == null ? new List<BookingDTO>() : new List<BookingDTO> { result.Result });
 
                 result.Status = true;
             }
@@ -398,6 +428,32 @@ namespace NobatPlusDATA.DataLayer.Services
             }
 
             return result;
+        }
+
+
+        private static void NormalizeBookingServiceSelections(List<BookingDTO> bookings)
+        {
+            foreach (var booking in bookings)
+            {
+                if (booking.Services == null || !booking.Services.Any())
+                {
+                    booking.Services = null;
+                    continue;
+                }
+
+                foreach (var service in booking.Services)
+                {
+                    if (service.OptionValueIDs == null || !service.OptionValueIDs.Any())
+                    {
+                        service.OptionValueIDs = null;
+                    }
+
+                    if (service.OptionValues == null || !service.OptionValues.Any())
+                    {
+                        service.OptionValues = null;
+                    }
+                }
+            }
         }
 
 

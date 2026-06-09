@@ -9,7 +9,6 @@ namespace NobatPlusDATA.Domain
 {
     public class PaymentHistory : BaseEntity
     {
-        public long BookingID { get; set; }
         public long PaymentID { get; set; }
         public DateTime PaymentDate { get; set; }
         public int PaymentMethod { get; set; }
@@ -21,7 +20,6 @@ namespace NobatPlusDATA.Domain
         public string? GatewayMessage { get; set; }
         public string? PaymentToken { get; set; }
 
-        public Booking Booking { get; set; }
         public Payment Payment { get; set; }
     }
 }
