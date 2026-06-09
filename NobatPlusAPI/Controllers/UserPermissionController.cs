@@ -19,12 +19,14 @@ using System.Security.Claims;
 using System.Text;
 using static NobatPlusAPI.Tools.ToolBox;
 using Domains;
+using NobatPlusAPI.Tools;
 
 namespace NobatPlusAPI.Controllers
 {
     [Route("UserPermission")]
     [ApiController]
     [Authorize]
+    [RequireRole(4)]
     [Produces("application/json")]
     // [CheckRoleBase(new[] { (int)BaseRole.GeneralAdmin })]
 
@@ -201,6 +203,13 @@ namespace NobatPlusAPI.Controllers
                 return BadRequest(ids);
             }
 
+            var userIds = new List<long>();
+            foreach (var id in ids)
+            {
+                var row = await _UserPermissionRep.GetUserPermissionByIdAsync(id);
+                if (row.Result != null) userIds.Add(row.Result.UserId);
+            }
+
             var result = await _UserPermissionRep.RemoveUserPermissionsAsync(ids);
             if (result.Status)
             {
@@ -217,7 +226,7 @@ namespace NobatPlusAPI.Controllers
 
                 #endregion
 
-                await _PermissionInvalidationService.BumpUserVersionAsync(ids);
+                await _PermissionInvalidationService.BumpUserVersionAsync(userIds.Distinct().ToList());
 
                 return Ok(result);
             }

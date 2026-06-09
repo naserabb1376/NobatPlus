@@ -129,10 +129,7 @@ namespace NobatPlusAPI.Controllers
 
             if (result.Status)
             {
-                BackgroundJob.Schedule<JobManager>(
-       job => job.SendBookingRemindMessage(result.ID),
-       requestBody.BookingDate.AddDays(-1)
-   );
+                ScheduleBookingReminders(result.ID, requestBody.BookingDate);
                 #region AddLog
 
                 Log log = new Log()
@@ -193,6 +190,8 @@ namespace NobatPlusAPI.Controllers
             result = await _BookingRep.EditBookingAsync(Booking);
             if (result.Status)
             {
+                if (!requestBody.IsCancelled && requestBody.Status == "1")
+                    ScheduleBookingReminders(result.ID, requestBody.BookingDate);
 
                 #region AddLog
 
@@ -265,6 +264,20 @@ namespace NobatPlusAPI.Controllers
                         .ToList() ?? new List<BookingServiceOptionValue>()
                 })
                 .ToList();
+        }
+
+        private static void ScheduleBookingReminders(long bookingId, DateTime bookingDate)
+        {
+            foreach (var leadHours in new[] { 24, 2 })
+            {
+                var scheduleAt = bookingDate.AddHours(-leadHours);
+                if (scheduleAt <= DateTime.Now)
+                    continue;
+
+                BackgroundJob.Schedule<JobManager>(
+                    job => job.SendBookingRemindMessage(bookingId, leadHours),
+                    scheduleAt);
+            }
         }
     }
 }

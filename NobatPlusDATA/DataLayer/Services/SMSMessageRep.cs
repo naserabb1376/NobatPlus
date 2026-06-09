@@ -80,6 +80,13 @@ namespace NobatPlusDATA.DataLayer.Services
             
         }
 
+        public Task<bool> HasMessageWithDescriptionAsync(string description)
+        {
+            return _context.SMSMessages
+                .AsNoTracking()
+                .AnyAsync(x => x.Description == description);
+        }
+
         public async Task<ListResultObject<SMSMessage>> GetAllSMSMessagesAsync(long personId = 0, int pageIndex = 1, int pageSize = 20, string searchText = "",string sortQuery ="")
         {
             ListResultObject<SMSMessage> results = new ListResultObject<SMSMessage>();

@@ -290,6 +290,10 @@ namespace NobatPlusDATA.DataLayer.Services
                         BookingEndDate = b.BookingDate.AddMinutes(totalDurationMinutes),
 
                         TotalBlockMinutes = totalDurationMinutes + restMinutes,
+                        ServiceIDs = _context.BookingServices
+                            .Where(bs => bs.BookingID == b.ID)
+                            .Select(bs => bs.ServiceManagementID)
+                            .ToList(),
 
                         Status = b.Status,
                         IsCancelled = b.IsCancelled,
@@ -386,6 +390,10 @@ namespace NobatPlusDATA.DataLayer.Services
                         BookingEndDate = b.BookingDate.AddMinutes(totalDurationMinutes),
 
                         TotalBlockMinutes = totalDurationMinutes + restMinutes,
+                        ServiceIDs = _context.BookingServices
+                            .Where(bs => bs.BookingID == b.ID)
+                            .Select(bs => bs.ServiceManagementID)
+                            .ToList(),
 
                         Status = b.Status,
                         IsCancelled = b.IsCancelled,
@@ -634,6 +642,104 @@ namespace NobatPlusDATA.DataLayer.Services
 
             if (hasPacificConflict)
                 throw new InvalidOperationException("آرایشگر در زمان انتخاب شده مرخصی دارد.");
+        }
+
+        public async Task<ListResultObject<BookingDTO>> MarkBookingsForRescheduleByLeaveAsync(
+            long stylistId,
+            DateTime start,
+            DateTime end,
+            string reason)
+        {
+            var result = new ListResultObject<BookingDTO>();
+            try
+            {
+                var candidates = await _context.Bookings
+                    .Include(x => x.Stylist).ThenInclude(x => x.Person)
+                    .Include(x => x.Customer).ThenInclude(x => x.Person)
+                    .Where(x =>
+                        x.StylistID == stylistId &&
+                        !x.IsCancelled &&
+                        x.Status == "1" &&
+                        x.BookingDate < end)
+                    .ToListAsync();
+
+                var candidateIds = candidates.Select(x => x.ID).ToList();
+                var durations = await (
+                    from bs in _context.BookingServices.AsNoTracking()
+                    join ss in _context.StylistServices.AsNoTracking()
+                        on new { stylistId, bs.ServiceManagementID }
+                        equals new { stylistId = ss.StylistID, ss.ServiceManagementID }
+                    where candidateIds.Contains(bs.BookingID)
+                    select new { bs.BookingID, ss.ServiceDuration })
+                    .ToListAsync();
+
+                var durationByBooking = durations
+                    .GroupBy(x => x.BookingID)
+                    .ToDictionary(x => x.Key, x => x.Sum(row => GetMinutes(row.ServiceDuration)));
+
+                var affected = candidates
+                    .Where(x =>
+                    {
+                        var duration = durationByBooking.TryGetValue(x.ID, out var minutes)
+                            ? Math.Max(minutes, 15)
+                            : 30;
+                        return x.BookingDate.AddMinutes(duration) > start;
+                    })
+                    .ToList();
+
+                foreach (var booking in affected)
+                {
+                    booking.Status = "5";
+                    booking.UpdateDate = DateTime.Now.ToShamsi();
+                    booking.Description = string.Join(
+                        Environment.NewLine,
+                        new[]
+                        {
+                            booking.Description,
+                            $"RESCHEDULE_REQUIRED_BY_LEAVE: {start:yyyy-MM-dd HH:mm} - {end:yyyy-MM-dd HH:mm}" +
+                            (string.IsNullOrWhiteSpace(reason) ? "" : $" - {reason}")
+                        }.Where(x => !string.IsNullOrWhiteSpace(x)));
+                }
+
+                await _context.SaveChangesAsync();
+
+                result.Results = affected.Select(booking =>
+                {
+                    var duration = durationByBooking.TryGetValue(booking.ID, out var minutes)
+                        ? Math.Max(minutes, 15)
+                        : 30;
+                    return new BookingDTO
+                    {
+                        ID = booking.ID,
+                        StylistID = booking.StylistID,
+                        CustomerID = booking.CustomerID,
+                        BookingStartDate = booking.BookingDate,
+                        BookingEndDate = booking.BookingDate.AddMinutes(duration),
+                        Status = booking.Status,
+                        IsCancelled = booking.IsCancelled,
+                        CancelReason = booking.CancelReason,
+                        Description = booking.Description,
+                        Stylist = booking.Stylist,
+                        Customer = booking.Customer,
+                        TotalDurationMinutes = duration,
+                        TotalBlockMinutes = duration
+                        ,
+                        ServiceIDs = _context.BookingServices
+                            .Where(bs => bs.BookingID == booking.ID)
+                            .Select(bs => bs.ServiceManagementID)
+                            .ToList()
+                    };
+                }).ToList();
+                result.TotalCount = result.Results.Count;
+                result.PageCount = result.TotalCount > 0 ? 1 : 0;
+            }
+            catch (Exception ex)
+            {
+                result.Status = false;
+                result.ErrorMessage = $"{ex.Message} - {ex.InnerException?.Message}";
+            }
+
+            return result;
         }
 
         private static int GetMinutes(TimeSpan? time)

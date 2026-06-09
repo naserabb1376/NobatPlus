@@ -36,7 +36,13 @@ namespace NobatPlusAPI.Controllers
                 return BadRequest(new RowResultObject<FinancialAccountReport> { Status = false, ErrorMessage = "آرایشگر/سالن یافت نشد" });
             }
 
-            var result = await _financialAccountRep.GetFinancialAccountAsync(stylist.ID, requestBody.PageIndex, requestBody.PageSize);
+            var result = await _financialAccountRep.GetFinancialAccountAsync(
+                stylist.ID,
+                requestBody.PageIndex,
+                requestBody.PageSize,
+                requestBody.FromDate?.ToShamsi(),
+                requestBody.ToDate?.ToShamsi(),
+                requestBody.TransactionType ?? "");
             return result.Status ? Ok(result) : BadRequest(result);
         }
 

@@ -32,18 +32,40 @@ namespace NobatPlusAPI.Tools
             _logRep = logRep;
         }
 
-        public async Task SendBookingRemindMessage(long bookingId)
+        public async Task SendBookingRemindMessage(long bookingId, int leadHours = 24)
         {
             var booking = await _BookingRep.GetBookingByIdAsync(bookingId);
+            if (booking.Result == null ||
+                booking.Result.IsCancelled ||
+                booking.Result.Status != "1")
+                return;
 
-            var reminderMessage = await _settingRep.GetSettingRowAsync(0, "BookingRemindMessage");
+            var hoursUntilBooking = (booking.Result.BookingStartDate - DateTime.Now).TotalHours;
+            if (hoursUntilBooking < leadHours - 1 || hoursUntilBooking > leadHours + 1)
+                return;
 
-            if (booking.Result == null || reminderMessage.Result == null) return;
+            var reminderKey =
+                $"booking-reminder:{bookingId}:{booking.Result.BookingStartDate.Ticks}:{leadHours}";
+            if (await _sMSMessageRep.HasMessageWithDescriptionAsync(reminderKey))
+                return;
 
+            var reminderMessage = await _settingRep.GetSettingRowAsync(
+                0,
+                leadHours == 2 ? "BookingRemindMessage2Hours" : "BookingRemindMessage");
 
-            string message = reminderMessage.Result.Value.ToLower().Replace("{stylistname}", $"{booking.Result.Stylist.Person.FirstName} {booking.Result.Stylist.Person.LastName}")
-                .Replace("{bookingdate}",booking.Result.BookingStartDate.ToShamsi().ToString("yyyy/MM/dd"))
-                .Replace("{bookingtime}", $"{booking.Result.BookingStartDate.Hour}:{booking.Result.BookingStartDate.Minute}");
+            var template = reminderMessage.Result?.Value;
+            if (string.IsNullOrWhiteSpace(template))
+            {
+                template =
+                    "{customername} عزیز، یادآوری نوبت شما با {stylistname} در تاریخ " +
+                    "{bookingdate} ساعت {bookingtime}. نوبتیکس";
+            }
+
+            string message = template
+                .Replace("{customername}", booking.Result.Customer.Person.FirstName)
+                .Replace("{stylistname}", $"{booking.Result.Stylist.Person.FirstName} {booking.Result.Stylist.Person.LastName}")
+                .Replace("{bookingdate}", booking.Result.BookingStartDate.ToShamsi().ToString("yyyy/MM/dd"))
+                .Replace("{bookingtime}", booking.Result.BookingStartDate.ToString("HH:mm"));
 
 
             #region SendSMS
@@ -60,7 +82,7 @@ namespace NobatPlusAPI.Tools
                 PersonID = booking.Result.Customer.PersonID,
                 Message = message,
                 SentDate = DateTime.Now.ToShamsi(),
-                Description = message,
+                Description = reminderKey,
                 SentStatus = sentstatus,
             };
             var smsresult = await _sMSMessageRep.AddSMSMessageAsync(SMSMessage);

@@ -17,5 +17,6 @@ namespace NobatPlusDATA.DataLayer.Repositories
         public Task<BitResultObject> RemoveSMSMessageAsync(SMSMessage SMSMessage);
         public Task<BitResultObject> RemoveSMSMessageAsync(long SMSMessageId);
         public Task<BitResultObject> ExistSMSMessageAsync(long SMSMessageId);
+        public Task<bool> HasMessageWithDescriptionAsync(string description);
     }
 }

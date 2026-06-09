@@ -60,10 +60,23 @@ namespace NobatPlusDATA.Domain
         public decimal AvailableBalance { get; set; }
         public decimal TotalEarned { get; set; }
         public decimal TotalSettled { get; set; }
+        public decimal FilteredIncome { get; set; }
+        public decimal FilteredOutcome { get; set; }
+        public decimal AverageTransactionAmount { get; set; }
+        public int FilteredTransactionCount { get; set; }
         public string Iban { get; set; } = "";
         public string BankAccountOwnerName { get; set; } = "";
         public List<FinancialTransactionReport> Transactions { get; set; } = new();
         public List<SettlementRequestReport> SettlementRequests { get; set; } = new();
+        public List<FinancialDailyReport> DailyReport { get; set; } = new();
+    }
+
+    public class FinancialDailyReport
+    {
+        public DateTime Date { get; set; }
+        public decimal Income { get; set; }
+        public decimal Outcome { get; set; }
+        public int Count { get; set; }
     }
 
     public class FinancialTransactionReport

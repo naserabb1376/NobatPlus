@@ -13,6 +13,5 @@ namespace NobatPlusDATA.ViewModels
         public string SalonName { get; set; }
         public DateTime PacificStartDate { get; set; }
         public DateTime PacificEndDate { get; set; }
-
     }
 }

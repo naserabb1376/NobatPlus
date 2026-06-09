@@ -202,6 +202,13 @@ namespace NobatPlusAPI.Controllers
                 return BadRequest(ids);
             }
 
+            var roleIds = new List<long>();
+            foreach (var id in ids)
+            {
+                var row = await _PermissionRoleRep.GetPermissionRoleByIdAsync(id);
+                if (row.Result != null) roleIds.Add(row.Result.RoleId);
+            }
+
             var result = await _PermissionRoleRep.RemovePermissionRolesAsync(ids);
             if (result.Status)
             {
@@ -218,7 +225,7 @@ namespace NobatPlusAPI.Controllers
 
                 #endregion
 
-                await _PermissionInvalidationService.BumpRoleUsersVersionAsync(ids);
+                await _PermissionInvalidationService.BumpRoleUsersVersionAsync(roleIds.Distinct().ToList());
 
                 return Ok(result);
             }
