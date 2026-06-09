@@ -15,7 +15,7 @@ namespace NobatPlusDATA.DataLayer.Services
             _context = context;
         }
 
-        public async Task<RowResultObject<FinancialAccountReport>> GetFinancialAccountAsync(long stylistId, int pageIndex = 1, int pageSize = 20)
+        public async Task<RowResultObject<FinancialAccountReport>> GetFinancialAccountAsync(long stylistId, int pageIndex = 1, int pageSize = 20, DateTime? fromDate = null, DateTime? toDate = null, string transactionType = "")
         {
             var result = new RowResultObject<FinancialAccountReport>();
             try
@@ -27,9 +27,22 @@ namespace NobatPlusDATA.DataLayer.Services
                     .Where(x => x.FinancialAccountID == account.ID && x.Status == "pending")
                     .SumAsync(x => x.Amount);
 
-                var transactions = await _context.FinancialTransactions
+                var transactionQuery = _context.FinancialTransactions
                     .AsNoTracking()
-                    .Where(x => x.FinancialAccountID == account.ID)
+                    .Where(x => x.FinancialAccountID == account.ID);
+
+                if (fromDate.HasValue)
+                    transactionQuery = transactionQuery.Where(x => x.TransactionDate >= fromDate.Value);
+                if (toDate.HasValue)
+                {
+                    var inclusiveEnd = toDate.Value.Date.AddDays(1);
+                    transactionQuery = transactionQuery.Where(x => x.TransactionDate < inclusiveEnd);
+                }
+                if (!string.IsNullOrWhiteSpace(transactionType))
+                    transactionQuery = transactionQuery.Where(x => x.TransactionType == transactionType);
+
+                var filteredRows = await transactionQuery.ToListAsync();
+                var transactions = await transactionQuery
                     .OrderByDescending(x => x.TransactionDate)
                     .ThenByDescending(x => x.ID)
                     .Skip((Math.Max(pageIndex, 1) - 1) * Math.Max(pageSize, 1))
@@ -47,6 +60,18 @@ namespace NobatPlusDATA.DataLayer.Services
                         ReferenceNumber = x.ReferenceNumber
                     })
                     .ToListAsync();
+
+                var dailyReport = filteredRows
+                    .GroupBy(x => x.TransactionDate.Date)
+                    .OrderBy(x => x.Key)
+                    .Select(group => new FinancialDailyReport
+                    {
+                        Date = group.Key,
+                        Income = group.Where(x => x.TransactionType == "earning").Sum(x => x.Amount),
+                        Outcome = group.Where(x => x.TransactionType == "settlement_paid").Sum(x => x.Amount),
+                        Count = group.Count()
+                    })
+                    .ToList();
 
                 var settlements = await _context.SettlementRequests
                     .AsNoTracking()
@@ -84,10 +109,15 @@ namespace NobatPlusDATA.DataLayer.Services
                     AvailableBalance = Math.Max(0, account.Balance - pendingSettlementAmount),
                     TotalEarned = totalEarned,
                     TotalSettled = totalSettled,
+                    FilteredIncome = filteredRows.Where(x => x.TransactionType == "earning").Sum(x => x.Amount),
+                    FilteredOutcome = filteredRows.Where(x => x.TransactionType == "settlement_paid").Sum(x => x.Amount),
+                    AverageTransactionAmount = filteredRows.Count > 0 ? filteredRows.Average(x => x.Amount) : 0,
+                    FilteredTransactionCount = filteredRows.Count,
                     Iban = account.Iban,
                     BankAccountOwnerName = account.BankAccountOwnerName,
                     Transactions = transactions,
-                    SettlementRequests = settlements
+                    SettlementRequests = settlements,
+                    DailyReport = dailyReport
                 };
             }
             catch (Exception ex)

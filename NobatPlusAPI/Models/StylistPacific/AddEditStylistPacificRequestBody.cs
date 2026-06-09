@@ -20,6 +20,7 @@ namespace NobatPlusAPI.Models.StylistPacific
         [Required(ErrorMessage = "لطفا {0} را وارد کنید")]
         public DateTime PacificEndDate { get; set; }
 
+        public string? Description { get; set; }
     }
 }
 

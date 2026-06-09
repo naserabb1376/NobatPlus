@@ -27,6 +27,19 @@ namespace NobatPlusDATA.DataLayer.Services
             BitResultObject result = new BitResultObject();
             try
             {
+                if (StylistPacific.PacificEndDate <= StylistPacific.PacificStartDate)
+                    throw new InvalidOperationException("زمان پایان مرخصی باید بعد از زمان شروع باشد.");
+
+                var overlaps = await _context.StylistPacifics
+                    .AsNoTracking()
+                    .AnyAsync(x =>
+                        x.StylistID == StylistPacific.StylistID &&
+                        x.PacificStartDate < StylistPacific.PacificEndDate &&
+                        x.PacificEndDate > StylistPacific.PacificStartDate);
+
+                if (overlaps)
+                    throw new InvalidOperationException("این بازه با مرخصی دیگری تداخل دارد.");
+
                 await _context.StylistPacifics.AddAsync(StylistPacific);
                 await _context.SaveChangesAsync();
                 result.ID = StylistPacific.ID;
@@ -46,6 +59,20 @@ namespace NobatPlusDATA.DataLayer.Services
             BitResultObject result = new BitResultObject();
             try
             {
+                if (StylistPacific.PacificEndDate <= StylistPacific.PacificStartDate)
+                    throw new InvalidOperationException("زمان پایان مرخصی باید بعد از زمان شروع باشد.");
+
+                var overlaps = await _context.StylistPacifics
+                    .AsNoTracking()
+                    .AnyAsync(x =>
+                        x.ID != StylistPacific.ID &&
+                        x.StylistID == StylistPacific.StylistID &&
+                        x.PacificStartDate < StylistPacific.PacificEndDate &&
+                        x.PacificEndDate > StylistPacific.PacificStartDate);
+
+                if (overlaps)
+                    throw new InvalidOperationException("این بازه با مرخصی دیگری تداخل دارد.");
+
                 _context.StylistPacifics.Update(StylistPacific);
                 await _context.SaveChangesAsync();
                 result.ID = StylistPacific.ID;

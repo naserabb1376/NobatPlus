@@ -33,14 +33,27 @@ namespace NobatPlusAPI.Controllers
     {
         ICustomerRep _CustomerRep;
         IStylistRep _StylistRep;
+        IPersonRep _PersonRep;
+        IAddressRep _AddressRep;
+        ILoginRep _LoginRep;
         ILogRep _logRep;
         private readonly IMapper _mapper;
 
 
-        public CustomerController(ICustomerRep CustomerRep,IStylistRep stylistRep,ILogRep logRep, IMapper mapper)
+        public CustomerController(
+            ICustomerRep CustomerRep,
+            IStylistRep stylistRep,
+            IPersonRep personRep,
+            IAddressRep addressRep,
+            ILoginRep loginRep,
+            ILogRep logRep,
+            IMapper mapper)
         {
            _CustomerRep = CustomerRep;
             _StylistRep = stylistRep;
+            _PersonRep = personRep;
+            _AddressRep = addressRep;
+            _LoginRep = loginRep;
             _logRep = logRep;
             _mapper = mapper;
         }
@@ -135,6 +148,96 @@ namespace NobatPlusAPI.Controllers
                 return Ok(result);
             }
             return BadRequest(result);
+        }
+
+        [HttpPost("QuickAddCustomer")]
+        public async Task<ActionResult<BitResultObject>> QuickAddCustomer(QuickAddCustomerRequestBody requestBody)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest(requestBody);
+
+            var normalizedPhone = requestBody.PhoneNumber.Trim();
+            var existingPerson = await _LoginRep.ExistLoginAsync(normalizedPhone, "PhoneNumber");
+
+            if (existingPerson.Status && existingPerson.ID > 0)
+            {
+                var existingCustomer = await _CustomerRep.ExistCustomerAsync(
+                    existingPerson.ID.ToString(),
+                    "personid");
+
+                if (existingCustomer.Status)
+                    return Ok(existingCustomer);
+
+                var customerResult = await _CustomerRep.AddCustomerAsync(new Customer
+                {
+                    CreateDate = DateTime.Now.ToShamsi(),
+                    UpdateDate = DateTime.Now.ToShamsi(),
+                    PersonID = existingPerson.ID,
+                    Description = requestBody.Description ?? "ایجاد سریع از ثبت نوبت دستی"
+                });
+
+                return customerResult.Status ? Ok(customerResult) : BadRequest(customerResult);
+            }
+
+            long? addressId = null;
+            if (requestBody.CityID > 0 && !string.IsNullOrWhiteSpace(requestBody.AddressStreet))
+            {
+                var addressResult = await _AddressRep.AddAddressAsync(new Address
+                {
+                    CreateDate = DateTime.Now.ToShamsi(),
+                    UpdateDate = DateTime.Now.ToShamsi(),
+                    CityID = requestBody.CityID.Value,
+                    AddressStreet = requestBody.AddressStreet.Trim(),
+                    AddressPostalCode = requestBody.AddressPostalCode?.Trim() ?? "",
+                    AddressLocationHorizentalPoint = "",
+                    AddressLocationVerticalPoint = "",
+                    Description = requestBody.Description ?? ""
+                });
+                if (!addressResult.Status)
+                    return BadRequest(addressResult);
+                addressId = addressResult.ID;
+            }
+
+            var personResult = await _PersonRep.AddPersonAsync(new Person
+            {
+                CreateDate = DateTime.Now.ToShamsi(),
+                UpdateDate = DateTime.Now.ToShamsi(),
+                FirstName = requestBody.FirstName.Trim(),
+                LastName = requestBody.LastName?.Trim() ?? "",
+                PhoneNumber = normalizedPhone,
+                Email = "",
+                Gender = requestBody.Gender is 1 or 2 ? requestBody.Gender : 1,
+                RoleId = 1,
+                AddressID = addressId,
+                IsActive = true,
+                PermissionsVersion = 1,
+                DateOfBirth = (requestBody.DateOfBirth ?? DateTime.Now).ToShamsi(),
+                Description = requestBody.Description ?? "ایجاد سریع از ثبت نوبت دستی"
+            });
+
+            if (!personResult.Status)
+            {
+                if (addressId.HasValue)
+                    await _AddressRep.RemoveAddressAsync(addressId.Value);
+                return BadRequest(personResult);
+            }
+
+            var result = await _CustomerRep.AddCustomerAsync(new Customer
+            {
+                CreateDate = DateTime.Now.ToShamsi(),
+                UpdateDate = DateTime.Now.ToShamsi(),
+                PersonID = personResult.ID,
+                Description = requestBody.Description ?? "ایجاد سریع از ثبت نوبت دستی"
+            });
+
+            if (!result.Status)
+            {
+                await _PersonRep.RemovePersonAsync(personResult.ID);
+                if (addressId.HasValue)
+                    await _AddressRep.RemoveAddressAsync(addressId.Value);
+            }
+
+            return result.Status ? Ok(result) : BadRequest(result);
         }
 
         [HttpPut("EditCustomer_Base")]

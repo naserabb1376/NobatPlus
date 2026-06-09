@@ -11,6 +11,7 @@ namespace NobatPlusDATA.ViewModels
         public string Status { get; set; }
         public int TotalDurationMinutes { get; set; }
         public int TotalBlockMinutes { get; set; }
+        public List<long> ServiceIDs { get; set; } = new();
         public bool IsCancelled { get; set; }
         public string CancelReason { get; set; }
         public string StylistName { get; set; }

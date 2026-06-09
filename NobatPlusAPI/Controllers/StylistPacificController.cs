@@ -34,6 +34,7 @@ namespace NobatPlusAPI.Controllers
     public class StylistPacificController : ControllerBase
     {
         IStylistPacificRep _StylistPacificRep;
+        IBookingRep _BookingRep;
         IStylistRep _stylistRep;
         ICustomerRep _customerRep;
         INotificationRep _notificationRep;
@@ -41,9 +42,10 @@ namespace NobatPlusAPI.Controllers
         ILogRep _logRep;
         private readonly IMapper _mapper;
 
-        public StylistPacificController(IStylistPacificRep StylistPacificRep,ILogRep logRep, IMapper mapper, IStylistRep stylistRep, ICustomerRep customerRep, INotificationRep notificationRep, ISMSMessageRep sMSMessageRep)
+        public StylistPacificController(IStylistPacificRep StylistPacificRep, IBookingRep bookingRep, ILogRep logRep, IMapper mapper, IStylistRep stylistRep, ICustomerRep customerRep, INotificationRep notificationRep, ISMSMessageRep sMSMessageRep)
         {
             _StylistPacificRep = StylistPacificRep;
+            _BookingRep = bookingRep;
             _logRep = logRep;
             _mapper = mapper;
             _stylistRep = stylistRep;
@@ -117,16 +119,65 @@ namespace NobatPlusAPI.Controllers
                 PacificStartDate = requestBody.PacificStartDate,
                 PacificEndDate = requestBody.PacificEndDate,
                 StylistID = requestBody.StylistID,
-                Description = "",
+                Description = requestBody.Description ?? "",
             };
             var result = await _StylistPacificRep.AddStylistPacificAsync(StylistPacific);
             if (result.Status)
             {
-                // 🟡 زمان‌بندی ارسال پیام شروع مرخصی
-                 BackgroundJob.Schedule(() => SendPacificMessage(requestBody.StylistID,true), requestBody.PacificStartDate);
+                var affectedBookings = await _BookingRep.MarkBookingsForRescheduleByLeaveAsync(
+                    requestBody.StylistID,
+                    requestBody.PacificStartDate,
+                    requestBody.PacificEndDate,
+                    requestBody.Description ?? "");
 
-                // 🟢 زمان‌بندی ارسال پیام پایان مرخصی
-                BackgroundJob.Schedule(() => SendPacificMessage(requestBody.StylistID,false), requestBody.PacificEndDate);
+                if (!affectedBookings.Status)
+                {
+                    await _StylistPacificRep.RemoveStylistPacificAsync(result.ID);
+                    return BadRequest(affectedBookings);
+                }
+
+                foreach (var booking in affectedBookings.Results)
+                {
+                    var customer = booking.Customer?.Person;
+                    if (customer == null || string.IsNullOrWhiteSpace(customer.PhoneNumber))
+                        continue;
+
+                    var message =
+                        $"{customer.FirstName} عزیز، نوبت شما در تاریخ " +
+                        $"{booking.BookingStartDate.ToShamsi():yyyy/MM/dd} ساعت " +
+                        $"{booking.BookingStartDate:HH:mm} به دلیل عدم دسترسی آرایشگر نیازمند تعیین تکلیف است. " +
+                        "لطفا از پنل نوبتیکس زمان جدید انتخاب کنید یا نوبت را لغو کنید.";
+
+                    try
+                    {
+                        var sentStatus = await ToolBox.SendSMSMessage(customer.PhoneNumber, message);
+                        await _sMSMessageRep.AddSMSMessageAsync(new SMSMessage
+                        {
+                            CreateDate = DateTime.Now.ToShamsi(),
+                            UpdateDate = DateTime.Now.ToShamsi(),
+                            PhoneNumber = customer.PhoneNumber,
+                            PersonID = customer.ID,
+                            Message = message,
+                            SentDate = DateTime.Now.ToShamsi(),
+                            Description = $"leave-booking:{booking.ID}",
+                            SentStatus = sentStatus
+                        });
+
+                        await _notificationRep.AddNotificationAsync(new Notification
+                        {
+                            CreateDate = DateTime.Now.ToShamsi(),
+                            UpdateDate = DateTime.Now.ToShamsi(),
+                            PersonID = customer.ID,
+                            Message = message,
+                            SentDate = DateTime.Now.ToShamsi(),
+                            Description = $"leave-booking:{booking.ID}"
+                        });
+                    }
+                    catch
+                    {
+                        // ثبت مرخصی و تغییر وضعیت نوبت نباید با خطای سرویس پیامک rollback شود.
+                    }
+                }
 
                 #region AddLog
 
@@ -260,11 +311,18 @@ namespace NobatPlusAPI.Controllers
                 PacificStartDate = requestBody.PacificStartDate,
                 PacificEndDate = requestBody.PacificEndDate,
                 StylistID = requestBody.StylistID,
-                Description = "",
+                Description = requestBody.Description ?? "",
             };
              result = await _StylistPacificRep.EditStylistPacificAsync(StylistPacific);
             if (result.Status)
             {
+                var affectedBookings = await _BookingRep.MarkBookingsForRescheduleByLeaveAsync(
+                    requestBody.StylistID,
+                    requestBody.PacificStartDate,
+                    requestBody.PacificEndDate,
+                    requestBody.Description ?? "");
+                if (!affectedBookings.Status)
+                    return BadRequest(affectedBookings);
 
                 #region AddLog
 
