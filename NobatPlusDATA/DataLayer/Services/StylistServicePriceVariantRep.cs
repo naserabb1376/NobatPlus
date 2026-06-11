@@ -88,7 +88,7 @@ namespace NobatPlusDATA.DataLayer.Services
             return result;
         }
 
-        public async Task<ListResultObject<StylistServicePriceVariant>> GetAllStylistServicePriceVariantsAsync(long stylistId = 0, long serviceManagementId = 0, int isActive = -1, int pageIndex = 1, int pageSize = 20, string searchText = "", string sortQuery = "")
+        public async Task<ListResultObject<StylistServicePriceVariant>> GetAllStylistServicePriceVariantsAsync(long stylistId = 0, long serviceManagementId = 0, int isActive = -1, bool onlyLeafServices = false, int pageIndex = 1, int pageSize = 20, string searchText = "", string sortQuery = "")
         {
             var results = new ListResultObject<StylistServicePriceVariant>();
             try
@@ -105,6 +105,9 @@ namespace NobatPlusDATA.DataLayer.Services
 
                 if (serviceManagementId > 0)
                     query = query.Where(x => x.ServiceManagementID == serviceManagementId);
+
+                if (onlyLeafServices)
+                    query = query.Where(x => !_context.ServiceManagements.Any(child => child.ServiceParentID == x.ServiceManagementID));
 
                 if (isActive >= 0)
                     query = query.Where(x => x.IsActive == (isActive == 1));

@@ -47,6 +47,7 @@ namespace NobatPlusDATA.DataLayer.Services
                         .ToHashSet();
 
                     var servicesToInsert = new List<StylistService>();
+                    var priceVariantsToInsert = new List<StylistServicePriceVariant>();
 
                     foreach (var inputService in stylistGroup)
                     {
@@ -55,7 +56,21 @@ namespace NobatPlusDATA.DataLayer.Services
                         foreach (var service in hierarchy)
                         {
                             if (existingServiceIds.Contains(service.ID))
+                            {
+                                if (service.ID == inputService.ServiceManagementID)
+                                {
+                                    if (!inputService.HasDynamicPricing)
+                                    {
+                                        result.Status = false;
+                                        result.ErrorMessage = $"این اطلاعات (انجام دهنده خدمت: {inputService.StylistID}, خدمت: {inputService.ServiceManagementID}) قبلا در سیسستم ثبت شده است";
+                                        return result;
+                                    }
+
+                                    priceVariantsToInsert.AddRange(BuildPriceVariantsForInsert(inputService, stylistId, service.ID));
+                                }
+
                                 continue;
+                            }
 
                             // اگر parent است → قیمت و مدت صفر
                             bool isParent = service.ID != inputService.ServiceManagementID;
@@ -70,43 +85,37 @@ namespace NobatPlusDATA.DataLayer.Services
                                 HasDynamicPricing = !isParent && inputService.HasDynamicPricing,
                                 PriceVariants = isParent
                                     ? new List<StylistServicePriceVariant>()
-                                    : inputService.PriceVariants?.Select(variant => new StylistServicePriceVariant
-                                    {
-                                        CreateDate = variant.CreateDate ?? DateTime.Now.ToShamsi(),
-                                        UpdateDate = variant.UpdateDate ?? DateTime.Now.ToShamsi(),
-                                        Description = variant.Description,
-                                        StylistID = stylistId,
-                                        ServiceManagementID = service.ID,
-                                        Price = variant.Price,
-                                        Duration = variant.Duration,
-                                        DepositPercent = variant.DepositPercent,
-                                        IsActive = variant.IsActive,
-                                        OptionValueCombinationKey = StylistServicePriceVariant.BuildOptionValueCombinationKey(
-                                            variant.OptionValues?.Select(x => x.ServiceOptionValueID)),
-                                        OptionValues = variant.OptionValues?.Select(optionValue => new StylistServicePriceVariantOptionValue
-                                        {
-                                            ServiceOptionValueID = optionValue.ServiceOptionValueID
-                                        }).ToList() ?? new List<StylistServicePriceVariantOptionValue>()
-                                    }).ToList() ?? new List<StylistServicePriceVariant>()
+                                    : BuildPriceVariantsForInsert(inputService, stylistId, service.ID)
                             });
 
                             existingServiceIds.Add(service.ID);
                         }
                     }
 
-                    if (servicesToInsert.Any())
+                    var allPriceVariantsToInsert = servicesToInsert
+                        .SelectMany(x => x.PriceVariants ?? new List<StylistServicePriceVariant>())
+                        .Concat(priceVariantsToInsert)
+                        .ToList();
+
+                    if (allPriceVariantsToInsert.Any())
                     {
-                        var validationError = await ValidatePriceVariantsAsync(servicesToInsert.SelectMany(x => x.PriceVariants ?? new List<StylistServicePriceVariant>()));
+                        var validationError = await ValidatePriceVariantsAsync(allPriceVariantsToInsert);
                         if (!string.IsNullOrEmpty(validationError))
                         {
                             result.Status = false;
                             result.ErrorMessage = validationError;
                             return result;
                         }
-
-                        await _context.StylistServices.AddRangeAsync(servicesToInsert);
-                        await _context.SaveChangesAsync();
                     }
+
+                    if (servicesToInsert.Any())
+                        await _context.StylistServices.AddRangeAsync(servicesToInsert);
+
+                    if (priceVariantsToInsert.Any())
+                        await _context.StylistServicePriceVariants.AddRangeAsync(priceVariantsToInsert);
+
+                    if (servicesToInsert.Any() || priceVariantsToInsert.Any())
+                        await _context.SaveChangesAsync();
                 }
 
                 result.Status = true;
@@ -118,6 +127,31 @@ namespace NobatPlusDATA.DataLayer.Services
             }
 
             return result;
+        }
+
+        private static List<StylistServicePriceVariant> BuildPriceVariantsForInsert(
+            StylistService source,
+            long stylistId,
+            long serviceManagementId)
+        {
+            return source.PriceVariants?.Select(variant => new StylistServicePriceVariant
+            {
+                CreateDate = variant.CreateDate ?? DateTime.Now.ToShamsi(),
+                UpdateDate = variant.UpdateDate ?? DateTime.Now.ToShamsi(),
+                Description = variant.Description,
+                StylistID = stylistId,
+                ServiceManagementID = serviceManagementId,
+                Price = variant.Price,
+                Duration = variant.Duration,
+                DepositPercent = variant.DepositPercent,
+                IsActive = variant.IsActive,
+                OptionValueCombinationKey = StylistServicePriceVariant.BuildOptionValueCombinationKey(
+                    variant.OptionValues?.Select(x => x.ServiceOptionValueID)),
+                OptionValues = variant.OptionValues?.Select(optionValue => new StylistServicePriceVariantOptionValue
+                {
+                    ServiceOptionValueID = optionValue.ServiceOptionValueID
+                }).ToList() ?? new List<StylistServicePriceVariantOptionValue>()
+            }).ToList() ?? new List<StylistServicePriceVariant>();
         }
 
 
@@ -198,7 +232,9 @@ namespace NobatPlusDATA.DataLayer.Services
                     }
 
                     // افزودن مجدد فقط سرویس‌های مربوط به همین stylist
-                    await AddStylistServicesAsync(stylistGroup.ToList());
+                    var addResult = await AddStylistServicesAsync(stylistGroup.ToList());
+                    if (!addResult.Status)
+                        return addResult;
                 }
 
                 result.Status = true;
@@ -254,6 +290,7 @@ namespace NobatPlusDATA.DataLayer.Services
                 {
                     var stylistId = stylistGroup.Key;
                     var serviceIdsToRemove = new HashSet<long>();
+                    var parentIdsToCheck = new List<long>();
 
                     foreach (var item in stylistGroup)
                     {
@@ -264,6 +301,38 @@ namespace NobatPlusDATA.DataLayer.Services
                         var descendants = await GetServiceDescendantsAsync(item.ServiceManagementID);
                         foreach (var child in descendants)
                             serviceIdsToRemove.Add(child.ID);
+
+                        // والدها فقط در صورتی حذف می‌شوند که بعد از حذف این رکورد، برای سرویس دیگری لازم نباشند
+                        var hierarchy = await GetServiceHierarchyAsync(item.ServiceManagementID);
+                        foreach (var parent in hierarchy.Where(x => x.ID != item.ServiceManagementID))
+                        {
+                            if (!parentIdsToCheck.Contains(parent.ID))
+                                parentIdsToCheck.Add(parent.ID);
+                        }
+                    }
+
+                    var existingServiceIds = await _context.StylistServices
+                        .AsNoTracking()
+                        .Where(x => x.StylistID == stylistId)
+                        .Select(x => x.ServiceManagementID)
+                        .ToListAsync();
+
+                    var remainingServiceIds = existingServiceIds
+                        .Where(id => !serviceIdsToRemove.Contains(id))
+                        .ToHashSet();
+
+                    foreach (var parentId in parentIdsToCheck)
+                    {
+                        if (!remainingServiceIds.Contains(parentId))
+                            continue;
+
+                        var descendants = await GetServiceDescendantsAsync(parentId);
+                        var hasRemainingDescendant = descendants.Any(x => remainingServiceIds.Contains(x.ID));
+                        if (hasRemainingDescendant)
+                            continue;
+
+                        serviceIdsToRemove.Add(parentId);
+                        remainingServiceIds.Remove(parentId);
                     }
 
                     var itemsToRemove = await _context.StylistServices
@@ -340,6 +409,7 @@ namespace NobatPlusDATA.DataLayer.Services
      long bookingId = 0,
      long discountId = 0,
      List<long>? optionValueIds = null,
+     bool onlyLeafServices = false,
      int pageIndex = 1,
      int pageSize = 20,
      string searchText = "",
@@ -364,6 +434,11 @@ namespace NobatPlusDATA.DataLayer.Services
                 if (serviceId > 0)
                 {
                     query = query.Where(ss => ss.ServiceManagementID == serviceId);
+                }
+
+                if (onlyLeafServices)
+                {
+                    query = query.Where(ss => !_context.ServiceManagements.Any(child => child.ServiceParentID == ss.ServiceManagementID));
                 }
 
                 if (bookingId > 0)
@@ -537,28 +612,6 @@ namespace NobatPlusDATA.DataLayer.Services
                 }
 
                 optionValueIds = NormalizeOptionValueIds(optionValueIds);
-                var hasExplicitOptionSelection = optionValueIds.Any();
-
-                if (item.HasDynamicPricing && !optionValueIds.Any())
-                {
-                    var activeVariantOptions = await _context.StylistServicePriceVariants
-                        .AsNoTracking()
-                        .Where(x =>
-                            x.StylistID == item.StylistID &&
-                            x.ServiceManagementID == item.ServiceManagementID &&
-                            x.IsActive)
-                        .OrderBy(x => x.ID)
-                        .Select(x => x.OptionValues
-                            .Select(optionValue => optionValue.ServiceOptionValueID)
-                            .OrderBy(id => id)
-                            .ToList())
-                        .Take(2)
-                        .ToListAsync();
-
-                    // A flat AppliedOptionValueIDs value is unambiguous only when one active variant exists.
-                    if (activeVariantOptions.Count == 1)
-                        optionValueIds = activeVariantOptions[0];
-                }
 
                 var resolvedPricing = await ResolvePricingAsync(
                     item.StylistID,
@@ -582,9 +635,7 @@ namespace NobatPlusDATA.DataLayer.Services
 
                 discountPercent = Math.Clamp(discountPercent, 0m, 100m);
 
-                var returnedPrice = item.HasDynamicPricing && !hasExplicitOptionSelection
-                    ? 0m
-                    : resolvedPricing.Price;
+                var returnedPrice = resolvedPricing.Price;
                 var priceAfterDiscount =
                     returnedPrice * (1m - (discountPercent / 100m));
 
@@ -716,6 +767,20 @@ namespace NobatPlusDATA.DataLayer.Services
                     .Where(x => x.BookingID == bookingId && x.ServiceManagementID == serviceManagementId)
                     .Select(x => x.ServiceOptionValueID)
                     .Distinct()
+                    .ToListAsync();
+            }
+
+            if (hasDynamicPricing && !optionValueIds.Any())
+            {
+                optionValueIds = await _context.StylistServicePriceVariants
+                    .AsNoTracking()
+                    .Where(x =>
+                        x.StylistID == stylistId &&
+                        x.ServiceManagementID == serviceManagementId &&
+                        x.IsActive)
+                    .SelectMany(x => x.OptionValues.Select(optionValue => optionValue.ServiceOptionValueID))
+                    .Distinct()
+                    .OrderBy(id => id)
                     .ToListAsync();
             }
 
