@@ -221,7 +221,7 @@ namespace NobatPlusDATA.DataLayer.Services
                     x.OptionValueCombinationKey == variant.OptionValueCombinationKey);
 
             return duplicateExists
-                ? "برای یک آرایشگر و یک خدمت، این ترکیب گزینه‌ها قبلا ثبت شده است"
+                ? "این خدمات قبلا ثبت شده است و تکراری است"
                 : "";
         }
 

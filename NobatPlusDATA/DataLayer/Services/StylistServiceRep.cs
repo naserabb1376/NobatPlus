@@ -72,6 +72,9 @@ namespace NobatPlusDATA.DataLayer.Services
                                     ? new List<StylistServicePriceVariant>()
                                     : inputService.PriceVariants?.Select(variant => new StylistServicePriceVariant
                                     {
+                                        CreateDate = variant.CreateDate ?? DateTime.Now.ToShamsi(),
+                                        UpdateDate = variant.UpdateDate ?? DateTime.Now.ToShamsi(),
+                                        Description = variant.Description,
                                         StylistID = stylistId,
                                         ServiceManagementID = service.ID,
                                         Price = variant.Price,
@@ -135,8 +138,58 @@ namespace NobatPlusDATA.DataLayer.Services
 
                     // حذف همه سرویس‌های قبلی این stylist
                     var oldItems = await _context.StylistServices
+                        .Include(x => x.PriceVariants)
+                            .ThenInclude(x => x.OptionValues)
                         .Where(x => x.StylistID == stylistId)
                         .ToListAsync();
+
+                    var oldItemsByServiceId = oldItems.ToDictionary(
+                        x => x.ServiceManagementID,
+                        x => x);
+
+                    var now = DateTime.Now.ToShamsi();
+
+                    foreach (var inputService in stylistGroup)
+                    {
+                        if (!oldItemsByServiceId.TryGetValue(inputService.ServiceManagementID, out var oldItem))
+                            continue;
+
+                        if (inputService.HasDynamicPricing)
+                        {
+                            inputService.ServicePrice = oldItem.ServicePrice;
+                            inputService.DepositPercent = oldItem.DepositPercent;
+                            inputService.ServiceDuration = oldItem.ServiceDuration;
+                        }
+
+                        var requestedVariants = inputService.PriceVariants?.ToList() ??
+                            new List<StylistServicePriceVariant>();
+
+                        if (!requestedVariants.Any())
+                        {
+                            requestedVariants = oldItem.PriceVariants
+                                .Select(variant => CloneVariantForReinsert(variant, now))
+                                .ToList();
+                        }
+                        else
+                        {
+                            requestedVariants = requestedVariants
+                                .Select(variant =>
+                                {
+                                    var combinationKey = StylistServicePriceVariant.BuildOptionValueCombinationKey(
+                                        variant.OptionValues?.Select(x => x.ServiceOptionValueID));
+                                    var oldVariant = oldItem.PriceVariants.FirstOrDefault(x =>
+                                        (variant.ID > 0 && x.ID == variant.ID) ||
+                                        x.OptionValueCombinationKey == combinationKey);
+
+                                    variant.CreateDate = oldVariant?.CreateDate ?? now;
+                                    variant.UpdateDate = now;
+                                    return variant;
+                                })
+                                .ToList();
+                        }
+
+                        inputService.PriceVariants = requestedVariants;
+                    }
 
                     if (oldItems.Any())
                     {
@@ -157,6 +210,31 @@ namespace NobatPlusDATA.DataLayer.Services
             }
 
             return result;
+        }
+
+        private static StylistServicePriceVariant CloneVariantForReinsert(
+            StylistServicePriceVariant source,
+            DateTime updateDate)
+        {
+            return new StylistServicePriceVariant
+            {
+                CreateDate = source.CreateDate ?? updateDate,
+                UpdateDate = updateDate,
+                Description = source.Description,
+                StylistID = source.StylistID,
+                ServiceManagementID = source.ServiceManagementID,
+                Price = source.Price,
+                Duration = source.Duration,
+                DepositPercent = source.DepositPercent,
+                IsActive = source.IsActive,
+                OptionValueCombinationKey = source.OptionValueCombinationKey,
+                OptionValues = source.OptionValues
+                    .Select(x => new StylistServicePriceVariantOptionValue
+                    {
+                        ServiceOptionValueID = x.ServiceOptionValueID
+                    })
+                    .ToList()
+            };
         }
 
 
@@ -459,6 +537,28 @@ namespace NobatPlusDATA.DataLayer.Services
                 }
 
                 optionValueIds = NormalizeOptionValueIds(optionValueIds);
+                var hasExplicitOptionSelection = optionValueIds.Any();
+
+                if (item.HasDynamicPricing && !optionValueIds.Any())
+                {
+                    var activeVariantOptions = await _context.StylistServicePriceVariants
+                        .AsNoTracking()
+                        .Where(x =>
+                            x.StylistID == item.StylistID &&
+                            x.ServiceManagementID == item.ServiceManagementID &&
+                            x.IsActive)
+                        .OrderBy(x => x.ID)
+                        .Select(x => x.OptionValues
+                            .Select(optionValue => optionValue.ServiceOptionValueID)
+                            .OrderBy(id => id)
+                            .ToList())
+                        .Take(2)
+                        .ToListAsync();
+
+                    // A flat AppliedOptionValueIDs value is unambiguous only when one active variant exists.
+                    if (activeVariantOptions.Count == 1)
+                        optionValueIds = activeVariantOptions[0];
+                }
 
                 var resolvedPricing = await ResolvePricingAsync(
                     item.StylistID,
@@ -482,8 +582,11 @@ namespace NobatPlusDATA.DataLayer.Services
 
                 discountPercent = Math.Clamp(discountPercent, 0m, 100m);
 
+                var returnedPrice = item.HasDynamicPricing && !hasExplicitOptionSelection
+                    ? 0m
+                    : resolvedPricing.Price;
                 var priceAfterDiscount =
-                    resolvedPricing.Price * (1m - (discountPercent / 100m));
+                    returnedPrice * (1m - (discountPercent / 100m));
 
                 result.Result = new StylistServiceWithDiscountDto
                 {
@@ -496,7 +599,7 @@ namespace NobatPlusDATA.DataLayer.Services
                     SalonName = item.SalonName,
                     StylistName = $"{item.FirstName} {item.LastName}".Trim(),
 
-                    ServicePrice = resolvedPricing.Price,
+                    ServicePrice = returnedPrice,
                     ServiceDuration = resolvedPricing.Duration,
                     DepositPercent = resolvedPricing.DepositPercent,
                     HasDynamicPricing = item.HasDynamicPricing,
@@ -570,8 +673,8 @@ namespace NobatPlusDATA.DataLayer.Services
                 .GroupBy(x => new { x.StylistID, x.ServiceManagementID, x.OptionValueCombinationKey })
                 .FirstOrDefault(x => x.Count() > 1);
 
-            if (duplicateInput != null)
-                return "برای یک آرایشگر و یک خدمت، ترکیب گزینه‌های قیمت متغیر نباید تکراری باشد";
+                if (duplicateInput != null)
+                    return "این خدمات قبلا ثبت شده است و تکراری است";
 
             var keysByService = variantList
                 .GroupBy(x => new { x.StylistID, x.ServiceManagementID })
@@ -588,7 +691,7 @@ namespace NobatPlusDATA.DataLayer.Services
                         keys.Contains(x.OptionValueCombinationKey));
 
                 if (exists)
-                    return "برای یک آرایشگر و یک خدمت، این ترکیب گزینه‌ها قبلا ثبت شده است";
+                    return "این خدمات قبلا ثبت شده است و تکراری است";
             }
 
             return "";
