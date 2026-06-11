@@ -5,7 +5,7 @@ namespace NobatPlusDATA.DataLayer.Repositories
 {
     public interface IStylistServicePriceVariantRep
     {
-        Task<ListResultObject<StylistServicePriceVariant>> GetAllStylistServicePriceVariantsAsync(long stylistId = 0, long serviceManagementId = 0, int isActive = -1, int pageIndex = 1, int pageSize = 20, string searchText = "", string sortQuery = "");
+        Task<ListResultObject<StylistServicePriceVariant>> GetAllStylistServicePriceVariantsAsync(long stylistId = 0, long serviceManagementId = 0, int isActive = -1, bool onlyLeafServices = false, int pageIndex = 1, int pageSize = 20, string searchText = "", string sortQuery = "");
         Task<RowResultObject<StylistServicePriceVariant>> GetStylistServicePriceVariantByIdAsync(long stylistServicePriceVariantId);
         Task<BitResultObject> AddStylistServicePriceVariantAsync(StylistServicePriceVariant stylistServicePriceVariant);
         Task<BitResultObject> EditStylistServicePriceVariantAsync(StylistServicePriceVariant stylistServicePriceVariant);

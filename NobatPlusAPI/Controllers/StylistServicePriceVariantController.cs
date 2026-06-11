@@ -36,7 +36,7 @@ namespace NobatPlusAPI.Controllers
             if (!ModelState.IsValid)
                 return BadRequest(requestBody);
 
-            var result = await _stylistServicePriceVariantRep.GetAllStylistServicePriceVariantsAsync(requestBody.StylistID, requestBody.ServiceManagementID, requestBody.IsActive, requestBody.PageIndex, requestBody.PageSize, requestBody.SearchText, requestBody.SortQuery);
+            var result = await _stylistServicePriceVariantRep.GetAllStylistServicePriceVariantsAsync(requestBody.StylistID, requestBody.ServiceManagementID, requestBody.IsActive, requestBody.OnlyLeafServices, requestBody.PageIndex, requestBody.PageSize, requestBody.SearchText, requestBody.SortQuery);
             if (result.Status)
                 return Ok(_mapper.Map<ListResultObject<StylistServicePriceVariantVM>>(result));
 

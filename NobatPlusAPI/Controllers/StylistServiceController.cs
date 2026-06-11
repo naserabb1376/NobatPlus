@@ -31,15 +31,17 @@ namespace NobatPlusAPI.Controllers
     public class StylistServiceController : ControllerBase
     {
         IStylistServiceRep _StylistServiceRep;
+        IServiceManagementRep _serviceManagementRep;
         ICustomerRep _customerRep;
         ILogRep _logRep;
         private readonly IMapper _mapper;
 
 
-        public StylistServiceController(IStylistServiceRep StylistServiceRep,ICustomerRep customerRep,ILogRep logRep, IMapper mapper)
+        public StylistServiceController(IStylistServiceRep StylistServiceRep,IServiceManagementRep serviceManagementRep,ICustomerRep customerRep,ILogRep logRep, IMapper mapper)
         {
            _StylistServiceRep = StylistServiceRep;
             _customerRep = customerRep;
+            _serviceManagementRep = serviceManagementRep;
             _logRep = logRep;
             _mapper = mapper;
         }
@@ -58,7 +60,7 @@ namespace NobatPlusAPI.Controllers
             var customerId = requestBody.CustomerID ?? dbcustomer.ID;
             var discountId = requestBody.DiscountID ?? 0;
 
-            result = await _StylistServiceRep.GetAllStylistServicesAsync(requestBody.StylistID,requestBody.ServiceID,customerId,requestBody.BookingID,discountId,requestBody.OptionValueIDs,requestBody.PageIndex, requestBody.PageSize, requestBody.SearchText,requestBody.SortQuery);
+            result = await _StylistServiceRep.GetAllStylistServicesAsync(requestBody.StylistID,requestBody.ServiceID,customerId,requestBody.BookingID,discountId,requestBody.OptionValueIDs,requestBody.OnlyLeafServices,requestBody.PageIndex, requestBody.PageSize, requestBody.SearchText,requestBody.SortQuery);
             if (result.Status)
             {
                 var resultVM = _mapper.Map<ListResultObject<StylistServiceVM>>(result);
@@ -117,12 +119,20 @@ namespace NobatPlusAPI.Controllers
             }
             foreach (var item in requestBodyList)
             {
+                var theService = await _serviceManagementRep.GetServiceManagementByIdAsync(item.ServiceID);
+                if (theService.Result == null)
+                {
+                    result.Status = false;
+                    result.ErrorMessage = $"خدمات وارد شده نامعتبر است";
+                    return BadRequest(result);
+
+                }
                 var validrecord = await _StylistServiceRep.ExistStylistServiceAsync(item.StylistID,item.ServiceID);
 
-                if (validrecord.Status)
+                if (validrecord.Status && !item.HasDynamicPricing)
                 {
                     result.Status = !validrecord.Status;
-                    result.ErrorMessage = $"این اطلاعات (انجام دهنده خدمت: {item.StylistID}, خدمت: {item.ServiceID}) قبلا در سیسستم ثبت شده است";
+                    result.ErrorMessage = $"برای خدمت {theService.Result.ServiceName} با قیمت ثابت یا متغیر قبلا اطلاعات ثبت کرده اید امکان ثبت برای یک خدمت هم با قیمت ثابت هم متغیر وجود ندارد";
                     return BadRequest(result);
                 }
             }
