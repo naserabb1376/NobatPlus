@@ -99,5 +99,18 @@ namespace NobatPlusDATA.Domain
         // ✅ new fields
         public int DiscountPercent { get; set; }          // درصد تخفیف اعمال‌شده
         public decimal PriceAfterDiscount { get; set; }   // قیمت بعد از تخفیف
+        public List<StylistServicePriceVariantPriceDto> PriceVariants { get; set; } = new List<StylistServicePriceVariantPriceDto>();
+    }
+
+    public class StylistServicePriceVariantPriceDto
+    {
+        public long StylistServicePriceVariantID { get; set; }
+        public decimal ServicePrice { get; set; }
+        public TimeSpan ServiceDuration { get; set; }
+        public int DepositPercent { get; set; }
+        public List<long> AppliedOptionValueIDs { get; set; } = new List<long>();
+        public string AppliedOptionSummary { get; set; } = "";
+        public int DiscountPercent { get; set; }
+        public decimal PriceAfterDiscount { get; set; }
     }
 }

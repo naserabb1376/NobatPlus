@@ -213,6 +213,7 @@ namespace NobatPlusAPI.Tools
                         .OrderBy(x => x.ServiceOptionValue.ServiceOption.SortOrder)
                         .ThenBy(x => x.ServiceOptionValue.SortOrder)
                         .Select(x => x.ServiceOptionValue.ServiceOption.OptionName + ": " + x.ServiceOptionValue.ValueName))));
+            CreateMap<StylistServicePriceVariantPriceDto, StylistServicePriceVariantPriceVM>();
             CreateMap<StylistServiceWithDiscountDto, StylistServiceVM>()
  
   ;

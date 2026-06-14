@@ -525,6 +525,9 @@ namespace NobatPlusDATA.DataLayer.Services
      .MaxAsync() ?? 0m;
 
                     var discountPercentDecimal = Math.Clamp(Convert.ToDecimal(discountPercent), 0m, 100m);
+                    var priceVariants = item.HasDynamicPricing
+                        ? await GetPriceVariantItemsAsync(item.StylistID, item.ServiceManagementID, discountPercentDecimal)
+                        : new List<StylistServicePriceVariantPriceDto>();
 
                     var priceAfterDiscount =
                         resolvedPricing.Price * (1m - (discountPercentDecimal / 100m));
@@ -550,7 +553,8 @@ namespace NobatPlusDATA.DataLayer.Services
                         AppliedOptionSummary = resolvedPricing.OptionSummary,
 
                         DiscountPercent = Convert.ToInt32(discountPercentDecimal),
-                        PriceAfterDiscount = priceAfterDiscount
+                        PriceAfterDiscount = priceAfterDiscount,
+                        PriceVariants = priceVariants
                     });
                 }
 
@@ -634,6 +638,9 @@ namespace NobatPlusDATA.DataLayer.Services
                     .MaxAsync() ?? 0m;
 
                 discountPercent = Math.Clamp(discountPercent, 0m, 100m);
+                var priceVariants = item.HasDynamicPricing
+                    ? await GetPriceVariantItemsAsync(item.StylistID, item.ServiceManagementID, discountPercent)
+                    : new List<StylistServicePriceVariantPriceDto>();
 
                 var returnedPrice = resolvedPricing.Price;
                 var priceAfterDiscount =
@@ -659,7 +666,8 @@ namespace NobatPlusDATA.DataLayer.Services
                     AppliedOptionSummary = resolvedPricing.OptionSummary,
 
                     DiscountPercent = Convert.ToInt32(discountPercent),
-                    PriceAfterDiscount = priceAfterDiscount
+                    PriceAfterDiscount = priceAfterDiscount,
+                    PriceVariants = priceVariants
                 };
             }
             catch (Exception ex)
@@ -669,6 +677,49 @@ namespace NobatPlusDATA.DataLayer.Services
             }
 
             return result;
+        }
+
+        private async Task<List<StylistServicePriceVariantPriceDto>> GetPriceVariantItemsAsync(
+            long stylistId,
+            long serviceManagementId,
+            decimal discountPercent)
+        {
+            discountPercent = Math.Clamp(discountPercent, 0m, 100m);
+
+            var variants = await _context.StylistServicePriceVariants
+                .AsNoTracking()
+                .Include(x => x.OptionValues)
+                    .ThenInclude(x => x.ServiceOptionValue)
+                    .ThenInclude(x => x.ServiceOption)
+                .Where(x =>
+                    x.StylistID == stylistId &&
+                    x.ServiceManagementID == serviceManagementId &&
+                    x.IsActive)
+                .OrderBy(x => x.ID)
+                .ToListAsync();
+
+            return variants.Select(variant =>
+            {
+                var optionValues = variant.OptionValues
+                    .OrderBy(x => x.ServiceOptionValue.ServiceOption.SortOrder)
+                    .ThenBy(x => x.ServiceOptionValue.SortOrder)
+                    .ToList();
+
+                var priceAfterDiscount = variant.Price * (1m - (discountPercent / 100m));
+
+                return new StylistServicePriceVariantPriceDto
+                {
+                    StylistServicePriceVariantID = variant.ID,
+                    ServicePrice = variant.Price,
+                    ServiceDuration = variant.Duration,
+                    DepositPercent = variant.DepositPercent,
+                    AppliedOptionValueIDs = optionValues.Select(x => x.ServiceOptionValueID).ToList(),
+                    AppliedOptionSummary = string.Join("، ", optionValues.Select(x =>
+                        $"{x.ServiceOptionValue.ServiceOption.OptionName}: {x.ServiceOptionValue.ValueName}")),
+                    DiscountPercent = Convert.ToInt32(discountPercent),
+                    PriceAfterDiscount = priceAfterDiscount
+                };
+            }).ToList();
         }
 
         private async Task<string> ValidatePriceVariantsAsync(IEnumerable<StylistServicePriceVariant> variants)
