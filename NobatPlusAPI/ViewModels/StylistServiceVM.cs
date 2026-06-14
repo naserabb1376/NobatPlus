@@ -27,6 +27,19 @@ namespace NobatPlusDATA.ViewModels
 
         public int DiscountPercent { get; set; }          // درصد تخفیف اعمال‌شده
         public decimal PriceAfterDiscount { get; set; }   // قیمت بعد از تخفیف
+        public List<StylistServicePriceVariantPriceVM> PriceVariants { get; set; } = new();
 
+    }
+
+    public class StylistServicePriceVariantPriceVM
+    {
+        public long StylistServicePriceVariantID { get; set; }
+        public decimal ServicePrice { get; set; }
+        public TimeSpan ServiceDuration { get; set; }
+        public int DepositPercent { get; set; }
+        public List<long> AppliedOptionValueIDs { get; set; } = new();
+        public string AppliedOptionSummary { get; set; } = "";
+        public int DiscountPercent { get; set; }
+        public decimal PriceAfterDiscount { get; set; }
     }
 }
