@@ -76,7 +76,9 @@ namespace NobatPlusDATA.DataLayer.Services
                     throw new Exception("ثبت این نوبت به دلیل وجود تداخل برای مشتری / آرایشگر امکان پذیر نیست");
                 }
 
-                foreach (var bookingService in Booking.BookingServices ?? new List<BookingService>())
+                var nextServices = Booking.BookingServices?.ToList() ?? new List<BookingService>();
+
+                foreach (var bookingService in nextServices)
                 {
                     bookingService.BookingID = Booking.ID;
                     foreach (var optionValue in bookingService.OptionValues ?? new List<BookingServiceOptionValue>())
@@ -96,10 +98,16 @@ namespace NobatPlusDATA.DataLayer.Services
                     await _context.SaveChangesAsync();
                 }
 
+                Booking.BookingServices = new List<BookingService>();
                 _context.Bookings.Update(Booking);
                 if (!previousBooking.IsCancelled && Booking.IsCancelled)
                 {
                     await RefundWalletPaymentsForCancelledBookingAsync(Booking.ID);
+                }
+
+                if (nextServices.Any())
+                {
+                    await _context.BookingServices.AddRangeAsync(nextServices);
                 }
 
                 await _context.SaveChangesAsync();
@@ -229,12 +237,20 @@ namespace NobatPlusDATA.DataLayer.Services
                     bookingsQuery = bookingsQuery.Where(x => x.BookingDate <= to);
                 }
 
-                if (!string.IsNullOrEmpty(searchText))
+                if (!string.IsNullOrWhiteSpace(searchText))
                 {
+                    searchText = searchText.Trim();
                     bookingsQuery = bookingsQuery.Where(x =>
+                        x.ID.ToString().Contains(searchText) ||
                         x.Stylist.Person.FirstName.Contains(searchText) ||
                         x.Stylist.Person.LastName.Contains(searchText) ||
-                        x.Status.Contains(searchText));
+                        x.Stylist.Person.PhoneNumber.Contains(searchText) ||
+                        x.Customer.Person.FirstName.Contains(searchText) ||
+                        x.Customer.Person.LastName.Contains(searchText) ||
+                        x.Customer.Person.PhoneNumber.Contains(searchText) ||
+                        x.Status.Contains(searchText) ||
+                        (x.Description != null && x.Description.Contains(searchText)) ||
+                        x.BookingServices.Any(bs => bs.ServiceManagement.ServiceName.Contains(searchText)));
                 }
 
                 bookingsQuery = bookingsQuery
