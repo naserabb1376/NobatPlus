@@ -169,6 +169,7 @@ namespace NobatPlusDATA.DataLayer.Services
                 foreach (var stylistGroup in groupedByStylist)
                 {
                     var stylistId = stylistGroup.Key;
+                    var servicesToReinsert = stylistGroup.ToList();
 
                     // حذف همه سرویس‌های قبلی این stylist
                     var oldItems = await _context.StylistServices
@@ -183,7 +184,7 @@ namespace NobatPlusDATA.DataLayer.Services
 
                     var now = DateTime.Now.ToShamsi();
 
-                    foreach (var inputService in stylistGroup)
+                    foreach (var inputService in servicesToReinsert)
                     {
                         if (!oldItemsByServiceId.TryGetValue(inputService.ServiceManagementID, out var oldItem))
                             continue;
@@ -217,12 +218,51 @@ namespace NobatPlusDATA.DataLayer.Services
 
                                     variant.CreateDate = oldVariant?.CreateDate ?? now;
                                     variant.UpdateDate = now;
+                                    variant.OptionValueCombinationKey = combinationKey;
                                     return variant;
                                 })
                                 .ToList();
+
+                            var requestedVariantIds = requestedVariants
+                                .Where(x => x.ID > 0)
+                                .Select(x => x.ID)
+                                .ToHashSet();
+
+                            var requestedCombinationKeys = requestedVariants
+                                .Select(x => x.OptionValueCombinationKey)
+                                .Where(x => !string.IsNullOrWhiteSpace(x))
+                                .ToHashSet();
+
+                            var untouchedOldVariants = oldItem.PriceVariants
+                                .Where(oldVariant =>
+                                    !requestedVariantIds.Contains(oldVariant.ID) &&
+                                    !requestedCombinationKeys.Contains(oldVariant.OptionValueCombinationKey))
+                                .Select(variant => CloneVariantForReinsert(variant, now))
+                                .ToList();
+
+                            requestedVariants.AddRange(untouchedOldVariants);
                         }
 
                         inputService.PriceVariants = requestedVariants;
+                    }
+
+                    var requestedServiceIds = servicesToReinsert
+                        .Select(x => x.ServiceManagementID)
+                        .ToHashSet();
+
+                    var candidateServiceIds = oldItems
+                        .Select(x => x.ServiceManagementID)
+                        .ToHashSet();
+
+                    foreach (var oldItem in oldItems.Where(x => !requestedServiceIds.Contains(x.ServiceManagementID)))
+                    {
+                        var descendants = await GetServiceDescendantsAsync(oldItem.ServiceManagementID);
+                        var isParentOfAnotherKeptService = descendants.Any(x => candidateServiceIds.Contains(x.ID));
+
+                        if (isParentOfAnotherKeptService)
+                            continue;
+
+                        servicesToReinsert.Add(CloneStylistServiceForReinsert(oldItem, now));
                     }
 
                     if (oldItems.Any())
@@ -232,7 +272,7 @@ namespace NobatPlusDATA.DataLayer.Services
                     }
 
                     // افزودن مجدد فقط سرویس‌های مربوط به همین stylist
-                    var addResult = await AddStylistServicesAsync(stylistGroup.ToList());
+                    var addResult = await AddStylistServicesAsync(servicesToReinsert);
                     if (!addResult.Status)
                         return addResult;
                 }
@@ -273,6 +313,24 @@ namespace NobatPlusDATA.DataLayer.Services
             };
         }
 
+        private static StylistService CloneStylistServiceForReinsert(
+            StylistService source,
+            DateTime updateDate)
+        {
+            return new StylistService
+            {
+                StylistID = source.StylistID,
+                ServiceManagementID = source.ServiceManagementID,
+                ServicePrice = source.ServicePrice,
+                DepositPercent = source.DepositPercent,
+                ServiceDuration = source.ServiceDuration,
+                HasDynamicPricing = source.HasDynamicPricing,
+                PriceVariants = source.PriceVariants?
+                    .Select(variant => CloneVariantForReinsert(variant, updateDate))
+                    .ToList() ?? new List<StylistServicePriceVariant>()
+            };
+        }
+
 
 
         public async Task<BitResultObject> RemoveStylistServicesAsync(List<StylistService> stylistServices)
@@ -289,10 +347,35 @@ namespace NobatPlusDATA.DataLayer.Services
                 foreach (var stylistGroup in groupedByStylist)
                 {
                     var stylistId = stylistGroup.Key;
+                    var requestedServiceIds = stylistGroup
+                        .Select(item => item.ServiceManagementID)
+                        .ToList();
+
+                    var dynamicServices = await _context.StylistServices
+                        .AsNoTracking()
+                        .Where(x =>
+                            x.StylistID == stylistId &&
+                            x.HasDynamicPricing &&
+                            requestedServiceIds.Contains(x.ServiceManagementID))
+                        .Select(x => x.ServiceManagementID)
+                        .ToListAsync();
+
+                    foreach (var dynamicServiceId in dynamicServices)
+                    {
+                        await RemoveDynamicStylistServiceAsync(stylistId, dynamicServiceId);
+                    }
+
+                    var fixedItems = stylistGroup
+                        .Where(x => !dynamicServices.Contains(x.ServiceManagementID))
+                        .ToList();
+
+                    if (!fixedItems.Any())
+                        continue;
+
                     var serviceIdsToRemove = new HashSet<long>();
                     var parentIdsToCheck = new List<long>();
 
-                    foreach (var item in stylistGroup)
+                    foreach (var item in fixedItems)
                     {
                         // خود service
                         serviceIdsToRemove.Add(item.ServiceManagementID);
@@ -383,6 +466,85 @@ namespace NobatPlusDATA.DataLayer.Services
             }
 
             return result;
+        }
+
+        private async Task RemoveDynamicStylistServiceAsync(long stylistId, long serviceManagementId)
+        {
+            var variantIds = await _context.StylistServicePriceVariants
+                .AsNoTracking()
+                .Where(x =>
+                    x.StylistID == stylistId &&
+                    x.ServiceManagementID == serviceManagementId)
+                .Select(x => x.ID)
+                .ToListAsync();
+
+            if (variantIds.Any())
+            {
+                var optionValues = await _context.StylistServicePriceVariantOptionValues
+                    .Where(x => variantIds.Contains(x.StylistServicePriceVariantID))
+                    .ToListAsync();
+
+                if (optionValues.Any())
+                    _context.StylistServicePriceVariantOptionValues.RemoveRange(optionValues);
+
+                var variants = await _context.StylistServicePriceVariants
+                    .Where(x => variantIds.Contains(x.ID))
+                    .ToListAsync();
+
+                if (variants.Any())
+                    _context.StylistServicePriceVariants.RemoveRange(variants);
+
+                await _context.SaveChangesAsync();
+            }
+
+            await RemoveStylistServiceAndUnusedParentsAsync(stylistId, serviceManagementId);
+        }
+
+        private async Task RemoveStylistServiceAndUnusedParentsAsync(long stylistId, long serviceManagementId)
+        {
+            var existingServiceIds = await _context.StylistServices
+                .AsNoTracking()
+                .Where(x => x.StylistID == stylistId)
+                .Select(x => x.ServiceManagementID)
+                .ToListAsync();
+
+            var serviceIdsToRemove = new HashSet<long>();
+            if (existingServiceIds.Contains(serviceManagementId))
+                serviceIdsToRemove.Add(serviceManagementId);
+
+            var remainingServiceIds = existingServiceIds
+                .Where(id => !serviceIdsToRemove.Contains(id))
+                .ToHashSet();
+
+            var hierarchy = await GetServiceHierarchyAsync(serviceManagementId);
+            foreach (var parent in hierarchy.Where(x => x.ID != serviceManagementId))
+            {
+                if (!remainingServiceIds.Contains(parent.ID))
+                    continue;
+
+                var descendants = await GetServiceDescendantsAsync(parent.ID);
+                var hasRemainingDescendant = descendants.Any(x => remainingServiceIds.Contains(x.ID));
+                if (hasRemainingDescendant)
+                    continue;
+
+                serviceIdsToRemove.Add(parent.ID);
+                remainingServiceIds.Remove(parent.ID);
+            }
+
+            if (!serviceIdsToRemove.Any())
+                return;
+
+            var stylistServices = await _context.StylistServices
+                .Where(x =>
+                    x.StylistID == stylistId &&
+                    serviceIdsToRemove.Contains(x.ServiceManagementID))
+                .ToListAsync();
+
+            if (stylistServices.Any())
+            {
+                _context.StylistServices.RemoveRange(stylistServices);
+                await _context.SaveChangesAsync();
+            }
         }
 
         public async Task<BitResultObject> ExistStylistServiceAsync(long StylistId, long ServiceManagementId)
