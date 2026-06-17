@@ -218,7 +218,7 @@ namespace NobatPlusAPI.Controllers
 
 
         [HttpDelete("DeleteStylistServices_Base")]
-        public async Task<ActionResult<BitResultObject>> DeleteStylistServices_Base(List<GetStylistServiceRowRequestBody> requestBodyList)
+        public async Task<ActionResult<BitResultObject>> DeleteStylistServices_Base(List<DeleteStylistServiceRowRequestBody> requestBodyList)
         {
             if (!ModelState.IsValid)
             {
@@ -226,7 +226,7 @@ namespace NobatPlusAPI.Controllers
             }
 
             var stylistServiceIds = requestBodyList
-                .Select(requestBody => (requestBody.StylistID, requestBody.ServiceID))
+                .Select(requestBody => (requestBody.StylistID, requestBody.ServiceID, requestBody.StylistServicePriceVariantID))
                 .ToList();
 
             var result = await _StylistServiceRep.RemoveStylistServicesAsync(stylistServiceIds);
