@@ -15,7 +15,7 @@ namespace NobatPlusDATA.DataLayer.Repositories
         public Task<BitResultObject> AddStylistServicesAsync(List<StylistService> stylistServices);
         public Task<BitResultObject> EditStylistServicesAsync(List<StylistService> stylistServices);
         public Task<BitResultObject> RemoveStylistServicesAsync(List<StylistService> stylistServices);
-        public Task<BitResultObject> RemoveStylistServicesAsync(List<(long StylistId, long ServiceManagementId)> stylistServiceIds);
+        public Task<BitResultObject> RemoveStylistServicesAsync(List<(long StylistId, long ServiceManagementId,long? stylistServicePriceVariantId)> stylistServiceIds);
         public Task<BitResultObject> ExistStylistServiceAsync(long StylistId, long ServiceManagementId);
     }
 }

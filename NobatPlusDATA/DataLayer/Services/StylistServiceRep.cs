@@ -347,35 +347,11 @@ namespace NobatPlusDATA.DataLayer.Services
                 foreach (var stylistGroup in groupedByStylist)
                 {
                     var stylistId = stylistGroup.Key;
-                    var requestedServiceIds = stylistGroup
-                        .Select(item => item.ServiceManagementID)
-                        .ToList();
-
-                    var dynamicServices = await _context.StylistServices
-                        .AsNoTracking()
-                        .Where(x =>
-                            x.StylistID == stylistId &&
-                            x.HasDynamicPricing &&
-                            requestedServiceIds.Contains(x.ServiceManagementID))
-                        .Select(x => x.ServiceManagementID)
-                        .ToListAsync();
-
-                    foreach (var dynamicServiceId in dynamicServices)
-                    {
-                        await RemoveDynamicStylistServiceAsync(stylistId, dynamicServiceId);
-                    }
-
-                    var fixedItems = stylistGroup
-                        .Where(x => !dynamicServices.Contains(x.ServiceManagementID))
-                        .ToList();
-
-                    if (!fixedItems.Any())
-                        continue;
 
                     var serviceIdsToRemove = new HashSet<long>();
                     var parentIdsToCheck = new List<long>();
 
-                    foreach (var item in fixedItems)
+                    foreach (var item in stylistGroup)
                     {
                         // خود service
                         serviceIdsToRemove.Add(item.ServiceManagementID);
@@ -443,21 +419,43 @@ namespace NobatPlusDATA.DataLayer.Services
         }
 
         public async Task<BitResultObject> RemoveStylistServicesAsync(
-      List<(long StylistId, long ServiceManagementId)> stylistServiceIds)
+      List<(long StylistId, long ServiceManagementId, long? stylistServicePriceVariantId)> stylistServiceIds)
         {
             BitResultObject result = new BitResultObject();
 
             try
             {
-                var stylistServices = stylistServiceIds
-                    .Select(x => new StylistService
-                    {
-                        StylistID = x.StylistId,
-                        ServiceManagementID = x.ServiceManagementId
-                    })
-                    .ToList();
+                var fixedStylistServices = new List<StylistService>();
 
-                result = await RemoveStylistServicesAsync(stylistServices);
+                foreach (var item in stylistServiceIds)
+                {
+                    if (item.stylistServicePriceVariantId.HasValue && item.stylistServicePriceVariantId.Value > 0)
+                    {
+                        var dynamicRemoveResult = await RemoveDynamicStylistServiceAsync(
+                            item.StylistId,
+                            item.ServiceManagementId,
+                            item.stylistServicePriceVariantId.Value);
+
+                        if (!dynamicRemoveResult.Status)
+                            return dynamicRemoveResult;
+
+                        continue;
+                    }
+
+                    fixedStylistServices.Add(new StylistService
+                    {
+                        StylistID = item.StylistId,
+                        ServiceManagementID = item.ServiceManagementId
+                    });
+                }
+
+                if (fixedStylistServices.Any())
+                {
+                    result = await RemoveStylistServicesAsync(fixedStylistServices);
+                    return result;
+                }
+
+                result.Status = true;
             }
             catch (Exception ex)
             {
@@ -468,36 +466,58 @@ namespace NobatPlusDATA.DataLayer.Services
             return result;
         }
 
-        private async Task RemoveDynamicStylistServiceAsync(long stylistId, long serviceManagementId)
+        private async Task<BitResultObject> RemoveDynamicStylistServiceAsync(long stylistId, long serviceManagementId, long stylistServicePriceVariantId)
         {
-            var variantIds = await _context.StylistServicePriceVariants
-                .AsNoTracking()
-                .Where(x =>
-                    x.StylistID == stylistId &&
-                    x.ServiceManagementID == serviceManagementId)
-                .Select(x => x.ID)
-                .ToListAsync();
+            var result = new BitResultObject();
 
-            if (variantIds.Any())
+            await using var transaction = await _context.Database.BeginTransactionAsync();
+            try
             {
+                var variant = await _context.StylistServicePriceVariants
+                    .SingleOrDefaultAsync(x =>
+                        x.ID == stylistServicePriceVariantId &&
+                        x.StylistID == stylistId &&
+                        x.ServiceManagementID == serviceManagementId);
+
+                if (variant == null)
+                {
+                    result.Status = false;
+                    result.ErrorMessage = "ردیف قیمت متغیر برای آرایشگر و خدمت ورودی پیدا نشد";
+                    return result;
+                }
+
                 var optionValues = await _context.StylistServicePriceVariantOptionValues
-                    .Where(x => variantIds.Contains(x.StylistServicePriceVariantID))
+                    .Where(x => x.StylistServicePriceVariantID == stylistServicePriceVariantId)
                     .ToListAsync();
 
                 if (optionValues.Any())
                     _context.StylistServicePriceVariantOptionValues.RemoveRange(optionValues);
 
-                var variants = await _context.StylistServicePriceVariants
-                    .Where(x => variantIds.Contains(x.ID))
-                    .ToListAsync();
-
-                if (variants.Any())
-                    _context.StylistServicePriceVariants.RemoveRange(variants);
-
+                _context.StylistServicePriceVariants.Remove(variant);
                 await _context.SaveChangesAsync();
+
+                var hasOtherVariants = await _context.StylistServicePriceVariants
+                    .AsNoTracking()
+                    .AnyAsync(x =>
+                        x.StylistID == stylistId &&
+                        x.ServiceManagementID == serviceManagementId);
+
+                if (!hasOtherVariants)
+                    await RemoveStylistServiceAndUnusedParentsAsync(stylistId, serviceManagementId);
+
+                await transaction.CommitAsync();
+
+                result.Status = true;
+                result.ID = stylistServicePriceVariantId;
+            }
+            catch (Exception ex)
+            {
+                await transaction.RollbackAsync();
+                result.Status = false;
+                result.ErrorMessage = $"{ex.Message} - {ex.InnerException?.Message}";
             }
 
-            await RemoveStylistServiceAndUnusedParentsAsync(stylistId, serviceManagementId);
+            return result;
         }
 
         private async Task RemoveStylistServiceAndUnusedParentsAsync(long stylistId, long serviceManagementId)
