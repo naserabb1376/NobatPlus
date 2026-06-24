@@ -89,7 +89,7 @@ namespace NobatPlusAPI.Controllers
         }
 
         [HttpPost("ExistPaymentDetail_Base")]
-        [RequireRole(4)]
+        // [RequireRole(4)]
         public async Task<ActionResult<BitResultObject>> ExistPaymentDetail_Base(GetRowRequestBody requestBody)
         {
             if (!ModelState.IsValid)
@@ -105,7 +105,7 @@ namespace NobatPlusAPI.Controllers
         }
 
         [HttpPost("AddPaymentDetail_Base")]
-        [RequireRole(4)]
+        // [RequireRole(4)]
         public async Task<ActionResult<BitResultObject>> AddPaymentDetail_Base(AddEditPaymentDetailRequestBody requestBody)
         {
             if (!ModelState.IsValid)
@@ -148,7 +148,7 @@ namespace NobatPlusAPI.Controllers
         }
 
         [HttpPut("EditPaymentDetail_Base")]
-        [RequireRole(4)]
+        // [RequireRole(4)]
         public async Task<ActionResult<BitResultObject>> EditPaymentDetail_Base(AddEditPaymentDetailRequestBody requestBody)
         {
             var result = new BitResultObject();
@@ -200,7 +200,7 @@ namespace NobatPlusAPI.Controllers
         }
 
         [HttpDelete("DeletePaymentDetail_Base")]
-        [RequireRole(4)]
+        // [RequireRole(4)]
         public async Task<ActionResult<BitResultObject>> DeletePaymentDetail_Base(GetRowRequestBody requestBody)
         {
             if (!ModelState.IsValid)

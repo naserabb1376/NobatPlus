@@ -94,7 +94,7 @@ namespace NobatPlusAPI.Controllers
         }
 
         [HttpPost("ExistCustomer_Base")]
-        [RequireRole(4)]
+        // [RequireRole(4)]
         public async Task<ActionResult<BitResultObject>> ExistCustomer_Base(ExistCustomerRequestBody requestBody)
         {
             if (!ModelState.IsValid)
@@ -289,7 +289,7 @@ namespace NobatPlusAPI.Controllers
         }
 
         [HttpDelete("DeleteCustomer_Base")]
-        [RequireRole(4)]
+        // [RequireRole(4)]
         public async Task<ActionResult<BitResultObject>> DeleteCustomer_Base(GetRowRequestBody requestBody)
         {
             if (!ModelState.IsValid)

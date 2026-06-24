@@ -87,7 +87,7 @@ namespace NobatPlusAPI.Controllers
         }
 
         [HttpPost("ExistReview_Base")]
-        [RequireRole(4)]
+        // [RequireRole(4)]
         public async Task<ActionResult<BitResultObject>> ExistReview_Base(GetRowRequestBody requestBody)
         {
             if (!ModelState.IsValid)
@@ -173,7 +173,7 @@ namespace NobatPlusAPI.Controllers
         }
 
         [HttpPut("AcceptReview_Base")]
-        [RequireRole(4)]
+        // [RequireRole(4)]
         public async Task<ActionResult<BitResultObject>> AcceptReview_Base(GetRowRequestBody requestBody)
         {
             var result = new BitResultObject();

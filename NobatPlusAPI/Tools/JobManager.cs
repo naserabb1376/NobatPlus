@@ -64,7 +64,7 @@ namespace NobatPlusAPI.Tools
             string message = template
                 .Replace("{customername}", booking.Result.Customer.Person.FirstName)
                 .Replace("{stylistname}", $"{booking.Result.Stylist.Person.FirstName} {booking.Result.Stylist.Person.LastName}")
-                .Replace("{bookingdate}", booking.Result.BookingStartDate.ToShamsi().ToString("yyyy/MM/dd"))
+                .Replace("{bookingdate}", booking.Result.BookingStartDate.ToShamsiString().Split(' ')[0])
                 .Replace("{bookingtime}", booking.Result.BookingStartDate.ToString("HH:mm"));
 
 
@@ -141,7 +141,7 @@ namespace NobatPlusAPI.Tools
         {
             var today = DateTime.Now.ToShamsi();
 
-            var persons = await _personRep.GetAllPersonsAsync(today.Month, today.Day);
+            var persons = await _personRep.GetPersonsWithBirthdayAsync(today.Month, today.Day);
 
             if (persons.Results == null || !persons.Results.Any())
                 return;
@@ -154,7 +154,7 @@ namespace NobatPlusAPI.Tools
             }
         }
 
-        private async Task SendHBDMessage(long personId)
+        public async Task SendHBDMessage(long personId)
         {
             var person = await _personRep.GetPersonByIdAsync(personId);
 
@@ -162,6 +162,9 @@ namespace NobatPlusAPI.Tools
 
             if (person.Result == null || hbdMessage.Result == null) return;
 
+            var birthdayKey = $"birthday-message:{personId}:{DateTime.Now.ToShamsiString().Split(' ')[0]}";
+            if (await _sMSMessageRep.HasMessageWithDescriptionAsync(birthdayKey))
+                return;
 
             string message = hbdMessage.Result.Value
        .Replace("{fullname}", $"{person.Result.FirstName} {person.Result.LastName}");
@@ -182,7 +185,7 @@ namespace NobatPlusAPI.Tools
                 PersonID = person.Result.ID,
                 Message = message,
                 SentDate = DateTime.Now.ToShamsi(),
-                Description = message,
+                Description = birthdayKey,
                 SentStatus = sentstatus,
             };
             var smsresult = await _sMSMessageRep.AddSMSMessageAsync(SMSMessage);
@@ -195,7 +198,7 @@ namespace NobatPlusAPI.Tools
                     CreateDate = DateTime.Now.ToShamsi(),
                     UpdateDate = DateTime.Now.ToShamsi(),
                     LogTime = DateTime.Now.ToShamsi(),
-                    ActionName = "SendBookingRemindMessage",
+                    ActionName = "SendHBDMessage",
 
                 };
                 await _logRep.AddLogAsync(log);
@@ -214,7 +217,7 @@ namespace NobatPlusAPI.Tools
                 PersonID = person.Result.ID,
                 Message = message,
                 SentDate = DateTime.Now.ToShamsi(),
-                Description = message,
+                Description = birthdayKey,
             };
             var notifresult = await _notificationRep.AddNotificationAsync(Notification);
             if (notifresult.Status)
@@ -226,7 +229,7 @@ namespace NobatPlusAPI.Tools
                     CreateDate = DateTime.Now.ToShamsi(),
                     UpdateDate = DateTime.Now.ToShamsi(),
                     LogTime = DateTime.Now.ToShamsi(),
-                    ActionName = "SendBookingRemindMessage",
+                    ActionName = "SendHBDMessage",
 
                 };
                 await _logRep.AddLogAsync(log);

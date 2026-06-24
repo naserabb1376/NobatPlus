@@ -329,7 +329,7 @@ namespace NobatPlusAPI
             RecurringJob.AddOrUpdate<JobManager>(
      job => job.ProcessTodayBirthdays(),
      "0 9 * * *",
-     TimeZoneInfo.Local
+     GetIranTimeZone()
  );
 
             #endregion
@@ -353,6 +353,22 @@ namespace NobatPlusAPI
             #endregion Pipeline
 
             app.Run();
+        }
+
+        private static TimeZoneInfo GetIranTimeZone()
+        {
+            try
+            {
+                return TimeZoneInfo.FindSystemTimeZoneById("Iran Standard Time");
+            }
+            catch (TimeZoneNotFoundException)
+            {
+                return TimeZoneInfo.FindSystemTimeZoneById("Asia/Tehran");
+            }
+            catch (InvalidTimeZoneException)
+            {
+                return TimeZoneInfo.FindSystemTimeZoneById("Asia/Tehran");
+            }
         }
     }
 }

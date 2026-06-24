@@ -72,7 +72,7 @@ namespace NobatPlusAPI.Controllers
         }
 
         [HttpPost("GetPermissionById_Base")]
-        [RequireRole(4)]
+        // [RequireRole(4)]
         public async Task<ActionResult<RowResultObject<PermissionVM>>> GetPermissionById_Base(GetRowRequestBody requestBody)
         {
             if (!ModelState.IsValid)
@@ -89,7 +89,7 @@ namespace NobatPlusAPI.Controllers
         }
 
         [HttpPost("ExistPermission_Base")]
-        [RequireRole(4)]
+        // [RequireRole(4)]
         public async Task<ActionResult<BitResultObject>> ExistPermission_Base(GetRowRequestBody requestBody)
         {
             if (!ModelState.IsValid)
@@ -105,7 +105,7 @@ namespace NobatPlusAPI.Controllers
         }
 
         [HttpPost("AddPermission_Base")]
-        [RequireRole(4)]
+        // [RequireRole(4)]
         public async Task<ActionResult<BitResultObject>> AddPermission_Base(AddEditPermissionRequestBody requestBody)
         {
             if (!ModelState.IsValid)
@@ -180,7 +180,7 @@ namespace NobatPlusAPI.Controllers
         }
 
         [HttpPut("EditPermission_Base")]
-        [RequireRole(4)]
+        // [RequireRole(4)]
         public async Task<ActionResult<BitResultObject>> EditPermission_Base(AddEditPermissionRequestBody requestBody)
         {
             var result = new BitResultObject();
@@ -234,7 +234,7 @@ namespace NobatPlusAPI.Controllers
         }
 
         [HttpDelete("DeletePermission_Base")]
-        [RequireRole(4)]
+        // [RequireRole(4)]
         public async Task<ActionResult<BitResultObject>> DeletePermission_Base(GetRowRequestBody requestBody)
         {
             if (!ModelState.IsValid)
