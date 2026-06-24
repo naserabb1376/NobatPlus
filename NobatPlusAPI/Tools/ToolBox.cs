@@ -388,6 +388,22 @@ namespace NobatPlusAPI.Tools
             return sb.ToString();
         }
 
+        public static TimeZoneInfo GetIranTimeZone()
+        {
+            try
+            {
+                return TimeZoneInfo.FindSystemTimeZoneById("Iran Standard Time");
+            }
+            catch (TimeZoneNotFoundException)
+            {
+                return TimeZoneInfo.FindSystemTimeZoneById("Asia/Tehran");
+            }
+            catch (InvalidTimeZoneException)
+            {
+                return TimeZoneInfo.FindSystemTimeZoneById("Asia/Tehran");
+            }
+        }
+
         public class ControllerActionInfo
         {
             public string ActionName { get; set; } = "";

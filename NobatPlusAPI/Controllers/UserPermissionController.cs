@@ -26,7 +26,7 @@ namespace NobatPlusAPI.Controllers
     [Route("UserPermission")]
     [ApiController]
     [Authorize]
-    [RequireRole(4)]
+    // [RequireRole(4)]
     [Produces("application/json")]
     // [CheckRoleBase(new[] { (int)BaseRole.GeneralAdmin })]
 
