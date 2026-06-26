@@ -55,6 +55,17 @@ namespace NobatPlusAPI.Controllers
         [HttpPost("GetAllPayments")]
         public async Task<ActionResult<ListResultObject<PaymentVM>>> GetAllPayments(GetPaymentListRequestBody requestBody)
         {
+            return await GetAllPaymentsInternal(requestBody);
+        }
+
+        [HttpPost("GetAllPayments_Base")]
+        public async Task<ActionResult<ListResultObject<PaymentVM>>> GetAllPayments_Base(GetPaymentListRequestBody requestBody)
+        {
+            return await GetAllPaymentsInternal(requestBody);
+        }
+
+        private async Task<ActionResult<ListResultObject<PaymentVM>>> GetAllPaymentsInternal(GetPaymentListRequestBody requestBody)
+        {
             if (!ModelState.IsValid)
             {
                 return BadRequest(requestBody);
@@ -73,7 +84,18 @@ namespace NobatPlusAPI.Controllers
                 customerId = dbcustomer.ID;
             }
 
-            var result = await _PaymentRep.GetAllPaymentsAsync(requestBody.BookingId,customerId,requestBody.PaymentIncludes,requestBody.PageIndex,requestBody.PageSize,requestBody.SearchText,requestBody.SortQuery);
+            var result = await _PaymentRep.GetAllPaymentsAsync(
+                requestBody.BookingId,
+                customerId,
+                requestBody.PaymentIncludes,
+                requestBody.PageIndex,
+                requestBody.PageSize,
+                requestBody.SearchText,
+                requestBody.SortQuery,
+                requestBody.PaymentStatus ?? "",
+                requestBody.PaymentLevel,
+                requestBody.FromDate,
+                requestBody.ToDate);
             if (result.Status)
             {
                 var resultVM = _mapper.Map<ListResultObject<PaymentVM>>(result);
@@ -84,6 +106,17 @@ namespace NobatPlusAPI.Controllers
 
         [HttpPost("GetPaymentById")]
         public async Task<ActionResult<RowResultObject<PaymentVM>>> GetPaymentById(GetRowRequestBody requestBody)
+        {
+            return await GetPaymentByIdInternal(requestBody);
+        }
+
+        [HttpPost("GetPaymentById_Base")]
+        public async Task<ActionResult<RowResultObject<PaymentVM>>> GetPaymentById_Base(GetRowRequestBody requestBody)
+        {
+            return await GetPaymentByIdInternal(requestBody);
+        }
+
+        private async Task<ActionResult<RowResultObject<PaymentVM>>> GetPaymentByIdInternal(GetRowRequestBody requestBody)
         {
             if (!ModelState.IsValid)
             {
@@ -123,6 +156,7 @@ namespace NobatPlusAPI.Controllers
         }
 
         [HttpPost("AddPayment")]
+        [HttpPost("AddPayment_Base")]
         public async Task<ActionResult<BitResultObject>> AddPayment(AddEditPaymentRequestBody requestBody)
         {
             var result = new BitResultObject();
@@ -358,6 +392,17 @@ namespace NobatPlusAPI.Controllers
 
         [HttpDelete("DeletePayment")]
         public async Task<ActionResult<BitResultObject>> DeletePayment(GetRowRequestBody requestBody)
+        {
+            return await DeletePaymentInternal(requestBody);
+        }
+
+        [HttpDelete("DeletePayment_Base")]
+        public async Task<ActionResult<BitResultObject>> DeletePayment_Base(GetRowRequestBody requestBody)
+        {
+            return await DeletePaymentInternal(requestBody);
+        }
+
+        private async Task<ActionResult<BitResultObject>> DeletePaymentInternal(GetRowRequestBody requestBody)
         {
             if (!ModelState.IsValid)
             {

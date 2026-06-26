@@ -51,7 +51,7 @@ namespace NobatPlusAPI.Controllers
             {
                 return BadRequest(requestBody);
             }
-            var result = await _DiscountRep.GetAllDiscountsAsync((DiscountType)requestBody.DiscountType,requestBody.AdminId,requestBody.StylistId,requestBody.CustomerId,requestBody.StylistId,requestBody.PageIndex,requestBody.PageSize,requestBody.SearchText,requestBody.SortQuery);
+            var result = await _DiscountRep.GetAllDiscountsAsync((DiscountType)requestBody.DiscountType, requestBody.AdminId, requestBody.StylistId, requestBody.CustomerId, requestBody.ServiceId, requestBody.PageIndex, requestBody.PageSize, requestBody.SearchText, requestBody.SortQuery);
             if (result.Status)
             {
                 var resultVM = _mapper.Map<ListResultObject<DiscountVM>>(result);
@@ -92,6 +92,7 @@ namespace NobatPlusAPI.Controllers
         }
 
         [HttpPost("AddDiscount")]
+        [HttpPost("AddDiscount_Base")]
         public async Task<ActionResult<BitResultObject>> AddDiscount(AddEditDiscountRequestBody requestBody)
         {
             if (User.GetCurrentRoleId() != 4) return Forbid();
@@ -99,21 +100,24 @@ namespace NobatPlusAPI.Controllers
             {
                 return BadRequest(requestBody);
             }
-            var discountAssignment = new DiscountAssignment
+            var now = DateTime.Now.ToShamsi();
+            var discountAssignments = new List<DiscountAssignment>();
+            if (requestBody.AdminId.HasValue || requestBody.StylistId.HasValue)
             {
-                CreateDate = DateTime.Now.ToShamsi(),
-                UpdateDate = DateTime.Now.ToShamsi(),
-                Description = requestBody.Description,
-
-                AdminId = requestBody.AdminId,
-                StylistId = requestBody.StylistId,
-
-            };
+                discountAssignments.Add(new DiscountAssignment
+                {
+                    CreateDate = now,
+                    UpdateDate = now,
+                    Description = requestBody.Description,
+                    AdminId = requestBody.AdminId,
+                    StylistId = requestBody.StylistId,
+                });
+            }
 
             var customerDiscounts = requestBody.CustomerIds.Select(cid => new CustomerDiscount()
             {
-                CreateDate = DateTime.Now.ToShamsi(),
-                UpdateDate = DateTime.Now.ToShamsi(),
+                CreateDate = now,
+                UpdateDate = now,
                 Description = requestBody.Description,
 
               
@@ -125,8 +129,8 @@ namespace NobatPlusAPI.Controllers
 
             var serviceDiscounts = requestBody.ServiceIds.Select(sid=> new ServiceDiscount()
             {
-                CreateDate = DateTime.Now.ToShamsi(),
-                UpdateDate = DateTime.Now.ToShamsi(),
+                CreateDate = now,
+                UpdateDate = now,
                 Description = requestBody.Description,
 
                 AdminId = requestBody.AdminId,
@@ -146,10 +150,7 @@ namespace NobatPlusAPI.Controllers
                 DiscountCode = requestBody.DiscountCode.GenerateDiscountCode(),
                 UpdateDate = DateTime.Now.ToShamsi(),
                 CodeRequired = requestBody.CodeRequired,
-                DiscountAssignments = new List<DiscountAssignment>()
-                {
-                    discountAssignment
-                },
+                DiscountAssignments = discountAssignments,
                 CustomerDiscounts = customerDiscounts,
                 ServiceDiscounts = serviceDiscounts,
             };
@@ -202,6 +203,37 @@ namespace NobatPlusAPI.Controllers
                 EndDate = requestBody.EndDate,
                 DiscountAmount = requestBody.DiscountAmount,
                 DiscountCode = requestBody.DiscountCode.GenerateDiscountCode(),
+                CodeRequired = requestBody.CodeRequired,
+                DiscountAssignments = requestBody.AdminId.HasValue || requestBody.StylistId.HasValue
+                    ? new List<DiscountAssignment>
+                    {
+                        new DiscountAssignment
+                        {
+                            CreateDate = DateTime.Now.ToShamsi(),
+                            UpdateDate = DateTime.Now.ToShamsi(),
+                            Description = requestBody.Description,
+                            AdminId = requestBody.AdminId,
+                            StylistId = requestBody.StylistId,
+                        }
+                    }
+                    : new List<DiscountAssignment>(),
+                CustomerDiscounts = requestBody.CustomerIds.Select(cid => new CustomerDiscount
+                {
+                    CreateDate = DateTime.Now.ToShamsi(),
+                    UpdateDate = DateTime.Now.ToShamsi(),
+                    Description = requestBody.Description,
+                    StylistId = requestBody.StylistId ?? 0,
+                    CustomerId = cid,
+                }).ToList(),
+                ServiceDiscounts = requestBody.ServiceIds.Select(sid => new ServiceDiscount
+                {
+                    CreateDate = DateTime.Now.ToShamsi(),
+                    UpdateDate = DateTime.Now.ToShamsi(),
+                    Description = requestBody.Description,
+                    AdminId = requestBody.AdminId,
+                    StylistId = requestBody.StylistId,
+                    ServiceManagementId = sid,
+                }).ToList(),
             };
             result = await _DiscountRep.EditDiscountAsync(Discount);
             if (result.Status)
@@ -227,6 +259,7 @@ namespace NobatPlusAPI.Controllers
         }
 
         [HttpDelete("DeleteDiscount")]
+        [HttpDelete("DeleteDiscount_Base")]
         public async Task<ActionResult<BitResultObject>> DeleteDiscount(GetRowRequestBody requestBody)
         {
             if (User.GetCurrentRoleId() != 4) return Forbid();

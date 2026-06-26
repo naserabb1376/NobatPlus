@@ -116,6 +116,7 @@ namespace NobatPlusAPI.Controllers
                 Key = requestBody.Key,
                 Value = requestBody.Value,
                 ParentId = requestBody.ParentId,
+                Description = requestBody.Description,
                 //OtherLangs = requestBody.OtherLangs ?? "",
 
             };
@@ -176,6 +177,7 @@ namespace NobatPlusAPI.Controllers
                 Key = requestBody.Key,
                 Value = requestBody.Value,
                 ParentId = requestBody.ParentId,
+                Description = requestBody.Description,
                 //OtherLangs = requestBody.OtherLangs ?? "",
 
             };

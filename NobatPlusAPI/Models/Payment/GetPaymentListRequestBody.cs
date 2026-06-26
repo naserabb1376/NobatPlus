@@ -17,5 +17,17 @@ namespace NobatPlusAPI.Models.Payment
         [Display(Name = "وضعیت پرداخت")]
         // [Required(ErrorMessage = "لطفا {0} را وارد کنید")]
         public int PaymentIncludes { get; set; } = 0;
+
+        [Display(Name = "متن وضعیت پرداخت")]
+        public string PaymentStatus { get; set; } = "";
+
+        [Display(Name = "مرحله پرداخت")]
+        public int PaymentLevel { get; set; } = 0;
+
+        [Display(Name = "از تاریخ")]
+        public DateTime? FromDate { get; set; }
+
+        [Display(Name = "تا تاریخ")]
+        public DateTime? ToDate { get; set; }
     }
 }

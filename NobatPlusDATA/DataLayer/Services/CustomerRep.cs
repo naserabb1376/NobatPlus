@@ -100,7 +100,8 @@ namespace NobatPlusDATA.DataLayer.Services
        int pageIndex = 1,
        int pageSize = 20,
        string searchText = "",
-       string sortQuery = "")
+       string sortQuery = "",
+       bool? isActive = null)
         {
             ListResultObject<CustomerDTO> results = new ListResultObject<CustomerDTO>();
 
@@ -147,6 +148,11 @@ namespace NobatPlusDATA.DataLayer.Services
                 if (cityId > 0)
                 {
                     query = query.Where(x => x.Person.Address.CityID == cityId);
+                }
+
+                if (isActive.HasValue)
+                {
+                    query = query.Where(x => x.Person.IsActive == isActive.Value);
                 }
 
                 // فیلتر جستجو

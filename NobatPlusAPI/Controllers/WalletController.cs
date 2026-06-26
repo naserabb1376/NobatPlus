@@ -36,6 +36,23 @@ namespace NobatPlusAPI.Controllers
             return result.Status ? Ok(result) : BadRequest(result);
         }
 
+        [HttpPost("GetCustomerWallet_Base")]
+        public async Task<ActionResult<RowResultObject<WalletReport>>> GetCustomerWallet_Base(GetCustomerWalletRequestBody requestBody)
+        {
+            if (!RequireAdmin(out var forbidden))
+            {
+                return forbidden;
+            }
+
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(requestBody);
+            }
+
+            var result = await _walletRep.GetWalletAsync(requestBody.CustomerId, requestBody.PageIndex, requestBody.PageSize);
+            return result.Status ? Ok(result) : BadRequest(result);
+        }
+
         [HttpPost("GetWalletTransactions_Base")]
         public async Task<ActionResult<ListResultObject<AdminWalletTransactionReport>>> GetWalletTransactions_Base(GetWalletTransactionsRequestBody requestBody)
         {

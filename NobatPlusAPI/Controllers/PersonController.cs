@@ -53,7 +53,7 @@ namespace NobatPlusAPI.Controllers
             {
                 return BadRequest(requestBody);
             }
-            var result = await _PersonRep.GetAllPersonsAsync(requestBody.CityId,requestBody.PageIndex,requestBody.PageSize,requestBody.SearchText,requestBody.SortQuery);
+            var result = await _PersonRep.GetAllPersonsAsync(requestBody.CityId, requestBody.PageIndex, requestBody.PageSize, requestBody.SearchText, requestBody.SortQuery, requestBody.RoleId, requestBody.IsActive);
             if (result.Status)
             {
                 var resultVM = _mapper.Map<ListResultObject<PersonVM>>(result);

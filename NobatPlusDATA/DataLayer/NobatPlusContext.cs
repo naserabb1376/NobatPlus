@@ -47,6 +47,8 @@ namespace NobatPlusDATA.DataLayer
         public DbSet<SettlementRequest> SettlementRequests { get; set; }
         public DbSet<Notification> Notifications { get; set; }
         public DbSet<SMSMessage> SMSMessages { get; set; }
+        public DbSet<SupportTicket> SupportTickets { get; set; }
+        public DbSet<SupportTicketMessage> SupportTicketMessages { get; set; }
         public DbSet<CheckAvailability> CheckAvailabilities { get; set; }
         public DbSet<ServiceManagement> ServiceManagements { get; set; }
         public DbSet<BookingService> BookingServices { get; set; }
@@ -64,6 +66,7 @@ namespace NobatPlusDATA.DataLayer
         public DbSet<ServiceDiscount> ServiceDiscounts { get; set; }
         public DbSet<CustomerDiscount> CustomerDiscounts { get; set; }
         public DbSet<Log> Logs { get; set; }
+        public DbSet<AdminAuditLog> AdminAuditLogs { get; set; }
         public DbSet<FileUpload> FileUploads { get; set; }
         public DbSet<Image> Images { get; set; }
         public DbSet<ApiGuide> ApiGuides { get; set; }
@@ -109,6 +112,64 @@ namespace NobatPlusDATA.DataLayer
 
             // demo config
             modelBuilder.Entity<Role>().HasIndex(x => x.Name).IsUnique();
+
+            modelBuilder.Entity<AdminAuditLog>()
+                .HasOne(x => x.ActorPerson)
+                .WithMany()
+                .HasForeignKey(x => x.ActorPersonID)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            modelBuilder.Entity<AdminAuditLog>()
+                .HasIndex(x => x.OccurredAt);
+
+            modelBuilder.Entity<AdminAuditLog>()
+                .HasIndex(x => new { x.ActorPersonID, x.OccurredAt });
+
+            modelBuilder.Entity<AdminAuditLog>()
+                .HasIndex(x => new { x.EntityName, x.ActionName });
+
+            modelBuilder.Entity<FileUpload>()
+                .HasOne(x => x.ReviewedByPerson)
+                .WithMany()
+                .HasForeignKey(x => x.ReviewedByPersonID)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            modelBuilder.Entity<FileUpload>()
+                .HasIndex(x => new { x.ReviewStatus, x.CreateDate });
+
+            modelBuilder.Entity<SupportTicket>()
+                .HasOne(x => x.Person)
+                .WithMany()
+                .HasForeignKey(x => x.PersonID)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            modelBuilder.Entity<SupportTicket>()
+                .HasOne(x => x.AssignedAdminPerson)
+                .WithMany()
+                .HasForeignKey(x => x.AssignedAdminPersonID)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            modelBuilder.Entity<SupportTicket>()
+                .HasIndex(x => new { x.Status, x.Priority, x.LastMessageAt });
+
+            modelBuilder.Entity<SupportTicket>()
+                .HasIndex(x => new { x.PersonID, x.LastMessageAt });
+
+            modelBuilder.Entity<SupportTicketMessage>()
+                .HasOne(x => x.SupportTicket)
+                .WithMany(x => x.Messages)
+                .HasForeignKey(x => x.SupportTicketID)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<SupportTicketMessage>()
+                .HasOne(x => x.SenderPerson)
+                .WithMany()
+                .HasForeignKey(x => x.SenderPersonID)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            modelBuilder.Entity<SupportTicketMessage>()
+                .HasIndex(x => new { x.SupportTicketID, x.CreateDate });
+
 
 
             // تعریف کلیدهای ترکیبی

@@ -64,9 +64,14 @@ namespace NobatPlusDATA.DataLayer.Services
             {
                 if (!string.IsNullOrEmpty(settingKey))
                 {
-                    result.Status = await _context.Settings
-    .AsNoTracking()
-    .AnyAsync(x => x.Key.ToLower() == settingKey.ToLower());
+                    var setting = await _context.Settings
+                        .AsNoTracking()
+                        .Where(x => x.Key.ToLower() == settingKey.ToLower())
+                        .Select(x => new { x.ID })
+                        .SingleOrDefaultAsync();
+
+                    result.Status = setting != null;
+                    result.ID = setting?.ID ?? 0;
                 }
                 else
                 {
@@ -75,7 +80,10 @@ namespace NobatPlusDATA.DataLayer.Services
     .AnyAsync(x => x.ID == settingId);
 
                 }
-                result.ID = settingId;
+                if (result.ID == 0)
+                {
+                    result.ID = settingId;
+                }
             }
             catch (Exception ex)
             {

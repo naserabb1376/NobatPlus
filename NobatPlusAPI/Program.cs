@@ -111,6 +111,7 @@ namespace NobatPlusAPI
             {
                 //options.OutputFormatters.Add()
                 options.ReturnHttpNotAcceptable = true;
+                options.Filters.AddService<AdminAuditLogActionFilter>();
             })
               .AddNewtonsoftJson(options =>
               {
@@ -176,7 +177,10 @@ namespace NobatPlusAPI
 
             builder.Services.AddScoped<IAddressRep, AddressRep>();
             builder.Services.AddScoped<IAdminRep, AdminRep>();
+            builder.Services.AddScoped<IAdminActionCenterRep, AdminActionCenterRep>();
+            builder.Services.AddScoped<IAdminAuditLogRep, AdminAuditLogRep>();
             builder.Services.AddScoped<IAdminDashboardRep, AdminDashboardRep>();
+            builder.Services.AddScoped<IAdminMonitoringRep, AdminMonitoringRep>();
             builder.Services.AddScoped<IBookingRep, BookingRep>();
             builder.Services.AddScoped<IBookingServiceRep, BookingServiceRep>();
             builder.Services.AddScoped<IBookingServiceOptionValueRep, BookingServiceOptionValueRep>();
@@ -214,6 +218,7 @@ namespace NobatPlusAPI
             builder.Services.AddScoped<IStylistServicePriceVariantRep, StylistServicePriceVariantRep>();
             builder.Services.AddScoped<IStylistServicePriceVariantOptionValueRep, StylistServicePriceVariantOptionValueRep>();
             builder.Services.AddScoped<IStylistPacificRep, StylistPacificRep>();
+            builder.Services.AddScoped<ISupportTicketRep, SupportTicketRep>();
             builder.Services.AddScoped<ITokenRep, TokenRep>();
             builder.Services.AddScoped<ISocialNetworkRep, SocialNetworkRep>();
             builder.Services.AddScoped<IWorkTimeRep, WorkTimeRep>();
@@ -225,6 +230,7 @@ namespace NobatPlusAPI
             builder.Services.AddScoped<IPermissionRep, PermissionRep>();
             builder.Services.AddScoped<IPermissionRoleRep, PermissionRoleRep>();
             builder.Services.AddScoped<IUserPermissionRep, UserPermissionRep>();
+            builder.Services.AddScoped<AdminAuditLogActionFilter>();
 
             #endregion ImportDbServices
 

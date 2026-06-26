@@ -194,7 +194,8 @@ namespace NobatPlusDATA.DataLayer.Services
             int pageIndex = 1,
             int pageSize = 20,
             string searchText = "",
-            string sortQuery = "")
+            string sortQuery = "",
+            string status = "")
         {
             ListResultObject<BookingDTO> results = new();
 
@@ -224,6 +225,12 @@ namespace NobatPlusDATA.DataLayer.Services
                     bookingsQuery = bookingsQuery.Where(x => x.IsCancelled);
                 else if (cancelState == 2)
                     bookingsQuery = bookingsQuery.Where(x => !x.IsCancelled);
+
+                if (!string.IsNullOrWhiteSpace(status))
+                {
+                    var normalizedStatus = status.Trim();
+                    bookingsQuery = bookingsQuery.Where(x => x.Status == normalizedStatus);
+                }
 
                 if (fromDate != null)
                 {

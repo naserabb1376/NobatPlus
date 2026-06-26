@@ -18,6 +18,7 @@ namespace NobatPlusAPI.Models.Booking
         //[Required(ErrorMessage = "لطفا {0} را وارد کنید")]
         public long StylistId { get; set; } = 0;
         public int CancelState { get; set; } = 0;
+        public string Status { get; set; } = "";
 
         [Display(Name = "از تاریخ")]
         public DateTime? FromDate { get; set; } = null;
