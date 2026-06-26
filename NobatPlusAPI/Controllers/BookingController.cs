@@ -59,7 +59,7 @@ namespace NobatPlusAPI.Controllers
                 return BadRequest(requestBody);
             }
 
-            result = await _BookingRep.GetAllBookingsAsync(requestBody.ServiceId,requestBody.CustomerId,requestBody.StylistId,requestBody.CancelState,requestBody.FromDate,requestBody.ToDate, requestBody.PageIndex, requestBody.PageSize, requestBody.SearchText, requestBody.SortQuery);
+            result = await _BookingRep.GetAllBookingsAsync(requestBody.ServiceId,requestBody.CustomerId,requestBody.StylistId,requestBody.CancelState,requestBody.FromDate,requestBody.ToDate, requestBody.PageIndex, requestBody.PageSize, requestBody.SearchText, requestBody.SortQuery, requestBody.Status);
             if (result.Status)
             {
                 var resultVM = _mapper.Map<ListResultObject<BookingVM>>(result);

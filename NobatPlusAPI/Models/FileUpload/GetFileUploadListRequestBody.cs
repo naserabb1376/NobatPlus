@@ -13,5 +13,8 @@ namespace NobatPlusAPI.Models.FileUpload
 
         [Display(Name = "کاربر ایجاد کننده")]
         public long CreatorId { get; set; } = 0;
+
+        [Display(Name = "وضعیت بررسی")]
+        public string ReviewStatus { get; set; } = "";
     }
 }

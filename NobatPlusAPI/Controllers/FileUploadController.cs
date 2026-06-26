@@ -13,6 +13,7 @@ using NobatPlusDATA.ResultObjects;
 using NobatPlusDATA.Tools;
 using FileIO = System.IO.File;
 using Domains;
+using NobatPlusAPI.Tools;
 
 namespace NobatPlusAPI.Controllers
 {
@@ -38,7 +39,7 @@ namespace NobatPlusAPI.Controllers
             {
                 return BadRequest(requestBody);
             }
-            var result = await _FileUploadRep.GetAllFileUploadsAsync(requestBody.entityType, requestBody.ForeignKeyId, requestBody.CreatorId, requestBody.PageIndex, requestBody.PageSize, requestBody.SearchText, requestBody.SortQuery);
+            var result = await _FileUploadRep.GetAllFileUploadsAsync(requestBody.entityType, requestBody.ForeignKeyId, requestBody.CreatorId, requestBody.PageIndex, requestBody.PageSize, requestBody.SearchText, requestBody.SortQuery, requestBody.ReviewStatus);
             if (result.Status)
             {
                 return Ok(result);
@@ -95,6 +96,7 @@ namespace NobatPlusAPI.Controllers
                 CreatorId = requestBody.CreatorId ?? 0,
                 Description = requestBody.Description ?? "",
                 GetUrl = requestBody.GetUrl ?? "",
+                ReviewStatus = "pending",
             };
             var result = await _FileUploadRep.AddFileUploadAsync(FileUpload);
             if (result.Status)
@@ -145,6 +147,10 @@ namespace NobatPlusAPI.Controllers
                 CreatorId = requestBody.CreatorId ?? 0,
                 Description = requestBody.Description ?? "",
                 GetUrl = requestBody.GetUrl ?? "",
+                ReviewStatus = theRow.Result.ReviewStatus,
+                ReviewedByPersonID = theRow.Result.ReviewedByPersonID,
+                ReviewedAt = theRow.Result.ReviewedAt,
+                ReviewNote = theRow.Result.ReviewNote,
             };
             result = await _FileUploadRep.EditFileUploadAsync(FileUpload);
             if (result.Status)
@@ -190,6 +196,42 @@ namespace NobatPlusAPI.Controllers
                     UpdateDate = DateTime.Now.ToShamsi(),
                     LogTime = DateTime.Now.ToShamsi(),
                     ActionName = this.ControllerContext.RouteData.Values["action"].ToString(),
+                };
+                await _logRep.AddLogAsync(log);
+
+                #endregion AddLog
+
+                return Ok(result);
+            }
+            return BadRequest(result);
+        }
+
+        [HttpPut("ReviewFileUpload_Base")]
+        public async Task<ActionResult<BitResultObject>> ReviewFileUpload_Base(ReviewFileUploadRequestBody requestBody)
+        {
+            if (User.GetCurrentRoleId() != 4) return Forbid();
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(requestBody);
+            }
+
+            var result = await _FileUploadRep.ReviewFileUploadAsync(
+                requestBody.ID,
+                requestBody.ReviewStatus,
+                User.GetCurrentUserId(),
+                requestBody.ReviewNote ?? "");
+
+            if (result.Status)
+            {
+                #region AddLog
+
+                Log log = new Log()
+                {
+                    CreateDate = DateTime.Now.ToShamsi(),
+                    UpdateDate = DateTime.Now.ToShamsi(),
+                    LogTime = DateTime.Now.ToShamsi(),
+                    ActionName = this.ControllerContext.RouteData.Values["action"].ToString(),
+                    Description = $"fileUploadId={requestBody.ID}; status={requestBody.ReviewStatus}; note={requestBody.ReviewNote}"
                 };
                 await _logRep.AddLogAsync(log);
 

@@ -39,6 +39,8 @@ namespace NobatPlusAPI.Models.Stylist
         //[Required(ErrorMessage = "لطفا {0} را وارد کنید")]
         public int Gender { get; set; } = 0;
 
+        [Display(Name = "وضعیت حساب")]
+        public string? AccountStatus { get; set; }
 
         public FindLocationRequestBody? FindLocationRequestBody { get; set; }
     }

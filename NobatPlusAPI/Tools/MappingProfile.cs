@@ -193,6 +193,15 @@ namespace NobatPlusAPI.Tools
        .ForMember(dest => dest.StylistName, opt => opt.MapFrom(src => src.Stylist.Person.FirstName + " " + src.Stylist.Person.LastName))
        .ForMember(dest => dest.AdminFullName, opt => opt.MapFrom(src => src.Admin.Person.FirstName + " " + src.Admin.Person.LastName))
        ;
+            CreateMap<Discount, DiscountVM>()
+       .ForMember(dest => dest.IsActive, opt => opt.MapFrom(src => src.StartDate <= DateTime.Now && src.EndDate >= DateTime.Now))
+       .ForMember(dest => dest.IsExpired, opt => opt.MapFrom(src => src.EndDate < DateTime.Now))
+       .ForMember(dest => dest.AssignmentCount, opt => opt.MapFrom(src => src.DiscountAssignments != null ? src.DiscountAssignments.Count(x => x.AdminId.HasValue || x.StylistId.HasValue) : 0))
+       .ForMember(dest => dest.CustomerCount, opt => opt.MapFrom(src => src.CustomerDiscounts != null ? src.CustomerDiscounts.Count : 0))
+       .ForMember(dest => dest.ServiceCount, opt => opt.MapFrom(src => src.ServiceDiscounts != null ? src.ServiceDiscounts.Count : 0))
+       .ForMember(dest => dest.StylistIds, opt => opt.MapFrom(src => src.DiscountAssignments != null ? src.DiscountAssignments.Where(x => x.StylistId.HasValue).Select(x => x.StylistId.GetValueOrDefault()).ToList() : new List<long>()))
+       .ForMember(dest => dest.CustomerIds, opt => opt.MapFrom(src => src.CustomerDiscounts != null ? src.CustomerDiscounts.Select(x => x.CustomerId).ToList() : new List<long>()))
+       .ForMember(dest => dest.ServiceIds, opt => opt.MapFrom(src => src.ServiceDiscounts != null ? src.ServiceDiscounts.Select(x => x.ServiceManagementId).ToList() : new List<long>()));
             CreateMap<ServiceDiscount, ServiceDiscountVM>()
      .ForMember(dest => dest.SalonName, opt => opt.MapFrom(src => src.Stylist.StylistName))
      .ForMember(dest => dest.DiscountCode, opt => opt.MapFrom(src => src.Discount.DiscountCode))
@@ -258,10 +267,25 @@ namespace NobatPlusAPI.Tools
 
             CreateMap<CustomerDTO, CustomerVM>()
 .ForMember(dest => dest.PersonFullName, opt => opt.MapFrom(src => src.Person.FirstName + " " + src.Person.LastName))
+.ForMember(dest => dest.FirstName, opt => opt.MapFrom(src => src.Person.FirstName))
+.ForMember(dest => dest.LastName, opt => opt.MapFrom(src => src.Person.LastName))
 .ForMember(dest => dest.PhoneNumber, opt => opt.MapFrom(src => src.Person.PhoneNumber))
+.ForMember(dest => dest.Email, opt => opt.MapFrom(src => src.Person.Email))
+.ForMember(dest => dest.NaCode, opt => opt.MapFrom(src => src.Person.NaCode))
+.ForMember(dest => dest.Gender, opt => opt.MapFrom(src => src.Person.Gender))
+.ForMember(dest => dest.IsActive, opt => opt.MapFrom(src => src.Person.IsActive))
+.ForMember(dest => dest.DateOfBirth, opt => opt.MapFrom(src => src.Person.DateOfBirth))
+.ForMember(dest => dest.AddressID, opt => opt.MapFrom(src => src.Person.AddressID))
+.ForMember(dest => dest.CityID, opt => opt.MapFrom(src => src.Person.Address != null ? src.Person.Address.CityID : (long?)null))
+.ForMember(dest => dest.CityName, opt => opt.MapFrom(src => src.Person.Address != null && src.Person.Address.City != null ? src.Person.Address.City.CityName : ""))
+.ForMember(dest => dest.AddressStreet, opt => opt.MapFrom(src => src.Person.Address != null ? src.Person.Address.AddressStreet : ""))
+.ForMember(dest => dest.AddressPostalCode, opt => opt.MapFrom(src => src.Person.Address != null ? src.Person.Address.AddressPostalCode : ""))
+.ForMember(dest => dest.CustomerDescription, opt => opt.MapFrom(src => src.Description))
            ;
             CreateMap<City, CityVM>();
-            CreateMap<Setting, SettingVM>();
+            CreateMap<Setting, SettingVM>()
+.ForMember(dest => dest.ParentKey, opt => opt.MapFrom(src => src.Parent != null ? src.Parent.Key : ""))
+.ForMember(dest => dest.ChildrenCount, opt => opt.MapFrom(src => src.Children != null ? src.Children.Count : 0));
             CreateMap<Person, PersonVM>();
             CreateMap<ServiceManagementDTO, ServiceManagementVM>();
             CreateMap<MTPermissionCenter_Permission, PermissionVM>();

@@ -18,6 +18,8 @@ namespace NobatPlusAPI.Models.Customer
         [Required(ErrorMessage = "لطفا {0} را وارد کنید")]
         public long CityId { get; set; }
 
+        [Display(Name = "وضعیت فعال")]
+        public bool? IsActive { get; set; }
 
     }
 }

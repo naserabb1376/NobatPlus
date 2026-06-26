@@ -108,7 +108,8 @@ namespace NobatPlusDATA.DataLayer.Services
      int pageSize = 20,
      string searchText = "",
      string sortQuery = "",
-     FindLocationRequestBody findLocation = null)
+     FindLocationRequestBody findLocation = null,
+     string accountStatus = "")
         {
             serviceIds ??= new List<long>();
 
@@ -175,6 +176,12 @@ namespace NobatPlusDATA.DataLayer.Services
                     query = query.Where(x =>
                         x.Person != null &&
                         x.Person.Gender == gender);
+                }
+
+                if (!string.IsNullOrWhiteSpace(accountStatus))
+                {
+                    accountStatus = accountStatus.Trim();
+                    query = query.Where(x => x.AccountStatus == accountStatus);
                 }
 
                 if (fromPrice > 0)

@@ -111,6 +111,7 @@ namespace NobatPlusDATA.DataLayer.Services
                     query = _context.SMSMessages.Include(x => x.Person)
                         .AsNoTracking()
                         .Where(x =>
+                            x.PersonID == personId &&
                             (
                                 (!string.IsNullOrEmpty(x.Message) && x.Message.Contains(searchText)) ||
                                 (!string.IsNullOrEmpty(x.Description) && x.Description.Contains(searchText)) ||

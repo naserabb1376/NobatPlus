@@ -252,6 +252,85 @@ namespace NobatPlusDATA.Migrations
                     b.ToTable("Admins");
                 });
 
+            modelBuilder.Entity("NobatPlusDATA.Domain.AdminAuditLog", b =>
+                {
+                    b.Property<long>("ID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("ID"));
+
+                    b.Property<string>("ActionName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("ActorFullName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<long>("ActorPersonID")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("ControllerName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("CreateDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("EntityName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("ErrorMessage")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("HttpMethod")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("IpAddress")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("OccurredAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("RequestPath")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("RequestSummary")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("StatusCode")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("Succeeded")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("TargetId")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("UpdateDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("UserAgent")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("ID");
+
+                    b.HasIndex("OccurredAt");
+
+                    b.HasIndex("ActorPersonID", "OccurredAt");
+
+                    b.HasIndex("EntityName", "ActionName");
+
+                    b.ToTable("AdminAuditLogs");
+                });
+
             modelBuilder.Entity("NobatPlusDATA.Domain.ApiGuide", b =>
                 {
                     b.Property<long>("ID")
@@ -625,10 +704,27 @@ namespace NobatPlusDATA.Migrations
                     b.Property<string>("GetUrl")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("ReviewNote")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ReviewStatus")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<DateTime?>("ReviewedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<long?>("ReviewedByPersonID")
+                        .HasColumnType("bigint");
+
                     b.Property<DateTime?>("UpdateDate")
                         .HasColumnType("datetime2");
 
                     b.HasKey("ID");
+
+                    b.HasIndex("ReviewedByPersonID");
+
+                    b.HasIndex("ReviewStatus", "CreateDate");
 
                     b.ToTable("FileUploads");
                 });
@@ -1907,6 +2003,101 @@ namespace NobatPlusDATA.Migrations
                     b.ToTable("StylistServicePriceVariantOptionValues");
                 });
 
+            modelBuilder.Entity("NobatPlusDATA.Domain.SupportTicket", b =>
+                {
+                    b.Property<long>("ID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("ID"));
+
+                    b.Property<long?>("AssignedAdminPersonID")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("Category")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("ClosedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("CreateDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("LastMessageAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<long>("PersonID")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("Priority")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("UpdateDate")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("ID");
+
+                    b.HasIndex("AssignedAdminPersonID");
+
+                    b.HasIndex("PersonID", "LastMessageAt");
+
+                    b.HasIndex("Status", "Priority", "LastMessageAt");
+
+                    b.ToTable("SupportTickets");
+                });
+
+            modelBuilder.Entity("NobatPlusDATA.Domain.SupportTicketMessage", b =>
+                {
+                    b.Property<long>("ID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("ID"));
+
+                    b.Property<DateTime?>("CreateDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("IsAdminReply")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Message")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<long>("SenderPersonID")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("SupportTicketID")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTime?>("UpdateDate")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("ID");
+
+                    b.HasIndex("SenderPersonID");
+
+                    b.HasIndex("SupportTicketID", "CreateDate");
+
+                    b.ToTable("SupportTicketMessages");
+                });
+
             modelBuilder.Entity("NobatPlusDATA.Domain.Wallet", b =>
                 {
                     b.Property<long>("ID")
@@ -2166,6 +2357,17 @@ namespace NobatPlusDATA.Migrations
                     b.Navigation("Person");
                 });
 
+            modelBuilder.Entity("NobatPlusDATA.Domain.AdminAuditLog", b =>
+                {
+                    b.HasOne("NobatPlusDATA.Domain.Person", "ActorPerson")
+                        .WithMany()
+                        .HasForeignKey("ActorPersonID")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.Navigation("ActorPerson");
+                });
+
             modelBuilder.Entity("NobatPlusDATA.Domain.Booking", b =>
                 {
                     b.HasOne("NobatPlusDATA.Domain.Customer", "Customer")
@@ -2295,6 +2497,16 @@ namespace NobatPlusDATA.Migrations
                     b.Navigation("Discount");
 
                     b.Navigation("Stylist");
+                });
+
+            modelBuilder.Entity("NobatPlusDATA.Domain.FileUpload", b =>
+                {
+                    b.HasOne("NobatPlusDATA.Domain.Person", "ReviewedByPerson")
+                        .WithMany()
+                        .HasForeignKey("ReviewedByPersonID")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.Navigation("ReviewedByPerson");
                 });
 
             modelBuilder.Entity("NobatPlusDATA.Domain.FinancialAccount", b =>
@@ -2727,6 +2939,43 @@ namespace NobatPlusDATA.Migrations
                     b.Navigation("StylistServicePriceVariant");
                 });
 
+            modelBuilder.Entity("NobatPlusDATA.Domain.SupportTicket", b =>
+                {
+                    b.HasOne("NobatPlusDATA.Domain.Person", "AssignedAdminPerson")
+                        .WithMany()
+                        .HasForeignKey("AssignedAdminPersonID")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.HasOne("NobatPlusDATA.Domain.Person", "Person")
+                        .WithMany()
+                        .HasForeignKey("PersonID")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.Navigation("AssignedAdminPerson");
+
+                    b.Navigation("Person");
+                });
+
+            modelBuilder.Entity("NobatPlusDATA.Domain.SupportTicketMessage", b =>
+                {
+                    b.HasOne("NobatPlusDATA.Domain.Person", "SenderPerson")
+                        .WithMany()
+                        .HasForeignKey("SenderPersonID")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.HasOne("NobatPlusDATA.Domain.SupportTicket", "SupportTicket")
+                        .WithMany("Messages")
+                        .HasForeignKey("SupportTicketID")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("SenderPerson");
+
+                    b.Navigation("SupportTicket");
+                });
+
             modelBuilder.Entity("NobatPlusDATA.Domain.Wallet", b =>
                 {
                     b.HasOne("NobatPlusDATA.Domain.Customer", "Customer")
@@ -2925,6 +3174,11 @@ namespace NobatPlusDATA.Migrations
             modelBuilder.Entity("NobatPlusDATA.Domain.StylistServicePriceVariant", b =>
                 {
                     b.Navigation("OptionValues");
+                });
+
+            modelBuilder.Entity("NobatPlusDATA.Domain.SupportTicket", b =>
+                {
+                    b.Navigation("Messages");
                 });
 
             modelBuilder.Entity("NobatPlusDATA.Domain.Wallet", b =>

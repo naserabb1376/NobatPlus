@@ -81,7 +81,7 @@ namespace NobatPlusDATA.DataLayer.Services
         public async Task<ListResultObject<FileUpload>> GetAllFileUploadsAsync(
           string entityType = "", long ForeignKeyId = 0, long creatorId = 0,
           int pageIndex = 1, int pageSize = 20,
-          string searchText = "", string sortQuery = "")
+          string searchText = "", string sortQuery = "", string reviewStatus = "")
         {
             ListResultObject<FileUpload> results = new ListResultObject<FileUpload>();
 
@@ -99,12 +99,17 @@ namespace NobatPlusDATA.DataLayer.Services
                 if (!string.IsNullOrEmpty(entityType))
                     query = query.Where(x => x.EntityType == entityType);
 
+                if (!string.IsNullOrEmpty(reviewStatus))
+                    query = query.Where(x => x.ReviewStatus == reviewStatus);
+
                 if (!string.IsNullOrEmpty(searchText))
                 {
                     query = query.Where(x =>
                         (!string.IsNullOrEmpty(x.FileName) && x.FileName.Contains(searchText)) ||
                         (!string.IsNullOrEmpty(x.FilePath) && x.FilePath.Contains(searchText)) ||
-                        (!string.IsNullOrEmpty(x.ContentType) && x.ContentType.Contains(searchText))
+                        (!string.IsNullOrEmpty(x.ContentType) && x.ContentType.Contains(searchText)) ||
+                        (!string.IsNullOrEmpty(x.Description) && x.Description.Contains(searchText)) ||
+                        (!string.IsNullOrEmpty(x.ReviewNote) && x.ReviewNote.Contains(searchText))
                     );
                 }
 
@@ -115,6 +120,7 @@ namespace NobatPlusDATA.DataLayer.Services
                     .OrderByDescending(x => x.CreateDate)
                     .SortBy(sortQuery)
                     .ToPaging(pageIndex, pageSize)
+                    .Include(x => x.ReviewedByPerson)
                     //.Include(x => x.Assignment) // در صورت نیاز بازکنید
                     .ToListAsync();
             }
@@ -178,8 +184,40 @@ namespace NobatPlusDATA.DataLayer.Services
             {
                 result.Result = await _context.FileUploads
                     .AsNoTracking()
+                    .Include(x => x.ReviewedByPerson)
                     //.Include(x => x.Assignment)
                     .SingleOrDefaultAsync(x => x.ID == fileUploadId);
+            }
+            catch (Exception ex)
+            {
+                result.Status = false;
+                result.ErrorMessage = $"{ex.Message} - {ex.InnerException?.Message}";
+            }
+            return result;
+        }
+
+        public async Task<BitResultObject> ReviewFileUploadAsync(long fileUploadId, string reviewStatus, long reviewedByPersonId, string reviewNote = "")
+        {
+            BitResultObject result = new BitResultObject();
+            try
+            {
+                var fileUpload = await _context.FileUploads.SingleOrDefaultAsync(x => x.ID == fileUploadId);
+                if (fileUpload == null)
+                {
+                    result.Status = false;
+                    result.ErrorMessage = "فایل مورد نظر پیدا نشد";
+                    return result;
+                }
+
+                fileUpload.ReviewStatus = reviewStatus;
+                fileUpload.ReviewedByPersonID = reviewedByPersonId;
+                fileUpload.ReviewedAt = DateTime.Now.ToShamsi();
+                fileUpload.ReviewNote = reviewNote;
+                fileUpload.UpdateDate = DateTime.Now.ToShamsi();
+
+                await _context.SaveChangesAsync();
+                result.ID = fileUpload.ID;
+                _context.Entry(fileUpload).State = EntityState.Detached;
             }
             catch (Exception ex)
             {

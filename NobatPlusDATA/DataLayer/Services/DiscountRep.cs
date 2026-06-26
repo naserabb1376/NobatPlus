@@ -48,6 +48,51 @@ namespace NobatPlusDATA.DataLayer.Services
             BitResultObject result = new BitResultObject();
             try
             {
+                if (Discount.DiscountAssignments != null)
+                {
+                    var oldAssignments = await _context.DiscountAssignments
+                        .Where(x => x.DiscountId == Discount.ID)
+                        .ToListAsync();
+                    if (oldAssignments.Any())
+                    {
+                        _context.DiscountAssignments.RemoveRange(oldAssignments);
+                    }
+                    foreach (var item in Discount.DiscountAssignments)
+                    {
+                        item.DiscountId = Discount.ID;
+                    }
+                }
+
+                if (Discount.CustomerDiscounts != null)
+                {
+                    var oldCustomerDiscounts = await _context.CustomerDiscounts
+                        .Where(x => x.DiscountId == Discount.ID)
+                        .ToListAsync();
+                    if (oldCustomerDiscounts.Any())
+                    {
+                        _context.CustomerDiscounts.RemoveRange(oldCustomerDiscounts);
+                    }
+                    foreach (var item in Discount.CustomerDiscounts)
+                    {
+                        item.DiscountId = Discount.ID;
+                    }
+                }
+
+                if (Discount.ServiceDiscounts != null)
+                {
+                    var oldServiceDiscounts = await _context.ServiceDiscounts
+                        .Where(x => x.DiscountId == Discount.ID)
+                        .ToListAsync();
+                    if (oldServiceDiscounts.Any())
+                    {
+                        _context.ServiceDiscounts.RemoveRange(oldServiceDiscounts);
+                    }
+                    foreach (var item in Discount.ServiceDiscounts)
+                    {
+                        item.DiscountId = Discount.ID;
+                    }
+                }
+
                 _context.Discounts.Update(Discount);
                 await _context.SaveChangesAsync();
                 result.ID = Discount.ID;
@@ -110,6 +155,9 @@ namespace NobatPlusDATA.DataLayer.Services
                     case DiscountType.All:
                     default:
                         query = _context.Discounts
+                            .Include(x => x.DiscountAssignments)
+                            .Include(x => x.CustomerDiscounts)
+                            .Include(x => x.ServiceDiscounts)
                             .AsNoTracking()
                             .Where(x =>
                                 (!string.IsNullOrEmpty(x.DiscountCode) && x.DiscountCode.Contains(searchText)) ||
@@ -249,6 +297,9 @@ namespace NobatPlusDATA.DataLayer.Services
             try
             {
                 result.Result = await _context.Discounts
+                .Include(x => x.DiscountAssignments)
+                .Include(x => x.CustomerDiscounts)
+                .Include(x => x.ServiceDiscounts)
                 .AsNoTracking()
                 .SingleOrDefaultAsync(x => x.ID == DiscountId);
             }

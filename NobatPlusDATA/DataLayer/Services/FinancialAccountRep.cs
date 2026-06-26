@@ -223,7 +223,7 @@ namespace NobatPlusDATA.DataLayer.Services
             return result;
         }
 
-        public async Task<ListResultObject<AdminSettlementRequestReport>> GetSettlementRequestsAsync(string status = "", int pageIndex = 1, int pageSize = 20, string searchText = "")
+        public async Task<ListResultObject<AdminSettlementRequestReport>> GetSettlementRequestsAsync(string status = "", int pageIndex = 1, int pageSize = 20, string searchText = "", string accountType = "", DateTime? fromDate = null, DateTime? toDate = null, string sortQuery = "")
         {
             var result = new ListResultObject<AdminSettlementRequestReport>();
             try
@@ -238,21 +238,42 @@ namespace NobatPlusDATA.DataLayer.Services
                     query = query.Where(x => x.Status == status);
                 }
 
+                if (!string.IsNullOrWhiteSpace(accountType))
+                {
+                    query = query.Where(x => x.FinancialAccount.AccountType == accountType);
+                }
+
+                if (fromDate.HasValue)
+                {
+                    query = query.Where(x => x.RequestDate >= fromDate.Value);
+                }
+
+                if (toDate.HasValue)
+                {
+                    var inclusiveEnd = toDate.Value.Date.AddDays(1).AddTicks(-1);
+                    query = query.Where(x => x.RequestDate <= inclusiveEnd);
+                }
+
                 if (!string.IsNullOrWhiteSpace(searchText))
                 {
                     query = query.Where(x =>
                         x.FinancialAccount.Stylist.StylistName.Contains(searchText) ||
                         x.FinancialAccount.Stylist.Person.FirstName.Contains(searchText) ||
                         x.FinancialAccount.Stylist.Person.LastName.Contains(searchText) ||
+                        x.FinancialAccount.Stylist.Person.PhoneNumber.Contains(searchText) ||
                         x.Iban.Contains(searchText) ||
                         x.BankAccountOwnerName.Contains(searchText) ||
-                        x.TrackingCode.Contains(searchText));
+                        x.TrackingCode.Contains(searchText) ||
+                        x.RejectReason.Contains(searchText) ||
+                        x.Description.Contains(searchText) ||
+                        x.Amount.ToString().Contains(searchText));
                 }
 
                 result.TotalCount = await query.CountAsync();
                 result.PageCount = DbTools.GetPageCount(result.TotalCount, pageSize);
                 result.Results = await query
                     .OrderByDescending(x => x.RequestDate)
+                    .SortBy(sortQuery)
                     .Skip((Math.Max(pageIndex, 1) - 1) * Math.Max(pageSize, 1))
                     .Take(Math.Max(pageSize, 1))
                     .Select(x => new AdminSettlementRequestReport

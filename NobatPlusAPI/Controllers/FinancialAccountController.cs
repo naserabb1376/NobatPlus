@@ -46,6 +46,30 @@ namespace NobatPlusAPI.Controllers
             return result.Status ? Ok(result) : BadRequest(result);
         }
 
+        [HttpPost("GetStylistFinancialAccount_Base")]
+        public async Task<ActionResult<RowResultObject<FinancialAccountReport>>> GetStylistFinancialAccount_Base(GetStylistFinancialAccountRequestBody requestBody)
+        {
+            if (User.GetCurrentRoleId() != 4)
+            {
+                return Forbid();
+            }
+
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(requestBody);
+            }
+
+            var result = await _financialAccountRep.GetFinancialAccountAsync(
+                requestBody.StylistId,
+                requestBody.PageIndex,
+                requestBody.PageSize,
+                requestBody.FromDate?.ToShamsi(),
+                requestBody.ToDate?.ToShamsi(),
+                requestBody.TransactionType ?? "");
+
+            return result.Status ? Ok(result) : BadRequest(result);
+        }
+
         [HttpPost("UpdateBankInfo_Base")]
         public async Task<ActionResult<BitResultObject>> UpdateBankInfo_Base(UpdateFinancialBankInfoRequestBody requestBody)
         {
@@ -97,7 +121,11 @@ namespace NobatPlusAPI.Controllers
                 requestBody.Status ?? "",
                 requestBody.PageIndex,
                 requestBody.PageSize,
-                requestBody.SearchText ?? "");
+                requestBody.SearchText ?? "",
+                requestBody.AccountType ?? "",
+                requestBody.FromDate?.ToShamsi(),
+                requestBody.ToDate?.ToShamsi(),
+                requestBody.SortQuery ?? "");
 
             return result.Status ? Ok(result) : BadRequest(result);
         }

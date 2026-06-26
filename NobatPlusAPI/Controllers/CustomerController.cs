@@ -66,7 +66,7 @@ namespace NobatPlusAPI.Controllers
                 return BadRequest(requestBody);
             }
          
-            var result = await _CustomerRep.GetAllCustomersAsync(requestBody.StylistId,requestBody.CityId,requestBody.DiscountId,requestBody.PageIndex,requestBody.PageSize,requestBody.SearchText,requestBody.SortQuery);
+            var result = await _CustomerRep.GetAllCustomersAsync(requestBody.StylistId, requestBody.CityId, requestBody.DiscountId, requestBody.PageIndex, requestBody.PageSize, requestBody.SearchText, requestBody.SortQuery, requestBody.IsActive);
             if (result.Status)
             {
                 var resultVM = _mapper.Map<ListResultObject<CustomerVM>>(result);

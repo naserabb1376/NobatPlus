@@ -78,6 +78,16 @@ namespace NobatPlusDATA.DataLayer.Services
                     .Where(x => bookingIds.Contains(x.BookingID))
                     .ToListAsync();
 
+                var settlementRequests = await _context.SettlementRequests
+                    .AsNoTracking()
+                    .Where(x => x.RequestDate >= startDate && x.RequestDate <= endDate)
+                    .ToListAsync();
+
+                var fileUploads = await _context.FileUploads
+                    .AsNoTracking()
+                    .Where(x => x.CreateDate.HasValue && x.CreateDate.Value >= startDate && x.CreateDate.Value <= endDate)
+                    .ToListAsync();
+
                 var payments = bookings.SelectMany(GetPayments).ToList();
                 var salons = stylists.Where(IsSalon).ToList();
                 var salonIds = salons.Select(x => x.ID).ToList();
@@ -103,7 +113,17 @@ namespace NobatPlusDATA.DataLayer.Services
                     RemainAmount = payments.Sum(x => x.RemainAmount),
                     StylistAmount = payments.Sum(x => x.StylistAmount),
                     PlatformAmount = payments.Sum(x => x.PlarformAmount),
+                    VatAmount = payments.Sum(x => x.VatAmount),
                     DiscountAmount = payments.Sum(x => x.TotalServiceAmount - x.DiscountedServiceAmount),
+                    FinishedPaymentsCount = payments.Count(x => x.PaymentFinished),
+                    UnfinishedPaymentsCount = payments.Count(x => !x.PaymentFinished),
+                    PendingSettlementRequestsCount = settlementRequests.Count(x => x.Status == "pending"),
+                    PendingSettlementAmount = settlementRequests.Where(x => x.Status == "pending").Sum(x => x.Amount),
+                    PaidSettlementRequestsCount = settlementRequests.Count(x => x.Status == "paid"),
+                    PaidSettlementAmount = settlementRequests.Where(x => x.Status == "paid").Sum(x => x.Amount),
+                    PendingDocumentsCount = fileUploads.Count(x => x.ReviewStatus == "pending"),
+                    ApprovedDocumentsCount = fileUploads.Count(x => x.ReviewStatus == "approved"),
+                    RejectedDocumentsCount = fileUploads.Count(x => x.ReviewStatus == "rejected"),
                     AverageRating = reviews.Any() ? (float)reviews.Average(x => x.Rating) : 0,
                     CancellationPercent = bookings.Count == 0 ? 0 : Math.Round(bookings.Count(x => x.IsCancelled) * 100.0 / bookings.Count, 1)
                 };
@@ -248,6 +268,8 @@ namespace NobatPlusDATA.DataLayer.Services
                 {
                     new() { Title = "کاربران غیرفعال", Count = persons.Count(x => !x.IsActive), Severity = "warning" },
                     new() { Title = "آرایشگران در انتظار تایید", Count = stylists.Count(x => x.AccountStatus == "1"), Severity = "warning" },
+                    new() { Title = "مدارک در انتظار بررسی", Count = fileUploads.Count(x => x.ReviewStatus == "pending"), Severity = "warning" },
+                    new() { Title = "درخواست‌های تسویه معلق", Count = settlementRequests.Count(x => x.Status == "pending"), Severity = "warning" },
                     new() { Title = "سالن‌های بدون آرایشگر", Count = salons.Count(s => !stylists.Any(x => x.StylistParentID == s.ID)), Severity = "danger" },
                     new() { Title = "آرایشگران بدون خدمت", Count = await _context.Stylists.AsNoTracking().CountAsync(s => !s.StylistServices.Any()), Severity = "danger" },
                     new() { Title = "رزروهای دارای مانده", Count = bookings.Count(b => GetPayments(b).Sum(p => p.RemainAmount) > 0), Severity = "warning" },

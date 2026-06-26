@@ -8,6 +8,12 @@ namespace NobatPlusAPI.Models.Wallet
         public int PageSize { get; set; } = 20;
     }
 
+    public class GetCustomerWalletRequestBody : GetWalletRequestBody
+    {
+        [Range(1, long.MaxValue, ErrorMessage = "شناسه مشتری معتبر نیست")]
+        public long CustomerId { get; set; }
+    }
+
     public class GetWalletTransactionsRequestBody
     {
         public int PageIndex { get; set; } = 1;

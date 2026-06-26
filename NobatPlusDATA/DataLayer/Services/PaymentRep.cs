@@ -113,7 +113,7 @@ namespace NobatPlusDATA.DataLayer.Services
             
         }
 
-        public async Task<ListResultObject<Payment>> GetAllPaymentsAsync(long bookingId = 0,long customerId =0,int paymentIncludes = 0, int pageIndex = 1, int pageSize = 20, string searchText = "",string sortQuery ="")
+        public async Task<ListResultObject<Payment>> GetAllPaymentsAsync(long bookingId = 0, long customerId = 0, int paymentIncludes = 0, int pageIndex = 1, int pageSize = 20, string searchText = "", string sortQuery = "", string paymentStatus = "", int paymentLevel = 0, DateTime? fromDate = null, DateTime? toDate = null)
         {
             ListResultObject<Payment> results = new ListResultObject<Payment>();
             try
@@ -149,25 +149,58 @@ namespace NobatPlusDATA.DataLayer.Services
 
                 }
 
-                query = query
-                       .Where(x =>
-                           (
-                               (!string.IsNullOrEmpty(x.PaymentStatus.ToString()) && x.PaymentStatus.ToString().Contains(searchText)) ||
-                               (!string.IsNullOrEmpty(x.Description) && x.Description.Contains(searchText)) ||
-                               (!string.IsNullOrEmpty(x.DepositAmount.ToString()) && x.DepositAmount.ToString().Contains(searchText)) ||
-                               (!string.IsNullOrEmpty(x.AllPaymentAmount.ToString()) && x.AllPaymentAmount.ToString().Contains(searchText)) ||
-                               (!string.IsNullOrEmpty(x.TotalServiceAmount.ToString()) && x.TotalServiceAmount.ToString().Contains(searchText)) ||
-                               (!string.IsNullOrEmpty(x.PlarformAmount.ToString()) && x.PlarformAmount.ToString().Contains(searchText)) ||
-                               (!string.IsNullOrEmpty(x.StylistAmount.ToString()) && x.StylistAmount.ToString().Contains(searchText)) ||
-                               (!string.IsNullOrEmpty(x.DiscountedServiceAmount.ToString()) && x.DiscountedServiceAmount.ToString().Contains(searchText)) ||
-                               (!string.IsNullOrEmpty(x.PayedAmount.ToString()) && x.PayedAmount.ToString().Contains(searchText)) ||
-                               (!string.IsNullOrEmpty(x.RemainAmount.ToString()) && x.RemainAmount.ToString().Contains(searchText)) ||
-                               (!string.IsNullOrEmpty(x.VatAmount.ToString()) && x.VatAmount.ToString().Contains(searchText)) ||
-                               (!string.IsNullOrEmpty(x.PaymentDate.ToString()) && x.PaymentDate.ToString().Contains(searchText)) ||
-                               (x.CreateDate.HasValue && x.CreateDate.Value.ToString().Contains(searchText)) ||
-                               (x.UpdateDate.HasValue && x.UpdateDate.Value.ToString().Contains(searchText))
-                           )
-                       );
+                if (!string.IsNullOrWhiteSpace(paymentStatus))
+                {
+                    query = query.Where(x => x.PaymentStatus == paymentStatus);
+                }
+
+                if (paymentLevel > 0)
+                {
+                    query = query.Where(x => x.PaymentLevel == paymentLevel);
+                }
+
+                if (fromDate.HasValue)
+                {
+                    query = query.Where(x => x.PaymentDate >= fromDate.Value);
+                }
+
+                if (toDate.HasValue)
+                {
+                    var endDate = toDate.Value.Date.AddDays(1).AddTicks(-1);
+                    query = query.Where(x => x.PaymentDate <= endDate);
+                }
+
+                if (!string.IsNullOrWhiteSpace(searchText))
+                {
+                    query = query
+                           .Where(x =>
+                               (
+                                   (!string.IsNullOrEmpty(x.PaymentStatus.ToString()) && x.PaymentStatus.ToString().Contains(searchText)) ||
+                                   (!string.IsNullOrEmpty(x.Description) && x.Description.Contains(searchText)) ||
+                                   x.PaymentBookings.Any(pb =>
+                                       pb.BookingID.ToString().Contains(searchText) ||
+                                       pb.Booking.Customer.Person.FirstName.Contains(searchText) ||
+                                       pb.Booking.Customer.Person.LastName.Contains(searchText) ||
+                                       pb.Booking.Customer.Person.PhoneNumber.Contains(searchText) ||
+                                       pb.Booking.Stylist.StylistName.Contains(searchText) ||
+                                       pb.Booking.Stylist.Person.FirstName.Contains(searchText) ||
+                                       pb.Booking.Stylist.Person.LastName.Contains(searchText) ||
+                                       pb.Booking.Stylist.Person.PhoneNumber.Contains(searchText)) ||
+                                   (!string.IsNullOrEmpty(x.DepositAmount.ToString()) && x.DepositAmount.ToString().Contains(searchText)) ||
+                                   (!string.IsNullOrEmpty(x.AllPaymentAmount.ToString()) && x.AllPaymentAmount.ToString().Contains(searchText)) ||
+                                   (!string.IsNullOrEmpty(x.TotalServiceAmount.ToString()) && x.TotalServiceAmount.ToString().Contains(searchText)) ||
+                                   (!string.IsNullOrEmpty(x.PlarformAmount.ToString()) && x.PlarformAmount.ToString().Contains(searchText)) ||
+                                   (!string.IsNullOrEmpty(x.StylistAmount.ToString()) && x.StylistAmount.ToString().Contains(searchText)) ||
+                                   (!string.IsNullOrEmpty(x.DiscountedServiceAmount.ToString()) && x.DiscountedServiceAmount.ToString().Contains(searchText)) ||
+                                   (!string.IsNullOrEmpty(x.PayedAmount.ToString()) && x.PayedAmount.ToString().Contains(searchText)) ||
+                                   (!string.IsNullOrEmpty(x.RemainAmount.ToString()) && x.RemainAmount.ToString().Contains(searchText)) ||
+                                   (!string.IsNullOrEmpty(x.VatAmount.ToString()) && x.VatAmount.ToString().Contains(searchText)) ||
+                                   (!string.IsNullOrEmpty(x.PaymentDate.ToString()) && x.PaymentDate.ToString().Contains(searchText)) ||
+                                   (x.CreateDate.HasValue && x.CreateDate.Value.ToString().Contains(searchText)) ||
+                                   (x.UpdateDate.HasValue && x.UpdateDate.Value.ToString().Contains(searchText))
+                               )
+                           );
+                }
 
                 results.TotalCount = query.Count();
                 results.PageCount = DbTools.GetPageCount(results.TotalCount, pageSize);

@@ -8,7 +8,7 @@ namespace NobatPlusAPI.Models.Discount
     {
         [Display(Name = "نوع تخفیف")]
         [Required(ErrorMessage = "لطفا {0} را وارد کنید")]
-        [Range(1, long.MaxValue, ErrorMessage = "مقدار {0} باید بزرگتر از 0 باشد")]
+        [Range(0, long.MaxValue, ErrorMessage = "مقدار {0} باید صفر یا بزرگتر باشد")]
         public int DiscountType { get; set; }
 
         [Display(Name = "شناسه تخفیف")]

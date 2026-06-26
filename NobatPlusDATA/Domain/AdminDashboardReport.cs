@@ -32,7 +32,17 @@ namespace NobatPlusDATA.Domain
         public decimal RemainAmount { get; set; }
         public decimal StylistAmount { get; set; }
         public decimal PlatformAmount { get; set; }
+        public decimal VatAmount { get; set; }
         public decimal DiscountAmount { get; set; }
+        public int FinishedPaymentsCount { get; set; }
+        public int UnfinishedPaymentsCount { get; set; }
+        public int PendingSettlementRequestsCount { get; set; }
+        public decimal PendingSettlementAmount { get; set; }
+        public int PaidSettlementRequestsCount { get; set; }
+        public decimal PaidSettlementAmount { get; set; }
+        public int PendingDocumentsCount { get; set; }
+        public int ApprovedDocumentsCount { get; set; }
+        public int RejectedDocumentsCount { get; set; }
         public float AverageRating { get; set; }
         public double CancellationPercent { get; set; }
     }

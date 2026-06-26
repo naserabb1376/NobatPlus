@@ -89,7 +89,7 @@ namespace NobatPlusDATA.DataLayer.Services
 
         }
 
-        public async Task<ListResultObject<Person>> GetAllPersonsAsync(long cityId = 0, int pageIndex = 1, int pageSize = 20, string searchText = "",string sortQuery ="")
+        public async Task<ListResultObject<Person>> GetAllPersonsAsync(long cityId = 0, int pageIndex = 1, int pageSize = 20, string searchText = "", string sortQuery = "", long roleId = 0, bool? isActive = null)
         {
             ListResultObject<Person> results = new ListResultObject<Person>();
             try
@@ -99,6 +99,16 @@ namespace NobatPlusDATA.DataLayer.Services
                 if (cityId > 0)
                 {
                     query = query.Where(x=> x.Address.CityID == cityId );
+                }
+
+                if (roleId > 0)
+                {
+                    query = query.Where(x => x.RoleId == roleId);
+                }
+
+                if (isActive.HasValue)
+                {
+                    query = query.Where(x => x.IsActive == isActive.Value);
                 }
 
                query = query.Where(x =>

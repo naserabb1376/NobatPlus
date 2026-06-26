@@ -19,6 +19,11 @@ namespace NobatPlusDATA.Domain
         public string EntityType { get; set; } // نوع جدول مرتبط (مثلاً "User", "Course", "Event")
         public string? GetUrl { get; set; } // لینک دانلود
         public long? FileNumber { get; set; } //کد فایل
+        public string ReviewStatus { get; set; } = "pending";
+        public long? ReviewedByPersonID { get; set; }
+        public Person? ReviewedByPerson { get; set; }
+        public DateTime? ReviewedAt { get; set; }
+        public string? ReviewNote { get; set; }
 
     }
 }

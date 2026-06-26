@@ -10,7 +10,7 @@ namespace NobatPlusDATA.DataLayer.Repositories
 {
     public interface IFileUploadRep
     {
-        Task<ListResultObject<FileUpload>> GetAllFileUploadsAsync(string entityType = "", long ForeignKeyId = 0, long creatorId = 0, int pageIndex = 1, int pageSize = 20, string searchText = "", string sortQuery = "");
+        Task<ListResultObject<FileUpload>> GetAllFileUploadsAsync(string entityType = "", long ForeignKeyId = 0, long creatorId = 0, int pageIndex = 1, int pageSize = 20, string searchText = "", string sortQuery = "", string reviewStatus = "");
 
         Task<RowResultObject<FileUpload>> GetFileUploadByIdAsync(long fileUploadId);
 
@@ -19,6 +19,7 @@ namespace NobatPlusDATA.DataLayer.Repositories
         Task<BitResultObject> AddFileUploadAsync(FileUpload fileUpload);
 
         Task<BitResultObject> EditFileUploadAsync(FileUpload fileUpload);
+        Task<BitResultObject> ReviewFileUploadAsync(long fileUploadId, string reviewStatus, long reviewedByPersonId, string reviewNote = "");
 
         Task<BitResultObject> RemoveFileUploadAsync(FileUpload fileUpload);
 
