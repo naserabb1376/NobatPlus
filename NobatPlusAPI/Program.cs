@@ -305,18 +305,17 @@ namespace NobatPlusAPI
 
             app.UseStaticFiles();   
 
-            //if (app.Environment.IsDevelopment())
-            //{
-            app.UseSwagger();
-            app.UseSwaggerUI(c =>
+            if (app.Environment.IsDevelopment())
             {
-                c.DocExpansion(Swashbuckle.AspNetCore.SwaggerUI.DocExpansion.None);
-                c.SwaggerEndpoint("/swagger/v1/swagger.json", $"{apiTitle} {apiVersion}");
-                c.RoutePrefix = string.Empty; // روت اصلی سایت برای Swagger
-                c.InjectJavascript("/js/swagger-token.js");
-            });
-
-            //}
+                app.UseSwagger();
+                app.UseSwaggerUI(c =>
+                {
+                    c.DocExpansion(Swashbuckle.AspNetCore.SwaggerUI.DocExpansion.None);
+                    c.SwaggerEndpoint("/swagger/v1/swagger.json", $"{apiTitle} {apiVersion}");
+                    c.RoutePrefix = string.Empty;
+                    c.InjectJavascript("/js/swagger-token.js");
+                });
+            }
             app.UseHttpsRedirection();
 
             app.UseParbadVirtualGateway();
@@ -328,7 +327,12 @@ namespace NobatPlusAPI
 
             #region HangFire
 
-            app.UseHangfireDashboard("/hangfire");
+            app.UseHangfireDashboard("/hangfire", new DashboardOptions
+            {
+                Authorization = app.Environment.IsDevelopment()
+                    ? new[] { new Hangfire.Dashboard.LocalRequestsOnlyAuthorizationFilter() }
+                    : Array.Empty<Hangfire.Dashboard.IDashboardAuthorizationFilter>()
+            });
             //app.UseHangfireServer();
 
             // 👇 اینجا دقیقاً محل ثبت Job هست

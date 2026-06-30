@@ -362,3 +362,10 @@ MigrationBackup/
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
 /NobatPlusAPI/Controllers/AdminController.cs
+
+# فایل‌های حاوی اطلاعات حساس — مقادیر واقعی را در این فایل‌ها ننویسید
+# برای تنظیم مقادیر محلی از appsettings.Example.json و DataSetting.Example.json استفاده کنید
+/NobatPlusAPI/appsettings.json
+/NobatPlusDATA/DataSetting.json
+/NobatPlusTokenDB/DataSetting.json
+/NobatPlusAPI/DataSetting.json

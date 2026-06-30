@@ -765,6 +765,65 @@ namespace NobatPlusDATA.DataLayer.Services
             return result;
         }
 
+        public async Task<ListResultObject<BookingDTO>> RestoreBookingsAfterLeaveDeleteAsync(
+            long stylistId,
+            DateTime start,
+            DateTime end)
+        {
+            var result = new ListResultObject<BookingDTO>();
+            try
+            {
+                // نوبت‌های Status==5 که در بازه این مرخصی قرار دارند
+                var candidates = await _context.Bookings
+                    .Include(x => x.Customer).ThenInclude(x => x.Person)
+                    .Where(x =>
+                        x.StylistID == stylistId &&
+                        !x.IsCancelled &&
+                        x.Status == "5" &&
+                        x.BookingDate >= start &&
+                        x.BookingDate < end)
+                    .ToListAsync();
+
+                var restored = new List<Booking>();
+                foreach (var booking in candidates)
+                {
+                    // اگر هیچ مرخصی فعال دیگری این نوبت را پوشش نمی‌دهد، برگردانیم به Status 1
+                    var stillCoveredByOtherLeave = await _context.StylistPacifics
+                        .AsNoTracking()
+                        .AnyAsync(p =>
+                            p.StylistID == stylistId &&
+                            p.PacificStartDate < booking.BookingDate.AddMinutes(30) &&
+                            p.PacificEndDate > booking.BookingDate);
+
+                    if (!stillCoveredByOtherLeave)
+                    {
+                        booking.Status = "1";
+                        booking.UpdateDate = DateTime.Now.ToShamsi();
+                        restored.Add(booking);
+                    }
+                }
+
+                await _context.SaveChangesAsync();
+
+                result.Results = restored.Select(booking => new BookingDTO
+                {
+                    ID = booking.ID,
+                    StylistID = booking.StylistID,
+                    CustomerID = booking.CustomerID,
+                    BookingStartDate = booking.BookingDate,
+                    Status = booking.Status,
+                    Customer = booking.Customer,
+                }).ToList();
+                result.TotalCount = result.Results.Count;
+            }
+            catch (Exception ex)
+            {
+                result.Status = false;
+                result.ErrorMessage = $"{ex.Message} - {ex.InnerException?.Message}";
+            }
+            return result;
+        }
+
         private static int GetMinutes(TimeSpan? time)
         {
             return time == null ? 0 : Convert.ToInt32(time.Value.TotalMinutes);

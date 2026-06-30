@@ -37,6 +37,7 @@ namespace NobatPlusAPI.Controllers
                 requestBody.ActorPersonId,
                 requestBody.ActionName,
                 requestBody.EntityName,
+                requestBody.TargetId,
                 requestBody.Succeeded,
                 requestBody.FromDate,
                 requestBody.ToDate);

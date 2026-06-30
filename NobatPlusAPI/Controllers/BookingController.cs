@@ -69,6 +69,12 @@ namespace NobatPlusAPI.Controllers
             return BadRequest(result);
         }
 
+        [HttpPost("GetAllBookingsAdmin_Base")]
+        public async Task<ActionResult<ListResultObject<BookingVM>>> GetAllBookingsAdmin_Base(GetBookingListRequestBody requestBody)
+        {
+            return await GetAllBookings_Base(requestBody);
+        }
+
 
         [HttpPost("GetBookingById_Base")]
         public async Task<ActionResult<RowResultObject<BookingVM>>> GetBookingById_Base(GetRowRequestBody requestBody)

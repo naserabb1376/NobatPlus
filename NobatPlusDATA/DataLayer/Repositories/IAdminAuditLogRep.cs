@@ -13,6 +13,7 @@ namespace NobatPlusDATA.DataLayer.Repositories
             long actorPersonId = 0,
             string actionName = "",
             string entityName = "",
+            string targetId = "",
             bool? succeeded = null,
             DateTime? fromDate = null,
             DateTime? toDate = null);

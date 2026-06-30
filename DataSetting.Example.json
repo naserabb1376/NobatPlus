@@ -1,0 +1,8 @@
+{
+  "ConnectionStrings": {
+    "publicdb": "Server=YOUR_DB_SERVER;Initial Catalog=YOUR_DB_NAME;User ID=YOUR_DB_USER;Password=YOUR_DB_PASSWORD;MultipleActiveResultSets=True;TrustServerCertificate=True;",
+    "localdb": "Data Source=.;Initial Catalog=NobatPlusDb;Integrated Security=True;MultipleActiveResultSets=True;TrustServerCertificate=True;",
+    "Tokenpublicdb": "Server=YOUR_DB_SERVER;Initial Catalog=YOUR_TOKEN_DB_NAME;User ID=YOUR_DB_USER;Password=YOUR_DB_PASSWORD;MultipleActiveResultSets=True;TrustServerCertificate=True;",
+    "Tokenlocaldb": "Data Source=.;Initial Catalog=NobatPlusTokensDb;Integrated Security=True;MultipleActiveResultSets=True;TrustServerCertificate=True;"
+  }
+}

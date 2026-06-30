@@ -87,6 +87,27 @@ namespace NobatPlusAPI.Controllers
             return result.Status ? Ok(result) : BadRequest(result);
         }
 
+        [HttpPost("AdminUpdateBankInfo_Base")]
+        public async Task<ActionResult<BitResultObject>> AdminUpdateBankInfo_Base(AdminUpdateFinancialBankInfoRequestBody requestBody)
+        {
+            if (User.GetCurrentRoleId() != 4)
+            {
+                return Forbid();
+            }
+
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(requestBody);
+            }
+
+            var result = await _financialAccountRep.UpdateBankInfoAsync(
+                requestBody.StylistId,
+                requestBody.Iban ?? "",
+                requestBody.BankAccountOwnerName ?? "");
+
+            return result.Status ? Ok(result) : BadRequest(result);
+        }
+
         [HttpPost("RequestSettlement_Base")]
         public async Task<ActionResult<BitResultObject>> RequestSettlement_Base(RequestSettlementRequestBody requestBody)
         {
@@ -105,6 +126,27 @@ namespace NobatPlusAPI.Controllers
                 stylist.ID,
                 requestBody.Amount,
                 requestBody.Description ?? "درخواست تسویه");
+
+            return result.Status ? Ok(result) : BadRequest(result);
+        }
+
+        [HttpPost("AdminRequestSettlement_Base")]
+        public async Task<ActionResult<BitResultObject>> AdminRequestSettlement_Base(AdminRequestSettlementRequestBody requestBody)
+        {
+            if (User.GetCurrentRoleId() != 4)
+            {
+                return Forbid();
+            }
+
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(requestBody);
+            }
+
+            var result = await _financialAccountRep.RequestSettlementAsync(
+                requestBody.StylistId,
+                requestBody.Amount,
+                requestBody.Description ?? "درخواست تسویه ادمین");
 
             return result.Status ? Ok(result) : BadRequest(result);
         }

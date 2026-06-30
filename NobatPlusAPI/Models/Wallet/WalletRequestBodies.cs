@@ -29,6 +29,12 @@ namespace NobatPlusAPI.Models.Wallet
         public string? Description { get; set; }
     }
 
+    public class ChargeCustomerWalletRequestBody : ChargeWalletRequestBody
+    {
+        [Range(1, long.MaxValue, ErrorMessage = "شناسه مشتری معتبر نیست")]
+        public long CustomerId { get; set; }
+    }
+
     public class PayBookingWithWalletRequestBody
     {
         [Range(1, long.MaxValue, ErrorMessage = "شناسه رزرو معتبر نیست")]
