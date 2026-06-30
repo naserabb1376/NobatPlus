@@ -83,7 +83,7 @@ namespace NobatPlusAPI.Tools
 آیتک
 ";
                     send = await SendMessage(mobileNumber, smsMessage);
-
+                    if (send) OtpStore.Save(mobileNumber, theCode);
                 }
                 else
                 {
@@ -111,12 +111,10 @@ namespace NobatPlusAPI.Tools
             {
                 if (GenerateVerifyCode)
                 {
-                    currect = code == code;
+                    currect = OtpStore.Verify(mobileNumber, code);
                 }
-
                 else
                 {
-
                     using (FastSendSoapClient client = new FastSendSoapClient(FastSendSoapClient.EndpointConfiguration.FastSendSoap))
                     {
                         CheckSendCodeResponse response = await client.CheckSendCodeAsync(PanelUserName, PanelPassword, mobileNumber, code);
@@ -133,12 +131,8 @@ namespace NobatPlusAPI.Tools
 
         private string GenerateVerifyCodeManualy()
         {
-            string VerifyCode = "";
             Random random = new Random();
-            int minCode = 111111;
-            int maxCode = 999999;
-            VerifyCode = random.Next(minCode, maxCode).ToString();
-            return VerifyCode;
+            return random.Next(111111, 999999).ToString();
         }
     }
 
@@ -237,6 +231,7 @@ namespace NobatPlusAPI.Tools
                 if (SendSmsMessageResponse.ToString().ToLower().Contains("\"status\": true")) sent = true;
                 else sent = false;
 
+                if (sent) OtpStore.Save(mobileNumber, theCode);
                 result.SendStatus = sent;
                 result.Code = theCode ?? "";
             }
@@ -252,8 +247,7 @@ namespace NobatPlusAPI.Tools
             bool currect = false;
             try
             {
-                currect = code == code;
-
+                currect = OtpStore.Verify(mobileNumber, code);
             }
             catch (Exception)
             {
@@ -264,12 +258,8 @@ namespace NobatPlusAPI.Tools
 
         private string GenerateVerifyCodeManualy()
         {
-            string VerifyCode = "";
             Random random = new Random();
-            int minCode = 111111;
-            int maxCode = 999999;
-            VerifyCode = random.Next(minCode, maxCode).ToString();
-            return VerifyCode;
+            return random.Next(111111, 999999).ToString();
         }
     }
 }

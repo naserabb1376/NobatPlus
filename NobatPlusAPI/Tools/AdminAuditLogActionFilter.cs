@@ -111,7 +111,7 @@ namespace NobatPlusAPI.Tools
             {
                 if (argument == null) continue;
                 var type = argument.GetType();
-                foreach (var name in new[] { "ID", "Id", "id", "PersonID", "PersonId", "SettlementRequestID", "PaymentID", "BookingID" })
+                foreach (var name in new[] { "ID", "Id", "id", "StylistId", "StylistID", "PersonID", "PersonId", "SettlementRequestID", "PaymentID", "BookingID" })
                 {
                     var property = type.GetProperty(name);
                     var value = property?.GetValue(argument);

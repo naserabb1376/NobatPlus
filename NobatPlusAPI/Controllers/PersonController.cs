@@ -240,6 +240,16 @@ namespace NobatPlusAPI.Controllers
                 result.Status = theRow.Status;
                 result.ErrorMessage = theRow.ErrorMessage;
             }
+            if (theRow.Status && theRow.Result.RoleId == 4 && theRow.Result.IsActive && (requestBody.RoleId != 4 || !requestBody.IsActive))
+            {
+                var activeAdmins = await _PersonRep.GetAllPersonsAsync(0, 1, 2, "", "", 4, true);
+                if (activeAdmins.Status && activeAdmins.TotalCount <= 1)
+                {
+                    result.Status = false;
+                    result.ErrorMessage = "آخرین ادمین فعال را نمی توان غیرفعال کرد یا نقش آن را تغییر داد.";
+                    return BadRequest(result);
+                }
+            }
             if (requestBody.Address != null)
             {
                 address = new Address()
@@ -484,6 +494,16 @@ namespace NobatPlusAPI.Controllers
             }
 
             Person Person = theRow.Result;
+            if (Person.RoleId == 4 && Person.IsActive && !requestBody.IsActive)
+            {
+                var activeAdmins = await _PersonRep.GetAllPersonsAsync(0, 1, 2, "", "", 4, true);
+                if (activeAdmins.Status && activeAdmins.TotalCount <= 1)
+                {
+                    result.Status = false;
+                    result.ErrorMessage = "آخرین ادمین فعال را نمی توان غیرفعال کرد.";
+                    return BadRequest(result);
+                }
+            }
             Person.IsActive = requestBody.IsActive;
 
             result = await _PersonRep.EditPersonAsync(Person);

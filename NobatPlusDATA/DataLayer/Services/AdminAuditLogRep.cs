@@ -41,6 +41,7 @@ namespace NobatPlusDATA.DataLayer.Services
             long actorPersonId = 0,
             string actionName = "",
             string entityName = "",
+            string targetId = "",
             bool? succeeded = null,
             DateTime? fromDate = null,
             DateTime? toDate = null)
@@ -66,6 +67,11 @@ namespace NobatPlusDATA.DataLayer.Services
                 if (!string.IsNullOrWhiteSpace(entityName))
                 {
                     query = query.Where(x => x.EntityName.Contains(entityName) || x.ControllerName.Contains(entityName));
+                }
+
+                if (!string.IsNullOrWhiteSpace(targetId))
+                {
+                    query = query.Where(x => x.TargetId == targetId);
                 }
 
                 if (succeeded.HasValue)

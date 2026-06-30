@@ -23,5 +23,10 @@ namespace NobatPlusDATA.DataLayer.Repositories
             DateTime start,
             DateTime end,
             string reason);
+
+        public Task<ListResultObject<BookingDTO>> RestoreBookingsAfterLeaveDeleteAsync(
+            long stylistId,
+            DateTime start,
+            DateTime end);
     }
 }

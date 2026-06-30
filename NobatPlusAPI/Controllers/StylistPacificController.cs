@@ -291,17 +291,19 @@ namespace NobatPlusAPI.Controllers
         {
             var result = new BitResultObject();
             if (!ModelState.IsValid)
-            {
                 return BadRequest(requestBody);
-            }
 
             var theRow = await _StylistPacificRep.GetStylistPacificByIdAsync(requestBody.ID);
-
             if (!theRow.Status)
             {
                 result.Status = theRow.Status;
                 result.ErrorMessage = theRow.ErrorMessage;
+                return BadRequest(result);
             }
+
+            // بازه قبلی را نگه می‌داریم تا بعد از ویرایش نوبت‌های خارج‌شده را برگردانیم
+            var oldStart = theRow.Result.PacificStartDate;
+            var oldEnd = theRow.Result.PacificEndDate;
 
             StylistPacific StylistPacific = new StylistPacific()
             {
@@ -313,64 +315,182 @@ namespace NobatPlusAPI.Controllers
                 StylistID = requestBody.StylistID,
                 Description = requestBody.Description ?? "",
             };
-             result = await _StylistPacificRep.EditStylistPacificAsync(StylistPacific);
-            if (result.Status)
+            result = await _StylistPacificRep.EditStylistPacificAsync(StylistPacific);
+            if (!result.Status)
+                return BadRequest(result);
+
+            // نوبت‌هایی که در بازه قدیمی بودند ولی در بازه جدید نیستند باید برگردند به 1
+            var restoredBookings = await _BookingRep.RestoreBookingsAfterLeaveDeleteAsync(
+                requestBody.StylistID, oldStart, oldEnd);
+
+            // نوبت‌های جدیداً متاثر شده (بازه جدید)
+            var affectedBookings = await _BookingRep.MarkBookingsForRescheduleByLeaveAsync(
+                requestBody.StylistID,
+                requestBody.PacificStartDate,
+                requestBody.PacificEndDate,
+                requestBody.Description ?? "");
+
+            if (!affectedBookings.Status)
+                return BadRequest(affectedBookings);
+
+            // ارسال SMS/Notification به مشتریان نوبت‌های تازه متاثر شده
+            foreach (var booking in affectedBookings.Results)
             {
-                var affectedBookings = await _BookingRep.MarkBookingsForRescheduleByLeaveAsync(
-                    requestBody.StylistID,
-                    requestBody.PacificStartDate,
-                    requestBody.PacificEndDate,
-                    requestBody.Description ?? "");
-                if (!affectedBookings.Status)
-                    return BadRequest(affectedBookings);
+                var customer = booking.Customer?.Person;
+                if (customer == null || string.IsNullOrWhiteSpace(customer.PhoneNumber))
+                    continue;
 
-                #region AddLog
-
-                Log log = new Log()
+                var message =
+                    $"{customer.FirstName} عزیز، نوبت شما در تاریخ " +
+                    $"{booking.BookingStartDate.ToShamsi():yyyy/MM/dd} ساعت " +
+                    $"{booking.BookingStartDate:HH:mm} به دلیل تغییر برنامه آرایشگر نیازمند تعیین تکلیف است. " +
+                    "لطفا از پنل نوبتیکس زمان جدید انتخاب کنید یا نوبت را لغو کنید.";
+                try
                 {
-                    CreateDate = DateTime.Now.ToShamsi(),
-                    UpdateDate = DateTime.Now.ToShamsi(),
-                    LogTime = DateTime.Now.ToShamsi(),
-                    ActionName = this.ControllerContext.RouteData.Values["action"].ToString(),
-
-                };
-                await _logRep.AddLogAsync(log);
-
-                #endregion
-
-                return Ok(result);
+                    var sentStatus = await ToolBox.SendSMSMessage(customer.PhoneNumber, message);
+                    await _sMSMessageRep.AddSMSMessageAsync(new SMSMessage
+                    {
+                        CreateDate = DateTime.Now.ToShamsi(),
+                        UpdateDate = DateTime.Now.ToShamsi(),
+                        PhoneNumber = customer.PhoneNumber,
+                        PersonID = customer.ID,
+                        Message = message,
+                        SentDate = DateTime.Now.ToShamsi(),
+                        Description = $"leave-edit-booking:{booking.ID}",
+                        SentStatus = sentStatus
+                    });
+                    await _notificationRep.AddNotificationAsync(new Notification
+                    {
+                        CreateDate = DateTime.Now.ToShamsi(),
+                        UpdateDate = DateTime.Now.ToShamsi(),
+                        PersonID = customer.ID,
+                        Message = message,
+                        SentDate = DateTime.Now.ToShamsi(),
+                        Description = $"leave-edit-booking:{booking.ID}"
+                    });
+                }
+                catch { }
             }
-            return BadRequest(result);
+
+            // اطلاع‌رسانی به مشتریانی که نوبتشان بازگردانده شد
+            foreach (var booking in restoredBookings.Results)
+            {
+                var customer = booking.Customer?.Person;
+                if (customer == null || string.IsNullOrWhiteSpace(customer.PhoneNumber))
+                    continue;
+
+                var message =
+                    $"{customer.FirstName} عزیز، نوبت شما در تاریخ " +
+                    $"{booking.BookingStartDate.ToShamsi():yyyy/MM/dd} ساعت " +
+                    $"{booking.BookingStartDate:HH:mm} مجدداً فعال شد. آرایشگر در این زمان در دسترس است.";
+                try
+                {
+                    var sentStatus = await ToolBox.SendSMSMessage(customer.PhoneNumber, message);
+                    await _sMSMessageRep.AddSMSMessageAsync(new SMSMessage
+                    {
+                        CreateDate = DateTime.Now.ToShamsi(),
+                        UpdateDate = DateTime.Now.ToShamsi(),
+                        PhoneNumber = customer.PhoneNumber,
+                        PersonID = customer.ID,
+                        Message = message,
+                        SentDate = DateTime.Now.ToShamsi(),
+                        Description = $"leave-restore-booking:{booking.ID}",
+                        SentStatus = sentStatus
+                    });
+                    await _notificationRep.AddNotificationAsync(new Notification
+                    {
+                        CreateDate = DateTime.Now.ToShamsi(),
+                        UpdateDate = DateTime.Now.ToShamsi(),
+                        PersonID = customer.ID,
+                        Message = message,
+                        SentDate = DateTime.Now.ToShamsi(),
+                        Description = $"leave-restore-booking:{booking.ID}"
+                    });
+                }
+                catch { }
+            }
+
+            await _logRep.AddLogAsync(new Log
+            {
+                CreateDate = DateTime.Now.ToShamsi(),
+                UpdateDate = DateTime.Now.ToShamsi(),
+                LogTime = DateTime.Now.ToShamsi(),
+                ActionName = this.ControllerContext.RouteData.Values["action"].ToString(),
+            });
+
+            return Ok(result);
         }
 
         [HttpDelete("DeleteStylistPacific_Base")]
         public async Task<ActionResult<BitResultObject>> DeleteStylistPacific_Base(GetRowRequestBody requestBody)
         {
             if (!ModelState.IsValid)
-            {
                 return BadRequest(requestBody);
-            }
+
+            // قبل از حذف، بازه مرخصی را می‌گیریم تا بتوانیم نوبت‌ها را برگردانیم
+            var theRow = await _StylistPacificRep.GetStylistPacificByIdAsync(requestBody.ID);
+            if (!theRow.Status)
+                return BadRequest(new BitResultObject { Status = false, ErrorMessage = "مرخصی یافت نشد" });
+
+            var leaveStart = theRow.Result.PacificStartDate;
+            var leaveEnd = theRow.Result.PacificEndDate;
+            var stylistId = theRow.Result.StylistID;
+
             var result = await _StylistPacificRep.RemoveStylistPacificAsync(requestBody.ID);
-            if (result.Status)
+            if (!result.Status)
+                return BadRequest(result);
+
+            // نوبت‌های Status==5 که دیگر توسط هیچ مرخصی دیگری پوشش نمی‌شوند برمی‌گردند به Status==1
+            var restoredBookings = await _BookingRep.RestoreBookingsAfterLeaveDeleteAsync(
+                stylistId, leaveStart, leaveEnd);
+
+            // اطلاع‌رسانی به مشتریان که نوبتشان مجدداً فعال شد
+            foreach (var booking in restoredBookings.Results)
             {
+                var customer = booking.Customer?.Person;
+                if (customer == null || string.IsNullOrWhiteSpace(customer.PhoneNumber))
+                    continue;
 
-                #region AddLog
-
-                Log log = new Log()
+                var message =
+                    $"{customer.FirstName} عزیز، نوبت شما در تاریخ " +
+                    $"{booking.BookingStartDate.ToShamsi():yyyy/MM/dd} ساعت " +
+                    $"{booking.BookingStartDate:HH:mm} مجدداً فعال شد. آرایشگر در این زمان در دسترس است.";
+                try
                 {
-                    CreateDate = DateTime.Now.ToShamsi(),
-                    UpdateDate = DateTime.Now.ToShamsi(),
-                    LogTime = DateTime.Now.ToShamsi(),
-                    ActionName = this.ControllerContext.RouteData.Values["action"].ToString(),
-
-                };
-                await _logRep.AddLogAsync(log);
-
-                #endregion
-
-                return Ok(result);
+                    var sentStatus = await ToolBox.SendSMSMessage(customer.PhoneNumber, message);
+                    await _sMSMessageRep.AddSMSMessageAsync(new SMSMessage
+                    {
+                        CreateDate = DateTime.Now.ToShamsi(),
+                        UpdateDate = DateTime.Now.ToShamsi(),
+                        PhoneNumber = customer.PhoneNumber,
+                        PersonID = customer.ID,
+                        Message = message,
+                        SentDate = DateTime.Now.ToShamsi(),
+                        Description = $"leave-restore-booking:{booking.ID}",
+                        SentStatus = sentStatus
+                    });
+                    await _notificationRep.AddNotificationAsync(new Notification
+                    {
+                        CreateDate = DateTime.Now.ToShamsi(),
+                        UpdateDate = DateTime.Now.ToShamsi(),
+                        PersonID = customer.ID,
+                        Message = message,
+                        SentDate = DateTime.Now.ToShamsi(),
+                        Description = $"leave-restore-booking:{booking.ID}"
+                    });
+                }
+                catch { }
             }
-            return BadRequest(result);
+
+            await _logRep.AddLogAsync(new Log
+            {
+                CreateDate = DateTime.Now.ToShamsi(),
+                UpdateDate = DateTime.Now.ToShamsi(),
+                LogTime = DateTime.Now.ToShamsi(),
+                ActionName = this.ControllerContext.RouteData.Values["action"].ToString(),
+            });
+
+            return Ok(result);
         }
     }
 }

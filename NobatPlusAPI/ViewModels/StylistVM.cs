@@ -37,6 +37,8 @@ namespace NobatPlusDATA.ViewModels
         public int Gender { get; set; }
         public string? Email { get; set; }
         public DateTime DateOfBirth { get; set; }
+        public long? AddressID { get; set; }
+        public long? CityID { get; set; }
         public string AddressStreet { get; set; }
         public string AddressPostalCode { get; set; }
         public string? AddressLocationHorizentalPoint { get; set; }

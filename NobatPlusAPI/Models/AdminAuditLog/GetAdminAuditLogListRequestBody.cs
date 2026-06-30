@@ -7,6 +7,7 @@ namespace NobatPlusAPI.Models.AdminAuditLog
         public long ActorPersonId { get; set; } = 0;
         public string ActionName { get; set; } = "";
         public string EntityName { get; set; } = "";
+        public string TargetId { get; set; } = "";
         public bool? Succeeded { get; set; } = null;
         public DateTime? FromDate { get; set; } = null;
         public DateTime? ToDate { get; set; } = null;

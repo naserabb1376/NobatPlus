@@ -166,13 +166,21 @@ namespace NobatPlusAPI.Controllers
                 return BadRequest(requestBody);
             }
 
-            var userId = User.GetCurrentUserId();
-            var dbcustomer = await _customerRep.ExistCustomerAsync(userId.ToString(), "personid");
-            if (!dbcustomer.Status)
+            long customerId;
+            if (User.GetCurrentRoleId() == 4 && requestBody.CustomerID > 0)
             {
-                return Forbid();
+                customerId = requestBody.CustomerID;
             }
-            var customerId = dbcustomer.ID;
+            else
+            {
+                var userId = User.GetCurrentUserId();
+                var dbcustomer = await _customerRep.ExistCustomerAsync(userId.ToString(), "personid");
+                if (!dbcustomer.Status)
+                {
+                    return Forbid();
+                }
+                customerId = dbcustomer.ID;
+            }
             var discountId = requestBody.DiscountID ?? 0;
             var bookingIds = NormalizeBookingIds(requestBody);
             if (!bookingIds.Any())
@@ -299,9 +307,21 @@ namespace NobatPlusAPI.Controllers
                 return BadRequest(result);
             }
 
-            var userId = User.GetCurrentUserId();
-            var dbcustomer = await _customerRep.ExistCustomerAsync(userId.ToString(), "personid");
-            var customerId = dbcustomer.ID;
+            long customerId;
+            if (User.GetCurrentRoleId() == 4 && requestBody.CustomerID > 0)
+            {
+                customerId = requestBody.CustomerID;
+            }
+            else
+            {
+                var userId = User.GetCurrentUserId();
+                var dbcustomer = await _customerRep.ExistCustomerAsync(userId.ToString(), "personid");
+                if (!dbcustomer.Status)
+                {
+                    return Forbid();
+                }
+                customerId = dbcustomer.ID;
+            }
             var discountId = requestBody.DiscountID ?? 0;
             var bookingIds = NormalizeBookingIds(requestBody);
             if (!bookingIds.Any())

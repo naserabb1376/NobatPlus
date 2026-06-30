@@ -88,6 +88,23 @@ namespace NobatPlusAPI.Controllers
             return result.Status ? Ok(result) : BadRequest(result);
         }
 
+        [HttpPost("ChargeCustomerWallet_Base")]
+        public async Task<ActionResult<BitResultObject>> ChargeCustomerWallet_Base(ChargeCustomerWalletRequestBody requestBody)
+        {
+            if (User.GetCurrentRoleId() != 4)
+            {
+                return Forbid();
+            }
+
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(requestBody);
+            }
+
+            var result = await _walletRep.ChargeWalletAsync(requestBody.CustomerId, requestBody.Amount, requestBody.Description ?? "شارژ کیف پول توسط ادمین");
+            return result.Status ? Ok(result) : BadRequest(result);
+        }
+
         [HttpPost("PayBookingWithWallet_Base")]
         public async Task<ActionResult<BitResultObject>> PayBookingWithWallet_Base(PayBookingWithWalletRequestBody requestBody)
         {

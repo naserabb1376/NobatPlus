@@ -23,11 +23,23 @@ namespace NobatPlusAPI.Models.FinancialAccount
         public string? BankAccountOwnerName { get; set; }
     }
 
+    public class AdminUpdateFinancialBankInfoRequestBody : UpdateFinancialBankInfoRequestBody
+    {
+        [Range(1, long.MaxValue, ErrorMessage = "شناسه آرایشگر معتبر نیست")]
+        public long StylistId { get; set; }
+    }
+
     public class RequestSettlementRequestBody
     {
         [Range(1, double.MaxValue, ErrorMessage = "مبلغ تسویه معتبر نیست")]
         public decimal Amount { get; set; }
         public string? Description { get; set; }
+    }
+
+    public class AdminRequestSettlementRequestBody : RequestSettlementRequestBody
+    {
+        [Range(1, long.MaxValue, ErrorMessage = "شناسه آرایشگر معتبر نیست")]
+        public long StylistId { get; set; }
     }
 
     public class GetSettlementRequestsRequestBody

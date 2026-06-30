@@ -237,6 +237,8 @@ namespace NobatPlusAPI.Tools
 .ForMember(dest => dest.Gender, opt => opt.MapFrom(src => src.Person.Gender))
 .ForMember(dest => dest.Email, opt => opt.MapFrom(src => src.Person.Email))
 .ForMember(dest => dest.DateOfBirth, opt => opt.MapFrom(src => src.Person.DateOfBirth))
+.ForMember(dest => dest.AddressID, opt => opt.MapFrom(src => src.Person.AddressID))
+.ForMember(dest => dest.CityID, opt => opt.MapFrom(src => src.Person.Address != null ? src.Person.Address.CityID : (long?)null))
 .ForMember(dest => dest.AddressLocationHorizentalPoint, opt => opt.MapFrom(src => src.Person.Address.AddressLocationHorizentalPoint))
 .ForMember(dest => dest.AddressLocationVerticalPoint, opt => opt.MapFrom(src => src.Person.Address.AddressLocationVerticalPoint))
 .ForMember(dest => dest.AddressStreet, opt => opt.MapFrom(src => src.Person.Address.AddressStreet))
@@ -283,6 +285,7 @@ namespace NobatPlusAPI.Tools
 .ForMember(dest => dest.CustomerDescription, opt => opt.MapFrom(src => src.Description))
            ;
             CreateMap<City, CityVM>();
+            CreateMap<Role, RoleVM>();
             CreateMap<Setting, SettingVM>()
 .ForMember(dest => dest.ParentKey, opt => opt.MapFrom(src => src.Parent != null ? src.Parent.Key : ""))
 .ForMember(dest => dest.ChildrenCount, opt => opt.MapFrom(src => src.Children != null ? src.Children.Count : 0));
