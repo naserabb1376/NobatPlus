@@ -9,6 +9,7 @@ using NobatPlusAPI.Models;
 using NobatPlusAPI.Models.Authenticate;
 using NobatPlusAPI.Models.RateQuestion;
 using NobatPlusAPI.Models.Public;
+using NobatPlusAPI.Tools;
 using NobatPlusDATA.DataLayer.Repositories;
 using NobatPlusDATA.DataLayer.Services;
 using NobatPlusDATA.Domain;
@@ -67,6 +68,7 @@ namespace NobatPlusAPI.Controllers
         }
 
         [HttpPost("ExistRateQuestion_Base")]
+        [RequireRole(4)]
         public async Task<ActionResult<BitResultObject>> ExistRateQuestion_Base(GetRowRequestBody requestBody)
         {
             if (!ModelState.IsValid)
@@ -82,6 +84,7 @@ namespace NobatPlusAPI.Controllers
         }
 
         [HttpPost("AddRateQuestion_Base")]
+        [RequireRole(4)]
         public async Task<ActionResult<BitResultObject>> AddRateQuestion_Base(AddEditRateQuestionRequestBody requestBody)
         {
             if (!ModelState.IsValid)
@@ -119,6 +122,7 @@ namespace NobatPlusAPI.Controllers
         }
 
         [HttpPut("EditRateQuestion_Base")]
+        [RequireRole(4)]
         public async Task<ActionResult<BitResultObject>> EditRateQuestion_Base(AddEditRateQuestionRequestBody requestBody)
         {
             var result = new BitResultObject();
@@ -165,6 +169,7 @@ namespace NobatPlusAPI.Controllers
         }
 
         [HttpDelete("DeleteRateQuestion_Base")]
+        [RequireRole(4)]
         public async Task<ActionResult<BitResultObject>> DeleteRateQuestion_Base(GetRowRequestBody requestBody)
         {
             if (!ModelState.IsValid)

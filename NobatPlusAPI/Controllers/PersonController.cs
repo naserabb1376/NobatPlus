@@ -10,6 +10,7 @@ using NobatPlusAPI.Models;
 using NobatPlusAPI.Models.Authenticate;
 using NobatPlusAPI.Models.Person;
 using NobatPlusAPI.Models.Public;
+using NobatPlusAPI.Tools;
 using NobatPlusDATA.DataLayer.Repositories;
 using NobatPlusDATA.DataLayer.Services;
 using NobatPlusDATA.Domain;
@@ -33,22 +34,26 @@ namespace NobatPlusAPI.Controllers
         ILoginRep _loginRep;
         ILogRep _logRep;
         IAddressRep _addressRep;
+        IStylistRep _stylistRep;
         private readonly IMapper _mapper;
 
 
-        public PersonController(IPersonRep PersonRep,ILoginRep loginRep,IAddressRep addressRep,ILogRep logRep, IMapper mapper)
+        public PersonController(IPersonRep PersonRep,ILoginRep loginRep,IAddressRep addressRep,IStylistRep stylistRep,ILogRep logRep, IMapper mapper)
         {
            _PersonRep = PersonRep;
             _loginRep = loginRep;
            _logRep = logRep;
            _addressRep = addressRep;
+           _stylistRep = stylistRep;
             _mapper = mapper;
         }
 
         [HttpPost("GetAllPersons_Base")]
-        [AllowAnonymous]
         public async Task<ActionResult<ListResultObject<PersonVM>>> GetAllPersons_Base(GetPersonListRequestBody requestBody)
         {
+            if (User.GetCurrentRoleId() != (long)DbTools.BaseRole.Admin)
+                return Forbid();
+
             if (!ModelState.IsValid)
             {
                 return BadRequest(requestBody);
@@ -79,6 +84,7 @@ namespace NobatPlusAPI.Controllers
         }
 
         [HttpPost("ExistPerson_Base")]
+        [RequireRole(4)]
         public async Task<ActionResult<BitResultObject>> ExistPerson_Base(GetRowRequestBody requestBody)
         {
             if (!ModelState.IsValid)
@@ -95,6 +101,7 @@ namespace NobatPlusAPI.Controllers
 
 
         [HttpPost("AddPerson")]
+        [RequireRole(4)]
         public async Task<ActionResult<BitResultObject>> AddPerson(AddEditPersonProRequestBody requestBody)
         {
             BitResultObject result = new BitResultObject();
@@ -250,6 +257,10 @@ namespace NobatPlusAPI.Controllers
                     return BadRequest(result);
                 }
             }
+            if (!theRow.Status || !await CanEditPersonAsync(requestBody.ID))
+            {
+                return Forbid();
+            }
             if (requestBody.Address != null)
             {
                 address = new Address()
@@ -286,8 +297,8 @@ namespace NobatPlusAPI.Controllers
                     PhoneNumber = requestBody.PhoneNumber,
                     Description = requestBody.Description,
                     Gender = requestBody.Gender,
-                    RoleId = requestBody.RoleId,
-                    IsActive = requestBody.IsActive,
+                    RoleId = User.GetCurrentRoleId() == (long)DbTools.BaseRole.Admin ? requestBody.RoleId : theRow.Result.RoleId,
+                    IsActive = User.GetCurrentRoleId() == (long)DbTools.BaseRole.Admin ? requestBody.IsActive : theRow.Result.IsActive,
                     IdentificationCode = theRow.Result.IdentificationCode,
                     PermissionsVersion = theRow.Result.PermissionsVersion
                 };
@@ -318,6 +329,7 @@ namespace NobatPlusAPI.Controllers
 
 
         [HttpPost("AddPerson_Base")]
+        [RequireRole(4)]
         public async Task<ActionResult<BitResultObject>> AddPerson_Base(AddEditPersonRequestBody requestBody)
         {
             BitResultObject result = new BitResultObject();
@@ -436,6 +448,10 @@ namespace NobatPlusAPI.Controllers
                 result.Status = theRow.Status;
                 result.ErrorMessage = theRow.ErrorMessage;
             }
+            if (!theRow.Status || !await CanEditPersonAsync(requestBody.ID))
+            {
+                return Forbid();
+            }
 
             Person Person = new Person()
             {
@@ -451,8 +467,8 @@ namespace NobatPlusAPI.Controllers
                 PhoneNumber = requestBody.PhoneNumber,
                 Description = requestBody.Description,
                 Gender = requestBody.Gender,
-                RoleId = requestBody.RoleId,
-                IsActive = requestBody.IsActive,
+                RoleId = User.GetCurrentRoleId() == (long)DbTools.BaseRole.Admin ? requestBody.RoleId : theRow.Result.RoleId,
+                IsActive = User.GetCurrentRoleId() == (long)DbTools.BaseRole.Admin ? requestBody.IsActive : theRow.Result.IsActive,
                 PermissionsVersion = theRow.Result.PermissionsVersion,
                 IdentificationCode = theRow.Result.IdentificationCode,
             };
@@ -479,6 +495,7 @@ namespace NobatPlusAPI.Controllers
             return BadRequest(result);
         }
         [HttpPut("DeactivatePerson")]
+        [RequireRole(4)]
         public async Task<ActionResult<BitResultObject>> DeactivatePerson(DeactivatePersonRequestBody requestBody)
         {
             var result = new BitResultObject();
@@ -530,6 +547,7 @@ namespace NobatPlusAPI.Controllers
         }
 
         [HttpDelete("DeletePerson_Base")]
+        [RequireRole(4)]
         public async Task<ActionResult<BitResultObject>> DeletePerson_Base(GetRowRequestBody requestBody)
         {
             if (!ModelState.IsValid)
@@ -557,6 +575,28 @@ namespace NobatPlusAPI.Controllers
                 return Ok(result);
             }
             return BadRequest(result);
+        }
+
+        private async Task<bool> CanEditPersonAsync(long personId)
+        {
+            var roleId = User.GetCurrentRoleId();
+            if (roleId == (long)DbTools.BaseRole.Admin)
+                return true;
+
+            var currentPersonId = User.GetCurrentUserId();
+            if (personId == currentPersonId)
+                return true;
+
+            if (roleId != (long)DbTools.BaseRole.Salon)
+                return false;
+
+            var currentStylist = await _stylistRep.ExistStylistAsync(currentPersonId.ToString(), "personid");
+            var targetStylist = await _stylistRep.ExistStylistAsync(personId.ToString(), "personid");
+            if (!currentStylist.Status || !targetStylist.Status)
+                return false;
+
+            var target = await _stylistRep.GetStylistByIdAsync(targetStylist.ID);
+            return target.Status && target.Result?.StylistParentID == currentStylist.ID;
         }
     }
 }

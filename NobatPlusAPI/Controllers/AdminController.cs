@@ -11,6 +11,7 @@ using NobatPlusAPI.Models;
 using NobatPlusAPI.Models.Admin;
 using NobatPlusAPI.Models.Authenticate;
 using NobatPlusAPI.Models.Public;
+using NobatPlusAPI.Tools;
 using NobatPlusDATA.DataLayer.Repositories;
 using NobatPlusDATA.DataLayer.Services;
 using NobatPlusDATA.Domain;
@@ -44,6 +45,8 @@ namespace NobatPlusAPI.Controllers
         [HttpPost("GetAllAdmins_Base")]
         public async Task<ActionResult<ListResultObject<AdminVM>>> GetAllAdmins_Base(GetAdminListRequestBody requestBody)
         {
+            if (User.GetCurrentRoleId() != (long)DbTools.BaseRole.Admin) return Forbid();
+
             ListResultObject<Admin> result = new ListResultObject<Admin>();
             if (!ModelState.IsValid)
             {
@@ -66,6 +69,8 @@ namespace NobatPlusAPI.Controllers
         [HttpPost("GetAdminById_Base")]
         public async Task<ActionResult<RowResultObject<AdminVM>>> GetAdminById_Base(GetRowRequestBody requestBody)
         {
+            if (User.GetCurrentRoleId() != (long)DbTools.BaseRole.Admin) return Forbid();
+
             if (!ModelState.IsValid)
             {
                 return BadRequest(requestBody);
@@ -82,6 +87,8 @@ namespace NobatPlusAPI.Controllers
         [HttpPost("ExistAdmin_Base")]
         public async Task<ActionResult<BitResultObject>> ExistAdmin_Base(GetRowRequestBody requestBody)
         {
+            if (User.GetCurrentRoleId() != (long)DbTools.BaseRole.Admin) return Forbid();
+
             if (!ModelState.IsValid)
             {
                 return BadRequest(requestBody);
@@ -97,6 +104,8 @@ namespace NobatPlusAPI.Controllers
         [HttpPost("AddAdmin_Base")]
         public async Task<ActionResult<BitResultObject>> AddAdmin_Base(AddEditAdminRequestBody requestBody)
         {
+            if (User.GetCurrentRoleId() != (long)DbTools.BaseRole.Admin) return Forbid();
+
             if (!ModelState.IsValid)
             {
                 return BadRequest(requestBody);
@@ -135,6 +144,8 @@ namespace NobatPlusAPI.Controllers
         [HttpPut("EditAdmin_Base")]
         public async Task<ActionResult<BitResultObject>> EditAdmin_Base(AddEditAdminRequestBody requestBody)
         {
+            if (User.GetCurrentRoleId() != (long)DbTools.BaseRole.Admin) return Forbid();
+
             var result = new BitResultObject();
             if (!ModelState.IsValid)
             {
@@ -184,6 +195,8 @@ namespace NobatPlusAPI.Controllers
         [HttpDelete("DeleteAdmin_Base")]
         public async Task<ActionResult<BitResultObject>> DeleteAdmin_Base(GetRowRequestBody requestBody)
         {
+            if (User.GetCurrentRoleId() != (long)DbTools.BaseRole.Admin) return Forbid();
+
             if (!ModelState.IsValid)
             {
                 return BadRequest(requestBody);

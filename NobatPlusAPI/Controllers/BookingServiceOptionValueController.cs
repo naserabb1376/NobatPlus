@@ -4,6 +4,7 @@ using Domains;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using NobatPlusAPI.Models.BookingServiceOptionValue;
+using NobatPlusAPI.Tools;
 using NobatPlusDATA.DataLayer.Repositories;
 using NobatPlusDATA.Domain;
 using NobatPlusDATA.ResultObjects;
@@ -15,6 +16,7 @@ namespace NobatPlusAPI.Controllers
     [Route("BookingServiceOptionValue")]
     [ApiController]
     [Authorize]
+    [RequireRole(4)]
     [Produces("application/json")]
     public class BookingServiceOptionValueController : ControllerBase
     {

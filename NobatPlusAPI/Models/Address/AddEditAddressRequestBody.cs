@@ -13,8 +13,7 @@ namespace NobatPlusAPI.Models.Address
         public long CityID { get; set; }
 
         [Display(Name = "خیابان")]
-        [Required(ErrorMessage = "لطفا {0} را وارد کنید")]
-        public string AddressStreet { get; set; }
+        public string AddressStreet { get; set; } = string.Empty;
 
         [Display(Name = "کد پستی")]
         [RegularExpression(@"^([0-9]{10})$", ErrorMessage = "مقدار {0} باید 10 رقمی و فقط شامل اعداد باشد")]

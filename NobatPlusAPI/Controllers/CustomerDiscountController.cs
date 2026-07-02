@@ -10,6 +10,7 @@ using NobatPlusAPI.Models;
 using NobatPlusAPI.Models.City;
 using NobatPlusAPI.Models.CustomerDiscount;
 using NobatPlusAPI.Models.Public;
+using NobatPlusAPI.Tools;
 using NobatPlusDATA.DataLayer.Repositories;
 using NobatPlusDATA.DataLayer.Services;
 using NobatPlusDATA.Domain;
@@ -30,13 +31,15 @@ namespace NobatPlusAPI.Controllers
     public class CustomerDiscountController : ControllerBase
     {
         ICustomerDiscountRep _CustomerDiscountRep;
+        ICustomerRep _CustomerRep;
         ILogRep _logRep;
         private readonly IMapper _mapper;
 
 
-        public CustomerDiscountController(ICustomerDiscountRep CustomerDiscountRep,ILogRep logRep, IMapper mapper)
+        public CustomerDiscountController(ICustomerDiscountRep CustomerDiscountRep,ICustomerRep CustomerRep,ILogRep logRep, IMapper mapper)
         {
            _CustomerDiscountRep = CustomerDiscountRep;
+           _CustomerRep = CustomerRep;
            _logRep = logRep;
             _mapper = mapper;
         }
@@ -47,6 +50,12 @@ namespace NobatPlusAPI.Controllers
             if (!ModelState.IsValid)
             {
                 return BadRequest(requestBody);
+            }
+            if (User.GetCurrentRoleId() != (long)DbTools.BaseRole.Admin)
+            {
+                var customerId = await GetCurrentCustomerIdAsync();
+                if (customerId <= 0) return Forbid();
+                requestBody.CustomerId = customerId;
             }
             var result = await _CustomerDiscountRep.GetAllCustomerDiscountsAsync(requestBody.DiscountId,requestBody.CustomerId,requestBody.StylistId,requestBody.PageIndex,requestBody.PageSize,requestBody.SearchText,requestBody.SortQuery);
             if (result.Status)
@@ -67,6 +76,11 @@ namespace NobatPlusAPI.Controllers
             var result = await _CustomerDiscountRep.GetCustomerDiscountByIdAsync(requestBody.ID);
             if (result.Status)
             {
+                if (!CanAccessCustomerDiscount(result.Result))
+                {
+                    return Forbid();
+                }
+
                 var resultVM = _mapper.Map<RowResultObject<CustomerDiscountVM>>(result);
                 return Ok(resultVM);
             }
@@ -74,6 +88,7 @@ namespace NobatPlusAPI.Controllers
         }
 
         [HttpPost("ExistCustomerDiscount_Base")]
+        [RequireRole(4)]
         public async Task<ActionResult<BitResultObject>> ExistCustomerDiscount_Base(GetRowRequestBody requestBody)
         {
             if (!ModelState.IsValid)
@@ -89,6 +104,7 @@ namespace NobatPlusAPI.Controllers
         }
 
         [HttpPost("AddCustomerDiscounts_Base")]
+        [RequireRole(4)]
         public async Task<ActionResult<BitResultObject>> AddCustomerDiscounts_Base(List<AddEditCustomerDiscountRequestBody> requestBodyList)
         {
             if (!ModelState.IsValid)
@@ -129,6 +145,7 @@ namespace NobatPlusAPI.Controllers
 
 
         [HttpPut("EditCustomerDiscounts_Base")]
+        [RequireRole(4)]
         public async Task<ActionResult<BitResultObject>> EditCustomerDiscounts_Base(List<AddEditCustomerDiscountRequestBody> requestBodyList)
         {
             if (!ModelState.IsValid)
@@ -181,6 +198,7 @@ namespace NobatPlusAPI.Controllers
 
 
         [HttpDelete("DeleteCustomerDiscounts_Base")]
+        [RequireRole(4)]
         public async Task<ActionResult<BitResultObject>> DeleteCustomerDiscounts_Base(List<long> ids)
         {
             if (!ModelState.IsValid)
@@ -207,6 +225,21 @@ namespace NobatPlusAPI.Controllers
                 return Ok(result);
             }
             return BadRequest(result);
+        }
+
+        private async Task<long> GetCurrentCustomerIdAsync()
+        {
+            var result = await _CustomerRep.ExistCustomerAsync(User.GetCurrentUserId().ToString(), "personid");
+            return result.Status ? result.ID : 0;
+        }
+
+        private bool CanAccessCustomerDiscount(CustomerDiscount? discount)
+        {
+            if (User.GetCurrentRoleId() == (long)DbTools.BaseRole.Admin)
+                return true;
+
+            var customer = _CustomerRep.ExistCustomerAsync(User.GetCurrentUserId().ToString(), "personid").GetAwaiter().GetResult();
+            return customer.Status && discount?.CustomerId == customer.ID;
         }
 
     }

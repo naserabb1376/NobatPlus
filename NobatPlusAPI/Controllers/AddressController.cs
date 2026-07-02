@@ -11,6 +11,7 @@ using NobatPlusAPI.Models;
 using NobatPlusAPI.Models.Address;
 using NobatPlusAPI.Models.Authenticate;
 using NobatPlusAPI.Models.Public;
+using NobatPlusAPI.Tools;
 using NobatPlusDATA.DataLayer.Repositories;
 using NobatPlusDATA.DataLayer.Services;
 using NobatPlusDATA.Domain;
@@ -70,6 +71,11 @@ namespace NobatPlusAPI.Controllers
             var result = await _AddressRep.GetAddressByIdAsync(requestBody.ID);
             if (result.Status)
             {
+                if (!await CanAccessAddressAsync(requestBody.ID))
+                {
+                    return Forbid();
+                }
+
                 var resultVM = _mapper.Map<RowResultObject<AddressVM>>(result);
                 return Ok(resultVM);
             }
@@ -97,6 +103,10 @@ namespace NobatPlusAPI.Controllers
             if (!ModelState.IsValid)
             {
                 return BadRequest(requestBody);
+            }
+            if (User.GetCurrentRoleId() != (long)DbTools.BaseRole.Admin)
+            {
+                requestBody.PersonID = User.GetCurrentUserId();
             }
             var thePerson = await _personRep.GetPersonByIdAsync(requestBody.PersonID);
             if (thePerson.Result == null)
@@ -162,6 +172,10 @@ namespace NobatPlusAPI.Controllers
                 result.Status = theRow.Status;
                 result.ErrorMessage = theRow.ErrorMessage;
             }
+            if (!theRow.Status || !await CanAccessAddressAsync(requestBody.ID))
+            {
+                return Forbid();
+            }
 
             Address Address = new Address()
             {
@@ -199,6 +213,7 @@ namespace NobatPlusAPI.Controllers
         }
 
         [HttpDelete("DeleteAddress_Base")]
+        [RequireRole(4)]
         public async Task<ActionResult<BitResultObject>> DeleteAddress_Base(GetRowRequestBody requestBody)
         {
             if (!ModelState.IsValid)
@@ -226,6 +241,15 @@ namespace NobatPlusAPI.Controllers
                 return Ok(result);
             }
             return BadRequest(result);
+        }
+
+        private async Task<bool> CanAccessAddressAsync(long addressId)
+        {
+            if (User.GetCurrentRoleId() == (long)DbTools.BaseRole.Admin)
+                return true;
+
+            var person = await _personRep.GetPersonByIdAsync(User.GetCurrentUserId());
+            return person.Status && person.Result?.AddressID == addressId;
         }
     }
 }
