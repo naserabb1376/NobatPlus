@@ -25,6 +25,7 @@ using Repositories;
 using Services;
 using System.Globalization;
 using System.Text;
+using System.Threading.RateLimiting;
 
 namespace NobatPlusAPI
 {
@@ -37,7 +38,7 @@ namespace NobatPlusAPI
             var corsPolicy = builder.Configuration["cors:policy"].ToString();
             var cookiesecurity = builder.Configuration["cors:cookiesecurity"].ToString();
 
-            var allowedOrigins = builder.Configuration.GetSection("cors:allowedOrigins").Get<List<string>>().ToArray();
+            var allowedOrigins = builder.Configuration.GetSection("cors:allowedOrigins").Get<List<string>>()?.ToArray() ?? Array.Empty<string>();
             var payGatewaySettings = builder.Configuration.GetSection("PaymentGateways").Get<List<PayGatewaySettings>>().ToList();
             var zarinPalGatewaySetting = payGatewaySettings.FirstOrDefault(x => x.GatewayName.ToLower() == "zarinpal");
 
@@ -69,7 +70,8 @@ namespace NobatPlusAPI
                 {
                     options.AddPolicy(corsPolicy, builder =>
                     {
-                        builder.AllowAnyOrigin()
+                        builder.WithOrigins(allowedOrigins)
+                               .AllowCredentials()
                                .AllowAnyMethod()
                                .AllowAnyHeader()
                                .WithExposedHeaders("Set-Cookie");
@@ -88,18 +90,24 @@ namespace NobatPlusAPI
                 }
             });
 
-            //if (corsSettings.useRateLimiter)
-            //{
-            //    ///--محدود کردن نرخ درخواست‌ها (Rate Limiting) --///
-            //    builder.Services.AddRateLimiter(options =>
-            //    {
-            //        options.AddFixedWindowLimiter("Fixed", limiterOptions =>
-            //        {
-            //            limiterOptions.Window = TimeSpan.FromSeconds(10);
-            //            limiterOptions.PermitLimit = 5; // تعداد درخواست‌ها در هر بازه زمانی
-            //        });
-            //    });
-            //}
+            builder.Services.AddRateLimiter(options =>
+            {
+                options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+                options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(context =>
+                {
+                    var userKey = context.User?.Identity?.IsAuthenticated == true
+                        ? $"user:{context.User.GetCurrentUserId()}"
+                        : $"ip:{context.Connection.RemoteIpAddress}";
+
+                    return RateLimitPartition.GetFixedWindowLimiter(userKey, _ => new FixedWindowRateLimiterOptions
+                    {
+                        PermitLimit = 120,
+                        Window = TimeSpan.FromMinutes(1),
+                        QueueLimit = 0,
+                        AutoReplenishment = true
+                    });
+                });
+            });
 
 
             // Add services to the container.
@@ -273,6 +281,19 @@ namespace NobatPlusAPI
   {
       options.RequireHttpsMetadata = false;
       options.SaveToken = true;
+      options.Events = new JwtBearerEvents
+      {
+          OnMessageReceived = context =>
+          {
+              if (string.IsNullOrWhiteSpace(context.Token) &&
+                  context.Request.Cookies.TryGetValue("nobatix_access_token", out var accessToken))
+              {
+                  context.Token = accessToken;
+              }
+
+              return Task.CompletedTask;
+          }
+      };
       options.TokenValidationParameters = new TokenValidationParameters
       {
           ValidateIssuer = true,
@@ -299,9 +320,16 @@ namespace NobatPlusAPI
 
             var app = builder.Build();
 
+            using (var scope = app.Services.CreateScope())
+            {
+                PermissionBootstrapper.SyncAsync(scope.ServiceProvider, app.Logger).GetAwaiter().GetResult();
+            }
+
             // Configure the HTTP request pipeline.
 
             #region Pipeline
+
+            app.UseMiddleware<GlobalExceptionHandlingMiddleware>();
 
             app.UseStaticFiles();   
 
@@ -325,17 +353,21 @@ namespace NobatPlusAPI
 
             app.UseSession();
 
+            app.UseRouting();
+            app.UseAuthentication();
+            app.UseAuthorization();
+            app.UseRateLimiter();
+
             #region HangFire
 
             app.UseHangfireDashboard("/hangfire", new DashboardOptions
             {
                 Authorization = app.Environment.IsDevelopment()
-                    ? new[] { new Hangfire.Dashboard.LocalRequestsOnlyAuthorizationFilter() }
-                    : Array.Empty<Hangfire.Dashboard.IDashboardAuthorizationFilter>()
+                    ? new Hangfire.Dashboard.IDashboardAuthorizationFilter[] { new Hangfire.Dashboard.LocalRequestsOnlyAuthorizationFilter() }
+                    : new Hangfire.Dashboard.IDashboardAuthorizationFilter[] { new HangfireAdminAuthorizationFilter() }
             });
             //app.UseHangfireServer();
 
-            // 👇 اینجا دقیقاً محل ثبت Job هست
             RecurringJob.AddOrUpdate<JobManager>(
      job => job.ProcessTodayBirthdays(),
      "0 9 * * *",
@@ -343,10 +375,6 @@ namespace NobatPlusAPI
  );
 
             #endregion
-
-            app.UseRouting();
-            app.UseAuthentication();
-            app.UseAuthorization();
 
             // IMPORTANT: after authentication
             app.UseMTPermissionCenter();

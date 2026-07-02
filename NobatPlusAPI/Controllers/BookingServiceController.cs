@@ -10,6 +10,7 @@ using NobatPlusAPI.Models;
 using NobatPlusAPI.Models.Authenticate;
 using NobatPlusAPI.Models.BookingService;
 using NobatPlusAPI.Models.Public;
+using NobatPlusAPI.Tools;
 using NobatPlusDATA.DataLayer.Repositories;
 using NobatPlusDATA.DataLayer.Services;
 using NobatPlusDATA.Domain;
@@ -25,6 +26,7 @@ namespace NobatPlusAPI.Controllers
     [Route("BookingService")]
     [ApiController]
     [Authorize]
+    [RequireRole(4)]
     [Produces("application/json")]
 
     public class BookingServiceController : ControllerBase

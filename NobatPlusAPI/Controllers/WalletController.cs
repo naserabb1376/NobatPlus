@@ -14,6 +14,7 @@ namespace NobatPlusAPI.Controllers
     [Produces("application/json")]
     public class WalletController : ControllerBase
     {
+        private static readonly bool SelfWalletChargeEnabled = false;
         private readonly IWalletRep _walletRep;
         private readonly ICustomerRep _customerRep;
 
@@ -73,6 +74,15 @@ namespace NobatPlusAPI.Controllers
         [HttpPost("ChargeWallet_Base")]
         public async Task<ActionResult<BitResultObject>> ChargeWallet_Base(ChargeWalletRequestBody requestBody)
         {
+            if (!SelfWalletChargeEnabled)
+            {
+                return StatusCode(503, new BitResultObject
+                {
+                    Status = false,
+                    ErrorMessage = "شارژ مستقیم کیف پول تا زمان اتصال درگاه پرداخت فعال نیست"
+                });
+            }
+
             if (!ModelState.IsValid)
             {
                 return BadRequest(requestBody);

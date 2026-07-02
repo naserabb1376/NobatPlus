@@ -40,6 +40,8 @@ namespace NobatPlusAPI.Controllers
         private readonly IAddressRep _addressRep;
         private readonly ILogRep _logRep;
         private readonly ITokenRep _tokenRep;
+        private const string AccessTokenCookieName = "nobatix_access_token";
+        private const string RefreshTokenCookieName = "nobatix_refresh_token";
 
         public AuthenticationController(IConfiguration configuration,ILoginRep loginRep, IRegisterRep registerRep, IPersonRep personRep, ICustomerRep customerRep, IStylistRep stylistRep, IAddressRep addressRep,ILogRep logRep,ITokenRep tokenRep)
         {
@@ -52,6 +54,82 @@ namespace NobatPlusAPI.Controllers
             _addressRep = addressRep;
             _logRep = logRep;
             _tokenRep = tokenRep;
+        }
+
+        private CookieOptions GetRefreshTokenCookieOptions(DateTime expires)
+        {
+            return new CookieOptions
+            {
+                HttpOnly = true,
+                Secure = true,
+                SameSite = SameSiteMode.None,
+                Expires = expires,
+                IsEssential = true,
+                Path = "/authentication"
+            };
+        }
+
+        private CookieOptions GetAccessTokenCookieOptions()
+        {
+            return new CookieOptions
+            {
+                HttpOnly = true,
+                Secure = true,
+                SameSite = SameSiteMode.None,
+                Expires = DateTimeOffset.UtcNow.AddHours(1),
+                IsEssential = true,
+                Path = "/"
+            };
+        }
+
+        private string? GetRefreshTokenFromRequest(RefreshTokenRequestBody? requestBody)
+        {
+            if (!string.IsNullOrWhiteSpace(requestBody?.RefreshToken))
+            {
+                return requestBody.RefreshToken;
+            }
+
+            return Request.Cookies.TryGetValue(RefreshTokenCookieName, out var cookieRefreshToken)
+                ? cookieRefreshToken
+                : null;
+        }
+
+        private void SetRefreshTokenCookie(string refreshToken, DateTime expires)
+        {
+            Response.Cookies.Append(RefreshTokenCookieName, refreshToken, GetRefreshTokenCookieOptions(expires));
+        }
+
+        private void SetAccessTokenCookie(string accessToken)
+        {
+            Response.Cookies.Append(AccessTokenCookieName, accessToken, GetAccessTokenCookieOptions());
+        }
+
+        private void ClearAccessTokenCookie()
+        {
+            Response.Cookies.Delete(AccessTokenCookieName, new CookieOptions
+            {
+                HttpOnly = true,
+                Secure = true,
+                SameSite = SameSiteMode.None,
+                Path = "/"
+            });
+        }
+
+        private void ClearRefreshTokenCookie()
+        {
+            Response.Cookies.Delete(RefreshTokenCookieName, new CookieOptions
+            {
+                HttpOnly = true,
+                Secure = true,
+                SameSite = SameSiteMode.None,
+                Path = "/authentication"
+            });
+        }
+
+        private void ClearAuthCookies()
+        {
+            ClearAccessTokenCookie();
+            ClearRefreshTokenCookie();
         }
 
         [HttpPost("Authenticate")]
@@ -186,7 +264,7 @@ namespace NobatPlusAPI.Controllers
 
 
         [HttpPost("RefreshToken")]
-        public async Task<ActionResult<RowResultObject<RefreshTokenResultBody>>> RefreshToken(RefreshTokenRequestBody requestBody)
+        public async Task<ActionResult<RowResultObject<RefreshTokenResultBody>>> RefreshToken(RefreshTokenRequestBody? requestBody)
         {
             RowResultObject<RefreshTokenResultBody> result = new RowResultObject<RefreshTokenResultBody>();
 
@@ -195,12 +273,22 @@ namespace NobatPlusAPI.Controllers
                 return BadRequest(requestBody);
             }
 
-            var refreshTokenRecord = await _tokenRep.FindTokenAsync(requestBody.RefreshToken, "RefreshToken");
-
-            if (!refreshTokenRecord.Status && refreshTokenRecord.Result == null)
+            var currentRefreshToken = GetRefreshTokenFromRequest(requestBody);
+            if (string.IsNullOrWhiteSpace(currentRefreshToken))
             {
                 result.ErrorMessage = "رفرش توکن نامعتبر است";
                 result.Status = false;
+                ClearAuthCookies();
+                return BadRequest(result);
+            }
+
+            var refreshTokenRecord = await _tokenRep.FindTokenAsync(currentRefreshToken, "RefreshToken");
+
+            if (!refreshTokenRecord.Status || refreshTokenRecord.Result == null)
+            {
+                result.ErrorMessage = "رفرش توکن نامعتبر است";
+                result.Status = false;
+                ClearAuthCookies();
                 return BadRequest(result);
             }
 
@@ -228,6 +316,8 @@ namespace NobatPlusAPI.Controllers
 
                 if (saverefreshToken.Status)
                 {
+                    SetAccessTokenCookie(accessToken);
+                    SetRefreshTokenCookie(refreshToken, refreshTokenExpiryDate);
                     result.Status = login.Status;
                     result.ErrorMessage = login.ErrorMessage;
                     result.Result = new RefreshTokenResultBody()
@@ -855,7 +945,7 @@ namespace NobatPlusAPI.Controllers
         }
 
         [HttpPost("LogOut")]
-        public async Task<ActionResult<BitResultObject>> LogOut(RefreshTokenRequestBody requestBody)
+        public async Task<ActionResult<BitResultObject>> LogOut(RefreshTokenRequestBody? requestBody)
         {
             if (!ModelState.IsValid)
             {
@@ -863,7 +953,15 @@ namespace NobatPlusAPI.Controllers
             }
             BitResultObject result = new BitResultObject() { Status = true,ErrorMessage =""};
 
-            var refreshTokenRecord = await _tokenRep.FindTokenAsync(requestBody.RefreshToken, "RefreshToken");
+            var currentRefreshToken = GetRefreshTokenFromRequest(requestBody);
+            if (string.IsNullOrWhiteSpace(currentRefreshToken))
+            {
+                ClearAuthCookies();
+                result.ErrorMessage = $"کاربر از سیستم خارج شد";
+                return Ok(result);
+            }
+
+            var refreshTokenRecord = await _tokenRep.FindTokenAsync(currentRefreshToken, "RefreshToken");
 
             if (refreshTokenRecord.Status && refreshTokenRecord.Result != null)
             {
@@ -873,6 +971,7 @@ namespace NobatPlusAPI.Controllers
                 {
                     result.Status = expireTokenResult.Status;
                     result.ErrorMessage = $"کاربر از سیستم خارج شد";
+                    ClearAuthCookies();
 
                     #region AddLog
                     Log log = new Log()
@@ -893,7 +992,8 @@ namespace NobatPlusAPI.Controllers
                 }
             }
 
-                return Ok(result);
+            ClearAuthCookies();
+            return Ok(result);
         }
 
         private async Task<RowResultObject<AuthenticationResultBody>> DoLoginAsync(AuthenticationRequestBody requestBody)
@@ -963,6 +1063,8 @@ namespace NobatPlusAPI.Controllers
 
                     if (saverefreshToken.Status)
                     {
+                        SetAccessTokenCookie(accessToken);
+                        SetRefreshTokenCookie(refreshToken, refreshTokenExpiryDate);
                         result.Status = authenticateResult.Status;
                         result.ErrorMessage = authenticateResult.ErrorMessage;
                         result.Result = new AuthenticationResultBody()

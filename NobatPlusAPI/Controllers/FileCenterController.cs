@@ -16,6 +16,56 @@ using System.Security.Claims;
 [Produces("application/json")]
 public class FileCenterController : ControllerBase
 {
+    private const long MaxImageBytes = 5 * 1024 * 1024;
+    private const long MaxFileBytes = 20 * 1024 * 1024;
+
+    private static readonly HashSet<string> AllowedEntityNames = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "address",
+        "admin",
+        "apiguide",
+        "authentication",
+        "bookingservice",
+        "booking",
+        "checkavailability",
+        "city",
+        "customerdiscount",
+        "customer",
+        "discountassignment",
+        "discount",
+        "jobtype",
+        "login",
+        "logss",
+        "notification",
+        "paymenthistory",
+        "payment",
+        "person",
+        "register",
+        "review",
+        "servicediscount",
+        "servicemanagement",
+        "stylistservice",
+        "stylist",
+        "servicecategory"
+    };
+
+    private static readonly HashSet<string> AllowedImageExtensions = new(StringComparer.OrdinalIgnoreCase)
+    {
+        ".jpg",
+        ".jpeg",
+        ".png",
+        ".webp"
+    };
+
+    private static readonly HashSet<string> AllowedFileExtensions = new(StringComparer.OrdinalIgnoreCase)
+    {
+        ".pdf",
+        ".jpg",
+        ".jpeg",
+        ".png",
+        ".webp"
+    };
+
     private readonly IWebHostEnvironment _env;
     private readonly ILogRep _logRep;
     private readonly IFileUploadRep _fileUploadRep;
@@ -30,17 +80,27 @@ public class FileCenterController : ControllerBase
     }
 
     [HttpPost("uploadfile")]
-    [RequestSizeLimit(2_000_000_000)]           // 2 GB
-    [RequestFormLimits(MultipartBodyLengthLimit = 2_000_000_000)]
-    [AllowAnonymous]
+    [RequestSizeLimit(MaxFileBytes)]
+    [RequestFormLimits(MultipartBodyLengthLimit = MaxFileBytes)]
     public async Task<IActionResult> UploadFile(IFormFile file, [FromQuery] bool isPublic, [FromQuery] string entityName, [FromQuery] string fileType, [FromQuery] long rowId = 0)
     {
         try
         {
             if (file == null || file.Length == 0)
                 return BadRequest("فایلی انتخاب نشده است.");
-            fileType = fileType.ToLower();
-            entityName = entityName.ToLower();
+
+            fileType = NormalizeFileType(fileType);
+            entityName = NormalizeEntityName(entityName);
+
+            if (string.IsNullOrWhiteSpace(entityName))
+                return BadRequest("موجودیت فایل نامعتبر است.");
+
+            if (string.IsNullOrWhiteSpace(fileType))
+                return BadRequest("نوع فایل نامعتبر است.");
+
+            if (!IsAllowedFile(file, fileType))
+                return BadRequest("نوع یا حجم فایل مجاز نیست.");
+
             string fileName = file.FileName.GenerateFileName();
             string fullPath = ""; long RowNumber = 0;
             var userId =  User?.FindFirst("userId")?.Value;
@@ -129,7 +189,7 @@ public class FileCenterController : ControllerBase
         }
         catch (Exception ex)
         {
-            return BadRequest($"{ex.Message} - {ex.InnerException?.Message}");
+            return BadRequest("آپلود فایل ناموفق بود.");
         }
     }
 
@@ -269,6 +329,80 @@ public class FileCenterController : ControllerBase
         return BadRequest(result);
     }
 
+    private static string NormalizeFileType(string fileType)
+    {
+        fileType = (fileType ?? "").Trim().ToLowerInvariant();
+        if (fileType == "documents")
+            fileType = "files";
 
+        return fileType is "images" or "files" ? fileType : "";
+    }
 
+    private static string NormalizeEntityName(string entityName)
+    {
+        entityName = (entityName ?? "").Trim().ToLowerInvariant();
+        if (entityName == "stylists")
+            entityName = "stylist";
+
+        if (entityName.Length is < 2 or > 50)
+            return "";
+
+        if (!entityName.All(char.IsLetterOrDigit))
+            return "";
+
+        return AllowedEntityNames.Contains(entityName) ? entityName : "";
+    }
+
+    private static bool IsAllowedFile(IFormFile file, string fileType)
+    {
+        var extension = Path.GetExtension(file.FileName);
+        if (fileType == "images")
+        {
+            return file.Length <= MaxImageBytes &&
+                   AllowedImageExtensions.Contains(extension) &&
+                   HasAllowedImageSignature(file);
+        }
+
+        if (fileType == "files")
+        {
+            return file.Length <= MaxFileBytes &&
+                   AllowedFileExtensions.Contains(extension) &&
+                   (HasPdfSignature(file) || HasAllowedImageSignature(file));
+        }
+
+        return false;
+    }
+
+    private static bool HasAllowedImageSignature(IFormFile file)
+    {
+        var header = ReadHeader(file, 12);
+        if (header.Length < 4)
+            return false;
+
+        var isJpeg = header[0] == 0xFF && header[1] == 0xD8 && header[2] == 0xFF;
+        var isPng = header[0] == 0x89 && header[1] == 0x50 && header[2] == 0x4E && header[3] == 0x47;
+        var isWebp = header.Length >= 12 &&
+                     header[0] == 0x52 && header[1] == 0x49 && header[2] == 0x46 && header[3] == 0x46 &&
+                     header[8] == 0x57 && header[9] == 0x45 && header[10] == 0x42 && header[11] == 0x50;
+
+        return isJpeg || isPng || isWebp;
+    }
+
+    private static bool HasPdfSignature(IFormFile file)
+    {
+        var header = ReadHeader(file, 4);
+        return header.Length >= 4 &&
+               header[0] == 0x25 &&
+               header[1] == 0x50 &&
+               header[2] == 0x44 &&
+               header[3] == 0x46;
+    }
+
+    private static byte[] ReadHeader(IFormFile file, int length)
+    {
+        using var stream = file.OpenReadStream();
+        var buffer = new byte[length];
+        var read = stream.Read(buffer, 0, length);
+        return buffer.Take(read).ToArray();
+    }
 }

@@ -42,6 +42,7 @@ namespace NobatPlusAPI.Controllers
         }
 
         [HttpPost("GetAllCities_Base")]
+        [AllowAnonymous]
         public async Task<ActionResult<ListResultObject<CityVM>>> GetAllCities_Base(GetCityListRequestBody requestBody)
         {
             if (!ModelState.IsValid)
@@ -58,6 +59,7 @@ namespace NobatPlusAPI.Controllers
         }
 
         [HttpPost("GetCityById_Base")]
+        [AllowAnonymous]
         public async Task<ActionResult<RowResultObject<CityVM>>> GetCityById_Base(GetRowRequestBody requestBody)
         {
             if (!ModelState.IsValid)

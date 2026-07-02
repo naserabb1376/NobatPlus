@@ -144,16 +144,72 @@ namespace NobatPlusDATA.Tools
         {
             return value.ToString("#,0");
         }
+        private const int PasswordSaltSize = 16;
+        private const int PasswordHashSize = 32;
+        private const int PasswordIterations = 100_000;
+        private const string PasswordHashPrefix = "PBKDF2-SHA256";
+
         public static string ToHash(this string value)
         {
             if (string.IsNullOrEmpty(value)) return "";
-            return Convert.ToBase64String(Encoding.UTF8.GetBytes(value));
+
+            var salt = RandomNumberGenerator.GetBytes(PasswordSaltSize);
+            var hash = Rfc2898DeriveBytes.Pbkdf2(
+                value,
+                salt,
+                PasswordIterations,
+                HashAlgorithmName.SHA256,
+                PasswordHashSize);
+
+            return $"{PasswordHashPrefix}${PasswordIterations}${Convert.ToBase64String(salt)}${Convert.ToBase64String(hash)}";
         }
 
-        public static string ToUnHash(this string value)
+        public static bool VerifyPassword(this string password, string storedHash)
         {
-            if (string.IsNullOrEmpty(value)) return "";
-            return Encoding.UTF8.GetString(Convert.FromBase64String(value));
+            if (string.IsNullOrEmpty(password) || string.IsNullOrEmpty(storedHash))
+                return false;
+
+            if (storedHash.StartsWith($"{PasswordHashPrefix}$", StringComparison.Ordinal))
+                return VerifyPbkdf2Password(password, storedHash);
+
+            var legacyHash = Convert.ToBase64String(Encoding.UTF8.GetBytes(password));
+            return CryptographicOperations.FixedTimeEquals(
+                Encoding.UTF8.GetBytes(legacyHash),
+                Encoding.UTF8.GetBytes(storedHash));
+        }
+
+        public static bool NeedsPasswordRehash(this string storedHash)
+        {
+            return string.IsNullOrEmpty(storedHash) ||
+                   !storedHash.StartsWith($"{PasswordHashPrefix}$", StringComparison.Ordinal);
+        }
+
+        private static bool VerifyPbkdf2Password(string password, string storedHash)
+        {
+            var parts = storedHash.Split('$');
+            if (parts.Length != 4 || parts[0] != PasswordHashPrefix)
+                return false;
+
+            if (!int.TryParse(parts[1], out var iterations) || iterations <= 0)
+                return false;
+
+            try
+            {
+                var salt = Convert.FromBase64String(parts[2]);
+                var expectedHash = Convert.FromBase64String(parts[3]);
+                var actualHash = Rfc2898DeriveBytes.Pbkdf2(
+                    password,
+                    salt,
+                    iterations,
+                    HashAlgorithmName.SHA256,
+                    expectedHash.Length);
+
+                return CryptographicOperations.FixedTimeEquals(actualHash, expectedHash);
+            }
+            catch
+            {
+                return false;
+            }
         }
 
         public static void SaveLog(object log)

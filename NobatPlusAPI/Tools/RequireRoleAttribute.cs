@@ -7,6 +7,7 @@ namespace NobatPlusAPI.Tools
     public class RequireRoleAttribute : Attribute, IAuthorizationFilter
     {
         private readonly long[] _roleIds;
+        public IReadOnlyCollection<long> RoleIds => _roleIds;
 
         public RequireRoleAttribute(params long[] roleIds)
         {
