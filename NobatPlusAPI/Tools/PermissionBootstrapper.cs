@@ -41,31 +41,40 @@ namespace NobatPlusAPI.Tools
 
                 foreach (var action in GetProtectedControllerActions(actionProvider))
                 {
-                    var key = $"{action.ControllerName}/{action.ActionName}";
-                    if (!existingActionByKey.TryGetValue(key, out var permission))
+                    var roleIds = ResolveActionRoles(action);
+                    var keys = new[]
                     {
-                        permission = new MTPermissionCenter_Permission
+                        $"{action.ControllerName}/{action.ActionName}",
+                        $"{action.ControllerName}.{action.ActionName}".ToLowerInvariant()
+                    };
+
+                    foreach (var key in keys.Distinct(StringComparer.OrdinalIgnoreCase))
+                    {
+                        if (!existingActionByKey.TryGetValue(key, out var permission))
                         {
-                            CreateDate = now,
-                            UpdateDate = now,
-                            Description = $"API action: {key}",
-                            Name = key,
-                            Key = key,
-                            Icon = "Shield",
-                            Routename = key,
-                            PermissionType = ActionPermissionType,
-                            OtherLangs = "",
-                            IsActive = true
-                        };
+                            permission = new MTPermissionCenter_Permission
+                            {
+                                CreateDate = now,
+                                UpdateDate = now,
+                                Description = $"API action: {key}",
+                                Name = key,
+                                Key = key,
+                                Icon = "Shield",
+                                Routename = key,
+                                PermissionType = ActionPermissionType,
+                                OtherLangs = "",
+                                IsActive = true
+                            };
 
-                        context.Permissions.Add(permission);
-                        existingActionByKey[key] = permission;
-                        addedPermissions++;
+                            context.Permissions.Add(permission);
+                            existingActionByKey[key] = permission;
+                            addedPermissions++;
+                        }
+
+                        var linkSync = await SyncRoleLinksAsync(context, permission, roleIds, now);
+                        addedLinks += linkSync.Added;
+                        removedLinks += linkSync.Removed;
                     }
-
-                    var linkSync = await SyncRoleLinksAsync(context, permission, ResolveActionRoles(action), now);
-                    addedLinks += linkSync.Added;
-                    removedLinks += linkSync.Removed;
                 }
 
                 foreach (var menu in MenuDefinitions())

@@ -21,9 +21,11 @@ namespace NobatPlusDATA.DataLayer.Services
 
             try
             {
-                var startDate = (fromDate ?? DateTime.Now.AddDays(-30)).Date.ToShamsi();
-                var endDate = (toDate ?? DateTime.Now).Date.AddDays(1).AddTicks(-1).ToShamsi();
-                var today = DateTime.Now.ToShamsi().Date;
+                var startDate = (fromDate ?? DateTime.Now.AddDays(-30)).Date;
+                var endDate = (toDate ?? DateTime.Now).Date.AddDays(1).AddTicks(-1);
+                var shamsiStartDate = startDate.ToShamsi();
+                var shamsiEndDate = endDate.ToShamsi();
+                var today = DateTime.Now.Date;
 
                 var bookings = await _context.Bookings
                     .AsNoTracking()
@@ -41,13 +43,13 @@ namespace NobatPlusDATA.DataLayer.Services
 
                 var reviews = await _context.Reviews
                     .AsNoTracking()
-                    .Where(x => x.StylistID == stylistId && x.ReviewDate >= startDate && x.ReviewDate <= endDate)
+                    .Where(x => x.StylistID == stylistId && x.ReviewDate >= shamsiStartDate && x.ReviewDate <= shamsiEndDate)
                     .ToListAsync();
 
                 var rateHistories = await _context.RateHistories
                     .AsNoTracking()
                     .Include(x => x.RateQuestion)
-                    .Where(x => x.StylistID == stylistId && x.RateDate >= startDate && x.RateDate <= endDate)
+                    .Where(x => x.StylistID == stylistId && x.RateDate >= shamsiStartDate && x.RateDate <= shamsiEndDate)
                     .ToListAsync();
 
                 var workTimes = await _context.WorkTimes
@@ -62,7 +64,7 @@ namespace NobatPlusDATA.DataLayer.Services
                     .Select(date => new ChartPointDto
                     {
                         Date = date,
-                        Label = date.ToString("yyyy/MM/dd"),
+                        Label = date.ToShamsiString().Split(' ')[0],
                         Count = bookings.Count(x => x.BookingDate.Date == date)
                     })
                     .ToList();
@@ -71,8 +73,11 @@ namespace NobatPlusDATA.DataLayer.Services
                     .Select(date => new ChartPointDto
                     {
                         Date = date,
-                        Label = date.ToString("yyyy/MM/dd"),
-                        Amount = payments.Where(x => x.PaymentDate.Date == date).Sum(x => x.StylistAmount)
+                        Label = date.ToShamsiString().Split(' ')[0],
+                        Amount = bookings
+                            .Where(x => x.BookingDate.Date == date)
+                            .SelectMany(GetPayments)
+                            .Sum(x => x.StylistAmount)
                     })
                     .ToList();
 
@@ -144,7 +149,7 @@ namespace NobatPlusDATA.DataLayer.Services
                     .Select(date => new ChartPointDto
                     {
                         Date = date,
-                        Label = date.ToString("yyyy/MM/dd"),
+                        Label = date.ToShamsiString().Split(' ')[0],
                         Count = bookings.Count(x => x.BookingDate.Date == date && x.IsCancelled)
                     })
                     .ToList();

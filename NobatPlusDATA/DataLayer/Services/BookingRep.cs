@@ -234,13 +234,13 @@ namespace NobatPlusDATA.DataLayer.Services
 
                 if (fromDate != null)
                 {
-                    var from = fromDate.Value.ToShamsi();
+                    var from = fromDate.Value;
                     bookingsQuery = bookingsQuery.Where(x => x.BookingDate >= from);
                 }
 
                 if (toDate != null)
                 {
-                    var to = toDate.Value.ToShamsi();
+                    var to = toDate.Value;
                     bookingsQuery = bookingsQuery.Where(x => x.BookingDate <= to);
                 }
 
