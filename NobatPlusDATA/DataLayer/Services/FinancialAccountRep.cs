@@ -68,7 +68,9 @@ namespace NobatPlusDATA.DataLayer.Services
                     {
                         Date = group.Key,
                         Income = group.Where(x => x.TransactionType == "earning").Sum(x => x.Amount),
-                        Outcome = group.Where(x => x.TransactionType == "settlement_paid").Sum(x => x.Amount),
+                        Outcome = group.Where(x =>
+                            x.TransactionType == "settlement_paid" ||
+                            x.TransactionType == "cancellation_reversal").Sum(x => x.Amount),
                         Count = group.Count()
                     })
                     .ToList();
@@ -91,9 +93,13 @@ namespace NobatPlusDATA.DataLayer.Services
                     })
                     .ToListAsync();
 
-                var totalEarned = await _context.FinancialTransactions
+                var grossEarned = await _context.FinancialTransactions
                     .Where(x => x.FinancialAccountID == account.ID && x.TransactionType == "earning" && x.Status == "success")
                     .SumAsync(x => x.Amount);
+                var cancelledEarnings = await _context.FinancialTransactions
+                    .Where(x => x.FinancialAccountID == account.ID && x.TransactionType == "cancellation_reversal" && x.Status == "success")
+                    .SumAsync(x => x.Amount);
+                var totalEarned = grossEarned - cancelledEarnings;
 
                 var totalSettled = await _context.SettlementRequests
                     .Where(x => x.FinancialAccountID == account.ID && x.Status == "paid")
@@ -109,8 +115,11 @@ namespace NobatPlusDATA.DataLayer.Services
                     AvailableBalance = Math.Max(0, account.Balance - pendingSettlementAmount),
                     TotalEarned = totalEarned,
                     TotalSettled = totalSettled,
-                    FilteredIncome = filteredRows.Where(x => x.TransactionType == "earning").Sum(x => x.Amount),
-                    FilteredOutcome = filteredRows.Where(x => x.TransactionType == "settlement_paid").Sum(x => x.Amount),
+                    FilteredIncome = filteredRows.Where(x => x.TransactionType == "earning").Sum(x => x.Amount)
+                        - filteredRows.Where(x => x.TransactionType == "cancellation_reversal").Sum(x => x.Amount),
+                    FilteredOutcome = filteredRows.Where(x =>
+                        x.TransactionType == "settlement_paid" ||
+                        x.TransactionType == "cancellation_reversal").Sum(x => x.Amount),
                     AverageTransactionAmount = filteredRows.Count > 0 ? filteredRows.Average(x => x.Amount) : 0,
                     FilteredTransactionCount = filteredRows.Count,
                     Iban = account.Iban,
@@ -443,7 +452,8 @@ namespace NobatPlusDATA.DataLayer.Services
                 .Include(x => x.PaymentBookings).ThenInclude(x => x.Booking)
                 .AsNoTracking()
                 .Where(x => x.PaymentFinished || x.PayedAmount > 0)
-                .Where(x => x.PaymentBookings.Any(pb => stylistIds.Contains(pb.Booking.StylistID)))
+                .Where(x => x.PaymentBookings.Any(pb =>
+                    stylistIds.Contains(pb.Booking.StylistID) && !pb.Booking.IsCancelled))
                 .Select(x => new
                 {
                     x.ID,

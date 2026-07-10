@@ -67,9 +67,19 @@ namespace NobatPlusAPI.Controllers
             }
             else if (roleId == (long)DbTools.BaseRole.Stylist)
             {
-                var currentStylistId = await GetCurrentStylistIdAsync();
-                if (currentStylistId <= 0) return Forbid();
-                requestBody.StylistId = currentStylistId;
+                if (requestBody.ViewAsCustomer)
+                {
+                    var currentCustomerId = await GetCurrentCustomerIdAsync();
+                    if (currentCustomerId <= 0) return Forbid();
+                    requestBody.CustomerId = currentCustomerId;
+                    requestBody.StylistId = 0;
+                }
+                else
+                {
+                    var currentStylistId = await GetCurrentStylistIdAsync();
+                    if (currentStylistId <= 0) return Forbid();
+                    requestBody.StylistId = currentStylistId;
+                }
             }
             else if (roleId == (long)DbTools.BaseRole.Salon)
             {
@@ -334,6 +344,19 @@ namespace NobatPlusAPI.Controllers
                 if (!requestBody.IsCancelled && requestBody.Status == "1")
                     ScheduleBookingReminders(result.ID, requestBody.BookingDate);
 
+                var bookingEvent = GetBookingEvent(
+                    theRow.Result.IsCancelled,
+                    theRow.Result.Status,
+                    theRow.Result.BookingStartDate,
+                    requestBody.IsCancelled,
+                    requestBody.Status,
+                    requestBody.BookingDate);
+                if (!string.IsNullOrWhiteSpace(bookingEvent))
+                {
+                    BackgroundJob.Enqueue<JobManager>(job =>
+                        job.SendBookingStatusMessage(result.ID, bookingEvent, theRow.Result.BookingStartDate));
+                }
+
                 #region AddLog
 
                 Log log = new Log()
@@ -479,6 +502,26 @@ namespace NobatPlusAPI.Controllers
                     job => job.SendBookingRemindMessage(bookingId, leadHours),
                     scheduleAt);
             }
+        }
+
+        private static string GetBookingEvent(
+            bool wasCancelled,
+            string previousStatus,
+            DateTime previousDate,
+            bool isCancelled,
+            string nextStatus,
+            DateTime nextDate)
+        {
+            if (!wasCancelled && isCancelled)
+                return "cancelled";
+            if (!isCancelled && previousStatus != nextStatus && nextStatus == "4")
+                return "completed";
+            if (!isCancelled && previousStatus != nextStatus && nextStatus == "3")
+                return "no-show";
+            if (!isCancelled && previousDate != nextDate)
+                return "rescheduled";
+
+            return string.Empty;
         }
     }
 

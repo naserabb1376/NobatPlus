@@ -202,6 +202,15 @@ namespace NobatPlusAPI.Tools
             if (requiredRoles.Count > 0)
                 return requiredRoles;
 
+            if (controller.Equals("SMSMessage", StringComparison.OrdinalIgnoreCase)
+                && actionName.Equals("AddSMSMessage_Base", StringComparison.OrdinalIgnoreCase))
+                return AllPanelRoles;
+
+            if ((controller.Equals("ServiceOption", StringComparison.OrdinalIgnoreCase)
+                    || controller.Equals("ServiceOptionValue", StringComparison.OrdinalIgnoreCase))
+                && actionName.StartsWith("Get", StringComparison.OrdinalIgnoreCase))
+                return AllPanelRoles;
+
             if (IsAdminOnlyAction(controller, actionName))
                 return AdminOnly;
 
@@ -225,6 +234,7 @@ namespace NobatPlusAPI.Tools
                     || actionName.Contains("Transactions", StringComparison.OrdinalIgnoreCase) => AdminOnly,
                 "Wallet" => CustomerOnly,
                 "Customer" when actionName.Equals("GetAllCustomers_Base", StringComparison.OrdinalIgnoreCase) => ProviderOnly,
+                "Customer" when actionName.Equals("GetSalonBookingCustomers_Base", StringComparison.OrdinalIgnoreCase) => ProviderOnly,
                 "Customer" when actionName.Equals("QuickAddCustomer", StringComparison.OrdinalIgnoreCase) => ProviderOnly,
                 "Customer" when actionName.StartsWith("Delete", StringComparison.OrdinalIgnoreCase) => AdminOnly,
                 "Notification" when actionName.StartsWith("Add", StringComparison.OrdinalIgnoreCase)

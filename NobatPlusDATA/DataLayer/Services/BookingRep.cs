@@ -103,6 +103,7 @@ namespace NobatPlusDATA.DataLayer.Services
                 if (!previousBooking.IsCancelled && Booking.IsCancelled)
                 {
                     await RefundWalletPaymentsForCancelledBookingAsync(Booking.ID);
+                    await ReverseStylistEarningsForCancelledBookingAsync(Booking.ID);
                 }
 
                 if (nextServices.Any())
@@ -128,6 +129,7 @@ namespace NobatPlusDATA.DataLayer.Services
             var now = DateTime.Now.ToShamsi();
             var walletPayments = await _context.WalletTransactions
                 .Include(x => x.Wallet)
+                .Include(x => x.Payment)
                 .Where(x =>
                     x.BookingID == bookingId &&
                     x.TransactionType == "payment" &&
@@ -162,6 +164,53 @@ namespace NobatPlusDATA.DataLayer.Services
                     TransactionDate = now,
                     ReferenceNumber = reference,
                     Description = "برگشت وجه رزرو لغو شده"
+                });
+
+                if (paymentTransaction.Payment != null)
+                {
+                    paymentTransaction.Payment.PaymentStatus = "refunded";
+                    paymentTransaction.Payment.UpdateDate = now;
+                    _context.Payments.Update(paymentTransaction.Payment);
+                }
+            }
+        }
+
+        private async Task ReverseStylistEarningsForCancelledBookingAsync(long bookingId)
+        {
+            var earnings = await _context.FinancialTransactions
+                .Include(x => x.FinancialAccount)
+                .Where(x =>
+                    x.BookingID == bookingId &&
+                    x.TransactionType == "earning" &&
+                    x.Status == "success")
+                .ToListAsync();
+
+            var now = DateTime.Now.ToShamsi();
+            foreach (var earning in earnings)
+            {
+                var reference = $"cancellation-reversal:{earning.ID}";
+                var alreadyReversed = await _context.FinancialTransactions
+                    .AnyAsync(x => x.ReferenceNumber == reference && x.TransactionType == "cancellation_reversal");
+                if (alreadyReversed)
+                    continue;
+
+                earning.FinancialAccount.Balance -= earning.Amount;
+                earning.FinancialAccount.UpdateDate = now;
+                _context.FinancialAccounts.Update(earning.FinancialAccount);
+
+                await _context.FinancialTransactions.AddAsync(new FinancialTransaction
+                {
+                    CreateDate = now,
+                    UpdateDate = now,
+                    FinancialAccountID = earning.FinancialAccountID,
+                    BookingID = bookingId,
+                    PaymentID = earning.PaymentID,
+                    Amount = earning.Amount,
+                    TransactionType = "cancellation_reversal",
+                    Status = "success",
+                    TransactionDate = now,
+                    ReferenceNumber = reference,
+                    Description = "اصلاح درآمد نوبت لغوشده"
                 });
             }
         }
@@ -616,6 +665,8 @@ namespace NobatPlusDATA.DataLayer.Services
                 .Select(s => new { s.ID, s.RestTime })
                 .ToDictionaryAsync(x => x.ID, x => GetMinutes(x.RestTime));
 
+            // نوبت جدید فقط زمانی تداخل دارد که لحظه‌ی شروعش داخل بازه‌ی واقعیِ یک نوبت موجود (از شروع تا پایان + استراحت) بیفتد؛
+            // مدت‌زمان خدمتِ نوبت جدید در این بررسی نقشی ندارد.
             return existingBookings.Any(existingBooking =>
             {
                 var existingDuration = durationByBookingId.TryGetValue(existingBooking.ID, out var duration)
@@ -627,7 +678,7 @@ namespace NobatPlusDATA.DataLayer.Services
                     : 0;
 
                 var existingEnd = existingBooking.BookingDate.AddMinutes(existingDuration + existingRest);
-                return existingBooking.BookingDate < newBlockEnd && existingEnd > newStart;
+                return newStart >= existingBooking.BookingDate && newStart < existingEnd;
             });
         }
 
