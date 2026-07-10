@@ -144,7 +144,7 @@ namespace NobatPlusAPI.Controllers
 
                     var message =
                         $"{customer.FirstName} عزیز، نوبت شما در تاریخ " +
-                        $"{booking.BookingStartDate.ToShamsi():yyyy/MM/dd} ساعت " +
+                        $"{booking.BookingStartDate.ToShamsiString().Split(' ')[0]} ساعت " +
                         $"{booking.BookingStartDate:HH:mm} به دلیل عدم دسترسی آرایشگر نیازمند تعیین تکلیف است. " +
                         "لطفا از پنل نوبتیکس زمان جدید انتخاب کنید یا نوبت را لغو کنید.";
 
@@ -342,7 +342,7 @@ namespace NobatPlusAPI.Controllers
 
                 var message =
                     $"{customer.FirstName} عزیز، نوبت شما در تاریخ " +
-                    $"{booking.BookingStartDate.ToShamsi():yyyy/MM/dd} ساعت " +
+                    $"{booking.BookingStartDate.ToShamsiString().Split(' ')[0]} ساعت " +
                     $"{booking.BookingStartDate:HH:mm} به دلیل تغییر برنامه آرایشگر نیازمند تعیین تکلیف است. " +
                     "لطفا از پنل نوبتیکس زمان جدید انتخاب کنید یا نوبت را لغو کنید.";
                 try
@@ -381,7 +381,7 @@ namespace NobatPlusAPI.Controllers
 
                 var message =
                     $"{customer.FirstName} عزیز، نوبت شما در تاریخ " +
-                    $"{booking.BookingStartDate.ToShamsi():yyyy/MM/dd} ساعت " +
+                    $"{booking.BookingStartDate.ToShamsiString().Split(' ')[0]} ساعت " +
                     $"{booking.BookingStartDate:HH:mm} مجدداً فعال شد. آرایشگر در این زمان در دسترس است.";
                 try
                 {
@@ -453,7 +453,7 @@ namespace NobatPlusAPI.Controllers
 
                 var message =
                     $"{customer.FirstName} عزیز، نوبت شما در تاریخ " +
-                    $"{booking.BookingStartDate.ToShamsi():yyyy/MM/dd} ساعت " +
+                    $"{booking.BookingStartDate.ToShamsiString().Split(' ')[0]} ساعت " +
                     $"{booking.BookingStartDate:HH:mm} مجدداً فعال شد. آرایشگر در این زمان در دسترس است.";
                 try
                 {

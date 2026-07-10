@@ -65,7 +65,28 @@ namespace NobatPlusAPI.Controllers
             {
                 return BadRequest(requestBody);
             }
-         
+
+            var roleId = User.GetCurrentRoleId();
+            if (roleId == (long)DbTools.BaseRole.Stylist)
+            {
+                var currentStylistId = await GetCurrentStylistIdAsync();
+                if (currentStylistId <= 0) return Forbid();
+                requestBody.StylistId = currentStylistId;
+            }
+            else if (roleId == (long)DbTools.BaseRole.Salon)
+            {
+                var currentStylistId = await GetCurrentStylistIdAsync();
+                if (currentStylistId <= 0) return Forbid();
+                if (requestBody.StylistId > 0)
+                {
+                    if (!await CanAccessStylistAsync(requestBody.StylistId)) return Forbid();
+                }
+                else
+                {
+                    requestBody.StylistId = currentStylistId;
+                }
+            }
+
             var result = await _CustomerRep.GetAllCustomersAsync(requestBody.StylistId, requestBody.CityId, requestBody.DiscountId, requestBody.PageIndex, requestBody.PageSize, requestBody.SearchText, requestBody.SortQuery, requestBody.IsActive);
             if (result.Status)
             {
@@ -73,6 +94,130 @@ namespace NobatPlusAPI.Controllers
                 return Ok(resultVM);
             }
             return BadRequest(result);
+        }
+
+        // اختصاصی برای انتخاب مشتری در فرم ثبت نوبت دستی: فقط مشتریانی که قبلاً از همین آرایشگر/سالن نوبت گرفته‌اند.
+        [HttpPost("GetMyBookingCustomers_Base")]
+        [RequireRole((long)DbTools.BaseRole.Stylist, (long)DbTools.BaseRole.Salon, (long)DbTools.BaseRole.Admin)]
+        public async Task<ActionResult<ListResultObject<CustomerVM>>> GetMyBookingCustomers_Base(GetMyBookingCustomersRequestBody requestBody)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(requestBody);
+            }
+
+            long stylistId = 0;
+            var roleId = User.GetCurrentRoleId();
+            if (roleId == (long)DbTools.BaseRole.Stylist || roleId == (long)DbTools.BaseRole.Salon)
+            {
+                stylistId = await GetCurrentStylistIdAsync();
+                if (stylistId <= 0) return Forbid();
+            }
+
+            var result = await _CustomerRep.GetAllCustomersAsync(stylistId, 0, 0, requestBody.PageIndex, requestBody.PageSize, requestBody.SearchText, requestBody.SortQuery, null);
+            if (result.Status)
+            {
+                var resultVM = _mapper.Map<ListResultObject<CustomerVM>>(result);
+                return Ok(resultVM);
+            }
+            return BadRequest(result);
+        }
+
+        // اختصاصی پنل سالن: مشتریان آرایشگر انتخاب‌شده یا همه آرایشگرهای زیرمجموعه سالن جاری.
+        [HttpPost("GetSalonBookingCustomers_Base")]
+        [RequireRole((long)DbTools.BaseRole.Salon, (long)DbTools.BaseRole.Admin)]
+        public async Task<ActionResult<ListResultObject<CustomerVM>>> GetSalonBookingCustomers_Base(GetCustomerListRequestBody requestBody)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(requestBody);
+            }
+
+            var stylistIds = new List<long>();
+            var roleId = User.GetCurrentRoleId();
+
+            if (roleId == (long)DbTools.BaseRole.Salon)
+            {
+                var currentStylistId = await GetCurrentStylistIdAsync();
+                if (currentStylistId <= 0) return Forbid();
+
+                if (requestBody.StylistId > 0)
+                {
+                    if (!await CanAccessStylistAsync(requestBody.StylistId)) return Forbid();
+                    stylistIds.Add(requestBody.StylistId);
+                }
+                else
+                {
+                    stylistIds = await GetSalonAccessibleStylistIdsAsync(currentStylistId);
+                }
+            }
+            else if (roleId == (long)DbTools.BaseRole.Admin && requestBody.StylistId > 0)
+            {
+                stylistIds.Add(requestBody.StylistId);
+            }
+
+            var result = await _CustomerRep.GetAllCustomersByStylistIdsAsync(
+                stylistIds,
+                requestBody.CityId,
+                requestBody.DiscountId,
+                requestBody.PageIndex,
+                requestBody.PageSize,
+                requestBody.SearchText,
+                requestBody.SortQuery,
+                requestBody.IsActive);
+
+            if (result.Status)
+            {
+                var resultVM = _mapper.Map<ListResultObject<CustomerVM>>(result);
+                return Ok(resultVM);
+            }
+            return BadRequest(result);
+        }
+
+        private async Task<long> GetCurrentStylistIdAsync()
+        {
+            var result = await _StylistRep.ExistStylistAsync(User.GetCurrentUserId().ToString(), "personid");
+            return result.Status ? result.ID : 0;
+        }
+
+        private async Task<List<long>> GetSalonAccessibleStylistIdsAsync(long currentStylistId)
+        {
+            var stylistIds = new List<long> { currentStylistId };
+            var children = await _StylistRep.GetAllStylistsAsync(parentId: currentStylistId, pageIndex: 1, pageSize: 10000);
+
+            if (children.Status && children.Results != null)
+            {
+                stylistIds.AddRange(children.Results.Select(x => x.ID));
+            }
+
+            return stylistIds.Distinct().ToList();
+        }
+
+        private async Task<bool> CanAccessStylistAsync(long stylistId)
+        {
+            if (stylistId <= 0) return false;
+
+            var roleId = User.GetCurrentRoleId();
+            if (roleId == (long)DbTools.BaseRole.Admin)
+                return true;
+
+            var currentStylistId = await GetCurrentStylistIdAsync();
+            if (currentStylistId <= 0)
+                return false;
+
+            if (roleId == (long)DbTools.BaseRole.Stylist)
+                return stylistId == currentStylistId;
+
+            if (roleId == (long)DbTools.BaseRole.Salon)
+            {
+                if (stylistId == currentStylistId)
+                    return true;
+
+                var target = await _StylistRep.GetStylistByIdAsync(stylistId);
+                return target.Status && target.Result?.StylistParentID == currentStylistId;
+            }
+
+            return false;
         }
 
 

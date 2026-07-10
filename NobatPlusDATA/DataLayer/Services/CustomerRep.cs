@@ -103,10 +103,29 @@ namespace NobatPlusDATA.DataLayer.Services
        string sortQuery = "",
        bool? isActive = null)
         {
+            var stylistIds = stylistId > 0 ? new List<long> { stylistId } : new List<long>();
+            return await GetAllCustomersByStylistIdsAsync(stylistIds, cityId, discountId, pageIndex, pageSize, searchText, sortQuery, isActive);
+        }
+
+        public async Task<ListResultObject<CustomerDTO>> GetAllCustomersByStylistIdsAsync(
+       List<long> stylistIds,
+       long cityId = 0,
+       long discountId = 0,
+       int pageIndex = 1,
+       int pageSize = 20,
+       string searchText = "",
+       string sortQuery = "",
+       bool? isActive = null)
+        {
             ListResultObject<CustomerDTO> results = new ListResultObject<CustomerDTO>();
 
             try
             {
+                var stylistIdList = (stylistIds ?? new List<long>())
+                    .Where(id => id > 0)
+                    .Distinct()
+                    .ToList();
+
                 IQueryable<Customer> query;
 
                 // اگر DiscountId مشخص شده بود، مشتریان مربوط به آن تخفیف را بگیر
@@ -134,11 +153,11 @@ namespace NobatPlusDATA.DataLayer.Services
                         .AsQueryable();
                 }
 
-                if (stylistId > 0)
+                if (stylistIdList.Count > 0)
                 {
                     query = query.Where(c =>
                         c.Bookings.Any(b =>
-                            b.StylistID == stylistId && !b.IsCancelled
+                            stylistIdList.Contains(b.StylistID) && !b.IsCancelled
                         )
                     );
                 }
@@ -178,13 +197,13 @@ namespace NobatPlusDATA.DataLayer.Services
                     UpdateDate = x.UpdateDate,
                     PersonID = x.PersonID,
                     Description = x.Description,
-                    BookingCount = stylistId > 0
-                        ? x.Bookings.Count(b => b.StylistID == stylistId)
+                    BookingCount = stylistIdList.Count > 0
+                        ? x.Bookings.Count(b => stylistIdList.Contains(b.StylistID))
                         : x.Bookings.Count(),
 
-                    LastBookingDate = stylistId > 0
+                    LastBookingDate = stylistIdList.Count > 0
                         ? x.Bookings
-                            .Where(b => b.StylistID == stylistId)
+                            .Where(b => stylistIdList.Contains(b.StylistID))
                             .OrderByDescending(b => b.BookingDate)
                             .Select(b => (DateTime?)b.BookingDate)
                             .FirstOrDefault()

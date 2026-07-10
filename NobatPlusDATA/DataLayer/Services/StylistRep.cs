@@ -207,7 +207,7 @@ namespace NobatPlusDATA.DataLayer.Services
                     .Include(x => x.SocialNetworks)
                     .AsNoTracking();
 
-                if (findLocation != null)
+                if (findLocation != null && findLocation.RadiusKm > 0)
                 {
                     double personLat = 0;
                     double personLng = 0;

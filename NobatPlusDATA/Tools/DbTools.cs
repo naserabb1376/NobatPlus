@@ -279,6 +279,27 @@ namespace NobatPlusDATA.Tools
         public static DateTime StringToDate(this string stringDateTime)
         {
             if (string.IsNullOrEmpty(stringDateTime)) return DateTime.Now.ToShamsi();
+
+            stringDateTime = stringDateTime.ToEnglishNumbers().Trim();
+
+            if (DateTimeOffset.TryParse(
+                    stringDateTime,
+                    CultureInfo.InvariantCulture,
+                    DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal,
+                    out var dateTimeOffset))
+            {
+                return dateTimeOffset.LocalDateTime;
+            }
+
+            if (DateTime.TryParse(
+                    stringDateTime,
+                    CultureInfo.InvariantCulture,
+                    DateTimeStyles.None,
+                    out var parsedDateTime))
+            {
+                return parsedDateTime;
+            }
+
             if (stringDateTime.Split(' ').Length < 2)
             {
                 stringDateTime += " 00:00:00";
