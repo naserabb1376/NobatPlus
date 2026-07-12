@@ -333,8 +333,8 @@ namespace NobatPlusAPI
 
             app.UseStaticFiles();   
 
-            if (app.Environment.IsDevelopment())
-            {
+            //if (app.Environment.IsDevelopment())
+            //{
                 app.UseSwagger();
                 app.UseSwaggerUI(c =>
                 {
@@ -343,7 +343,7 @@ namespace NobatPlusAPI
                     c.RoutePrefix = string.Empty;
                     c.InjectJavascript("/js/swagger-token.js");
                 });
-            }
+            //}
             app.UseHttpsRedirection();
 
             app.UseParbadVirtualGateway();
@@ -368,11 +368,14 @@ namespace NobatPlusAPI
             });
             //app.UseHangfireServer();
 
-            RecurringJob.AddOrUpdate<JobManager>(
-     job => job.ProcessTodayBirthdays(),
-     "0 9 * * *",
-     GetIranTimeZone()
- );
+            new RecurringJobManager().AddOrUpdate(
+                "process-today-birthdays",
+                Hangfire.Common.Job.FromExpression<JobManager>(job => job.ProcessTodayBirthdays()),
+                "0 9 * * *",
+                new RecurringJobOptions
+                {
+                    TimeZone = GetIranTimeZone()
+                });
 
             #endregion
 
