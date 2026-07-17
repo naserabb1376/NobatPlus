@@ -39,7 +39,7 @@ namespace NobatPlusDATA.DataLayer.Services
 
                 var bookings = await _context.Bookings
                     .AsNoTracking()
-                    .Include(x => x.Stylist)
+                    .Include(x => x.Stylist).ThenInclude(x => x.Person)
                     .Include(x => x.PaymentBookings).ThenInclude(x => x.Payment)
                     .Include(x => x.BookingServices).ThenInclude(x => x.ServiceManagement)
                     .Where(x => x.CustomerID == customer.ID)
@@ -141,7 +141,7 @@ namespace NobatPlusDATA.DataLayer.Services
                     .Select(g => new CustomerStylistHistoryDto
                     {
                         StylistId = g.Key,
-                        StylistName = g.First().Stylist?.StylistName ?? "نامشخص",
+                        StylistName = GetStylistDisplayName(g.First().Stylist),
                         BookingCount = g.Count(),
                         LastBookingDate = g.Max(x => x.BookingDate),
                         LastBookingDateText = FormatDate(g.Max(x => x.BookingDate)),
@@ -155,9 +155,11 @@ namespace NobatPlusDATA.DataLayer.Services
                     .Select(x => new CustomerPendingReviewDto
                     {
                         BookingId = x.ID,
+                        CustomerID = x.CustomerID,
+                        StylistID = x.StylistID,
                         Date = FormatDate(x.BookingDate),
                         Services = GetServicesTitle(x),
-                        StylistName = x.Stylist?.StylistName ?? "نامشخص"
+                        StylistName = GetStylistDisplayName(x.Stylist)
                     })
                     .ToList();
 
@@ -191,7 +193,7 @@ namespace NobatPlusDATA.DataLayer.Services
                 Date = FormatDate(booking.BookingDate),
                 Time = booking.BookingDate.ToString("HH:mm"),
                 Services = GetServicesTitle(booking),
-                StylistName = booking.Stylist?.StylistName ?? "نامشخص",
+                StylistName = GetStylistDisplayName(booking.Stylist),
                 Amount = payment?.DiscountedServiceAmount ?? payment?.TotalServiceAmount ?? 0,
                 PaidAmount = payment?.PayedAmount ?? 0,
                 RemainAmount = payment?.RemainAmount ?? 0,
@@ -209,7 +211,7 @@ namespace NobatPlusDATA.DataLayer.Services
                 PaymentDate = payment.PaymentDate,
                 Date = FormatDate(payment.PaymentDate),
                 Services = GetServicesTitle(booking),
-                StylistName = booking.Stylist?.StylistName ?? "نامشخص",
+                StylistName = GetStylistDisplayName(booking.Stylist),
                 Amount = payment.AllPaymentAmount,
                 PaidAmount = payment.PayedAmount,
                 RemainAmount = payment.RemainAmount,
@@ -225,6 +227,22 @@ namespace NobatPlusDATA.DataLayer.Services
                 .ToList() ?? new List<string?>();
 
             return names.Any() ? string.Join("، ", names) : "خدمت نامشخص";
+        }
+
+        private static string GetStylistDisplayName(Stylist? stylist)
+        {
+            if (stylist == null)
+                return "نامشخص";
+
+            var personFullName = $"{stylist.Person?.FirstName} {stylist.Person?.LastName}".Trim();
+
+            if (!stylist.IsWorkShop && !string.IsNullOrWhiteSpace(personFullName))
+                return personFullName;
+
+            if (!string.IsNullOrWhiteSpace(stylist.StylistName))
+                return stylist.StylistName.Trim();
+
+            return !string.IsNullOrWhiteSpace(personFullName) ? personFullName : "نامشخص";
         }
 
         private static decimal GetAllocatedServiceRevenue(Booking booking, BookingService bookingService, List<StylistService> stylistServices)

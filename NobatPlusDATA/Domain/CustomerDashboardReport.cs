@@ -78,6 +78,8 @@ namespace NobatPlusDATA.Domain
     public class CustomerPendingReviewDto
     {
         public long BookingId { get; set; }
+        public long CustomerID { get; set; }
+        public long StylistID { get; set; }
         public string Date { get; set; } = "";
         public string Services { get; set; } = "";
         public string StylistName { get; set; } = "";
