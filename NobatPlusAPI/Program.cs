@@ -331,12 +331,27 @@ namespace NobatPlusAPI
 
             app.UseMiddleware<GlobalExceptionHandlingMiddleware>();
 
-            app.UseStaticFiles();   
+            app.UseStaticFiles();
 
             //if (app.Environment.IsDevelopment())
             //{
-                app.UseSwagger();
-                app.UseSwaggerUI(c =>
+            //app.UseSwagger();
+
+            app.UseSwagger(options =>
+            {
+                options.PreSerializeFilters.Add((swaggerDoc, request) =>
+                {
+                    swaggerDoc.Servers = new List<OpenApiServer>
+        {
+            new OpenApiServer
+            {
+                Url = "http://api.nobatix.com"
+            }
+        };
+                });
+            });
+
+            app.UseSwaggerUI(c =>
                 {
                     c.DocExpansion(Swashbuckle.AspNetCore.SwaggerUI.DocExpansion.None);
                     c.SwaggerEndpoint("/swagger/v1/swagger.json", $"{apiTitle} {apiVersion}");
@@ -344,7 +359,7 @@ namespace NobatPlusAPI
                     c.InjectJavascript("/js/swagger-token.js");
                 });
             //}
-            app.UseHttpsRedirection();
+            //app.UseHttpsRedirection();
 
             app.UseParbadVirtualGateway();
 
