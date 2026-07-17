@@ -665,8 +665,9 @@ namespace NobatPlusDATA.DataLayer.Services
                 .Select(s => new { s.ID, s.RestTime })
                 .ToDictionaryAsync(x => x.ID, x => GetMinutes(x.RestTime));
 
-            // نوبت جدید فقط زمانی تداخل دارد که لحظه‌ی شروعش داخل بازه‌ی واقعیِ یک نوبت موجود (از شروع تا پایان + استراحت) بیفتد؛
-            // مدت‌زمان خدمتِ نوبت جدید در این بررسی نقشی ندارد.
+            // تداخل دوطرفه: بازه‌ی نوبت جدید [newStart, newBlockEnd) با بازه‌ی هر نوبت موجود
+            // [existingBooking.BookingDate, existingEnd) همپوشانی داشته باشد؛ کافی نیست فقط لحظه‌ی
+            // شروع نوبت جدید داخل بازه‌ی نوبت موجود بیفتد، چون نوبت موجود هم می‌تواند وسط بازه‌ی نوبت جدید شروع شود.
             return existingBookings.Any(existingBooking =>
             {
                 var existingDuration = durationByBookingId.TryGetValue(existingBooking.ID, out var duration)
@@ -678,7 +679,7 @@ namespace NobatPlusDATA.DataLayer.Services
                     : 0;
 
                 var existingEnd = existingBooking.BookingDate.AddMinutes(existingDuration + existingRest);
-                return newStart >= existingBooking.BookingDate && newStart < existingEnd;
+                return newStart < existingEnd && existingBooking.BookingDate < newBlockEnd;
             });
         }
 

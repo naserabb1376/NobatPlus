@@ -207,7 +207,7 @@ namespace NobatPlusDATA.DataLayer.Services
                     StylistAmount = payments.Sum(x => x.StylistAmount),
                     PlatformAmount = payments.Sum(x => x.PlarformAmount),
                     DiscountAmount = payments.Sum(x => x.TotalServiceAmount - x.DiscountedServiceAmount),
-                    AverageRating = rateHistories.Any() ? rateHistories.Average(x => x.RateScore) : 0,
+                    AverageRating = reviews.Any() ? (float)reviews.Average(x => x.Rating) : 0,
                     RecommendPercent = GetRecommendPercent(rateHistories),
                     ReviewCount = reviews.Count,
                     CancellationPercent = bookings.Count == 0 ? 0 : Math.Round(bookings.Count(x => x.IsCancelled) * 100.0 / bookings.Count, 1),
@@ -348,7 +348,7 @@ namespace NobatPlusDATA.DataLayer.Services
                     {
                         var stylistBookings = bookings.Where(x => x.StylistID == stylist.ID).ToList();
                         var stylistPayments = stylistBookings.SelectMany(GetPayments).ToList();
-                        var stylistRates = rateHistories.Where(x => x.StylistID == stylist.ID).ToList();
+                        var stylistReviews = reviews.Where(x => x.StylistID == stylist.ID).ToList();
 
                         return new StylistPerformanceDto
                         {
@@ -361,7 +361,7 @@ namespace NobatPlusDATA.DataLayer.Services
                             Revenue = stylistPayments.Sum(x => x.StylistAmount),
                             PaidAmount = stylistPayments.Sum(x => x.PayedAmount),
                             RemainAmount = stylistPayments.Sum(x => x.RemainAmount),
-                            AverageRating = stylistRates.Any() ? stylistRates.Average(x => x.RateScore) : 0,
+                            AverageRating = stylistReviews.Any() ? (float)stylistReviews.Average(x => x.Rating) : 0,
                             CancellationPercent = stylistBookings.Count == 0 ? 0 : Math.Round(stylistBookings.Count(x => x.IsCancelled) * 100.0 / stylistBookings.Count, 1)
                         };
                     })
@@ -452,7 +452,7 @@ namespace NobatPlusDATA.DataLayer.Services
                     StylistAmount = payments.Sum(x => x.StylistAmount),
                     PlatformAmount = payments.Sum(x => x.PlarformAmount),
                     DiscountAmount = payments.Sum(x => x.TotalServiceAmount - x.DiscountedServiceAmount),
-                    AverageRating = rateHistories.Any() ? rateHistories.Average(x => x.RateScore) : 0,
+                    AverageRating = reviews.Any() ? (float)reviews.Average(x => x.Rating) : 0,
                     RecommendPercent = GetRecommendPercent(rateHistories),
                     ReviewCount = reviews.Count,
                     CancellationPercent = bookings.Count == 0 ? 0 : Math.Round(bookings.Count(x => x.IsCancelled) * 100.0 / bookings.Count, 1),
