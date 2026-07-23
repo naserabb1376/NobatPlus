@@ -421,7 +421,7 @@ namespace NobatPlusAPI.Controllers
                 {
                     FirstName = signupRequestBody.FirstName,
                     LastName = signupRequestBody.LastName,
-                    NaCode = signupRequestBody.NaCode,
+                    NaCode = signupRequestBody.NaCode ?? "",
                     Email = signupRequestBody.Email ?? "",
                     PhoneNumber = signupRequestBody.PhoneNumber,
                     Gender = signupRequestBody.Gender,
