@@ -80,7 +80,7 @@ namespace NobatPlusAPI.Tools
                     theCode = GenerateVerifyCodeManualy();
                     string smsMessage = $@" کد تایید شما:
 {theCode}
-آیتک
+نوبتیکس
 ";
                     send = await SendMessage(mobileNumber, smsMessage);
                     if (send) OtpStore.Save(mobileNumber, theCode);

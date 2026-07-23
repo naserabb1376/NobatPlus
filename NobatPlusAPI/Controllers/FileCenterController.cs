@@ -46,7 +46,8 @@ public class FileCenterController : ControllerBase
         "servicemanagement",
         "stylistservice",
         "stylist",
-        "servicecategory"
+        "servicecategory",
+        "other"
     };
 
     private static readonly HashSet<string> AllowedImageExtensions = new(StringComparer.OrdinalIgnoreCase)

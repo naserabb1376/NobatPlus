@@ -335,21 +335,21 @@ namespace NobatPlusAPI
 
             //if (app.Environment.IsDevelopment())
             //{
-            //app.UseSwagger();
+            app.UseSwagger();
 
-            app.UseSwagger(options =>
-            {
-                options.PreSerializeFilters.Add((swaggerDoc, request) =>
-                {
-                    swaggerDoc.Servers = new List<OpenApiServer>
-        {
-            new OpenApiServer
-            {
-                Url = "http://api.nobatix.com"
-            }
-        };
-                });
-            });
+            //    app.UseSwagger(options =>
+            //    {
+            //        options.PreSerializeFilters.Add((swaggerDoc, request) =>
+            //        {
+            //            swaggerDoc.Servers = new List<OpenApiServer>
+            //{
+            //    new OpenApiServer
+            //    {
+            //        Url = "http://api.nobatix.com"
+            //    }
+            //};
+            //        });
+            //    });
 
             app.UseSwaggerUI(c =>
                 {
@@ -359,7 +359,7 @@ namespace NobatPlusAPI
                     c.InjectJavascript("/js/swagger-token.js");
                 });
             //}
-            //app.UseHttpsRedirection();
+            app.UseHttpsRedirection();
 
             app.UseParbadVirtualGateway();
 

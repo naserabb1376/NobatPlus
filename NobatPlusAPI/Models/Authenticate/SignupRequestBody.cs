@@ -44,8 +44,8 @@ namespace NobatPlusAPI.Models.Authenticate
         [Display(Name = "کد ملی")]
         [RegularExpression(@"^([0-9]{10})$", ErrorMessage = "مقدار {0} باید 10 رقمی و فقط شامل اعداد باشد")]
         [MaxLength(10)]
-        [Required(ErrorMessage = "لطفا {0} را وارد کنید")]
-        public string NaCode { get; set; }
+       // [Required(ErrorMessage = "لطفا {0} را وارد کنید")]
+        public string? NaCode { get; set; }
 
         [Display(Name = "تاریخ تولد")]
         [Required(ErrorMessage = "لطفا {0} را وارد کنید")]
