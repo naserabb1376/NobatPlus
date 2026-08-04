@@ -329,6 +329,7 @@ namespace NobatPlusDATA.DataLayer.Services
                                 ServicePrice = s.ServicePrice,
                                 ServiceDuration = s.ServiceDuration,
                                 DepositPercent = s.DepositPercent,
+                                HasDynamicPricing = s.HasDynamicPricing,
                                 ServiceManagement = s.ServiceManagement
                             })
                             .ToList(),
@@ -406,6 +407,7 @@ namespace NobatPlusDATA.DataLayer.Services
 
                 // اینجا مقدار نوبت‌های موفق خودش + همه زیرمجموعه‌ها را پر می‌کنیم
                 await FillSuccededBookingCountsAsync(results.Results);
+                await FillRootSalonServicesAsync(results.Results);
             }
             catch (Exception ex)
             {
@@ -478,6 +480,7 @@ namespace NobatPlusDATA.DataLayer.Services
                                 ServicePrice = s.ServicePrice,
                                 ServiceDuration = s.ServiceDuration,
                                 DepositPercent = s.DepositPercent,
+                                HasDynamicPricing = s.HasDynamicPricing,
                                 ServiceManagement = s.ServiceManagement
                             })
                             .ToList(),
@@ -558,6 +561,8 @@ namespace NobatPlusDATA.DataLayer.Services
                 {
                     result.Result.SuccededBokingCount =
                         await GetSucceededBookingCountWithChildrenAsync(result.Result.ID);
+
+                    await FillRootSalonServicesAsync(new List<StylistDTO> { result.Result });
                 }
             }
             catch (Exception ex)
@@ -635,6 +640,61 @@ namespace NobatPlusDATA.DataLayer.Services
         }
 
         #region HelperFuncs
+
+        private async Task FillRootSalonServicesAsync(ICollection<StylistDTO> stylists)
+        {
+            if (stylists == null || stylists.Count == 0)
+                return;
+
+            var rootSalonIds = stylists
+                .Where(x => x.StylistParentID == 0 && x.IsWorkShop)
+                .Select(x => x.ID)
+                .Distinct()
+                .ToList();
+
+            if (rootSalonIds.Count == 0)
+                return;
+
+            var childServiceRows = await _context.StylistServices
+                .AsNoTracking()
+                .Where(service => rootSalonIds.Contains(service.Stylist.StylistParentID))
+                .Select(service => new
+                {
+                    SalonID = service.Stylist.StylistParentID,
+                    service.StylistID,
+                    service.ServiceManagementID,
+                    service.ServicePrice,
+                    service.ServiceDuration,
+                    service.DepositPercent,
+                    service.HasDynamicPricing,
+                    service.ServiceManagement
+                })
+                .ToListAsync();
+
+            var servicesBySalon = childServiceRows
+                .GroupBy(x => x.SalonID)
+                .ToDictionary(
+                    group => group.Key,
+                    group => (ICollection<StylistService>)group
+                        .Select(service => new StylistService
+                        {
+                            StylistID = service.StylistID,
+                            ServiceManagementID = service.ServiceManagementID,
+                            ServicePrice = service.ServicePrice,
+                            ServiceDuration = service.ServiceDuration,
+                            DepositPercent = service.DepositPercent,
+                            HasDynamicPricing = service.HasDynamicPricing,
+                            ServiceManagement = service.ServiceManagement
+                        })
+                        .ToList());
+
+            foreach (var salon in stylists.Where(x => rootSalonIds.Contains(x.ID)))
+            {
+                salon.StylistServices = servicesBySalon.TryGetValue(salon.ID, out var services)
+                    ? services
+                    : new List<StylistService>();
+            }
+        }
 
         private async Task FillSuccededBookingCountsAsync(List<StylistDTO> stylists)
         {
