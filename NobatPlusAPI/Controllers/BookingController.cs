@@ -232,6 +232,8 @@ namespace NobatPlusAPI.Controllers
         [HttpPost("AddBooking_Base")]
         public async Task<ActionResult<BitResultObject>> AddBooking_Base(AddEditBookingRequestBody requestBody)
         {
+            var result = new BitResultObject();
+
             if (!ModelState.IsValid)
             {
                 return BadRequest(requestBody);
@@ -254,7 +256,17 @@ namespace NobatPlusAPI.Controllers
             {
                 if (!await CanAccessStylistAsync(requestBody.StylistID)) return Forbid();
             }
-           
+
+            var currentStylistId = await GetCurrentStylistIdAsync();
+
+            if (currentStylistId > 0 && currentStylistId == requestBody.StylistID)
+            {
+                result.Status = false;
+                result.ID = 0;
+                result.ErrorMessage = "شما امکان ثبت نوبت برای خودتان را ندارید";
+                return BadRequest(result);
+            }
+
             Booking Booking = new Booking()
             {
                 CreateDate = DateTime.Now.ToShamsi(),
@@ -271,7 +283,7 @@ namespace NobatPlusAPI.Controllers
 
             Booking.BookingServices = BuildBookingServices(requestBody);
 
-            var result = await _BookingRep.AddBookingAsync(Booking);
+           result = await _BookingRep.AddBookingAsync(Booking);
 
             if (result.Status)
             {
@@ -325,6 +337,16 @@ namespace NobatPlusAPI.Controllers
             {
                 requestBody.CustomerID = theRow.Result.CustomerID;
                 requestBody.StylistID = theRow.Result.StylistID;
+            }
+
+            var currentStylistId = await GetCurrentStylistIdAsync();
+
+            if (currentStylistId > 0 && currentStylistId == requestBody.StylistID)
+            {
+                result.Status = false;
+                result.ID = 0;
+                result.ErrorMessage = "شما امکان ثبت نوبت برای خودتان را ندارید";
+                return BadRequest(result);
             }
 
             Booking Booking = new Booking()
