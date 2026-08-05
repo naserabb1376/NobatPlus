@@ -321,7 +321,7 @@ namespace NobatPlusDATA.DataLayer.Services
                                 ? $"{_context.Settings.FirstOrDefault(x => x.Key.ToLower() == "apiurl").Value}/FileCenter/downloadfile?fileType=images&rowId=0&foreignkeyId={r.ID}&entityName=stylist"
                                 : "",
 
-                        StylistServices = r.StylistServices
+                        StylistServices = r.StylistServices.Where(ss => ss.ServiceManagement.ServiceParentID == 0)
                             .Select(s => new StylistService
                             {
                                 StylistID = s.StylistID,
@@ -472,7 +472,7 @@ namespace NobatPlusDATA.DataLayer.Services
                                 ? $"{_context.Settings.FirstOrDefault(x=> x.Key.ToLower()== "apiurl").Value}/FileCenter/downloadfile?fileType=images&rowId=0&foreignkeyId={r.ID}&entityName=stylist"
                                 : "",
 
-                        StylistServices = r.StylistServices
+                        StylistServices = r.StylistServices.Where(ss => ss.ServiceManagement.ServiceParentID == 0)
                             .Select(s => new StylistService
                             {
                                 StylistID = s.StylistID,
@@ -655,7 +655,7 @@ namespace NobatPlusDATA.DataLayer.Services
             if (rootSalonIds.Count == 0)
                 return;
 
-            var childServiceRows = await _context.StylistServices
+            var childServiceRows = await _context.StylistServices.Where(ss => ss.ServiceManagement.ServiceParentID == 0)
                 .AsNoTracking()
                 .Where(service => rootSalonIds.Contains(service.Stylist.StylistParentID))
                 .Select(service => new

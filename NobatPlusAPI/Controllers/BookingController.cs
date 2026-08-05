@@ -18,6 +18,7 @@ using NobatPlusDATA.Domain;
 using NobatPlusDATA.ResultObjects;
 using NobatPlusDATA.Tools;
 using NobatPlusDATA.ViewModels;
+using SixLabors.ImageSharp.Drawing;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
@@ -35,16 +36,18 @@ namespace NobatPlusAPI.Controllers
         IBookingServiceRep _BookingServiceRep;
         ICustomerRep _CustomerRep;
         IStylistRep _StylistRep;
+        ISettingRep _SettingRep;
         ILogRep _logRep;
         private readonly IMapper _mapper;
 
 
-        public BookingController(IBookingRep BookingRep,IBookingServiceRep BookingServiceRep,ICustomerRep customerRep,IStylistRep stylistRep,ILogRep logRep, IMapper mapper)
+        public BookingController(IBookingRep BookingRep,IBookingServiceRep BookingServiceRep,ICustomerRep customerRep,IStylistRep stylistRep,ISettingRep settingRep,ILogRep logRep, IMapper mapper)
         {
             _BookingRep = BookingRep;
             _BookingServiceRep = BookingServiceRep;
             _CustomerRep = customerRep;
             _StylistRep = stylistRep;
+            _SettingRep = settingRep;
             _logRep = logRep;
             _mapper = mapper;
         }
@@ -320,7 +323,9 @@ namespace NobatPlusAPI.Controllers
             }
 
             var theRow = await _BookingRep.GetBookingByIdAsync(requestBody.ID);
-        
+
+            var currentRoleId = User.GetCurrentRoleId();
+
 
             if (!theRow.Status)
             {
@@ -333,7 +338,7 @@ namespace NobatPlusAPI.Controllers
                 return Forbid();
             }
 
-            if (User.GetCurrentRoleId() != (long)DbTools.BaseRole.Admin)
+            if ( currentRoleId != (long)DbTools.BaseRole.Admin)
             {
                 requestBody.CustomerID = theRow.Result.CustomerID;
                 requestBody.StylistID = theRow.Result.StylistID;
@@ -346,6 +351,20 @@ namespace NobatPlusAPI.Controllers
                 result.Status = false;
                 result.ID = 0;
                 result.ErrorMessage = "شما امکان ثبت نوبت برای خودتان را ندارید";
+                return BadRequest(result);
+            }
+
+            var cancelableBookingHrsRow = await _SettingRep.GetSettingRowAsync(0,"cancelablebookinghours");
+            var cancelableBookingHrs = int.Parse(cancelableBookingHrsRow.Result.Value);
+
+            DateTime bookingDateTime = new DateTime(requestBody.BookingDate.Year,requestBody.BookingDate.Month,requestBody.BookingDate.Day,requestBody.BookingTime.Hours,requestBody.BookingTime.Minutes,requestBody.BookingTime.Seconds);
+            TimeSpan timeDiff = DateTime.Now.ToShamsi() - bookingDateTime.ToShamsi();
+
+            if (currentRoleId == (long) DbTools.BaseRole.Customer && requestBody.IsCancelled != theRow.Result.IsCancelled && timeDiff.TotalHours >= cancelableBookingHrs )
+            {
+                result.Status = false;
+                result.ID = 0;
+                result.ErrorMessage = $"شما امکان لغو نوبت را فقط تا {cancelableBookingHrs} ساعت قبل از زمان رزرو را دارید";
                 return BadRequest(result);
             }
 
