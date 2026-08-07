@@ -43,6 +43,12 @@ namespace NobatPlusAPI.Tools
 
                     result = await smsSender.SendCode(mobileNumber);
                 }
+                else if (PanelProvider.Contains("smsir"))
+                {
+                    var smsSender = new SmsIrSMSSender();
+
+                    result = await smsSender.SendCode(mobileNumber);
+                }
                 else
                 {
                     var smsSender = new RayganSMSSender();
@@ -71,6 +77,12 @@ namespace NobatPlusAPI.Tools
 
                     correct = await smsSender.CheckCode(mobileNumber, code);
                 }
+                else if (PanelProvider.Contains("smsir"))
+                {
+                    var smsSender = new SmsIrSMSSender();
+
+                    correct = await smsSender.CheckCode(mobileNumber, code);
+                }
                 else
                 {
                     var smsSender = new RayganSMSSender();
@@ -96,6 +108,12 @@ namespace NobatPlusAPI.Tools
                 if (PanelProvider.Contains("faraz"))
                 {
                     var smsSender = new FarazSMSSender();
+
+                    send = await smsSender.SendMessage(mobileNumber, message);
+                }
+                else if (PanelProvider.Contains("smsir"))
+                {
+                    var smsSender = new SmsIrSMSSender();
 
                     send = await smsSender.SendMessage(mobileNumber, message);
                 }
