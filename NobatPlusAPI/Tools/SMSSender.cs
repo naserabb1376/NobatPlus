@@ -1,4 +1,6 @@
 ﻿using Azure.Core;
+using IPE.SmsIrClient;
+using IPE.SmsIrClient.Models.Requests;
 using Newtonsoft.Json;
 using NobatPlusAPI.Models.Authenticate;
 using NobatPlusAPI.ViewModels;
@@ -262,4 +264,105 @@ namespace NobatPlusAPI.Tools
             return random.Next(111111, 999999).ToString();
         }
     }
+
+    public class SmsIrSMSSender : ISMSSender
+    {
+        private IConfigurationRoot Configuration { get; }
+
+        string PanelUserName, PanelPassword, PanelLineNumber, PanelApiUrl, PanelApiKey, AppName;
+        bool GenerateVerifyCode;
+
+        enum SMSPattern : int
+        {
+            OTP = 613858
+        }
+
+        public SmsIrSMSSender()
+        {
+            var builder = new ConfigurationBuilder()
+.SetBasePath(Directory.GetCurrentDirectory())
+.AddJsonFile("appsettings.json", optional: false, reloadOnChange: true);
+            Configuration = builder.Build();
+
+            AppName = Configuration["Jwt:Issuer"];
+            PanelUserName = Configuration["SmsSender:PanelUserName"];
+            PanelPassword = Configuration["SmsSender:PanelPassword"];
+            PanelApiKey = Configuration["SmsSender:PanelApiKey"];
+            PanelApiUrl = Configuration["SmsSender:PanelApiUrl"];
+            PanelLineNumber = Configuration["SmsSender:PanelLineNumber"];
+            GenerateVerifyCode = bool.Parse(Configuration["SmsSender:GenerateVerifyCode"]);
+        }
+
+        public async Task<bool> SendMessage(string mobileNumber, string message)
+        {
+            bool sent = false;
+            try
+            {
+                SmsIr smsIr = new SmsIr(PanelApiKey);
+
+                var bulkSendResult = await smsIr.BulkSendAsync(long.Parse(PanelLineNumber),message, new string[] { mobileNumber });
+
+
+                if (bulkSendResult.Status == 1) sent = true;
+                else sent = false;
+
+            }
+            catch (Exception)
+            {
+                sent = false;
+            }
+            return sent;
+
+
+        }
+
+
+        public async Task<VerifyCodeResult> SendCode(string mobileNumber)
+        {
+            var result = new VerifyCodeResult();
+            bool sent = false;
+
+            try
+            {
+                var theCode = GenerateVerifyCodeManualy();
+
+                SmsIr smsIr = new SmsIr(PanelApiKey);
+
+                var verificationSendResult = await smsIr.VerifySendAsync(mobileNumber,(int)SMSPattern.OTP, new VerifySendParameter[] { new("Code", theCode) });
+
+                if (verificationSendResult.Status == 1) sent = true;
+                else sent = false;
+
+                if (sent) OtpStore.Save(mobileNumber, theCode);
+                result.SendStatus = sent;
+                result.Code = theCode ?? "";
+            }
+            catch (Exception)
+            {
+                sent = false;
+            }
+            return result;
+        }
+
+        public async Task<bool> CheckCode(string mobileNumber, string code)
+        {
+            bool currect = false;
+            try
+            {
+                currect = OtpStore.Verify(mobileNumber, code);
+            }
+            catch (Exception)
+            {
+                currect = false;
+            }
+            return currect;
+        }
+
+        private string GenerateVerifyCodeManualy()
+        {
+            Random random = new Random();
+            return random.Next(111111, 999999).ToString();
+        }
+    }
+
 }

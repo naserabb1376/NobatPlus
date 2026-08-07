@@ -38,11 +38,7 @@ namespace NobatPlusAPI.Tools
            .ForMember(dest => dest.CustomerPhoneNumber, opt => opt.MapFrom(src => src.Customer.Person.PhoneNumber))
            ;
 
-            CreateMap<Review, ReviewVM>()
-         .ForMember(dest => dest.SalonName, opt => opt.MapFrom(src => src.Booking.Stylist.StylistName))
-         .ForMember(dest => dest.StylistName, opt => opt.MapFrom(src => src.Booking.Stylist.Person.FirstName + " " + src.Booking.Stylist.Person.LastName))
-         .ForMember(dest => dest.CustomerName, opt => opt.MapFrom(src => !src.IsPrivate ? src.Customer.Person.FirstName + " " + src.Customer.Person.LastName : "ناشناس"))
-         ;
+            CreateMap<ReviewDto, ReviewVM>();
 
             CreateMap<SocialNetwork, SocialNetworkVM>()
           .ForMember(dest => dest.SalonName, opt => opt.MapFrom(src => src.Stylist.StylistName))

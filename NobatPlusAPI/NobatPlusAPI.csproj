@@ -17,6 +17,7 @@
     <PackageReference Include="Azure.Identity" Version="1.19.0" />
     <PackageReference Include="Hangfire" Version="1.8.23" />
     <PackageReference Include="Hangfire.AspNetCore" Version="1.8.23" />
+    <PackageReference Include="IPE.SmsIR" Version="1.2.7" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.5" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="10.0.5" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.5">
@@ -107,7 +108,7 @@
       <HintPath>..\libs\MTPermissionCenter\net10.0\MTPermissionCenter.Abstractions.dll</HintPath>
     </Reference>
     <Reference Include="MTPermissionCenter.AspNetCore">
-      <HintPath>..\libs\MTPermissionCenter\net10.0\MTPermissionCenter.AspNetCore.dll</HintPath>
+      <HintPath>..\..\AITechDigitalTradeHub\AITechDigitalTradeHub\libs\MTPermissionCenter\net10.0\MTPermissionCenter.AspNetCore.dll</HintPath>
     </Reference>
     <Reference Include="MTPermissionCenter.EFCore">
       <HintPath>..\libs\MTPermissionCenter\net10.0\MTPermissionCenter.EFCore.dll</HintPath>

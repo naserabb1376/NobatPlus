@@ -32,4 +32,31 @@ namespace NobatPlusDATA.Domain
         public Customer Customer { get; set; }
         public Stylist Stylist { get; set; }
     }
+
+    public class ReviewDto : BaseEntity
+    {
+        public long BookingID { get; set; }
+        public long CustomerID { get; set; }
+        public long StylistID { get; set; }
+        public int Rating { get; set; }
+        public string Comments { get; set; }
+        public string Status { get; set; }
+
+        public int LikeCount { get; set; }
+        public int DislikeCount { get; set; }
+
+        //[NotMapped]   // ⛔ در دیتابیس ساخته نمی‌شود
+        public bool IsPrivate { get; set; }
+
+        //[NotMapped]   // ⛔ در دیتابیس ساخته نمی‌شود
+        public bool IsAccepted { get; set; }
+
+        public DateTime ReviewDate { get; set; }
+
+        public float AverageRateScore { get; set; }
+
+        public string StylistName { get; set; }
+        public string SalonName { get; set; }
+        public string CustomerName { get; set; }
+    }
 }

@@ -21,7 +21,7 @@ namespace NobatPlusDATA.ViewModels
         public DateTime ReviewDate { get; set; }
         public bool IsPrivate { get; set; }
         public bool IsAccepted { get; set; }
-
+        public float AverageRateScore { get; set; }
 
     }
 }
