@@ -49,6 +49,7 @@ namespace NobatPlusAPI.Controllers
         }
 
         [HttpPost("GetAllReviews_Base")]
+        [AllowAnonymous]
         public async Task<ActionResult<ListResultObject<ReviewVM>>> GetAllReviews_Base(GetReviewListRequestBody requestBody)
         {
             if (!ModelState.IsValid)
