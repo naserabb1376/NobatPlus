@@ -313,6 +313,7 @@ namespace NobatPlusDATA.DataLayer.Services
                         WorkShopRentAmount = r.WorkShopRentAmount,
                         YearsOfExperience = r.YearsOfExperience,
                         RestTime = r.RestTime,
+                        SlotIntervalMinutes = r.SlotIntervalMinutes,
 
                         StylistImagePath =
                             _context.Images.Any(x =>
@@ -465,6 +466,7 @@ namespace NobatPlusDATA.DataLayer.Services
                         WorkShopRentAmount = r.WorkShopRentAmount,
                         YearsOfExperience = r.YearsOfExperience,
                         RestTime = r.RestTime,
+                        SlotIntervalMinutes = r.SlotIntervalMinutes,
 
                         StylistImagePath = _context.Images.Any(x =>
                             x.EntityType.ToLower() == "stylist" &&

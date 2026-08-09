@@ -120,6 +120,7 @@ namespace NobatPlusAPI.Controllers
                 WorkShopRentAmount = requestBody.WorkShopRentAmount,
                 IsWorkShop = requestBody.IsWorkshop,
                 RestTime = requestBody.RestTime,
+                SlotIntervalMinutes = requestBody.SlotIntervalMinutes ?? 30,
             };
             var result = await _StylistRep.AddStylistAsync(Stylist);
             if (result.Status)
@@ -182,6 +183,7 @@ namespace NobatPlusAPI.Controllers
                 WorkShopRentAmount = requestBody.WorkShopRentAmount,
                 IsWorkShop = requestBody.IsWorkshop,
                 RestTime = requestBody.RestTime,
+                SlotIntervalMinutes = requestBody.SlotIntervalMinutes ?? theRow.Result.SlotIntervalMinutes,
             };
             result = await _StylistRep.EditStylistAsync(Stylist);
             if (result.Status)

@@ -69,7 +69,16 @@ namespace NobatPlusDATA.DataLayer.Services
 
                 var bookingServiceIds = Booking.BookingServices.Select(x => x.ServiceManagementID).ToList();
 
-                bool hasConfilict = await HasBookingConflictForStylistOrCustomerAsync(Booking.StylistID, Booking.CustomerID, Booking.BookingDate, bookingServiceIds,Booking.ID);
+                var bookingTimeChanged = previousBooking.StylistID != Booking.StylistID ||
+                                         previousBooking.BookingDate != Booking.BookingDate;
+
+                bool hasConfilict = await HasBookingConflictForStylistOrCustomerAsync(
+                    Booking.StylistID,
+                    Booking.CustomerID,
+                    Booking.BookingDate,
+                    bookingServiceIds,
+                    Booking.ID,
+                    bookingTimeChanged);
 
                 if (hasConfilict)
                 {
@@ -586,7 +595,8 @@ namespace NobatPlusDATA.DataLayer.Services
     long customerId,
     DateTime newStart,
     List<long> serviceManagementIds,
-    long bookingId = 0)
+    long bookingId = 0,
+    bool validateSlotAlignment = true)
         {
             if (serviceManagementIds == null || serviceManagementIds.Count == 0)
                 throw new ArgumentException("حداقل یک سرویس باید انتخاب شود.", nameof(serviceManagementIds));
@@ -598,7 +608,7 @@ namespace NobatPlusDATA.DataLayer.Services
 
             var stylist = await _context.Stylists.AsNoTracking()
                 .Where(s => s.ID == stylistId)
-                .Select(s => new { s.ID, s.RestTime })
+                .Select(s => new { s.ID, s.RestTime, s.SlotIntervalMinutes })
                 .SingleOrDefaultAsync();
 
             if (stylist == null)
@@ -619,6 +629,13 @@ namespace NobatPlusDATA.DataLayer.Services
             var newBlockEnd = newServiceEnd.AddMinutes(restMinutes);
 
             await EnsureBookingIsInsideWorkTimeAsync(stylistId, newStart, newServiceEnd);
+            if (validateSlotAlignment)
+            {
+                await EnsureBookingStartMatchesSlotIntervalAsync(
+                    stylistId,
+                    newStart,
+                    stylist.SlotIntervalMinutes);
+            }
             await EnsureBookingIsOutsideStylistPacificAsync(stylistId, newStart, newBlockEnd);
 
             var existingBookingsQuery = _context.Bookings.AsNoTracking()
@@ -705,6 +722,40 @@ namespace NobatPlusDATA.DataLayer.Services
 
             if (!isInsideWorkTime)
                 throw new InvalidOperationException("زمان رزرو خارج از ساعت کاری آرایشگر است.");
+        }
+
+        private async Task EnsureBookingStartMatchesSlotIntervalAsync(
+            long stylistId,
+            DateTime start,
+            int configuredIntervalMinutes)
+        {
+            var intervalMinutes = configuredIntervalMinutes is >= 5 and <= 240
+                ? configuredIntervalMinutes
+                : 30;
+
+            var workTimes = await _context.WorkTimes.AsNoTracking()
+                .Where(x => x.StylistID == stylistId)
+                .ToListAsync();
+
+            var startTime = start.TimeOfDay;
+            var matchingWindow = workTimes.FirstOrDefault(x =>
+                MatchDayOfWeek(x.DayOfWeek, start.DayOfWeek) &&
+                x.WorkStartTime <= startTime &&
+                x.WorkEndTime > startTime);
+
+            if (matchingWindow == null)
+                return;
+
+            var minutesFromWorkStart = (startTime - matchingWindow.WorkStartTime).TotalMinutes;
+            var remainder = minutesFromWorkStart % intervalMinutes;
+            var isAligned = Math.Abs(remainder) < 0.001 ||
+                            Math.Abs(remainder - intervalMinutes) < 0.001;
+
+            if (!isAligned)
+            {
+                throw new InvalidOperationException(
+                    $"زمان شروع نوبت باید روی بازه‌های {intervalMinutes} دقیقه‌ای آرایشگر باشد.");
+            }
         }
 
         private async Task EnsureBookingIsOutsideStylistPacificAsync(long stylistId, DateTime start, DateTime end)

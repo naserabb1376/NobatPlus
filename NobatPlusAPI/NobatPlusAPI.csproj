@@ -108,7 +108,7 @@
       <HintPath>..\libs\MTPermissionCenter\net10.0\MTPermissionCenter.Abstractions.dll</HintPath>
     </Reference>
     <Reference Include="MTPermissionCenter.AspNetCore">
-      <HintPath>..\..\AITechDigitalTradeHub\AITechDigitalTradeHub\libs\MTPermissionCenter\net10.0\MTPermissionCenter.AspNetCore.dll</HintPath>
+      <HintPath>..\..\..\..\naserabb76\AITechDigitalTradeHub\AITechDigitalTradeHub\libs\MTPermissionCenter\net10.0\MTPermissionCenter.AspNetCore.dll</HintPath>
     </Reference>
     <Reference Include="MTPermissionCenter.EFCore">
       <HintPath>..\libs\MTPermissionCenter\net10.0\MTPermissionCenter.EFCore.dll</HintPath>
