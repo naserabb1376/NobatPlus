@@ -61,6 +61,10 @@ namespace NobatPlusAPI.Models.Stylist
         [Display(Name = "زمان استراحت")]
         [Required(ErrorMessage = "لطفا {0} را وارد کنید")]
         public TimeSpan RestTime { get; set; }
+
+        [Display(Name = "فاصله شروع نوبت‌ها")]
+        [Range(5, 240, ErrorMessage = "مقدار {0} باید بین 5 تا 240 دقیقه باشد")]
+        public int? SlotIntervalMinutes { get; set; }
     }
 
     public class SignupStylistRequestBody
@@ -116,6 +120,10 @@ namespace NobatPlusAPI.Models.Stylist
         [Display(Name = "زمان استراحت")]
         [Required(ErrorMessage = "لطفا {0} را وارد کنید")]
         public TimeSpan RestTime { get; set; }
+
+        [Display(Name = "فاصله شروع نوبت‌ها")]
+        [Range(5, 240, ErrorMessage = "مقدار {0} باید بین 5 تا 240 دقیقه باشد")]
+        public int? SlotIntervalMinutes { get; set; }
 
     }
 }

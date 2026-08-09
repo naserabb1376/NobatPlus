@@ -24,6 +24,7 @@ namespace NobatPlusDATA.Domain
         public int YearsOfExperience { get; set; }
         public long JobTypeID { get; set; }
         public TimeSpan RestTime { get; set; }
+        public int SlotIntervalMinutes { get; set; } = 30;
         public JobType JobType { get; set; }
         public Person Person { get; set; }
         public ICollection<Booking> Bookings { get; set; }
@@ -66,6 +67,7 @@ namespace NobatPlusDATA.Domain
         public string? StylistImagePath { get; set; }
         public double RecommendPercent { get; set; }
         public TimeSpan RestTime { get; set; }
+        public int SlotIntervalMinutes { get; set; } = 30;
         public JobType JobType { get; set; }
         public Person Person { get; set; }
         public ICollection<Booking> Bookings { get; set; }

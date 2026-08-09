@@ -482,6 +482,7 @@ namespace NobatPlusAPI.Controllers
                                     WorkShopInteractMode = signupRequestBody.stylist.WorkShopInteractMode ?? "",
                                     WorkShopRentAmount = signupRequestBody.stylist.WorkShopRentAmount,
                                     RestTime = signupRequestBody.stylist.RestTime,
+                                    SlotIntervalMinutes = signupRequestBody.stylist.SlotIntervalMinutes ?? 30,
 
                                     
                                 };
