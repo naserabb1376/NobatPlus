@@ -314,6 +314,8 @@ namespace NobatPlusDATA.DataLayer.Services
                         YearsOfExperience = r.YearsOfExperience,
                         RestTime = r.RestTime,
                         SlotIntervalMinutes = r.SlotIntervalMinutes,
+                        BookingCreationMode = r.BookingCreationMode,
+                        SlotDisplayMode = r.SlotDisplayMode,
 
                         StylistImagePath =
                             _context.Images.Any(x =>
@@ -467,6 +469,8 @@ namespace NobatPlusDATA.DataLayer.Services
                         YearsOfExperience = r.YearsOfExperience,
                         RestTime = r.RestTime,
                         SlotIntervalMinutes = r.SlotIntervalMinutes,
+                        BookingCreationMode = r.BookingCreationMode,
+                        SlotDisplayMode = r.SlotDisplayMode,
 
                         StylistImagePath = _context.Images.Any(x =>
                             x.EntityType.ToLower() == "stylist" &&

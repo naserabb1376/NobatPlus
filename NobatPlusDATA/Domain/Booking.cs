@@ -15,6 +15,8 @@ namespace NobatPlusDATA.Domain
         public string Status { get; set; }
         public bool IsCancelled { get; set; }
         public string CancelReason { get; set; }
+        public int? ServiceDurationMinutesSnapshot { get; set; }
+        public int? RestTimeMinutesSnapshot { get; set; }
 
         public Stylist Stylist { get; set; }
         public Customer Customer { get; set; }

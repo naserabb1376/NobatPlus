@@ -116,6 +116,12 @@ namespace NobatPlusDATA.DataLayer
             modelBuilder.Entity<Stylist>()
                 .Property(x => x.SlotIntervalMinutes)
                 .HasDefaultValue(30);
+            modelBuilder.Entity<Stylist>()
+                .Property(x => x.BookingCreationMode)
+                .HasDefaultValue("automatic");
+            modelBuilder.Entity<Stylist>()
+                .Property(x => x.SlotDisplayMode)
+                .HasDefaultValue("all");
 
             modelBuilder.Entity<AdminAuditLog>()
                 .HasOne(x => x.ActorPerson)
@@ -328,6 +334,12 @@ namespace NobatPlusDATA.DataLayer
                 .WithMany(s => s.Bookings)
                 .HasForeignKey(cd => cd.StylistID)
                 .OnDelete(DeleteBehavior.NoAction);
+            modelBuilder.Entity<Booking>()
+                .HasIndex(x => new { x.StylistID, x.BookingDate, x.IsCancelled });
+            modelBuilder.Entity<Booking>()
+                .HasIndex(x => new { x.CustomerID, x.BookingDate, x.IsCancelled });
+            modelBuilder.Entity<CheckAvailability>()
+                .HasIndex(x => new { x.StylistID, x.Date, x.Time });
             // مدیریت رفتار حذف
             modelBuilder.Entity<BookingService>()
                 .HasOne(bs => bs.Booking)

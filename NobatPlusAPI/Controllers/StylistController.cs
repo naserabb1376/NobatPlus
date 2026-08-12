@@ -121,6 +121,8 @@ namespace NobatPlusAPI.Controllers
                 IsWorkShop = requestBody.IsWorkshop,
                 RestTime = requestBody.RestTime,
                 SlotIntervalMinutes = requestBody.SlotIntervalMinutes ?? 30,
+                BookingCreationMode = requestBody.BookingCreationMode ?? "automatic",
+                SlotDisplayMode = requestBody.SlotDisplayMode ?? "all",
             };
             var result = await _StylistRep.AddStylistAsync(Stylist);
             if (result.Status)
@@ -184,6 +186,8 @@ namespace NobatPlusAPI.Controllers
                 IsWorkShop = requestBody.IsWorkshop,
                 RestTime = requestBody.RestTime,
                 SlotIntervalMinutes = requestBody.SlotIntervalMinutes ?? theRow.Result.SlotIntervalMinutes,
+                BookingCreationMode = requestBody.BookingCreationMode ?? theRow.Result.BookingCreationMode,
+                SlotDisplayMode = requestBody.SlotDisplayMode ?? theRow.Result.SlotDisplayMode,
             };
             result = await _StylistRep.EditStylistAsync(Stylist);
             if (result.Status)

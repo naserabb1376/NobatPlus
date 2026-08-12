@@ -6,6 +6,7 @@ using NobatPlusDATA.ResultObjects;
 using NobatPlusDATA.Tools;
 using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Linq;
 using System.Reflection.Metadata;
 using System.Text;
@@ -28,9 +29,24 @@ namespace NobatPlusDATA.DataLayer.Services
             BitResultObject result = new BitResultObject();
             try
             {
-                var bookingServiceIds = Booking.BookingServices.Select(x => x.ServiceManagementID).ToList();
+                await using var transaction = await _context.Database.BeginTransactionAsync(IsolationLevel.Serializable);
+                var bookingServiceIds = Booking.BookingServices
+                    .Select(x => x.ServiceManagementID)
+                    .Where(x => x > 0)
+                    .Distinct()
+                    .ToList();
 
-                bool hasConfilict = await HasBookingConflictForStylistOrCustomerAsync(Booking.StylistID,Booking.CustomerID,Booking.BookingDate,bookingServiceIds);
+                var snapshot = await GetBookingDurationSnapshotAsync(Booking.StylistID, bookingServiceIds);
+                Booking.ServiceDurationMinutesSnapshot = snapshot.ServiceDurationMinutes;
+                Booking.RestTimeMinutesSnapshot = snapshot.RestTimeMinutes;
+
+                bool hasConfilict = await HasBookingConflictForStylistOrCustomerAsync(
+                    Booking.StylistID,
+                    Booking.CustomerID,
+                    Booking.BookingDate,
+                    bookingServiceIds,
+                    newServiceDurationMinutesOverride: Booking.ServiceDurationMinutesSnapshot,
+                    newRestTimeMinutesOverride: Booking.RestTimeMinutesSnapshot);
 
                 if (hasConfilict)
                 {
@@ -39,6 +55,7 @@ namespace NobatPlusDATA.DataLayer.Services
 
                 await _context.Bookings.AddAsync(Booking);
                 await _context.SaveChangesAsync();
+                await transaction.CommitAsync();
                 result.ID = Booking.ID;
                 _context.Entry(Booking).State = EntityState.Detached;
             }
@@ -56,8 +73,10 @@ namespace NobatPlusDATA.DataLayer.Services
             BitResultObject result = new BitResultObject();
             try
             {
+                await using var transaction = await _context.Database.BeginTransactionAsync(IsolationLevel.Serializable);
                 var previousBooking = await _context.Bookings
                     .AsNoTracking()
+                    .Include(x => x.BookingServices)
                     .FirstOrDefaultAsync(x => x.ID == Booking.ID);
 
                 if (previousBooking == null)
@@ -67,7 +86,34 @@ namespace NobatPlusDATA.DataLayer.Services
                     return result;
                 }
 
-                var bookingServiceIds = Booking.BookingServices.Select(x => x.ServiceManagementID).ToList();
+                var bookingServiceIds = Booking.BookingServices
+                    .Select(x => x.ServiceManagementID)
+                    .Where(x => x > 0)
+                    .Distinct()
+                    .ToList();
+
+                var previousServiceIds = previousBooking.BookingServices
+                    .Select(x => x.ServiceManagementID)
+                    .Where(x => x > 0)
+                    .Distinct()
+                    .OrderBy(x => x)
+                    .ToList();
+                var serviceSelectionChanged = !previousServiceIds.SequenceEqual(bookingServiceIds.OrderBy(x => x));
+                var durationDefinitionChanged = previousBooking.StylistID != Booking.StylistID || serviceSelectionChanged;
+
+                if (!durationDefinitionChanged &&
+                    previousBooking.ServiceDurationMinutesSnapshot.HasValue &&
+                    previousBooking.RestTimeMinutesSnapshot.HasValue)
+                {
+                    Booking.ServiceDurationMinutesSnapshot = previousBooking.ServiceDurationMinutesSnapshot;
+                    Booking.RestTimeMinutesSnapshot = previousBooking.RestTimeMinutesSnapshot;
+                }
+                else
+                {
+                    var snapshot = await GetBookingDurationSnapshotAsync(Booking.StylistID, bookingServiceIds);
+                    Booking.ServiceDurationMinutesSnapshot = snapshot.ServiceDurationMinutes;
+                    Booking.RestTimeMinutesSnapshot = snapshot.RestTimeMinutes;
+                }
 
                 var bookingTimeChanged = previousBooking.StylistID != Booking.StylistID ||
                                          previousBooking.BookingDate != Booking.BookingDate;
@@ -78,7 +124,9 @@ namespace NobatPlusDATA.DataLayer.Services
                     Booking.BookingDate,
                     bookingServiceIds,
                     Booking.ID,
-                    bookingTimeChanged);
+                    bookingTimeChanged,
+                    Booking.ServiceDurationMinutesSnapshot,
+                    Booking.RestTimeMinutesSnapshot);
 
                 if (hasConfilict)
                 {
@@ -121,6 +169,7 @@ namespace NobatPlusDATA.DataLayer.Services
                 }
 
                 await _context.SaveChangesAsync();
+                await transaction.CommitAsync();
                 result.ID = Booking.ID;
                 _context.Entry(Booking).State = EntityState.Detached;
             }
@@ -352,6 +401,9 @@ namespace NobatPlusDATA.DataLayer.Services
                                 b.Stylist.RestTime
                             )
 
+                    let effectiveDurationMinutes = b.ServiceDurationMinutesSnapshot ?? totalDurationMinutes
+                    let effectiveRestMinutes = b.RestTimeMinutesSnapshot ?? restMinutes
+
                     orderby b.CreateDate descending
 
                     select new BookingDTO
@@ -366,11 +418,11 @@ namespace NobatPlusDATA.DataLayer.Services
 
                         BookingStartDate = b.BookingDate,
 
-                        TotalDurationMinutes = totalDurationMinutes,
+                        TotalDurationMinutes = effectiveDurationMinutes,
 
-                        BookingEndDate = b.BookingDate.AddMinutes(totalDurationMinutes),
+                        BookingEndDate = b.BookingDate.AddMinutes(effectiveDurationMinutes),
 
-                        TotalBlockMinutes = totalDurationMinutes + restMinutes,
+                        TotalBlockMinutes = effectiveDurationMinutes + effectiveRestMinutes,
                         ServiceIDs = _context.BookingServices
                             .Where(bs => bs.BookingID == b.ID)
                             .Select(bs => bs.ServiceManagementID)
@@ -454,6 +506,9 @@ namespace NobatPlusDATA.DataLayer.Services
                                 )
                         ) ?? 0
 
+                    let effectiveDurationMinutes = b.ServiceDurationMinutesSnapshot ?? totalDurationMinutes
+                    let effectiveRestMinutes = b.RestTimeMinutesSnapshot ?? restMinutes
+
                     select new BookingDTO
                     {
                         ID = b.ID,
@@ -466,11 +521,11 @@ namespace NobatPlusDATA.DataLayer.Services
 
                         BookingStartDate = b.BookingDate,
 
-                        TotalDurationMinutes = totalDurationMinutes,
+                        TotalDurationMinutes = effectiveDurationMinutes,
 
-                        BookingEndDate = b.BookingDate.AddMinutes(totalDurationMinutes),
+                        BookingEndDate = b.BookingDate.AddMinutes(effectiveDurationMinutes),
 
-                        TotalBlockMinutes = totalDurationMinutes + restMinutes,
+                        TotalBlockMinutes = effectiveDurationMinutes + effectiveRestMinutes,
                         ServiceIDs = _context.BookingServices
                             .Where(bs => bs.BookingID == b.ID)
                             .Select(bs => bs.ServiceManagementID)
@@ -590,13 +645,45 @@ namespace NobatPlusDATA.DataLayer.Services
           
         }
 
+        private async Task<(int ServiceDurationMinutes, int RestTimeMinutes)> GetBookingDurationSnapshotAsync(
+            long stylistId,
+            IReadOnlyCollection<long> serviceManagementIds)
+        {
+            if (serviceManagementIds == null || serviceManagementIds.Count == 0)
+                throw new ArgumentException("حداقل یک سرویس باید انتخاب شود.", nameof(serviceManagementIds));
+
+            var stylist = await _context.Stylists
+                .Where(x => x.ID == stylistId)
+                .Select(x => new { x.RestTime })
+                .SingleOrDefaultAsync();
+
+            if (stylist == null)
+                throw new ArgumentException("آرایشگر یافت نشد.", nameof(stylistId));
+
+            var serviceDurations = await _context.StylistServices
+                .Where(x => x.StylistID == stylistId && serviceManagementIds.Contains(x.ServiceManagementID))
+                .Select(x => new { x.ServiceManagementID, x.ServiceDuration })
+                .ToListAsync();
+
+            if (serviceDurations.Select(x => x.ServiceManagementID).Distinct().Count() != serviceManagementIds.Count)
+                throw new ArgumentException("یک یا چند سرویس برای این آرایشگر تعریف نشده است.", nameof(serviceManagementIds));
+
+            return (
+                serviceDurations
+                    .GroupBy(x => x.ServiceManagementID)
+                    .Sum(group => GetMinutes(group.First().ServiceDuration)),
+                GetMinutes(stylist.RestTime));
+        }
+
         public async Task<bool> HasBookingConflictForStylistOrCustomerAsync(
     long stylistId,
     long customerId,
     DateTime newStart,
     List<long> serviceManagementIds,
     long bookingId = 0,
-    bool validateSlotAlignment = true)
+    bool validateSlotAlignment = true,
+    int? newServiceDurationMinutesOverride = null,
+    int? newRestTimeMinutesOverride = null)
         {
             if (serviceManagementIds == null || serviceManagementIds.Count == 0)
                 throw new ArgumentException("حداقل یک سرویس باید انتخاب شود.", nameof(serviceManagementIds));
@@ -608,13 +695,13 @@ namespace NobatPlusDATA.DataLayer.Services
 
             var stylist = await _context.Stylists.AsNoTracking()
                 .Where(s => s.ID == stylistId)
-                .Select(s => new { s.ID, s.RestTime, s.SlotIntervalMinutes })
+                .Select(s => new { s.ID, s.RestTime, s.SlotIntervalMinutes, s.BookingCreationMode })
                 .SingleOrDefaultAsync();
 
             if (stylist == null)
                 throw new ArgumentException("آرایشگر یافت نشد.", nameof(stylistId));
 
-            var restMinutes = GetMinutes(stylist.RestTime);
+            var restMinutes = newRestTimeMinutesOverride ?? GetMinutes(stylist.RestTime);
 
             var selectedServiceDurations = await _context.StylistServices.AsNoTracking()
                 .Where(ss => ss.StylistID == stylistId && serviceManagementIds.Contains(ss.ServiceManagementID))
@@ -624,17 +711,22 @@ namespace NobatPlusDATA.DataLayer.Services
             if (selectedServiceDurations.Count != serviceManagementIds.Count)
                 throw new ArgumentException("یک یا چند سرویس برای این آرایشگر تعریف نشده است.", nameof(serviceManagementIds));
 
-            var newDurationMinutes = selectedServiceDurations.Sum(GetMinutes);
+            var newDurationMinutes = newServiceDurationMinutesOverride ?? selectedServiceDurations.Sum(GetMinutes);
             var newServiceEnd = newStart.AddMinutes(newDurationMinutes);
             var newBlockEnd = newServiceEnd.AddMinutes(restMinutes);
 
             await EnsureBookingIsInsideWorkTimeAsync(stylistId, newStart, newServiceEnd);
-            if (validateSlotAlignment)
+            // Smart/automatic slots are calculated from the real end of the previous
+            // booking, so their start time is not necessarily aligned to a fixed grid.
+            // Only fixed-interval ("manual") mode uses the grid generated by the UI.
+            if (validateSlotAlignment &&
+                string.Equals(stylist.BookingCreationMode, "manual", StringComparison.OrdinalIgnoreCase))
             {
-                await EnsureBookingStartMatchesSlotIntervalAsync(
+                await EnsureBookingStartMatchesFixedIntervalAsync(
                     stylistId,
                     newStart,
-                    stylist.SlotIntervalMinutes);
+                    stylist.SlotIntervalMinutes,
+                    restMinutes);
             }
             await EnsureBookingIsOutsideStylistPacificAsync(stylistId, newStart, newBlockEnd);
 
@@ -648,7 +740,14 @@ namespace NobatPlusDATA.DataLayer.Services
             }
 
             var existingBookings = await existingBookingsQuery
-                .Select(b => new { b.ID, b.StylistID, b.BookingDate })
+                .Select(b => new
+                {
+                    b.ID,
+                    b.StylistID,
+                    b.BookingDate,
+                    b.ServiceDurationMinutesSnapshot,
+                    b.RestTimeMinutesSnapshot
+                })
                 .ToListAsync();
 
             if (!existingBookings.Any())
@@ -687,13 +786,15 @@ namespace NobatPlusDATA.DataLayer.Services
             // شروع نوبت جدید داخل بازه‌ی نوبت موجود بیفتد، چون نوبت موجود هم می‌تواند وسط بازه‌ی نوبت جدید شروع شود.
             return existingBookings.Any(existingBooking =>
             {
-                var existingDuration = durationByBookingId.TryGetValue(existingBooking.ID, out var duration)
-                    ? duration
-                    : 0;
+                var existingDuration = existingBooking.ServiceDurationMinutesSnapshot ??
+                    (durationByBookingId.TryGetValue(existingBooking.ID, out var duration)
+                        ? duration
+                        : 0);
 
-                var existingRest = restByStylistId.TryGetValue(existingBooking.StylistID, out var rest)
-                    ? rest
-                    : 0;
+                var existingRest = existingBooking.RestTimeMinutesSnapshot ??
+                    (restByStylistId.TryGetValue(existingBooking.StylistID, out var rest)
+                        ? rest
+                        : 0);
 
                 var existingEnd = existingBooking.BookingDate.AddMinutes(existingDuration + existingRest);
                 return newStart < existingEnd && existingBooking.BookingDate < newBlockEnd;
@@ -724,14 +825,17 @@ namespace NobatPlusDATA.DataLayer.Services
                 throw new InvalidOperationException("زمان رزرو خارج از ساعت کاری آرایشگر است.");
         }
 
-        private async Task EnsureBookingStartMatchesSlotIntervalAsync(
+        private async Task EnsureBookingStartMatchesFixedIntervalAsync(
             long stylistId,
             DateTime start,
-            int configuredIntervalMinutes)
+            int configuredIntervalMinutes,
+            int restMinutes)
         {
             var intervalMinutes = configuredIntervalMinutes is >= 5 and <= 240
                 ? configuredIntervalMinutes
                 : 30;
+            var normalizedRestMinutes = Math.Max(0, restMinutes);
+            var stepMinutes = intervalMinutes + normalizedRestMinutes;
 
             var workTimes = await _context.WorkTimes.AsNoTracking()
                 .Where(x => x.StylistID == stylistId)
@@ -747,14 +851,14 @@ namespace NobatPlusDATA.DataLayer.Services
                 return;
 
             var minutesFromWorkStart = (startTime - matchingWindow.WorkStartTime).TotalMinutes;
-            var remainder = minutesFromWorkStart % intervalMinutes;
+            var remainder = minutesFromWorkStart % stepMinutes;
             var isAligned = Math.Abs(remainder) < 0.001 ||
-                            Math.Abs(remainder - intervalMinutes) < 0.001;
+                            Math.Abs(remainder - stepMinutes) < 0.001;
 
             if (!isAligned)
             {
                 throw new InvalidOperationException(
-                    $"زمان شروع نوبت باید روی بازه‌های {intervalMinutes} دقیقه‌ای آرایشگر باشد.");
+                    $"زمان شروع نوبت باید مطابق بازه ثابت {intervalMinutes} دقیقه‌ای آرایشگر باشد.");
             }
         }
 
@@ -806,9 +910,10 @@ namespace NobatPlusDATA.DataLayer.Services
                 var affected = candidates
                     .Where(x =>
                     {
-                        var duration = durationByBooking.TryGetValue(x.ID, out var minutes)
-                            ? Math.Max(minutes, 15)
-                            : 30;
+                        var duration = x.ServiceDurationMinutesSnapshot ??
+                            (durationByBooking.TryGetValue(x.ID, out var minutes)
+                                ? Math.Max(minutes, 15)
+                                : 30);
                         return x.BookingDate.AddMinutes(duration) > start;
                     })
                     .ToList();
@@ -831,9 +936,11 @@ namespace NobatPlusDATA.DataLayer.Services
 
                 result.Results = affected.Select(booking =>
                 {
-                    var duration = durationByBooking.TryGetValue(booking.ID, out var minutes)
-                        ? Math.Max(minutes, 15)
-                        : 30;
+                    var duration = booking.ServiceDurationMinutesSnapshot ??
+                        (durationByBooking.TryGetValue(booking.ID, out var minutes)
+                            ? Math.Max(minutes, 15)
+                            : 30);
+                    var restMinutes = booking.RestTimeMinutesSnapshot ?? 0;
                     return new BookingDTO
                     {
                         ID = booking.ID,
@@ -848,7 +955,7 @@ namespace NobatPlusDATA.DataLayer.Services
                         Stylist = booking.Stylist,
                         Customer = booking.Customer,
                         TotalDurationMinutes = duration,
-                        TotalBlockMinutes = duration
+                        TotalBlockMinutes = duration + restMinutes
                         ,
                         ServiceIDs = _context.BookingServices
                             .Where(bs => bs.BookingID == booking.ID)
@@ -890,12 +997,15 @@ namespace NobatPlusDATA.DataLayer.Services
                 var restored = new List<Booking>();
                 foreach (var booking in candidates)
                 {
+                    var bookingBlockMinutes =
+                        (booking.ServiceDurationMinutesSnapshot ?? 30) +
+                        (booking.RestTimeMinutesSnapshot ?? 0);
                     // اگر هیچ مرخصی فعال دیگری این نوبت را پوشش نمی‌دهد، برگردانیم به Status 1
                     var stillCoveredByOtherLeave = await _context.StylistPacifics
                         .AsNoTracking()
                         .AnyAsync(p =>
                             p.StylistID == stylistId &&
-                            p.PacificStartDate < booking.BookingDate.AddMinutes(30) &&
+                            p.PacificStartDate < booking.BookingDate.AddMinutes(bookingBlockMinutes) &&
                             p.PacificEndDate > booking.BookingDate);
 
                     if (!stillCoveredByOtherLeave)
