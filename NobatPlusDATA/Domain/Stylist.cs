@@ -25,6 +25,8 @@ namespace NobatPlusDATA.Domain
         public long JobTypeID { get; set; }
         public TimeSpan RestTime { get; set; }
         public int SlotIntervalMinutes { get; set; } = 30;
+        public string BookingCreationMode { get; set; } = "automatic";
+        public string SlotDisplayMode { get; set; } = "all";
         public JobType JobType { get; set; }
         public Person Person { get; set; }
         public ICollection<Booking> Bookings { get; set; }
@@ -68,6 +70,8 @@ namespace NobatPlusDATA.Domain
         public double RecommendPercent { get; set; }
         public TimeSpan RestTime { get; set; }
         public int SlotIntervalMinutes { get; set; } = 30;
+        public string BookingCreationMode { get; set; } = "automatic";
+        public string SlotDisplayMode { get; set; } = "all";
         public JobType JobType { get; set; }
         public Person Person { get; set; }
         public ICollection<Booking> Bookings { get; set; }

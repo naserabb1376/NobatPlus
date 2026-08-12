@@ -206,6 +206,12 @@ public class FileCenterController : ControllerBase
             fileType = fileType.Trim().ToLower();
             entityName = entityName?.Trim().ToLower() ?? string.Empty;
 
+            if (rowId <= 0 && foreignkeyId <= 0)
+                return BadRequest("شناسه فایل یا شناسه رکورد مرتبط مشخص نشده است.");
+
+            if (rowId <= 0 && string.IsNullOrWhiteSpace(entityName))
+                return BadRequest("نام موجودیت برای دریافت فایل الزامی است.");
+
             string filePath = string.Empty;
             long userId = 0;
             long roleId = 0;
@@ -219,9 +225,14 @@ public class FileCenterController : ControllerBase
             if (fileType.ToLower() == "images")
             {
                 var theImage = await _imageRep.GetImageForShowAsync(rowId, foreignkeyId, entityName, userId, roleId);
-                if (theImage == null || !theImage.Status || theImage.Result == null)
+                if (theImage == null || !theImage.Status)
                 {
                     return BadRequest(theImage?.ErrorMessage ?? "تصویر یافت نشد.");
+                }
+
+                if (theImage.Result == null)
+                {
+                    return NotFound("تصویر یافت نشد.");
                 }
 
                 filePath = theImage.Result.FilePath;

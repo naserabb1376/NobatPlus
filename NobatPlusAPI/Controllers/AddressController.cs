@@ -76,6 +76,15 @@ namespace NobatPlusAPI.Controllers
                     return Forbid();
                 }
 
+                if (result.Result == null)
+                {
+                    return NotFound(new RowResultObject<AddressVM>
+                    {
+                        Status = false,
+                        ErrorMessage = "آدرس یافت نشد."
+                    });
+                }
+
                 var resultVM = _mapper.Map<RowResultObject<AddressVM>>(result);
                 return Ok(resultVM);
             }

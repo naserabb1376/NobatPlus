@@ -177,9 +177,17 @@ namespace NobatPlusDATA.DataLayer.Services
                 }
                 var theRow = await query.OrderByDescending(x => x.ID).FirstOrDefaultAsync();
 
+                if (theRow == null)
+                {
+                    // A missing optional image is a normal result. The API layer
+                    // converts this null result to HTTP 404.
+                    return result;
+                }
+
                 var theRole = _context.Roles.AsNoTracking().FirstOrDefault(x => x.ID == roleId) ?? new Role();
                 var alowRoles = new long[] { (long)BaseRole.Admin };
-                if (theRow.Description.ToLower() != "public" && (!alowRoles.Contains(theRole.ID) && theRow.CreatorId != userId))
+                if (!string.Equals(theRow.Description, "public", StringComparison.OrdinalIgnoreCase) &&
+                    (!alowRoles.Contains(theRole.ID) && theRow.CreatorId != userId))
                 {
                     result.Status = false;
                     result.ErrorMessage = $"The User Has No Access To This Image";

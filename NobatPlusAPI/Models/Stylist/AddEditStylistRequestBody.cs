@@ -65,6 +65,14 @@ namespace NobatPlusAPI.Models.Stylist
         [Display(Name = "فاصله شروع نوبت‌ها")]
         [Range(5, 240, ErrorMessage = "مقدار {0} باید بین 5 تا 240 دقیقه باشد")]
         public int? SlotIntervalMinutes { get; set; }
+
+        [Display(Name = "روش ایجاد نوبت‌ها")]
+        [RegularExpression("^(automatic|manual)$", ErrorMessage = "روش ایجاد نوبت‌ها معتبر نیست")]
+        public string? BookingCreationMode { get; set; }
+
+        [Display(Name = "نحوه نمایش نوبت‌ها")]
+        [RegularExpression("^(sequential|all)$", ErrorMessage = "نحوه نمایش نوبت‌ها معتبر نیست")]
+        public string? SlotDisplayMode { get; set; }
     }
 
     public class SignupStylistRequestBody
@@ -124,6 +132,14 @@ namespace NobatPlusAPI.Models.Stylist
         [Display(Name = "فاصله شروع نوبت‌ها")]
         [Range(5, 240, ErrorMessage = "مقدار {0} باید بین 5 تا 240 دقیقه باشد")]
         public int? SlotIntervalMinutes { get; set; }
+
+        [Display(Name = "روش ایجاد نوبت‌ها")]
+        [RegularExpression("^(automatic|manual)$", ErrorMessage = "روش ایجاد نوبت‌ها معتبر نیست")]
+        public string? BookingCreationMode { get; set; }
+
+        [Display(Name = "نحوه نمایش نوبت‌ها")]
+        [RegularExpression("^(sequential|all)$", ErrorMessage = "نحوه نمایش نوبت‌ها معتبر نیست")]
+        public string? SlotDisplayMode { get; set; }
 
     }
 }
