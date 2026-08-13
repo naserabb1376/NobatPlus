@@ -344,16 +344,6 @@ namespace NobatPlusAPI.Controllers
                 requestBody.StylistID = theRow.Result.StylistID;
             }
 
-            var currentStylistId = await GetCurrentStylistIdAsync();
-
-            if (currentStylistId > 0 && currentStylistId == requestBody.StylistID)
-            {
-                result.Status = false;
-                result.ID = 0;
-                result.ErrorMessage = "شما امکان ثبت نوبت برای خودتان را ندارید";
-                return BadRequest(result);
-            }
-
             var cancelableBookingHrsRow = await _SettingRep.GetSettingRowAsync(0,"cancelablebookinghours");
             var cancelableBookingHrs = int.Parse(cancelableBookingHrsRow.Result.Value);
 
