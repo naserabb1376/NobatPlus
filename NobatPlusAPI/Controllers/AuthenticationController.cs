@@ -482,7 +482,9 @@ namespace NobatPlusAPI.Controllers
                                     WorkShopInteractMode = signupRequestBody.stylist.WorkShopInteractMode ?? "",
                                     WorkShopRentAmount = signupRequestBody.stylist.WorkShopRentAmount,
                                     RestTime = signupRequestBody.stylist.RestTime,
-                                    SlotIntervalMinutes = signupRequestBody.stylist.SlotIntervalMinutes ?? 30,
+                                    SlotIntervalMinutes = signupRequestBody.stylist.SlotIntervalMinutes <= 0 ? 30 : signupRequestBody.stylist.SlotIntervalMinutes,
+                                    BookingCreationMode = signupRequestBody.stylist.BookingCreationMode ?? "automatic",
+                                    SlotDisplayMode = signupRequestBody.stylist.SlotDisplayMode ?? "all",
 
                                     
                                 };

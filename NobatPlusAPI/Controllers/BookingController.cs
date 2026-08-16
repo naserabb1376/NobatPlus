@@ -243,15 +243,16 @@ namespace NobatPlusAPI.Controllers
             }
 
             var roleId = User.GetCurrentRoleId();
+            var currentStylistId = await GetCurrentStylistIdAsync();
+            var currentCustomerId = await GetCurrentCustomerIdAsync();
+
             if (roleId == (long)DbTools.BaseRole.Customer)
             {
-                var currentCustomerId = await GetCurrentCustomerIdAsync();
                 if (currentCustomerId <= 0) return Forbid();
                 requestBody.CustomerID = currentCustomerId;
             }
             else if (roleId == (long)DbTools.BaseRole.Stylist && requestBody.ViewAsCustomer)
             {
-                var currentCustomerId = await GetCurrentCustomerIdAsync();
                 if (currentCustomerId <= 0) return Forbid();
                 requestBody.CustomerID = currentCustomerId;
             }
@@ -260,9 +261,7 @@ namespace NobatPlusAPI.Controllers
                 if (!await CanAccessStylistAsync(requestBody.StylistID)) return Forbid();
             }
 
-            var currentStylistId = await GetCurrentStylistIdAsync();
-
-            if (currentStylistId > 0 && currentStylistId == requestBody.StylistID)
+            if (currentCustomerId == requestBody.CustomerID && currentStylistId > 0 && currentStylistId == requestBody.StylistID)
             {
                 result.Status = false;
                 result.ID = 0;

@@ -120,7 +120,7 @@ namespace NobatPlusAPI.Controllers
                 WorkShopRentAmount = requestBody.WorkShopRentAmount,
                 IsWorkShop = requestBody.IsWorkshop,
                 RestTime = requestBody.RestTime,
-                SlotIntervalMinutes = requestBody.SlotIntervalMinutes ?? 30,
+                SlotIntervalMinutes = requestBody.SlotIntervalMinutes <= 0 ? 30 : requestBody.SlotIntervalMinutes,
                 BookingCreationMode = requestBody.BookingCreationMode ?? "automatic",
                 SlotDisplayMode = requestBody.SlotDisplayMode ?? "all",
             };

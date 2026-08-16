@@ -62,17 +62,14 @@ namespace NobatPlusAPI.Models.Stylist
         [Required(ErrorMessage = "لطفا {0} را وارد کنید")]
         public TimeSpan RestTime { get; set; }
 
-        [Display(Name = "فاصله شروع نوبت‌ها")]
-        [Range(5, 240, ErrorMessage = "مقدار {0} باید بین 5 تا 240 دقیقه باشد")]
-        public int? SlotIntervalMinutes { get; set; }
+        [Display(Name = "فاصله زمانی اسلات‌ها")]
+        public int SlotIntervalMinutes { get; set; } = 30;
 
-        [Display(Name = "روش ایجاد نوبت‌ها")]
-        [RegularExpression("^(automatic|manual)$", ErrorMessage = "روش ایجاد نوبت‌ها معتبر نیست")]
-        public string? BookingCreationMode { get; set; }
+        [Display(Name = "روش ایجاد نوبت")]
+        public string? BookingCreationMode { get; set; } = "automatic";
 
-        [Display(Name = "نحوه نمایش نوبت‌ها")]
-        [RegularExpression("^(sequential|all)$", ErrorMessage = "نحوه نمایش نوبت‌ها معتبر نیست")]
-        public string? SlotDisplayMode { get; set; }
+        [Display(Name = "روش نمایش اسلات‌ها")]
+        public string? SlotDisplayMode { get; set; } = "all";
     }
 
     public class SignupStylistRequestBody
@@ -129,17 +126,14 @@ namespace NobatPlusAPI.Models.Stylist
         [Required(ErrorMessage = "لطفا {0} را وارد کنید")]
         public TimeSpan RestTime { get; set; }
 
-        [Display(Name = "فاصله شروع نوبت‌ها")]
-        [Range(5, 240, ErrorMessage = "مقدار {0} باید بین 5 تا 240 دقیقه باشد")]
-        public int? SlotIntervalMinutes { get; set; }
+        [Display(Name = "فاصله زمانی اسلات‌ها")]
+        public int SlotIntervalMinutes { get; set; } = 30;
 
-        [Display(Name = "روش ایجاد نوبت‌ها")]
-        [RegularExpression("^(automatic|manual)$", ErrorMessage = "روش ایجاد نوبت‌ها معتبر نیست")]
-        public string? BookingCreationMode { get; set; }
+        [Display(Name = "روش ایجاد نوبت")]
+        public string? BookingCreationMode { get; set; } = "automatic";
 
-        [Display(Name = "نحوه نمایش نوبت‌ها")]
-        [RegularExpression("^(sequential|all)$", ErrorMessage = "نحوه نمایش نوبت‌ها معتبر نیست")]
-        public string? SlotDisplayMode { get; set; }
+        [Display(Name = "روش نمایش اسلات‌ها")]
+        public string? SlotDisplayMode { get; set; } = "all";
 
     }
 }

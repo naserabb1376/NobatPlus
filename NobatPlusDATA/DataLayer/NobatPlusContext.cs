@@ -116,9 +116,11 @@ namespace NobatPlusDATA.DataLayer
             modelBuilder.Entity<Stylist>()
                 .Property(x => x.SlotIntervalMinutes)
                 .HasDefaultValue(30);
+
             modelBuilder.Entity<Stylist>()
                 .Property(x => x.BookingCreationMode)
                 .HasDefaultValue("automatic");
+
             modelBuilder.Entity<Stylist>()
                 .Property(x => x.SlotDisplayMode)
                 .HasDefaultValue("all");
