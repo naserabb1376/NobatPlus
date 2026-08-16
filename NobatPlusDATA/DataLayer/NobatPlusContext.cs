@@ -336,6 +336,12 @@ namespace NobatPlusDATA.DataLayer
                 .WithMany(s => s.Bookings)
                 .HasForeignKey(cd => cd.StylistID)
                 .OnDelete(DeleteBehavior.NoAction);
+            modelBuilder.Entity<Booking>()
+                .HasIndex(x => new { x.StylistID, x.BookingDate, x.IsCancelled });
+            modelBuilder.Entity<Booking>()
+                .HasIndex(x => new { x.CustomerID, x.BookingDate, x.IsCancelled });
+            modelBuilder.Entity<CheckAvailability>()
+                .HasIndex(x => new { x.StylistID, x.Date, x.Time });
             // مدیریت رفتار حذف
             modelBuilder.Entity<BookingService>()
                 .HasOne(bs => bs.Booking)

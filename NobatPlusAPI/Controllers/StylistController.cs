@@ -185,9 +185,9 @@ namespace NobatPlusAPI.Controllers
                 WorkShopRentAmount = requestBody.WorkShopRentAmount,
                 IsWorkShop = requestBody.IsWorkshop,
                 RestTime = requestBody.RestTime,
-                SlotIntervalMinutes = requestBody.SlotIntervalMinutes <= 0 ? 30 : requestBody.SlotIntervalMinutes,
-                BookingCreationMode = requestBody.BookingCreationMode ?? "automatic",
-                SlotDisplayMode = requestBody.SlotDisplayMode ?? "all",
+                SlotIntervalMinutes = requestBody.SlotIntervalMinutes ?? theRow.Result.SlotIntervalMinutes,
+                BookingCreationMode = requestBody.BookingCreationMode ?? theRow.Result.BookingCreationMode,
+                SlotDisplayMode = requestBody.SlotDisplayMode ?? theRow.Result.SlotDisplayMode,
             };
             result = await _StylistRep.EditStylistAsync(Stylist);
             if (result.Status)

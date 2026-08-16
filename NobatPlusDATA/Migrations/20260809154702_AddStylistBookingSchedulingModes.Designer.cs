@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using NobatPlusDATA.DataLayer;
 
@@ -11,9 +12,11 @@ using NobatPlusDATA.DataLayer;
 namespace NobatPlusDATA.Migrations
 {
     [DbContext(typeof(NobatPlusContext))]
-    partial class NobatPlusContextModelSnapshot : ModelSnapshot
+    [Migration("20260809154702_AddStylistBookingSchedulingModes")]
+    partial class AddStylistBookingSchedulingModes
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -1853,22 +1856,19 @@ namespace NobatPlusDATA.Migrations
                     b.Property<TimeSpan>("RestTime")
                         .HasColumnType("time");
 
-                    b.Property<string>("BookingCreationMode")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)")
-                        .HasDefaultValue("automatic");
-
-                    b.Property<string>("Specialty")
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<string>("SlotDisplayMode")
+                        .ValueGeneratedOnAdd()
                         .IsRequired()
                         .HasColumnType("nvarchar(max)")
                         .HasDefaultValue("all");
 
                     b.Property<int>("SlotIntervalMinutes")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("int")
                         .HasDefaultValue(30);
+
+                    b.Property<string>("Specialty")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("StylistBio")
                         .HasColumnType("nvarchar(max)");
