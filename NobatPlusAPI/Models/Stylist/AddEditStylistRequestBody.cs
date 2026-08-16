@@ -61,6 +61,15 @@ namespace NobatPlusAPI.Models.Stylist
         [Display(Name = "زمان استراحت")]
         [Required(ErrorMessage = "لطفا {0} را وارد کنید")]
         public TimeSpan RestTime { get; set; }
+
+        [Display(Name = "فاصله زمانی اسلات‌ها")]
+        public int SlotIntervalMinutes { get; set; } = 30;
+
+        [Display(Name = "روش ایجاد نوبت")]
+        public string? BookingCreationMode { get; set; } = "automatic";
+
+        [Display(Name = "روش نمایش اسلات‌ها")]
+        public string? SlotDisplayMode { get; set; } = "all";
     }
 
     public class SignupStylistRequestBody
@@ -116,6 +125,15 @@ namespace NobatPlusAPI.Models.Stylist
         [Display(Name = "زمان استراحت")]
         [Required(ErrorMessage = "لطفا {0} را وارد کنید")]
         public TimeSpan RestTime { get; set; }
+
+        [Display(Name = "فاصله زمانی اسلات‌ها")]
+        public int SlotIntervalMinutes { get; set; } = 30;
+
+        [Display(Name = "روش ایجاد نوبت")]
+        public string? BookingCreationMode { get; set; } = "automatic";
+
+        [Display(Name = "روش نمایش اسلات‌ها")]
+        public string? SlotDisplayMode { get; set; } = "all";
 
     }
 }

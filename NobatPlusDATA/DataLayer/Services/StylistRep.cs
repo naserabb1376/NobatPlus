@@ -313,6 +313,9 @@ namespace NobatPlusDATA.DataLayer.Services
                         WorkShopRentAmount = r.WorkShopRentAmount,
                         YearsOfExperience = r.YearsOfExperience,
                         RestTime = r.RestTime,
+                        SlotIntervalMinutes = r.SlotIntervalMinutes,
+                        BookingCreationMode = r.BookingCreationMode ?? "automatic",
+                        SlotDisplayMode = r.SlotDisplayMode ?? "all",
 
                         StylistImagePath =
                             _context.Images.Any(x =>
@@ -465,6 +468,9 @@ namespace NobatPlusDATA.DataLayer.Services
                         WorkShopRentAmount = r.WorkShopRentAmount,
                         YearsOfExperience = r.YearsOfExperience,
                         RestTime = r.RestTime,
+                        SlotIntervalMinutes = r.SlotIntervalMinutes,
+                        BookingCreationMode = r.BookingCreationMode ?? "automatic",
+                        SlotDisplayMode = r.SlotDisplayMode ?? "all",
 
                         StylistImagePath = _context.Images.Any(x =>
                             x.EntityType.ToLower() == "stylist" &&
@@ -627,6 +633,10 @@ namespace NobatPlusDATA.DataLayer.Services
                      WorkShopInteractMode = stylistDTO.Result.WorkShopInteractMode,
                      WorkShopRentAmount = stylistDTO.Result.WorkShopRentAmount,
                      YearsOfExperience = stylistDTO.Result.YearsOfExperience,
+                     RestTime = stylistDTO.Result.RestTime,
+                     SlotIntervalMinutes = stylistDTO.Result.SlotIntervalMinutes,
+                     BookingCreationMode = stylistDTO.Result.BookingCreationMode,
+                     SlotDisplayMode = stylistDTO.Result.SlotDisplayMode,
                  };
                 result = await RemoveStylistAsync(stylist);
             }

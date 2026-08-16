@@ -113,6 +113,18 @@ namespace NobatPlusDATA.DataLayer
             // demo config
             modelBuilder.Entity<Role>().HasIndex(x => x.Name).IsUnique();
 
+            modelBuilder.Entity<Stylist>()
+                .Property(x => x.SlotIntervalMinutes)
+                .HasDefaultValue(30);
+
+            modelBuilder.Entity<Stylist>()
+                .Property(x => x.BookingCreationMode)
+                .HasDefaultValue("automatic");
+
+            modelBuilder.Entity<Stylist>()
+                .Property(x => x.SlotDisplayMode)
+                .HasDefaultValue("all");
+
             modelBuilder.Entity<AdminAuditLog>()
                 .HasOne(x => x.ActorPerson)
                 .WithMany()

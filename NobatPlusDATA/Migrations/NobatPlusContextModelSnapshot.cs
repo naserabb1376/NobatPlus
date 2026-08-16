@@ -1841,8 +1841,22 @@ namespace NobatPlusDATA.Migrations
                     b.Property<TimeSpan>("RestTime")
                         .HasColumnType("time");
 
+                    b.Property<string>("BookingCreationMode")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)")
+                        .HasDefaultValue("automatic");
+
                     b.Property<string>("Specialty")
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("SlotDisplayMode")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)")
+                        .HasDefaultValue("all");
+
+                    b.Property<int>("SlotIntervalMinutes")
+                        .HasColumnType("int")
+                        .HasDefaultValue(30);
 
                     b.Property<string>("StylistBio")
                         .HasColumnType("nvarchar(max)");

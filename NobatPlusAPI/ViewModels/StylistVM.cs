@@ -26,6 +26,9 @@ namespace NobatPlusDATA.ViewModels
         public int YearsOfExperience { get; set; }
         public long JobTypeID { get; set; }
         public TimeSpan RestTime { get; set; }
+        public int SlotIntervalMinutes { get; set; }
+        public string BookingCreationMode { get; set; }
+        public string SlotDisplayMode { get; set; }
         public string JobTypeTitle { get; set; }
         public float AvgScoreForStylist { get; set; }
         public int TodayBookingsCount { get; set; }
