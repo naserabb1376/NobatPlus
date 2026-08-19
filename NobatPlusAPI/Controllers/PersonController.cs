@@ -129,7 +129,7 @@ namespace NobatPlusAPI.Controllers
                 return BadRequest(result);
             }
 
-            var validNaCode = await _loginRep.ExistLoginAsync(requestBody.NaCode, "NationalCode");
+            var validNaCode = (!string.IsNullOrEmpty(requestBody.NaCode.Trim())) && (await _loginRep.ExistLoginAsync(requestBody.NaCode, "NationalCode"));
 
             if (validNaCode.Status)
             {
@@ -232,7 +232,7 @@ namespace NobatPlusAPI.Controllers
                 return BadRequest(result);
             }
 
-            var validNaCode = await _loginRep.ExistLoginAsync(requestBody.NaCode, "NationalCode", requestBody.ID);
+            var validNaCode = (!string.IsNullOrEmpty(requestBody.NaCode.Trim())) && (await _loginRep.ExistLoginAsync(requestBody.NaCode, "NationalCode", requestBody.ID));
 
             if (validNaCode.Status)
             {
@@ -357,7 +357,7 @@ namespace NobatPlusAPI.Controllers
                 return BadRequest(result);
             }
 
-            var validNaCode = await _loginRep.ExistLoginAsync(requestBody.NaCode, "NationalCode");
+            var validNaCode = (!string.IsNullOrEmpty(requestBody.NaCode.Trim())) && (await _loginRep.ExistLoginAsync(requestBody.NaCode, "NationalCode"));
 
             if (validNaCode.Status)
             {
@@ -433,7 +433,7 @@ namespace NobatPlusAPI.Controllers
                 return BadRequest(result);
             }
 
-            var validNaCode = await _loginRep.ExistLoginAsync(requestBody.NaCode, "NationalCode", requestBody.ID);
+            var validNaCode = (!string.IsNullOrEmpty(requestBody.NaCode.Trim())) && (await _loginRep.ExistLoginAsync(requestBody.NaCode, "NationalCode", requestBody.ID));
 
             if (validNaCode.Status)
             {

@@ -379,7 +379,7 @@ namespace NobatPlusAPI.Controllers
                 return BadRequest(result);
             }
 
-            var validNaCode = await _loginRep.ExistLoginAsync(signupRequestBody.NaCode, "NationalCode");
+            var validNaCode = (!string.IsNullOrEmpty(signupRequestBody.NaCode.Trim())) && (await _loginRep.ExistLoginAsync(signupRequestBody.NaCode, "NationalCode"));
 
             if (validNaCode.Status)
             {
