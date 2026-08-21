@@ -922,14 +922,6 @@ namespace NobatPlusDATA.DataLayer.Services
                 {
                     booking.Status = "5";
                     booking.UpdateDate = DateTime.Now.ToShamsi();
-                    booking.Description = string.Join(
-                        Environment.NewLine,
-                        new[]
-                        {
-                            booking.Description,
-                            $"RESCHEDULE_REQUIRED_BY_LEAVE: {start:yyyy-MM-dd HH:mm} - {end:yyyy-MM-dd HH:mm}" +
-                            (string.IsNullOrWhiteSpace(reason) ? "" : $" - {reason}")
-                        }.Where(x => !string.IsNullOrWhiteSpace(x)));
                 }
 
                 await _context.SaveChangesAsync();

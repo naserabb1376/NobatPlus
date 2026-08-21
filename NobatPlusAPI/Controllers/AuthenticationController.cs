@@ -379,9 +379,9 @@ namespace NobatPlusAPI.Controllers
                 return BadRequest(result);
             }
 
-            var validNaCode = (!string.IsNullOrEmpty(signupRequestBody.NaCode.Trim())) && (await _loginRep.ExistLoginAsync(signupRequestBody.NaCode, "NationalCode"));
+            var validNaCode =  (await _loginRep.ExistLoginAsync(signupRequestBody.NaCode, "NationalCode"));
 
-            if (validNaCode.Status)
+            if ((!string.IsNullOrEmpty(signupRequestBody.NaCode.Trim())) && validNaCode.Status)
             {
                 result.Status = !validNaCode.Status;
                 result.ErrorMessage = "کد ملی تکراری است";

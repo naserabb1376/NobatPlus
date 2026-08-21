@@ -120,7 +120,7 @@ namespace NobatPlusAPI.Controllers
                 WorkShopRentAmount = requestBody.WorkShopRentAmount,
                 IsWorkShop = requestBody.IsWorkshop,
                 RestTime = requestBody.RestTime,
-                SlotIntervalMinutes = requestBody.SlotIntervalMinutes <= 0 ? 30 : requestBody.SlotIntervalMinutes,
+                SlotIntervalMinutes = requestBody.SlotIntervalMinutes,
                 BookingCreationMode = requestBody.BookingCreationMode ?? "automatic",
                 SlotDisplayMode = requestBody.SlotDisplayMode ?? "all",
             };
@@ -185,7 +185,7 @@ namespace NobatPlusAPI.Controllers
                 WorkShopRentAmount = requestBody.WorkShopRentAmount,
                 IsWorkShop = requestBody.IsWorkshop,
                 RestTime = requestBody.RestTime,
-                SlotIntervalMinutes = requestBody.SlotIntervalMinutes ?? theRow.Result.SlotIntervalMinutes,
+                SlotIntervalMinutes = requestBody.SlotIntervalMinutes,
                 BookingCreationMode = requestBody.BookingCreationMode ?? theRow.Result.BookingCreationMode,
                 SlotDisplayMode = requestBody.SlotDisplayMode ?? theRow.Result.SlotDisplayMode,
             };

@@ -129,9 +129,9 @@ namespace NobatPlusAPI.Controllers
                 return BadRequest(result);
             }
 
-            var validNaCode = (!string.IsNullOrEmpty(requestBody.NaCode.Trim())) && (await _loginRep.ExistLoginAsync(requestBody.NaCode, "NationalCode"));
+            var validNaCode =  (await _loginRep.ExistLoginAsync(requestBody.NaCode, "NationalCode"));
 
-            if (validNaCode.Status)
+            if ((!string.IsNullOrEmpty(requestBody.NaCode.Trim())) && validNaCode.Status)
             {
                 result.Status = !validNaCode.Status;
                 result.ErrorMessage = "کد ملی تکراری است";
@@ -232,9 +232,9 @@ namespace NobatPlusAPI.Controllers
                 return BadRequest(result);
             }
 
-            var validNaCode = (!string.IsNullOrEmpty(requestBody.NaCode.Trim())) && (await _loginRep.ExistLoginAsync(requestBody.NaCode, "NationalCode", requestBody.ID));
+            var validNaCode =  (await _loginRep.ExistLoginAsync(requestBody.NaCode, "NationalCode", requestBody.ID));
 
-            if (validNaCode.Status)
+            if ((!string.IsNullOrEmpty(requestBody.NaCode.Trim())) && validNaCode.Status)
             {
                 result.Status = !validNaCode.Status;
                 result.ErrorMessage = "کد ملی تکراری است";
@@ -357,9 +357,9 @@ namespace NobatPlusAPI.Controllers
                 return BadRequest(result);
             }
 
-            var validNaCode = (!string.IsNullOrEmpty(requestBody.NaCode.Trim())) && (await _loginRep.ExistLoginAsync(requestBody.NaCode, "NationalCode"));
+            var validNaCode =  (await _loginRep.ExistLoginAsync(requestBody.NaCode, "NationalCode"));
 
-            if (validNaCode.Status)
+            if ((!string.IsNullOrEmpty(requestBody.NaCode.Trim())) && validNaCode.Status)
             {
                 result.Status = !validNaCode.Status;
                 result.ErrorMessage = "کد ملی تکراری است";
@@ -433,9 +433,9 @@ namespace NobatPlusAPI.Controllers
                 return BadRequest(result);
             }
 
-            var validNaCode = (!string.IsNullOrEmpty(requestBody.NaCode.Trim())) && (await _loginRep.ExistLoginAsync(requestBody.NaCode, "NationalCode", requestBody.ID));
+            var validNaCode =  (await _loginRep.ExistLoginAsync(requestBody.NaCode, "NationalCode", requestBody.ID));
 
-            if (validNaCode.Status)
+            if ((!string.IsNullOrEmpty(requestBody.NaCode.Trim())) && validNaCode.Status)
             {
                 result.Status = !validNaCode.Status;
                 result.ErrorMessage = "کد ملی تکراری است";
