@@ -22,6 +22,7 @@ using NobatPlusDATA.Tools;
 using NobatPlusDATA.ViewModels;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+using System.ServiceModel.Channels;
 using System.Text;
 
 namespace NobatPlusAPI.Controllers
@@ -38,11 +39,12 @@ namespace NobatPlusAPI.Controllers
         IStylistRep _stylistRep;
         ICustomerRep _customerRep;
         INotificationRep _notificationRep;
+        ISettingRep _SettingRep;
         ISMSMessageRep _sMSMessageRep;
         ILogRep _logRep;
         private readonly IMapper _mapper;
 
-        public StylistPacificController(IStylistPacificRep StylistPacificRep, IBookingRep bookingRep, ILogRep logRep, IMapper mapper, IStylistRep stylistRep, ICustomerRep customerRep, INotificationRep notificationRep, ISMSMessageRep sMSMessageRep)
+        public StylistPacificController(IStylistPacificRep StylistPacificRep, IBookingRep bookingRep, ILogRep logRep, IMapper mapper, IStylistRep stylistRep, ICustomerRep customerRep, INotificationRep notificationRep, ISMSMessageRep sMSMessageRep, ISettingRep settingRep)
         {
             _StylistPacificRep = StylistPacificRep;
             _BookingRep = bookingRep;
@@ -52,6 +54,7 @@ namespace NobatPlusAPI.Controllers
             _customerRep = customerRep;
             _notificationRep = notificationRep;
             _sMSMessageRep = sMSMessageRep;
+            _SettingRep = settingRep;
         }
 
         [HttpPost("GetAllStylistPacifics_Base")]
@@ -142,36 +145,55 @@ namespace NobatPlusAPI.Controllers
                     if (customer == null || string.IsNullOrWhiteSpace(customer.PhoneNumber))
                         continue;
 
-                    var message =
-                        $"{customer.FirstName} عزیز، نوبت شما در تاریخ " +
-                        $"{booking.BookingStartDate.ToShamsiString().Split(' ')[0]} ساعت " +
-                        $"{booking.BookingStartDate:HH:mm} به دلیل عدم دسترسی آرایشگر نیازمند تعیین تکلیف است. " +
-                        "لطفا از پنل نوبتیکس زمان جدید انتخاب کنید یا نوبت را لغو کنید.";
 
                     try
                     {
-                        var sentStatus = await ToolBox.SendSMSMessage(customer.PhoneNumber, message);
-                        await _sMSMessageRep.AddSMSMessageAsync(new SMSMessage
-                        {
-                            CreateDate = DateTime.Now.ToShamsi(),
-                            UpdateDate = DateTime.Now.ToShamsi(),
-                            PhoneNumber = customer.PhoneNumber,
-                            PersonID = customer.ID,
-                            Message = message,
-                            SentDate = DateTime.Now.ToShamsi(),
-                            Description = $"leave-booking:{booking.ID}",
-                            SentStatus = sentStatus
-                        });
 
-                        await _notificationRep.AddNotificationAsync(new Notification
+                        var messageRow = await _SettingRep.GetSettingRowAsync(0, "StylistLeaveMessage");
+                        if (messageRow != null && !messageRow.Result.Description.Contains("-1"))
                         {
-                            CreateDate = DateTime.Now.ToShamsi(),
-                            UpdateDate = DateTime.Now.ToShamsi(),
-                            PersonID = customer.ID,
-                            Message = message,
-                            SentDate = DateTime.Now.ToShamsi(),
-                            Description = $"leave-booking:{booking.ID}"
-                        });
+                            var message = messageRow.Result.Value.MakeMessageOnPattern(new List<ToolBox.MessagePatternObj>
+                            {
+                                new ToolBox.MessagePatternObj
+                                {
+                                    Variable = "firstname",
+                                    Value = customer.FirstName
+                                },
+                                 new ToolBox.MessagePatternObj
+                                {
+                                    Variable = "bookingstartdate",
+                                    Value = booking.BookingStartDate.ToShamsiString().Split(' ')[0]
+                                },
+                                 new ToolBox.MessagePatternObj
+                                {
+                                    Variable = "bookingtime",
+                                    Value = $"{booking.BookingStartDate:HH:mm}"
+                    }
+                            });
+                            var sentStatus = await ToolBox.SendSMSMessage(customer.PhoneNumber, message);
+                            await _sMSMessageRep.AddSMSMessageAsync(new SMSMessage
+                            {
+                                CreateDate = DateTime.Now.ToShamsi(),
+                                UpdateDate = DateTime.Now.ToShamsi(),
+                                PhoneNumber = customer.PhoneNumber,
+                                PersonID = customer.ID,
+                                Message = message,
+                                SentDate = DateTime.Now.ToShamsi(),
+                                Description = $"leave-booking:{booking.ID}",
+                                SentStatus = sentStatus
+                            });
+
+                            await _notificationRep.AddNotificationAsync(new Notification
+                            {
+                                CreateDate = DateTime.Now.ToShamsi(),
+                                UpdateDate = DateTime.Now.ToShamsi(),
+                                PersonID = customer.ID,
+                                Message = message,
+                                SentDate = DateTime.Now.ToShamsi(),
+                                Description = $"leave-booking:{booking.ID}"
+                            });
+                        }
+                       
                     }
                     catch
                     {
@@ -347,28 +369,50 @@ namespace NobatPlusAPI.Controllers
                     "لطفا از پنل نوبتیکس زمان جدید انتخاب کنید یا نوبت را لغو کنید.";
                 try
                 {
-                    var sentStatus = await ToolBox.SendSMSMessage(customer.PhoneNumber, message);
-                    await _sMSMessageRep.AddSMSMessageAsync(new SMSMessage
+                    var messageRow = await _SettingRep.GetSettingRowAsync(0, "StylistLeaveMessage");
+                    if (messageRow != null && !messageRow.Result.Description.Contains("-1"))
                     {
-                        CreateDate = DateTime.Now.ToShamsi(),
-                        UpdateDate = DateTime.Now.ToShamsi(),
-                        PhoneNumber = customer.PhoneNumber,
-                        PersonID = customer.ID,
-                        Message = message,
-                        SentDate = DateTime.Now.ToShamsi(),
-                        Description = $"leave-edit-booking:{booking.ID}",
-                        SentStatus = sentStatus
-                    });
-                    await _notificationRep.AddNotificationAsync(new Notification
-                    {
-                        CreateDate = DateTime.Now.ToShamsi(),
-                        UpdateDate = DateTime.Now.ToShamsi(),
-                        PersonID = customer.ID,
-                        Message = message,
-                        SentDate = DateTime.Now.ToShamsi(),
-                        Description = $"leave-edit-booking:{booking.ID}"
-                    });
-                }
+                        var messagex = messageRow.Result.Value.MakeMessageOnPattern(new List<ToolBox.MessagePatternObj>
+        {
+            new ToolBox.MessagePatternObj
+            {
+                Variable = "firstname",
+                Value = customer.FirstName
+            },
+             new ToolBox.MessagePatternObj
+            {
+                Variable = "bookingstartdate",
+                Value = booking.BookingStartDate.ToShamsiString().Split(' ')[0]
+            },
+             new ToolBox.MessagePatternObj
+            {
+                Variable = "bookingtime",
+                Value = $"{booking.BookingStartDate:HH:mm}"
+}
+        });
+                        var sentStatus = await ToolBox.SendSMSMessage(customer.PhoneNumber, messagex);
+                        await _sMSMessageRep.AddSMSMessageAsync(new SMSMessage
+                        {
+                            CreateDate = DateTime.Now.ToShamsi(),
+                            UpdateDate = DateTime.Now.ToShamsi(),
+                            PhoneNumber = customer.PhoneNumber,
+                            PersonID = customer.ID,
+                            Message = message,
+                            SentDate = DateTime.Now.ToShamsi(),
+                            Description = $"leave-edit-booking:{booking.ID}",
+                            SentStatus = sentStatus
+                        });
+                        await _notificationRep.AddNotificationAsync(new Notification
+                        {
+                            CreateDate = DateTime.Now.ToShamsi(),
+                            UpdateDate = DateTime.Now.ToShamsi(),
+                            PersonID = customer.ID,
+                            Message = message,
+                            SentDate = DateTime.Now.ToShamsi(),
+                            Description = $"leave-edit-booking:{booking.ID}"
+                        });
+                    }
+                    }
                 catch { }
             }
 
@@ -379,7 +423,7 @@ namespace NobatPlusAPI.Controllers
                 if (customer == null || string.IsNullOrWhiteSpace(customer.PhoneNumber))
                     continue;
 
-                var message =
+                 var message =
                     $"{customer.FirstName} عزیز، نوبت شما در تاریخ " +
                     $"{booking.BookingStartDate.ToShamsiString().Split(' ')[0]} ساعت " +
                     $"{booking.BookingStartDate:HH:mm} مجدداً فعال شد. آرایشگر در این زمان در دسترس است.";

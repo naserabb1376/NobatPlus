@@ -3,6 +3,9 @@ namespace NobatPlusDATA.Domain
     public class StylistDashboardReport
     {
         public StylistDashboardSummary Summary { get; set; } = new();
+        public List<StylistDashboardBookingDto> TodayBookings { get; set; } = new();
+        public List<StylistDashboardBookingDto> NewBookings { get; set; } = new();
+        public StylistDashboardBookingDto? NextBooking { get; set; }
         public List<ChartPointDto> BookingTrend { get; set; } = new();
         public List<ChartPointDto> RevenueTrend { get; set; } = new();
         public List<NameValueDto> BookingStatusBreakdown { get; set; } = new();
@@ -24,6 +27,7 @@ namespace NobatPlusDATA.Domain
     public class StylistDashboardSummary
     {
         public int TodayBookingsCount { get; set; }
+        public int NewBookingsCount { get; set; }
         public int TotalBookingsCount { get; set; }
         public int CompletedBookingsCount { get; set; }
         public int CancelledBookingsCount { get; set; }
@@ -48,6 +52,25 @@ namespace NobatPlusDATA.Domain
         public DateTime Date { get; set; }
         public int Count { get; set; }
         public decimal Amount { get; set; }
+    }
+
+    public class StylistDashboardBookingDto
+    {
+        public long BookingId { get; set; }
+        public long CustomerId { get; set; }
+        public string CustomerName { get; set; } = "";
+        public string CustomerPhoneNumber { get; set; } = "";
+        public DateTime BookingDate { get; set; }
+        public string BookingDateText { get; set; } = "";
+        public string BookingTime { get; set; } = "";
+        public string Services { get; set; } = "";
+        public List<long> ServiceIds { get; set; } = new();
+        public string Status { get; set; } = "";
+        public bool IsCancelled { get; set; }
+        public decimal TotalAmount { get; set; }
+        public decimal PaidAmount { get; set; }
+        public decimal RemainAmount { get; set; }
+        public decimal StylistAmount { get; set; }
     }
 
     public class NameValueDto

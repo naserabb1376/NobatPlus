@@ -30,6 +30,45 @@ namespace NobatPlusAPI.Tools
           .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true);
             Configuration = builder.Build();
         }
+
+        public static string ConvertDigits(string? text, bool toPersian)
+        {
+            if (string.IsNullOrEmpty(text))
+                return text ?? "";
+
+            var result = new StringBuilder(text.Length);
+            foreach (var ch in text)
+            {
+                result.Append(toPersian ? ToPersianDigit(ch) : ToEnglishDigit(ch));
+            }
+
+            return result.ToString();
+        }
+
+        public static string ToEnglishDigits(this string? text) => ConvertDigits(text, false);
+
+        public static string ToPersianDigits(this string? text) => ConvertDigits(text, true);
+
+        private static char ToEnglishDigit(char ch)
+        {
+            return ch switch
+            {
+                >= '۰' and <= '۹' => (char)('0' + ch - '۰'),
+                >= '٠' and <= '٩' => (char)('0' + ch - '٠'),
+                _ => ch
+            };
+        }
+
+        private static char ToPersianDigit(char ch)
+        {
+            return ch switch
+            {
+                >= '0' and <= '9' => (char)('۰' + ch - '0'),
+                >= '٠' and <= '٩' => (char)('۰' + ch - '٠'),
+                _ => ch
+            };
+        }
+
         public async static Task<VerifyCodeResult> SendCode(string mobileNumber)
         {
             var result = new VerifyCodeResult();
@@ -296,6 +335,20 @@ namespace NobatPlusAPI.Tools
             return sb.ToString();
         }
 
+        public static string MakeMessageOnPattern(this string messagePattern,List<MessagePatternObj> messagePatternObjs, bool faNums = true)
+        {
+            string clearMessage = "";
+            foreach (var item in messagePatternObjs)
+            {
+                clearMessage = messagePattern.Replace($"#{item.Variable.ToLower()}",item.Value);
+            }
+            if (faNums)
+            {
+                clearMessage = clearMessage.ToPersianDigits();
+            }
+            return clearMessage;
+        }
+
         public static void SaveLog(object log)
         {
             StringBuilder sb = new StringBuilder();
@@ -428,6 +481,13 @@ namespace NobatPlusAPI.Tools
             public string PermissionKey { get; set; } = "";
             public bool HasAuth { get; set; }
             //public string AdminRoles { get; set; }
+
+        }
+
+        public class MessagePatternObj
+        {
+            public string Variable { get; set; }
+            public string Value { get; set; }
 
         }
 

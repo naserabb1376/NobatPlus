@@ -54,87 +54,99 @@ namespace NobatPlusAPI.Tools
                 leadHours == 2 ? "BookingRemindMessage2Hours" : "BookingRemindMessage");
 
             var template = reminderMessage.Result?.Value;
-            if (string.IsNullOrWhiteSpace(template))
+            if (reminderMessage != null && !reminderMessage.Result.Description.Contains("-1"))
             {
-                template =
-                    "{customername} عزیز، یادآوری نوبت شما با {stylistname} در تاریخ " +
-                    "{bookingdate} ساعت {bookingtime}. نوبتیکس";
-            }
+                var message = reminderMessage.Result.Value.MakeMessageOnPattern(new List<ToolBox.MessagePatternObj>
+                            {
+                                new ToolBox.MessagePatternObj
+                                {
+                                    Variable = "stylistname",
+                                    Value = $"{booking.Result.Stylist.Person.FirstName} {booking.Result.Stylist.Person.LastName}"
+                                },
+                                 new ToolBox.MessagePatternObj
+                                {
+                                    Variable = "bookingdate",
+                                    Value = booking.Result.BookingStartDate.ToShamsiString().Split(' ')[0]
+                                },
+                                 new ToolBox.MessagePatternObj
+                                {
+                                    Variable = "bookingtime",
+                                    Value =booking.Result.BookingStartDate.ToString("HH:mm")
+                    }
+                            });
 
-            string message = template
-                .Replace("{customername}", booking.Result.Customer.Person.FirstName)
-                .Replace("{stylistname}", $"{booking.Result.Stylist.Person.FirstName} {booking.Result.Stylist.Person.LastName}")
-                .Replace("{bookingdate}", booking.Result.BookingStartDate.ToShamsiString().Split(' ')[0])
-                .Replace("{bookingtime}", booking.Result.BookingStartDate.ToString("HH:mm"));
-
-
-            #region SendSMS
-
-            bool sentstatus = await ToolBox.SendSMSMessage(booking.Result.Customer.Person.PhoneNumber, message);
 
 
 
-            SMSMessage SMSMessage = new SMSMessage()
-            {
-                CreateDate = DateTime.Now.ToShamsi(),
-                UpdateDate = DateTime.Now.ToShamsi(),
-                PhoneNumber = booking.Result.Customer.Person.PhoneNumber,
-                PersonID = booking.Result.Customer.PersonID,
-                Message = message,
-                SentDate = DateTime.Now.ToShamsi(),
-                Description = reminderKey,
-                SentStatus = sentstatus,
-            };
-            var smsresult = await _sMSMessageRep.AddSMSMessageAsync(SMSMessage);
-            if (smsresult.Status)
-            {
-                #region AddLog
+                #region SendSMS
 
-                Log log = new Log()
+                bool sentstatus = await ToolBox.SendSMSMessage(booking.Result.Customer.Person.PhoneNumber, message);
+
+
+
+                SMSMessage SMSMessage = new SMSMessage()
                 {
                     CreateDate = DateTime.Now.ToShamsi(),
                     UpdateDate = DateTime.Now.ToShamsi(),
-                    LogTime = DateTime.Now.ToShamsi(),
-                    ActionName = "SendBookingRemindMessage",
-
+                    PhoneNumber = booking.Result.Customer.Person.PhoneNumber,
+                    PersonID = booking.Result.Customer.PersonID,
+                    Message = message,
+                    SentDate = DateTime.Now.ToShamsi(),
+                    Description = reminderKey,
+                    SentStatus = sentstatus,
                 };
-                await _logRep.AddLogAsync(log);
+                var smsresult = await _sMSMessageRep.AddSMSMessageAsync(SMSMessage);
+                if (smsresult.Status)
+                {
+                    #region AddLog
+
+                    Log log = new Log()
+                    {
+                        CreateDate = DateTime.Now.ToShamsi(),
+                        UpdateDate = DateTime.Now.ToShamsi(),
+                        LogTime = DateTime.Now.ToShamsi(),
+                        ActionName = "SendBookingRemindMessage",
+
+                    };
+                    await _logRep.AddLogAsync(log);
+
+                    #endregion
+                }
 
                 #endregion
-            }
 
-            #endregion
+                #region SendNotification
 
-            #region SendNotification
-
-            Notification Notification = new Notification()
-            {
-                CreateDate = DateTime.Now.ToShamsi(),
-                UpdateDate = DateTime.Now.ToShamsi(),
-                PersonID = booking.Result.Customer.PersonID,
-                Message = message,
-                SentDate = DateTime.Now.ToShamsi(),
-                Description = message,
-            };
-            var notifresult = await _notificationRep.AddNotificationAsync(Notification);
-            if (notifresult.Status)
-            {
-                #region AddLog
-
-                Log log = new Log()
+                Notification Notification = new Notification()
                 {
                     CreateDate = DateTime.Now.ToShamsi(),
                     UpdateDate = DateTime.Now.ToShamsi(),
-                    LogTime = DateTime.Now.ToShamsi(),
-                    ActionName = "SendBookingRemindMessage",
-
+                    PersonID = booking.Result.Customer.PersonID,
+                    Message = message,
+                    SentDate = DateTime.Now.ToShamsi(),
+                    Description = message,
                 };
-                await _logRep.AddLogAsync(log);
+                var notifresult = await _notificationRep.AddNotificationAsync(Notification);
+                if (notifresult.Status)
+                {
+                    #region AddLog
+
+                    Log log = new Log()
+                    {
+                        CreateDate = DateTime.Now.ToShamsi(),
+                        UpdateDate = DateTime.Now.ToShamsi(),
+                        LogTime = DateTime.Now.ToShamsi(),
+                        ActionName = "SendBookingRemindMessage",
+
+                    };
+                    await _logRep.AddLogAsync(log);
+
+                    #endregion
+                }
 
                 #endregion
-            }
 
-            #endregion
+            }
         }
 
         public async Task SendBookingStatusMessage(long bookingId, string eventType, DateTime? previousBookingDate = null)
@@ -176,8 +188,7 @@ namespace NobatPlusAPI.Tools
                     (!string.IsNullOrWhiteSpace(row.CancelReason) ? $"علت: {row.CancelReason}\n" : "") +
                     "برای دریافت نوبت جدید وارد نوبتیکس شوید: https://nobatix.com/",
                 "completed" =>
-                    $"{customerName}، نوبت شما انجام شد.\n{bookingDetails}\n" +
-                    $"لطفاً نظر خود را ثبت کنید: https://nobatix.com/customer/appointments?reviewBookingId={row.ID}",
+                  "",
                 "no-show" =>
                     $"{customerName}، برای نوبت زیر عدم حضور ثبت شد.\n{bookingDetails}\n" +
                     "برای دریافت نوبت جدید وارد نوبتیکس شوید: https://nobatix.com/",

@@ -25,7 +25,9 @@ namespace NobatPlusDATA.DataLayer.Services
                 var endDate = (toDate ?? DateTime.Now).Date.AddDays(1).AddTicks(-1);
                 var shamsiStartDate = startDate.ToShamsi();
                 var shamsiEndDate = endDate.ToShamsi();
-                var today = DateTime.Now.Date;
+                var now = DateTime.Now;
+                var today = now.Date;
+                var todayEnd = today.AddDays(1).AddTicks(-1);
 
                 var bookings = await _context.Bookings
                     .AsNoTracking()
@@ -57,8 +59,63 @@ namespace NobatPlusDATA.DataLayer.Services
                     .Where(x => x.StylistID == stylistId)
                     .ToListAsync();
 
+                var todayBookings = await _context.Bookings
+                    .AsNoTracking()
+                    .Include(x => x.Customer).ThenInclude(x => x.Person)
+                    .Include(x => x.PaymentBookings).ThenInclude(x => x.Payment)
+                    .Include(x => x.BookingServices).ThenInclude(x => x.ServiceManagement)
+                    .Where(x => x.StylistID == stylistId && x.BookingDate >= today && x.BookingDate <= todayEnd)
+                    .OrderBy(x => x.BookingDate)
+                    .ToListAsync();
+
+                var nextBooking = await _context.Bookings
+                    .AsNoTracking()
+                    .Include(x => x.Customer).ThenInclude(x => x.Person)
+                    .Include(x => x.PaymentBookings).ThenInclude(x => x.Payment)
+                    .Include(x => x.BookingServices).ThenInclude(x => x.ServiceManagement)
+                    .Where(x => x.StylistID == stylistId && !x.IsCancelled && x.BookingDate >= now)
+                    .OrderBy(x => x.BookingDate)
+                    .FirstOrDefaultAsync();
+
+                var newBookings = await _context.Bookings
+                    .AsNoTracking()
+                    .Include(x => x.Customer).ThenInclude(x => x.Person)
+                    .Include(x => x.PaymentBookings).ThenInclude(x => x.Payment)
+                    .Include(x => x.BookingServices).ThenInclude(x => x.ServiceManagement)
+                    .Where(x => x.StylistID == stylistId && !x.IsCancelled && x.Status == "1")
+                    .OrderByDescending(x => x.CreateDate)
+                    .ThenBy(x => x.BookingDate)
+                    .ToListAsync();
+
                 var payments = bookings.SelectMany(GetPayments).ToList();
+                var revenueDetails = await _context.PaymentDetails
+                    .AsNoTracking()
+                    .Include(x => x.Payment)
+                    .Where(x =>
+                        x.StylistID == stylistId &&
+                        x.Payment.PaymentDate >= startDate &&
+                        x.Payment.PaymentDate <= endDate &&
+                        (x.Payment.PaymentFinished || x.Payment.PayedAmount > 0))
+                    .Select(x => new
+                    {
+                        x.Payment.PaymentDate,
+                        Amount = x.StylistServiceAmount - x.DiscountAmount
+                    })
+                    .ToListAsync();
+
                 var report = new StylistDashboardReport();
+
+                report.TodayBookings = todayBookings
+                    .Select(BuildDashboardBookingDto)
+                    .ToList();
+
+                report.NewBookings = newBookings
+                    .Select(BuildDashboardBookingDto)
+                    .ToList();
+
+                report.NextBooking = nextBooking == null
+                    ? null
+                    : BuildDashboardBookingDto(nextBooking);
 
                 report.BookingTrend = BuildDateRange(startDate.Date, endDate.Date)
                     .Select(date => new ChartPointDto
@@ -74,10 +131,9 @@ namespace NobatPlusDATA.DataLayer.Services
                     {
                         Date = date,
                         Label = date.ToShamsiString().Split(' ')[0],
-                        Amount = bookings
-                            .Where(x => x.BookingDate.Date == date)
-                            .SelectMany(GetPayments)
-                            .Sum(x => x.StylistAmount)
+                        Amount = revenueDetails
+                            .Where(x => x.PaymentDate.Date == date)
+                            .Sum(x => x.Amount)
                     })
                     .ToList();
 
@@ -196,6 +252,7 @@ namespace NobatPlusDATA.DataLayer.Services
                 report.Summary = new StylistDashboardSummary
                 {
                     TodayBookingsCount = bookings.Count(x => x.BookingDate.Date == today),
+                    NewBookingsCount = newBookings.Count,
                     TotalBookingsCount = bookings.Count,
                     CompletedBookingsCount = bookings.Count(x => !x.IsCancelled && x.Status == "4"),
                     CancelledBookingsCount = bookings.Count(x => x.IsCancelled),
@@ -207,7 +264,7 @@ namespace NobatPlusDATA.DataLayer.Services
                     StylistAmount = payments.Sum(x => x.StylistAmount),
                     PlatformAmount = payments.Sum(x => x.PlarformAmount),
                     DiscountAmount = payments.Sum(x => x.TotalServiceAmount - x.DiscountedServiceAmount),
-                    AverageRating = reviews.Any() ? (float)reviews.Average(x => x.Rating) : 0,
+                    AverageRating = rateHistories.Any() ? (float)reviews.Average(x => x.Rating) : 0,
                     RecommendPercent = GetRecommendPercent(rateHistories),
                     ReviewCount = reviews.Count,
                     CancellationPercent = bookings.Count == 0 ? 0 : Math.Round(bookings.Count(x => x.IsCancelled) * 100.0 / bookings.Count, 1),
@@ -500,6 +557,34 @@ namespace NobatPlusDATA.DataLayer.Services
             return AllocateBookingAmountToService(booking, bookingService, stylistServices, discountAmount);
         }
 
+        private static StylistDashboardBookingDto BuildDashboardBookingDto(Booking booking)
+        {
+            var payments = GetPayments(booking).DistinctBy(x => x.ID).ToList();
+            var services = booking.BookingServices?
+                .Where(x => x.ServiceManagement != null && !string.IsNullOrWhiteSpace(x.ServiceManagement.ServiceName))
+                .OrderBy(x => x.ServiceManagement.ServiceName)
+                .ToList() ?? new List<BookingService>();
+
+            return new StylistDashboardBookingDto
+            {
+                BookingId = booking.ID,
+                CustomerId = booking.CustomerID,
+                CustomerName = GetPersonName(booking.Customer?.Person),
+                CustomerPhoneNumber = booking.Customer?.Person?.PhoneNumber ?? "",
+                BookingDate = booking.BookingDate,
+                BookingDateText = booking.BookingDate.ToShamsiString().Split(' ')[0],
+                BookingTime = booking.BookingDate.ToString("HH:mm"),
+                Services = string.Join("، ", services.Select(x => x.ServiceManagement.ServiceName).Distinct()),
+                ServiceIds = services.Select(x => x.ServiceManagementID).Distinct().ToList(),
+                Status = GetBookingStatusLabel(booking.Status, booking.IsCancelled),
+                IsCancelled = booking.IsCancelled,
+                TotalAmount = payments.Sum(x => x.TotalServiceAmount),
+                PaidAmount = payments.Sum(x => x.PayedAmount),
+                RemainAmount = payments.Sum(x => x.RemainAmount),
+                StylistAmount = payments.Sum(x => x.StylistAmount)
+            };
+        }
+
         private static decimal AllocateBookingAmountToService(Booking booking, BookingService bookingService, List<StylistService> stylistServices, decimal amount)
         {
             if (amount == 0 || booking.BookingServices == null || !booking.BookingServices.Any())
@@ -535,6 +620,7 @@ namespace NobatPlusDATA.DataLayer.Services
                 "1" => "در انتظار",
                 "3" => "عدم حضور",
                 "4" => "انجام شده",
+                "5" => "مرخصی",
                 _ => string.IsNullOrWhiteSpace(status) ? "بدون وضعیت" : status
             };
         }
