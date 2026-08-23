@@ -1,4 +1,4 @@
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using NobatPlusDATA.DataLayer.Repositories;
 using NobatPlusDATA.Domain;
 using NobatPlusDATA.ResultObjects;
@@ -103,6 +103,39 @@ namespace NobatPlusDATA.DataLayer.Services
                     })
                     .ToListAsync();
 
+                var completedBookingServices = bookings
+                    .Where(x => !x.IsCancelled && x.Status == "4")
+                    .SelectMany(b => b.BookingServices.Select(bs => new
+                    {
+                        BookingID = b.ID,
+                        bs.ServiceManagementID,
+                        bs.ServiceManagement
+                    }))
+                    .ToList();
+
+                var completedBookingIds = completedBookingServices
+                    .Select(x => x.BookingID)
+                    .Distinct()
+                    .ToList();
+
+                var completedPaymentDetails = await _context.PaymentDetails
+                    .AsNoTracking()
+                    .Include(x => x.Payment)
+                    .Include(x => x.ServiceManagement)
+                    .Where(x =>
+                        x.StylistID == stylistId &&
+                        completedBookingIds.Contains(x.BookingID) &&
+                        (x.Payment.PaymentFinished || x.Payment.PayedAmount > 0))
+                    .Select(x => new
+                    {
+                        x.BookingID,
+                        x.ServiceManagementID,
+                        ServiceName = x.ServiceManagement.ServiceName,
+                        Revenue = x.StylistServiceAmount - x.DiscountAmount,
+                        x.DiscountAmount
+                    })
+                    .ToListAsync();
+
                 var report = new StylistDashboardReport();
 
                 report.TodayBookings = todayBookings
@@ -143,19 +176,19 @@ namespace NobatPlusDATA.DataLayer.Services
                     .OrderByDescending(x => x.Count)
                     .ToList();
 
-                report.ServicePerformance = bookings
-                    .SelectMany(b => b.BookingServices.Select(bs => new { Booking = b, BookingService = bs }))
-                    .GroupBy(x => x.BookingService.ServiceManagementID)
+                report.ServicePerformance = completedBookingServices
+                    .GroupBy(x => x.ServiceManagementID)
                     .Select(g =>
                     {
                         var service = stylistServices.FirstOrDefault(x => x.ServiceManagementID == g.Key);
-                        var revenue = g.Sum(x => GetAllocatedServiceRevenue(x.Booking, x.BookingService, stylistServices));
-                        var discountAmount = g.Sum(x => GetAllocatedServiceDiscount(x.Booking, x.BookingService, stylistServices));
+                        var detailRows = completedPaymentDetails.Where(x => x.ServiceManagementID == g.Key).ToList();
+                        var revenue = detailRows.Sum(x => x.Revenue);
+                        var discountAmount = detailRows.Sum(x => x.DiscountAmount);
 
                         return new ServicePerformanceDto
                         {
                             ServiceId = g.Key,
-                            ServiceName = service?.ServiceManagement?.ServiceName ?? g.First().BookingService.ServiceManagement?.ServiceName ?? "نامشخص",
+                            ServiceName = service?.ServiceManagement?.ServiceName ?? g.First().ServiceManagement?.ServiceName ?? detailRows.FirstOrDefault()?.ServiceName ?? "نامشخص",
                             BookingCount = g.Count(),
                             Revenue = revenue,
                             AveragePrice = g.Count() == 0 ? 0 : revenue / g.Count(),
