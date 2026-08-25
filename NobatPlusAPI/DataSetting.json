@@ -1,8 +1,8 @@
 {
   "ConnectionStrings": {
     "publicdb": "Server=nobatix.com;Initial Catalog=nobatixc_MainDb;User ID=nobatixc_DbAdmin;Password=sn3#09tF5;MultipleActiveResultSets=True;TrustServerCertificate=True;",
-    "localdb": "Data Source =.;Initial Catalog=NobatPlusDb;Integrated Security=True;MultipleActiveResultSets=True;TrustServerCertificate=True;",
+    "localdb": "Data Source =.;Initial Catalog=nobatixc_MainDb;Integrated Security=True;MultipleActiveResultSets=True;TrustServerCertificate=True;",
     "Tokenpublicdb": "Server=nobatix.com;Initial Catalog=nobatixc_TokenDb;User ID=nobatixc_DbAdmin;Password=sn3#09tF5;MultipleActiveResultSets=True;TrustServerCertificate=True;",
-    "Tokenlocaldb": "Data Source =.;Initial Catalog=NobatPlusTokensDb;Integrated Security=True;MultipleActiveResultSets=True;TrustServerCertificate=True;"
+    "Tokenlocaldb": "Data Source =.;Initial Catalog=nobatixc_TokenDb;Integrated Security=True;MultipleActiveResultSets=True;TrustServerCertificate=True;"
   }
 }

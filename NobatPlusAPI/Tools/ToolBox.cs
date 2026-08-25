@@ -340,8 +340,9 @@ namespace NobatPlusAPI.Tools
             string clearMessage = "";
             foreach (var item in messagePatternObjs)
             {
-                clearMessage = messagePattern.Replace($"#{item.Variable.ToLower()}",item.Value);
+                messagePattern = messagePattern.Replace($"#{item.Variable.ToLower()}", item.Value);
             }
+            clearMessage = messagePattern;
             if (faNums)
             {
                 clearMessage = clearMessage.ToPersianDigits();

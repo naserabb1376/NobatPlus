@@ -180,6 +180,41 @@ namespace NobatPlusAPI.Tools
                 $"خدمت: {servicesText}\n" +
                 $"تاریخ: {row.BookingStartDate.ToShamsiString().Split(' ')[0]}\n" +
                 $"ساعت: {row.BookingStartDate:HH:mm}";
+            string rescheduledmessage = "";
+
+            var rescheduledMessageRow = await _settingRep.GetSettingRowAsync(0, "rescheduledmessage");
+
+            if (rescheduledMessageRow != null && !rescheduledMessageRow.Result.Description.Contains("-1"))
+            {
+                 rescheduledmessage = rescheduledMessageRow.Result.Value.MakeMessageOnPattern(new List<ToolBox.MessagePatternObj>
+                            {
+                                new ToolBox.MessagePatternObj
+                                {
+                                    Variable = "customerfirstname",
+                                    Value = customerName
+                                },
+                                 new ToolBox.MessagePatternObj
+                                {
+                                    Variable = "servicename",
+                                    Value = servicesText
+                                },
+                                  new ToolBox.MessagePatternObj
+                                {
+                                    Variable = "stylistname",
+                                    Value = stylistName
+                                },
+                                 new ToolBox.MessagePatternObj
+                                {
+                                    Variable = "bookingdate",
+                                    Value = row.BookingStartDate.ToShamsiString().Split(' ')[0]
+                                },
+                                 new ToolBox.MessagePatternObj
+                                {
+                                    Variable = "bookingtime",
+                                    Value =row.BookingStartDate.ToString("HH:mm")
+                    }
+                            });
+            }
 
             var message = eventType switch
             {
@@ -193,11 +228,7 @@ namespace NobatPlusAPI.Tools
                     $"{customerName}، برای نوبت زیر عدم حضور ثبت شد.\n{bookingDetails}\n" +
                     "برای دریافت نوبت جدید وارد نوبتیکس شوید: https://nobatix.com/",
                 "rescheduled" =>
-                    $"{customerName}، زمان نوبت شما جابه‌جا شد.\n" +
-                    (previousBookingDate.HasValue
-                        ? $"زمان قبلی: {previousBookingDate.Value.ToShamsiString().Split(' ')[0]} ساعت {previousBookingDate.Value:HH:mm}\n"
-                        : "") +
-                    $"زمان جدید:\n{bookingDetails}",
+                   rescheduledmessage,
                 _ => string.Empty
             };
 
