@@ -123,6 +123,7 @@ namespace NobatPlusAPI.Controllers
                 SlotIntervalMinutes = requestBody.SlotIntervalMinutes,
                 BookingCreationMode = requestBody.BookingCreationMode ?? "automatic",
                 SlotDisplayMode = requestBody.SlotDisplayMode ?? "all",
+                IsActive = requestBody.IsActive,
             };
             var result = await _StylistRep.AddStylistAsync(Stylist);
             if (result.Status)
@@ -188,6 +189,7 @@ namespace NobatPlusAPI.Controllers
                 SlotIntervalMinutes = requestBody.SlotIntervalMinutes,
                 BookingCreationMode = requestBody.BookingCreationMode ?? theRow.Result.BookingCreationMode,
                 SlotDisplayMode = requestBody.SlotDisplayMode ?? theRow.Result.SlotDisplayMode,
+                IsActive = requestBody.IsActive,
             };
             result = await _StylistRep.EditStylistAsync(Stylist);
             if (result.Status)

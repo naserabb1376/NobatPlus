@@ -150,7 +150,7 @@ namespace NobatPlusAPI.Controllers
                     {
 
                         var messageRow = await _SettingRep.GetSettingRowAsync(0, "StylistLeaveMessage");
-                        if (messageRow != null && !messageRow.Result.Description.Contains("-1"))
+                        if (messageRow != null && messageRow.Result.IsActive)
                         {
                             var message = messageRow.Result.Value.MakeMessageOnPattern(new List<ToolBox.MessagePatternObj>
                             {
@@ -370,7 +370,7 @@ namespace NobatPlusAPI.Controllers
                 try
                 {
                     var messageRow = await _SettingRep.GetSettingRowAsync(0, "StylistLeaveMessage");
-                    if (messageRow != null && !messageRow.Result.Description.Contains("-1"))
+                    if (messageRow != null && messageRow.Result.IsActive)
                     {
                         var messagex = messageRow.Result.Value.MakeMessageOnPattern(new List<ToolBox.MessagePatternObj>
         {

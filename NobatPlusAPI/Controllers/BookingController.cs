@@ -289,7 +289,15 @@ namespace NobatPlusAPI.Controllers
 
             if (result.Status)
             {
-                ScheduleBookingReminders(result.ID, requestBody.BookingDate);
+                if (!requestBody.IsCancelled && requestBody.Status == "4")
+                {
+                    BackgroundJob.Enqueue<JobManager>(job =>
+                        job.ScheduleBookingFollowUpMessages(result.ID));
+                }
+                else
+                {
+                    ScheduleBookingReminders(result.ID, requestBody.BookingDate);
+                }
                 #region AddLog
 
                 Log log = new Log()
@@ -391,6 +399,18 @@ namespace NobatPlusAPI.Controllers
                 {
                     BackgroundJob.Enqueue<JobManager>(job =>
                         job.SendBookingStatusMessage(result.ID, bookingEvent, theRow.Result.BookingStartDate));
+
+                    if (bookingEvent == "completed")
+                    {
+                        BackgroundJob.Enqueue<JobManager>(job =>
+                            job.ScheduleBookingFollowUpMessages(result.ID));
+                    }
+
+                    if (bookingEvent == "cancelled" || bookingEvent == "no-show")
+                    {
+                        BackgroundJob.Enqueue<JobManager>(job =>
+                            job.CancelBookingScheduledMessages(result.ID));
+                    }
                 }
 
                 #region AddLog
