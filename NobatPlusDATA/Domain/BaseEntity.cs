@@ -16,5 +16,8 @@ namespace Domains
 
         [Display(Name = "توضیحات")]
         public string? Description { get; set; }
+
+        [Display(Name = "وضعیت فعال")]
+        public bool IsActive { get; set; } = true;
     }
 }

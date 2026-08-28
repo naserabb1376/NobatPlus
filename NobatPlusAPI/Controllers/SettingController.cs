@@ -117,6 +117,7 @@ namespace NobatPlusAPI.Controllers
                 Value = requestBody.Value,
                 ParentId = requestBody.ParentId,
                 Description = requestBody.Description,
+                IsActive = requestBody.IsActive,
                 //OtherLangs = requestBody.OtherLangs ?? "",
 
             };
@@ -178,6 +179,7 @@ namespace NobatPlusAPI.Controllers
                 Value = requestBody.Value,
                 ParentId = requestBody.ParentId,
                 Description = requestBody.Description,
+                IsActive = requestBody.IsActive,
                 //OtherLangs = requestBody.OtherLangs ?? "",
 
             };

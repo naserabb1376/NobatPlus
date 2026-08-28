@@ -414,7 +414,8 @@ namespace NobatPlusAPI.Tools
         private static readonly HashSet<string> ProviderControllers = new(StringComparer.OrdinalIgnoreCase)
         {
             "CheckAvailability", "FinancialAccount", "SocialNetwork", "StylistDashboard", "StylistPacific",
-            "StylistService", "StylistServicePriceVariant", "StylistServicePriceVariantOptionValue", "WorkTime"
+            "StylistService", "StylistServiceFollowUpSetting", "StylistServicePriceVariant",
+            "StylistServicePriceVariantOptionValue", "WorkTime"
         };
 
         private static readonly HashSet<string> SharedPanelControllers = new(StringComparer.OrdinalIgnoreCase)
@@ -422,6 +423,7 @@ namespace NobatPlusAPI.Tools
             "Address", "Booking", "BookingService", "BookingServiceOptionValue", "Customer", "FileCenter",
             "Image", "Notification", "Payment", "PaymentBooking", "PaymentDetail", "PaymentDetailOptionValue",
             "PaymentHistory", "Person", "RateHistory", "RateQuestion", "Review", "ServiceDiscount",
+            "BookingScheduledMessage",
             "SupportTicket", "Stylist"
         };
 

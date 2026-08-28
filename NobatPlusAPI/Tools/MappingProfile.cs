@@ -294,6 +294,22 @@ namespace NobatPlusAPI.Tools
 .ForMember(dest => dest.PersonFullName, opt => opt.MapFrom(src => src.Person.FirstName + " " + src.Person.LastName))
           ;
 
+            CreateMap<StylistServiceFollowUpSetting, StylistServiceFollowUpSettingVM>()
+.ForMember(dest => dest.ServiceName, opt => opt.MapFrom(src => src.ServiceManagement != null ? src.ServiceManagement.ServiceName : ""))
+.ForMember(dest => dest.SalonName, opt => opt.MapFrom(src => src.Stylist != null ? src.Stylist.StylistName : ""))
+.ForMember(dest => dest.StylistName, opt => opt.MapFrom(src => src.Stylist != null && src.Stylist.Person != null ? src.Stylist.Person.FirstName + " " + src.Stylist.Person.LastName : ""));
+
+            CreateMap<BookingScheduledMessage, BookingScheduledMessageVM>()
+.ForMember(dest => dest.CustomerName, opt => opt.MapFrom(src => src.Customer.Person.FirstName + " " + src.Customer.Person.LastName))
+.ForMember(dest => dest.CustomerPhoneNumber, opt => opt.MapFrom(src => src.Customer.Person.PhoneNumber))
+.ForMember(dest => dest.SalonName, opt => opt.MapFrom(src => src.Stylist.StylistName))
+.ForMember(dest => dest.StylistName, opt => opt.MapFrom(src => src.Stylist.Person.FirstName + " " + src.Stylist.Person.LastName))
+.ForMember(dest => dest.ServiceName, opt => opt.MapFrom(src => src.ServiceManagement != null ? src.ServiceManagement.ServiceName : ""))
+.ForMember(dest => dest.FollowUpSettingIsActive, opt => opt.MapFrom(src => src.StylistServiceFollowUpSetting != null && src.StylistServiceFollowUpSetting.IsActive))
+.ForMember(dest => dest.BookingDate, opt => opt.MapFrom(src => src.Booking.BookingDate))
+.ForMember(dest => dest.MessageTypeTitle, opt => opt.MapFrom(src => src.MessageType == 1 ? "مراقبت بعد از خدمت" : src.MessageType == 2 ? "یادآوری ترمیم" : "نامشخص"))
+.ForMember(dest => dest.StatusTitle, opt => opt.MapFrom(src => src.Status == 0 ? "در انتظار" : src.Status == 1 ? "ارسال شده" : src.Status == 2 ? "ناموفق" : src.Status == 3 ? "لغو شده" : "نامشخص"));
+
 
             CreateMap<SMSMessage, SMSMessageVM>()
 .ForMember(dest => dest.PersonFullName, opt => opt.MapFrom(src => src.Person.FirstName + " " + src.Person.LastName))

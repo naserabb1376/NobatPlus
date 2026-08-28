@@ -75,6 +75,8 @@ namespace NobatPlusDATA.DataLayer
         public DbSet<Role> Roles { get; set; }
         public DbSet<StylistPacific> StylistPacifics { get; set; }
         public DbSet<Setting> Settings { get; set; }
+        public DbSet<StylistServiceFollowUpSetting> StylistServiceFollowUpSettings { get; set; }
+        public DbSet<BookingScheduledMessage> BookingScheduledMessages { get; set; }
 
 
         // Views
@@ -436,6 +438,114 @@ namespace NobatPlusDATA.DataLayer
                 .WithMany()
                 .HasForeignKey(ph => ph.PaymentID)
                 .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<StylistServiceFollowUpSetting>()
+                .Property(x => x.AfterCareMessageSettingKey)
+                .HasMaxLength(100);
+
+            modelBuilder.Entity<StylistServiceFollowUpSetting>()
+                .Property(x => x.RepairReminderMessageSettingKey)
+                .HasMaxLength(100);
+
+            modelBuilder.Entity<StylistServiceFollowUpSetting>()
+                .HasOne(x => x.Stylist)
+                .WithMany()
+                .HasForeignKey(x => x.StylistID)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            modelBuilder.Entity<StylistServiceFollowUpSetting>()
+                .HasOne(x => x.ServiceManagement)
+                .WithMany()
+                .HasForeignKey(x => x.ServiceManagementID)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            modelBuilder.Entity<StylistServiceFollowUpSetting>()
+                .HasOne(x => x.StylistService)
+                .WithMany()
+                .HasForeignKey(x => new { x.StylistID, x.ServiceManagementID })
+                .HasPrincipalKey(x => new { x.StylistID, x.ServiceManagementID })
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<StylistServiceFollowUpSetting>()
+                .HasOne(x => x.StylistServicePriceVariant)
+                .WithMany()
+                .HasForeignKey(x => x.StylistServicePriceVariantID)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            modelBuilder.Entity<StylistServiceFollowUpSetting>()
+                .HasIndex(x => new { x.StylistID, x.ServiceManagementID, x.StylistServicePriceVariantID })
+                .IsUnique()
+                .HasFilter("[StylistServicePriceVariantID] IS NOT NULL");
+
+            modelBuilder.Entity<StylistServiceFollowUpSetting>()
+                .HasIndex(x => new { x.StylistID, x.ServiceManagementID });
+
+            modelBuilder.Entity<BookingScheduledMessage>()
+                .Property(x => x.HangfireJobID)
+                .HasMaxLength(100);
+
+            modelBuilder.Entity<BookingScheduledMessage>()
+                .Property(x => x.ProviderMessageID)
+                .HasMaxLength(200);
+
+            modelBuilder.Entity<BookingScheduledMessage>()
+                .HasOne(x => x.Booking)
+                .WithMany()
+                .HasForeignKey(x => x.BookingID)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            modelBuilder.Entity<BookingScheduledMessage>()
+                .HasOne(x => x.Stylist)
+                .WithMany()
+                .HasForeignKey(x => x.StylistID)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            modelBuilder.Entity<BookingScheduledMessage>()
+                .HasOne(x => x.Customer)
+                .WithMany()
+                .HasForeignKey(x => x.CustomerID)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            modelBuilder.Entity<BookingScheduledMessage>()
+                .HasOne(x => x.ServiceManagement)
+                .WithMany()
+                .HasForeignKey(x => x.ServiceManagementID)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            modelBuilder.Entity<BookingScheduledMessage>()
+                .HasOne(x => x.StylistServiceFollowUpSetting)
+                .WithMany()
+                .HasForeignKey(x => x.StylistServiceFollowUpSettingID)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            modelBuilder.Entity<BookingScheduledMessage>()
+                .HasOne(x => x.StylistServicePriceVariant)
+                .WithMany()
+                .HasForeignKey(x => x.StylistServicePriceVariantID)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            modelBuilder.Entity<BookingScheduledMessage>()
+                .HasOne(x => x.SMSMessage)
+                .WithMany()
+                .HasForeignKey(x => x.SMSMessageID)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            modelBuilder.Entity<BookingScheduledMessage>()
+                .HasOne(x => x.Notification)
+                .WithMany()
+                .HasForeignKey(x => x.NotificationID)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            modelBuilder.Entity<BookingScheduledMessage>()
+                .HasIndex(x => new { x.BookingID, x.ServiceManagementID, x.StylistServicePriceVariantID, x.MessageType, x.ScheduledAt })
+                .IsUnique()
+                .HasFilter("[ServiceManagementID] IS NOT NULL");
+
+            modelBuilder.Entity<BookingScheduledMessage>()
+                .HasIndex(x => new { x.Status, x.ScheduledAt });
+
+            modelBuilder.Entity<BookingScheduledMessage>()
+                .HasIndex(x => x.StylistServiceFollowUpSettingID);
 
             modelBuilder.Entity<Wallet>()
                 .HasOne(w => w.Customer)

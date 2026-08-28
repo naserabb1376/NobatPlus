@@ -369,6 +369,37 @@ namespace NobatPlusDATA.DataLayer.Services
                     .ToListAsync();
 
                 var payments = bookings.SelectMany(GetPayments).ToList();
+                var bookingIds = bookings.Select(x => x.ID).Distinct().ToList();
+                var paymentDetails = await _context.PaymentDetails
+                    .AsNoTracking()
+                    .Include(x => x.Payment)
+                    .Where(x =>
+                        stylistIds.Contains(x.StylistID) &&
+                        bookingIds.Contains(x.BookingID) &&
+                        (x.Payment.PaymentFinished || x.Payment.PayedAmount > 0))
+                    .Select(x => new
+                    {
+                        x.PaymentID,
+                        x.BookingID,
+                        x.StylistID,
+                        NetAmount = x.StylistServiceAmount - x.DiscountAmount,
+                        x.Payment.PayedAmount,
+                        x.Payment.RemainAmount
+                    })
+                    .ToListAsync();
+
+                var paymentIds = paymentDetails.Select(x => x.PaymentID).Distinct().ToList();
+                var paymentNetAmounts = await _context.PaymentDetails
+                    .AsNoTracking()
+                    .Where(x => paymentIds.Contains(x.PaymentID))
+                    .GroupBy(x => x.PaymentID)
+                    .Select(g => new
+                    {
+                        PaymentID = g.Key,
+                        NetAmount = g.Sum(x => x.StylistServiceAmount - x.DiscountAmount)
+                    })
+                    .ToDictionaryAsync(x => x.PaymentID, x => x.NetAmount);
+
                 var report = new SalonDashboardReport();
 
                 report.BookingTrend = BuildDateRange(startDate.Date, endDate.Date)
@@ -437,7 +468,7 @@ namespace NobatPlusDATA.DataLayer.Services
                     .Select(stylist =>
                     {
                         var stylistBookings = bookings.Where(x => x.StylistID == stylist.ID).ToList();
-                        var stylistPayments = stylistBookings.SelectMany(GetPayments).ToList();
+                        var stylistPaymentDetails = paymentDetails.Where(x => x.StylistID == stylist.ID).ToList();
                         var stylistReviews = reviews.Where(x => x.StylistID == stylist.ID).ToList();
 
                         return new StylistPerformanceDto
@@ -448,9 +479,9 @@ namespace NobatPlusDATA.DataLayer.Services
                             CompletedBookingCount = stylistBookings.Count(x => !x.IsCancelled && x.Status == "4"),
                             CancelledBookingCount = stylistBookings.Count(x => x.IsCancelled),
                             CustomerCount = stylistBookings.Select(x => x.CustomerID).Distinct().Count(),
-                            Revenue = stylistPayments.Sum(x => x.StylistAmount),
-                            PaidAmount = stylistPayments.Sum(x => x.PayedAmount),
-                            RemainAmount = stylistPayments.Sum(x => x.RemainAmount),
+                            Revenue = stylistPaymentDetails.Sum(x => x.NetAmount),
+                            PaidAmount = stylistPaymentDetails.Sum(x => GetPaymentDetailAllocatedAmount(x.NetAmount, x.PayedAmount, paymentNetAmounts.GetValueOrDefault(x.PaymentID))),
+                            RemainAmount = stylistPaymentDetails.Sum(x => GetPaymentDetailAllocatedAmount(x.NetAmount, x.RemainAmount, paymentNetAmounts.GetValueOrDefault(x.PaymentID))),
                             AverageRating = stylistReviews.Any() ? (float)stylistReviews.Average(x => x.Rating) : 0,
                             CancellationPercent = stylistBookings.Count == 0 ? 0 : Math.Round(stylistBookings.Count(x => x.IsCancelled) * 100.0 / stylistBookings.Count, 1)
                         };
@@ -588,6 +619,17 @@ namespace NobatPlusDATA.DataLayer.Services
         {
             var discountAmount = GetPayments(booking).Sum(x => x.TotalServiceAmount - x.DiscountedServiceAmount);
             return AllocateBookingAmountToService(booking, bookingService, stylistServices, discountAmount);
+        }
+
+        private static decimal GetPaymentDetailAllocatedAmount(decimal detailNetAmount, decimal paymentAmount, decimal paymentNetAmount)
+        {
+            if (detailNetAmount <= 0 || paymentAmount <= 0)
+                return 0;
+
+            if (paymentNetAmount <= 0)
+                return paymentAmount;
+
+            return paymentAmount * detailNetAmount / paymentNetAmount;
         }
 
         private static StylistDashboardBookingDto BuildDashboardBookingDto(Booking booking)

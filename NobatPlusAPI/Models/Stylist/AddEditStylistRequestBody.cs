@@ -70,6 +70,10 @@ namespace NobatPlusAPI.Models.Stylist
 
         [Display(Name = "روش نمایش اسلات‌ها")]
         public string? SlotDisplayMode { get; set; } = "all";
+
+        [Display(Name = "وضعیت فعال")]
+        public bool IsActive { get; set; }
+
     }
 
     public class SignupStylistRequestBody
@@ -134,6 +138,10 @@ namespace NobatPlusAPI.Models.Stylist
 
         [Display(Name = "روش نمایش اسلات‌ها")]
         public string? SlotDisplayMode { get; set; } = "all";
+
+        [Display(Name = "وضعیت فعال")]
+        public bool IsActive { get; set; } = true;
+
 
     }
 }
