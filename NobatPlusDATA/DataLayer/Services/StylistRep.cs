@@ -287,6 +287,7 @@ namespace NobatPlusDATA.DataLayer.Services
                     {
                         ID = r.ID,
                         Description = r.Description ?? "",
+                        IsActive = r.IsActive,
                         UpdateDate = r.UpdateDate,
                         CreateDate = r.CreateDate,
                         AccountStatus = r.AccountStatus ?? "",
@@ -442,6 +443,7 @@ namespace NobatPlusDATA.DataLayer.Services
                     {
                         ID = r.ID,
                         Description = r.Description ?? "",
+                        IsActive = r.IsActive,
                         UpdateDate = r.UpdateDate,
                         CreateDate = r.CreateDate,
                         AccountStatus = r.AccountStatus ?? "",
