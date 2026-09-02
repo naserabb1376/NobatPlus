@@ -401,8 +401,16 @@ namespace NobatPlusDATA.DataLayer.Services
                                 b.Stylist.RestTime
                             )
 
-                    let effectiveDurationMinutes = b.ServiceDurationMinutesSnapshot ?? totalDurationMinutes
-                    let effectiveRestMinutes = b.RestTimeMinutesSnapshot ?? restMinutes
+                    let isManualBooking = b.Stylist.BookingCreationMode != null &&
+                        b.Stylist.BookingCreationMode.ToLower() == "manual"
+                    let manualSlotMinutes = b.Stylist.SlotIntervalMinutes >= 5 &&
+                        b.Stylist.SlotIntervalMinutes <= 240
+                            ? b.Stylist.SlotIntervalMinutes
+                            : 30
+                    let effectiveDurationMinutes = b.ServiceDurationMinutesSnapshot ??
+                        (isManualBooking ? manualSlotMinutes : totalDurationMinutes)
+                    let effectiveRestMinutes = b.RestTimeMinutesSnapshot ??
+                        (isManualBooking ? 0 : restMinutes)
 
                     orderby b.CreateDate descending
 
@@ -506,8 +514,16 @@ namespace NobatPlusDATA.DataLayer.Services
                                 )
                         ) ?? 0
 
-                    let effectiveDurationMinutes = b.ServiceDurationMinutesSnapshot ?? totalDurationMinutes
-                    let effectiveRestMinutes = b.RestTimeMinutesSnapshot ?? restMinutes
+                    let isManualBooking = b.Stylist.BookingCreationMode != null &&
+                        b.Stylist.BookingCreationMode.ToLower() == "manual"
+                    let manualSlotMinutes = b.Stylist.SlotIntervalMinutes >= 5 &&
+                        b.Stylist.SlotIntervalMinutes <= 240
+                            ? b.Stylist.SlotIntervalMinutes
+                            : 30
+                    let effectiveDurationMinutes = b.ServiceDurationMinutesSnapshot ??
+                        (isManualBooking ? manualSlotMinutes : totalDurationMinutes)
+                    let effectiveRestMinutes = b.RestTimeMinutesSnapshot ??
+                        (isManualBooking ? 0 : restMinutes)
 
                     select new BookingDTO
                     {
@@ -654,7 +670,12 @@ namespace NobatPlusDATA.DataLayer.Services
 
             var stylist = await _context.Stylists
                 .Where(x => x.ID == stylistId)
-                .Select(x => new { x.RestTime })
+                .Select(x => new
+                {
+                    x.RestTime,
+                    x.SlotIntervalMinutes,
+                    x.BookingCreationMode
+                })
                 .SingleOrDefaultAsync();
 
             if (stylist == null)
@@ -667,6 +688,11 @@ namespace NobatPlusDATA.DataLayer.Services
 
             if (serviceDurations.Select(x => x.ServiceManagementID).Distinct().Count() != serviceManagementIds.Count)
                 throw new ArgumentException("یک یا چند سرویس برای این آرایشگر تعریف نشده است.", nameof(serviceManagementIds));
+
+            if (string.Equals(stylist.BookingCreationMode, "manual", StringComparison.OrdinalIgnoreCase))
+            {
+                return (NormalizeSlotIntervalMinutes(stylist.SlotIntervalMinutes), 0);
+            }
 
             return (
                 serviceDurations
@@ -701,7 +727,14 @@ namespace NobatPlusDATA.DataLayer.Services
             if (stylist == null)
                 throw new ArgumentException("آرایشگر یافت نشد.", nameof(stylistId));
 
-            var restMinutes = newRestTimeMinutesOverride ?? GetMinutes(stylist.RestTime);
+            var isManualBooking = string.Equals(
+                stylist.BookingCreationMode,
+                "manual",
+                StringComparison.OrdinalIgnoreCase);
+            var manualSlotMinutes = NormalizeSlotIntervalMinutes(stylist.SlotIntervalMinutes);
+            var restMinutes = isManualBooking
+                ? 0
+                : newRestTimeMinutesOverride ?? GetMinutes(stylist.RestTime);
 
             var selectedServiceDurations = await _context.StylistServices.AsNoTracking()
                 .Where(ss => ss.StylistID == stylistId && serviceManagementIds.Contains(ss.ServiceManagementID))
@@ -711,22 +744,19 @@ namespace NobatPlusDATA.DataLayer.Services
             if (selectedServiceDurations.Count != serviceManagementIds.Count)
                 throw new ArgumentException("یک یا چند سرویس برای این آرایشگر تعریف نشده است.", nameof(serviceManagementIds));
 
-            var newDurationMinutes = newServiceDurationMinutesOverride ?? selectedServiceDurations.Sum(GetMinutes);
+            var newDurationMinutes = isManualBooking
+                ? manualSlotMinutes
+                : newServiceDurationMinutesOverride ?? selectedServiceDurations.Sum(GetMinutes);
             var newServiceEnd = newStart.AddMinutes(newDurationMinutes);
             var newBlockEnd = newServiceEnd.AddMinutes(restMinutes);
 
             await EnsureBookingIsInsideWorkTimeAsync(stylistId, newStart, newServiceEnd);
-            // Smart/automatic slots are calculated from the real end of the previous
-            // booking, so their start time is not necessarily aligned to a fixed grid.
-            // Only fixed-interval ("manual") mode uses the grid generated by the UI.
-            if (validateSlotAlignment &&
-                string.Equals(stylist.BookingCreationMode, "manual", StringComparison.OrdinalIgnoreCase))
+            if (validateSlotAlignment && isManualBooking)
             {
                 await EnsureBookingStartMatchesFixedIntervalAsync(
                     stylistId,
                     newStart,
-                    stylist.SlotIntervalMinutes,
-                    restMinutes);
+                    manualSlotMinutes);
             }
             await EnsureBookingIsOutsideStylistPacificAsync(stylistId, newStart, newBlockEnd);
 
@@ -746,7 +776,10 @@ namespace NobatPlusDATA.DataLayer.Services
                     b.StylistID,
                     b.BookingDate,
                     b.ServiceDurationMinutesSnapshot,
-                    b.RestTimeMinutesSnapshot
+                    b.RestTimeMinutesSnapshot,
+                    b.Stylist.BookingCreationMode,
+                    b.Stylist.SlotIntervalMinutes,
+                    b.Stylist.RestTime
                 })
                 .ToListAsync();
 
@@ -754,8 +787,6 @@ namespace NobatPlusDATA.DataLayer.Services
                 return false;
 
             var existingBookingIds = existingBookings.Select(x => x.ID).ToList();
-            var existingStylistIds = existingBookings.Select(x => x.StylistID).Distinct().ToList();
-
             var existingServiceRows = await (
                 from bs in _context.BookingServices.AsNoTracking()
                 join b in _context.Bookings.AsNoTracking() on bs.BookingID equals b.ID
@@ -776,25 +807,24 @@ namespace NobatPlusDATA.DataLayer.Services
                     x => x.Key,
                     x => x.Sum(row => GetMinutes(row.ServiceDuration)));
 
-            var restByStylistId = await _context.Stylists.AsNoTracking()
-                .Where(s => existingStylistIds.Contains(s.ID))
-                .Select(s => new { s.ID, s.RestTime })
-                .ToDictionaryAsync(x => x.ID, x => GetMinutes(x.RestTime));
-
             // تداخل دوطرفه: بازه‌ی نوبت جدید [newStart, newBlockEnd) با بازه‌ی هر نوبت موجود
             // [existingBooking.BookingDate, existingEnd) همپوشانی داشته باشد؛ کافی نیست فقط لحظه‌ی
             // شروع نوبت جدید داخل بازه‌ی نوبت موجود بیفتد، چون نوبت موجود هم می‌تواند وسط بازه‌ی نوبت جدید شروع شود.
             return existingBookings.Any(existingBooking =>
             {
+                var existingIsManual = string.Equals(
+                    existingBooking.BookingCreationMode,
+                    "manual",
+                    StringComparison.OrdinalIgnoreCase);
                 var existingDuration = existingBooking.ServiceDurationMinutesSnapshot ??
-                    (durationByBookingId.TryGetValue(existingBooking.ID, out var duration)
-                        ? duration
-                        : 0);
+                    (existingIsManual
+                        ? NormalizeSlotIntervalMinutes(existingBooking.SlotIntervalMinutes)
+                        : durationByBookingId.TryGetValue(existingBooking.ID, out var duration)
+                            ? duration
+                            : 0);
 
                 var existingRest = existingBooking.RestTimeMinutesSnapshot ??
-                    (restByStylistId.TryGetValue(existingBooking.StylistID, out var rest)
-                        ? rest
-                        : 0);
+                    (existingIsManual ? 0 : GetMinutes(existingBooking.RestTime));
 
                 var existingEnd = existingBooking.BookingDate.AddMinutes(existingDuration + existingRest);
                 return newStart < existingEnd && existingBooking.BookingDate < newBlockEnd;
@@ -828,15 +858,8 @@ namespace NobatPlusDATA.DataLayer.Services
         private async Task EnsureBookingStartMatchesFixedIntervalAsync(
             long stylistId,
             DateTime start,
-            int configuredIntervalMinutes,
-            int restMinutes)
+            int intervalMinutes)
         {
-            var intervalMinutes = configuredIntervalMinutes is >= 5 and <= 240
-                ? configuredIntervalMinutes
-                : 30;
-            var normalizedRestMinutes = Math.Max(0, restMinutes);
-            var stepMinutes = intervalMinutes + normalizedRestMinutes;
-
             var workTimes = await _context.WorkTimes.AsNoTracking()
                 .Where(x => x.StylistID == stylistId)
                 .ToListAsync();
@@ -851,9 +874,9 @@ namespace NobatPlusDATA.DataLayer.Services
                 return;
 
             var minutesFromWorkStart = (startTime - matchingWindow.WorkStartTime).TotalMinutes;
-            var remainder = minutesFromWorkStart % stepMinutes;
+            var remainder = minutesFromWorkStart % intervalMinutes;
             var isAligned = Math.Abs(remainder) < 0.001 ||
-                            Math.Abs(remainder - stepMinutes) < 0.001;
+                            Math.Abs(remainder - intervalMinutes) < 0.001;
 
             if (!isAligned)
             {
@@ -1037,6 +1060,13 @@ namespace NobatPlusDATA.DataLayer.Services
         private static int GetMinutes(TimeSpan time)
         {
             return Convert.ToInt32(time.TotalMinutes);
+        }
+
+        private static int NormalizeSlotIntervalMinutes(int configuredIntervalMinutes)
+        {
+            return configuredIntervalMinutes is >= 5 and <= 240
+                ? configuredIntervalMinutes
+                : 30;
         }
 
         private static bool MatchDayOfWeek(string dayName, DayOfWeek dayOfWeek)
