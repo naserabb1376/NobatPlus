@@ -35,10 +35,13 @@ namespace NobatPlusAPI.Models.BookingScheduledMessage
         public long? NotificationID { get; set; }
         public bool IsActive { get; set; } = true;
         public string? Description { get; set; }
+        public string? AfterCareInstructions { get; set; }
     }
 
     public class ScheduleBookingMessagesRequestBody
     {
         public long BookingID { get; set; }
+        public string? AfterCareInstructions { get; set; }
+
     }
 }

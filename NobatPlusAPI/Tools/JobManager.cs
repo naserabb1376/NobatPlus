@@ -368,7 +368,7 @@ namespace NobatPlusAPI.Tools
             #endregion
         }
 
-        public async Task ScheduleBookingFollowUpMessages(long bookingId)
+        public async Task ScheduleBookingFollowUpMessages(long bookingId,string? afterCareInstructions)
         {
             var bookingRow = await _BookingRep.GetBookingByIdAsync(bookingId);
             var booking = bookingRow.Result;
@@ -413,7 +413,8 @@ namespace NobatPlusAPI.Tools
                         serviceSetting,
                         BookingScheduledMessageType.AfterCare,
                         booking.BookingEndDate.AddMinutes(serviceSetting.AfterCareDelayMinutes.Value),
-                        serviceSetting.AfterCareMessageSettingKey);
+                        serviceSetting.AfterCareMessageSettingKey,
+                        afterCareInstructions);
                 }
 
                 if (serviceSetting.RepairEnabled &&
@@ -431,7 +432,8 @@ namespace NobatPlusAPI.Tools
                         serviceSetting,
                         BookingScheduledMessageType.RepairReminder,
                         reminderDate,
-                        serviceSetting.RepairReminderMessageSettingKey);
+                        serviceSetting.RepairReminderMessageSettingKey
+                        ,afterCareInstructions);
                 }
             }
         }
@@ -546,7 +548,8 @@ namespace NobatPlusAPI.Tools
             StylistServiceFollowUpSetting followUpSetting,
             BookingScheduledMessageType messageType,
             DateTime scheduledAt,
-            string messageSettingKey)
+            string messageSettingKey,
+            string? afterCareInstructions)
         {
             if (!followUpSetting.IsActive)
                 return;
@@ -583,6 +586,7 @@ namespace NobatPlusAPI.Tools
                 Status = (byte)BookingScheduledMessageStatus.Pending,
                 IsActive = true,
                 RetryCount = 0,
+                AfterCareInstructions = afterCareInstructions,
                 Description = $"booking-scheduled-message:{booking.ID}:{service.ServiceID}:{(byte)messageType}:{scheduledAt.Ticks}"
             });
 

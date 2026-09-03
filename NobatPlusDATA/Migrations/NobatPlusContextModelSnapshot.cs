@@ -459,6 +459,9 @@ namespace NobatPlusDATA.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("ID"));
 
+                    b.Property<string>("AfterCareInstructions")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<long>("BookingID")
                         .HasColumnType("bigint");
 
