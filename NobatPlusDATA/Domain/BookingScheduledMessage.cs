@@ -12,6 +12,7 @@ namespace NobatPlusDATA.Domain
         public long? StylistServicePriceVariantID { get; set; }
         public byte MessageType { get; set; }
         public string MessageText { get; set; } = "";
+        public string? AfterCareInstructions { get; set; }
         public DateTime ScheduledAt { get; set; }
         public byte Status { get; set; }
         public DateTime? SentAt { get; set; }
