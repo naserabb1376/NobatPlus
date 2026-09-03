@@ -409,8 +409,7 @@ namespace NobatPlusDATA.DataLayer.Services
                             : 30
                     let effectiveDurationMinutes = b.ServiceDurationMinutesSnapshot ??
                         (isManualBooking ? manualSlotMinutes : totalDurationMinutes)
-                    let effectiveRestMinutes = b.RestTimeMinutesSnapshot ??
-                        (isManualBooking ? 0 : restMinutes)
+                    let effectiveRestMinutes = b.RestTimeMinutesSnapshot ?? restMinutes
 
                     orderby b.CreateDate descending
 
@@ -522,8 +521,7 @@ namespace NobatPlusDATA.DataLayer.Services
                             : 30
                     let effectiveDurationMinutes = b.ServiceDurationMinutesSnapshot ??
                         (isManualBooking ? manualSlotMinutes : totalDurationMinutes)
-                    let effectiveRestMinutes = b.RestTimeMinutesSnapshot ??
-                        (isManualBooking ? 0 : restMinutes)
+                    let effectiveRestMinutes = b.RestTimeMinutesSnapshot ?? restMinutes
 
                     select new BookingDTO
                     {
@@ -691,7 +689,9 @@ namespace NobatPlusDATA.DataLayer.Services
 
             if (string.Equals(stylist.BookingCreationMode, "manual", StringComparison.OrdinalIgnoreCase))
             {
-                return (NormalizeSlotIntervalMinutes(stylist.SlotIntervalMinutes), 0);
+                return (
+                    NormalizeSlotIntervalMinutes(stylist.SlotIntervalMinutes),
+                    GetMinutes(stylist.RestTime));
             }
 
             return (
@@ -732,9 +732,7 @@ namespace NobatPlusDATA.DataLayer.Services
                 "manual",
                 StringComparison.OrdinalIgnoreCase);
             var manualSlotMinutes = NormalizeSlotIntervalMinutes(stylist.SlotIntervalMinutes);
-            var restMinutes = isManualBooking
-                ? 0
-                : newRestTimeMinutesOverride ?? GetMinutes(stylist.RestTime);
+            var restMinutes = newRestTimeMinutesOverride ?? GetMinutes(stylist.RestTime);
 
             var selectedServiceDurations = await _context.StylistServices.AsNoTracking()
                 .Where(ss => ss.StylistID == stylistId && serviceManagementIds.Contains(ss.ServiceManagementID))
@@ -756,7 +754,8 @@ namespace NobatPlusDATA.DataLayer.Services
                 await EnsureBookingStartMatchesFixedIntervalAsync(
                     stylistId,
                     newStart,
-                    manualSlotMinutes);
+                    manualSlotMinutes,
+                    restMinutes);
             }
             await EnsureBookingIsOutsideStylistPacificAsync(stylistId, newStart, newBlockEnd);
 
@@ -824,7 +823,7 @@ namespace NobatPlusDATA.DataLayer.Services
                             : 0);
 
                 var existingRest = existingBooking.RestTimeMinutesSnapshot ??
-                    (existingIsManual ? 0 : GetMinutes(existingBooking.RestTime));
+                    GetMinutes(existingBooking.RestTime);
 
                 var existingEnd = existingBooking.BookingDate.AddMinutes(existingDuration + existingRest);
                 return newStart < existingEnd && existingBooking.BookingDate < newBlockEnd;
@@ -858,8 +857,11 @@ namespace NobatPlusDATA.DataLayer.Services
         private async Task EnsureBookingStartMatchesFixedIntervalAsync(
             long stylistId,
             DateTime start,
-            int intervalMinutes)
+            int intervalMinutes,
+            int restMinutes)
         {
+            var stepMinutes = intervalMinutes + Math.Max(0, restMinutes);
+
             var workTimes = await _context.WorkTimes.AsNoTracking()
                 .Where(x => x.StylistID == stylistId)
                 .ToListAsync();
@@ -874,14 +876,15 @@ namespace NobatPlusDATA.DataLayer.Services
                 return;
 
             var minutesFromWorkStart = (startTime - matchingWindow.WorkStartTime).TotalMinutes;
-            var remainder = minutesFromWorkStart % intervalMinutes;
+            var remainder = minutesFromWorkStart % stepMinutes;
             var isAligned = Math.Abs(remainder) < 0.001 ||
-                            Math.Abs(remainder - intervalMinutes) < 0.001;
+                            Math.Abs(remainder - stepMinutes) < 0.001;
 
             if (!isAligned)
             {
                 throw new InvalidOperationException(
-                    $"زمان شروع نوبت باید مطابق بازه ثابت {intervalMinutes} دقیقه‌ای آرایشگر باشد.");
+                    $"زمان شروع نوبت باید مطابق فاصله {stepMinutes} دقیقه‌ای " +
+                    $"({intervalMinutes} دقیقه نوبت و {Math.Max(0, restMinutes)} دقیقه استراحت) باشد.");
             }
         }
 
