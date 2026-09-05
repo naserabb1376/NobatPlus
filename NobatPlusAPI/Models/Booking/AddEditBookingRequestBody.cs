@@ -38,8 +38,6 @@ namespace NobatPlusAPI.Models.Booking
 
         public string? Description { get; set; }
 
-        public string? AfterCareInstructions { get; set; }
-
         [Display(Name = "ثبت نوبت به عنوان مشتری")]
         public bool ViewAsCustomer { get; set; } = false;
 

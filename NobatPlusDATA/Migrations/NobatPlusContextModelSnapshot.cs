@@ -17,7 +17,7 @@ namespace NobatPlusDATA.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "10.0.3")
+                .HasAnnotation("ProductVersion", "10.0.5")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
@@ -458,9 +458,6 @@ namespace NobatPlusDATA.Migrations
                         .HasColumnType("bigint");
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("ID"));
-
-                    b.Property<string>("AfterCareInstructions")
-                        .HasColumnType("nvarchar(max)");
 
                     b.Property<long>("BookingID")
                         .HasColumnType("bigint");
@@ -2180,6 +2177,9 @@ namespace NobatPlusDATA.Migrations
 
                     b.Property<bool>("AfterCareEnabled")
                         .HasColumnType("bit");
+
+                    b.Property<string>("AfterCareInstructions")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("AfterCareMessageSettingKey")
                         .HasMaxLength(100)
