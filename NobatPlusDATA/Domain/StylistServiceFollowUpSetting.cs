@@ -17,6 +17,7 @@ namespace NobatPlusDATA.Domain
         public bool AfterCareEnabled { get; set; }
         public int? AfterCareDelayMinutes { get; set; }
         public string? AfterCareMessageSettingKey { get; set; }
+        public string? AfterCareInstructions { get; set; }
 
         public Stylist Stylist { get; set; }
         public ServiceManagement ServiceManagement { get; set; }

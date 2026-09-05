@@ -149,6 +149,7 @@ namespace NobatPlusAPI.Controllers
                 AfterCareEnabled = requestBody.AfterCareEnabled,
                 AfterCareDelayMinutes = requestBody.AfterCareDelayMinutes,
                 AfterCareMessageSettingKey = requestBody.AfterCareMessageSettingKey,
+                AfterCareInstructions = requestBody.AfterCareInstructions,
                 IsActive = requestBody.IsActive,
                 Description = requestBody.Description
             };

@@ -29,6 +29,7 @@ namespace NobatPlusAPI.Models.StylistServiceFollowUpSetting
         public bool AfterCareEnabled { get; set; }
         public int? AfterCareDelayMinutes { get; set; }
         public string? AfterCareMessageSettingKey { get; set; }
+        public string? AfterCareInstructions { get; set; }
         public bool IsActive { get; set; } = true;
         public string? Description { get; set; }
     }

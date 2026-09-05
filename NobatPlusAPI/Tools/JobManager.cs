@@ -368,7 +368,7 @@ namespace NobatPlusAPI.Tools
             #endregion
         }
 
-        public async Task ScheduleBookingFollowUpMessages(long bookingId,string? afterCareInstructions)
+        public async Task ScheduleBookingFollowUpMessages(long bookingId)
         {
             var bookingRow = await _BookingRep.GetBookingByIdAsync(bookingId);
             var booking = bookingRow.Result;
@@ -413,8 +413,7 @@ namespace NobatPlusAPI.Tools
                         serviceSetting,
                         BookingScheduledMessageType.AfterCare,
                         booking.BookingEndDate.AddMinutes(serviceSetting.AfterCareDelayMinutes.Value),
-                        serviceSetting.AfterCareMessageSettingKey,
-                        afterCareInstructions);
+                        serviceSetting.AfterCareMessageSettingKey);
                 }
 
                 if (serviceSetting.RepairEnabled &&
@@ -432,8 +431,7 @@ namespace NobatPlusAPI.Tools
                         serviceSetting,
                         BookingScheduledMessageType.RepairReminder,
                         reminderDate,
-                        serviceSetting.RepairReminderMessageSettingKey
-                        ,afterCareInstructions);
+                        serviceSetting.RepairReminderMessageSettingKey);
                 }
             }
         }
@@ -548,8 +546,7 @@ namespace NobatPlusAPI.Tools
             StylistServiceFollowUpSetting followUpSetting,
             BookingScheduledMessageType messageType,
             DateTime scheduledAt,
-            string messageSettingKey,
-            string? afterCareInstructions)
+            string messageSettingKey)
         {
             if (!followUpSetting.IsActive)
                 return;
@@ -586,7 +583,6 @@ namespace NobatPlusAPI.Tools
                 Status = (byte)BookingScheduledMessageStatus.Pending,
                 IsActive = true,
                 RetryCount = 0,
-                AfterCareInstructions = afterCareInstructions,
                 Description = $"booking-scheduled-message:{booking.ID}:{service.ServiceID}:{(byte)messageType}:{scheduledAt.Ticks}"
             });
 
@@ -638,6 +634,13 @@ namespace NobatPlusAPI.Tools
                 new ToolBox.MessagePatternObj { Variable = "scheduleddate", Value = scheduledAt.ToShamsiString().Split(' ')[0] },
                 new ToolBox.MessagePatternObj { Variable = "scheduledtime", Value = scheduledAt.ToString("HH:mm") },
                 new ToolBox.MessagePatternObj { Variable = "repairdate", Value = repairDate?.ToShamsiString().Split(' ')[0] ?? "" },
+                new ToolBox.MessagePatternObj
+                {
+                    Variable = "aftercareinstructions",
+                    Value = messageType == BookingScheduledMessageType.AfterCare
+                        ? followUpSetting.AfterCareInstructions ?? ""
+                        : ""
+                },
                 new ToolBox.MessagePatternObj { Variable = "messagetype", Value = messageType == BookingScheduledMessageType.AfterCare ? "مراقبت بعد از خدمت" : "یادآوری ترمیم" }
             });
         }

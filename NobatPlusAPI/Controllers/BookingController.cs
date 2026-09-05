@@ -292,7 +292,7 @@ namespace NobatPlusAPI.Controllers
                 if (!requestBody.IsCancelled && requestBody.Status == "4")
                 {
                     BackgroundJob.Enqueue<JobManager>(job =>
-                        job.ScheduleBookingFollowUpMessages(result.ID,requestBody.AfterCareInstructions));
+                        job.ScheduleBookingFollowUpMessages(result.ID));
                 }
                 else
                 {
@@ -403,7 +403,7 @@ namespace NobatPlusAPI.Controllers
                     if (bookingEvent == "completed")
                     {
                         BackgroundJob.Enqueue<JobManager>(job =>
-                            job.ScheduleBookingFollowUpMessages(result.ID,requestBody.AfterCareInstructions));
+                            job.ScheduleBookingFollowUpMessages(result.ID));
                     }
 
                     if (bookingEvent == "cancelled" || bookingEvent == "no-show")

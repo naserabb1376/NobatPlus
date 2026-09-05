@@ -143,7 +143,7 @@ namespace NobatPlusAPI.Controllers
             if (!ModelState.IsValid)
                 return BadRequest(requestBody);
 
-            var jobId = BackgroundJob.Enqueue<JobManager>(job => job.ScheduleBookingFollowUpMessages(requestBody.BookingID,requestBody.AfterCareInstructions));
+            var jobId = BackgroundJob.Enqueue<JobManager>(job => job.ScheduleBookingFollowUpMessages(requestBody.BookingID));
             await AddLogAsync();
 
             return Ok(new BitResultObject
@@ -196,7 +196,6 @@ namespace NobatPlusAPI.Controllers
                 SMSMessageID = requestBody.SMSMessageID,
                 NotificationID = requestBody.NotificationID,
                 IsActive = requestBody.IsActive,
-                AfterCareInstructions = requestBody.AfterCareInstructions,
                 Description = requestBody.Description
             };
         }

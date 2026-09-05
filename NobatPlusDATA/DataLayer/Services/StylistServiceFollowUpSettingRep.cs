@@ -122,6 +122,7 @@ namespace NobatPlusDATA.DataLayer.Services
                 {
                     query = query.Where(x =>
                         (!string.IsNullOrEmpty(x.AfterCareMessageSettingKey) && x.AfterCareMessageSettingKey.Contains(searchText)) ||
+                        (!string.IsNullOrEmpty(x.AfterCareInstructions) && x.AfterCareInstructions.Contains(searchText)) ||
                         (!string.IsNullOrEmpty(x.RepairReminderMessageSettingKey) && x.RepairReminderMessageSettingKey.Contains(searchText)) ||
                         (!string.IsNullOrEmpty(x.Description) && x.Description.Contains(searchText)) ||
                         (x.ServiceManagement != null && x.ServiceManagement.ServiceName.Contains(searchText)) ||
