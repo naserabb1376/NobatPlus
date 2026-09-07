@@ -87,7 +87,7 @@ namespace NobatPlusAPI.Controllers
                 }
             }
 
-            var result = await _CustomerRep.GetAllCustomersAsync(requestBody.StylistId, requestBody.CityId, requestBody.DiscountId, requestBody.PageIndex, requestBody.PageSize, requestBody.SearchText, requestBody.SortQuery, requestBody.IsActive);
+            var result = await _CustomerRep.GetAllCustomersAsync(requestBody.StylistId, requestBody.CityId, requestBody.DiscountId, requestBody.PageIndex, requestBody.PageSize, requestBody.SearchText, requestBody.SortQuery);
             if (result.Status)
             {
                 var resultVM = _mapper.Map<ListResultObject<CustomerVM>>(result);
@@ -114,7 +114,7 @@ namespace NobatPlusAPI.Controllers
                 if (stylistId <= 0) return Forbid();
             }
 
-            var result = await _CustomerRep.GetAllCustomersAsync(stylistId, 0, 0, requestBody.PageIndex, requestBody.PageSize, requestBody.SearchText, requestBody.SortQuery, null);
+            var result = await _CustomerRep.GetAllCustomersAsync(stylistId, 0, 0, requestBody.PageIndex, requestBody.PageSize, requestBody.SearchText, requestBody.SortQuery);
             if (result.Status)
             {
                 var resultVM = _mapper.Map<ListResultObject<CustomerVM>>(result);
@@ -163,8 +163,7 @@ namespace NobatPlusAPI.Controllers
                 requestBody.PageIndex,
                 requestBody.PageSize,
                 requestBody.SearchText,
-                requestBody.SortQuery,
-                requestBody.IsActive);
+                requestBody.SortQuery);
 
             if (result.Status)
             {

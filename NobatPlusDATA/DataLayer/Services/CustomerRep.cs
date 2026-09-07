@@ -100,11 +100,10 @@ namespace NobatPlusDATA.DataLayer.Services
        int pageIndex = 1,
        int pageSize = 20,
        string searchText = "",
-       string sortQuery = "",
-       bool? isActive = null)
+       string sortQuery = "")
         {
             var stylistIds = stylistId > 0 ? new List<long> { stylistId } : new List<long>();
-            return await GetAllCustomersByStylistIdsAsync(stylistIds, cityId, discountId, pageIndex, pageSize, searchText, sortQuery, isActive);
+            return await GetAllCustomersByStylistIdsAsync(stylistIds, cityId, discountId, pageIndex, pageSize, searchText, sortQuery);
         }
 
         public async Task<ListResultObject<CustomerDTO>> GetAllCustomersByStylistIdsAsync(
@@ -114,8 +113,7 @@ namespace NobatPlusDATA.DataLayer.Services
        int pageIndex = 1,
        int pageSize = 20,
        string searchText = "",
-       string sortQuery = "",
-       bool? isActive = null)
+       string sortQuery = "")
         {
             ListResultObject<CustomerDTO> results = new ListResultObject<CustomerDTO>();
 
@@ -169,10 +167,7 @@ namespace NobatPlusDATA.DataLayer.Services
                     query = query.Where(x => x.Person.Address.CityID == cityId);
                 }
 
-                if (isActive.HasValue)
-                {
-                    query = query.Where(x => x.Person.IsActive == isActive.Value);
-                }
+               
 
                 // فیلتر جستجو
                 if (!string.IsNullOrEmpty(searchText))
