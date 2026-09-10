@@ -29,7 +29,6 @@ namespace NobatPlusDATA.Domain
         public Address? Address { get; set; }
         public string? NaCode { get; set; }
         public long PermissionsVersion { get; set; } = 1;
-        public bool IsActive { get; set; }
         public DateTime DateOfBirth { get; set; }
 
         public ICollection<Notification> Notifications { get; set; }

@@ -634,6 +634,9 @@ namespace NobatPlusAPI.Tools
                 new ToolBox.MessagePatternObj { Variable = "scheduleddate", Value = scheduledAt.ToShamsiString().Split(' ')[0] },
                 new ToolBox.MessagePatternObj { Variable = "scheduledtime", Value = scheduledAt.ToString("HH:mm") },
                 new ToolBox.MessagePatternObj { Variable = "repairdate", Value = repairDate?.ToShamsiString().Split(' ')[0] ?? "" },
+                new ToolBox.MessagePatternObj { Variable = "aftercaretext",  Value = messageType == BookingScheduledMessageType.AfterCare
+                        ? followUpSetting.AfterCareInstructions ?? ""
+                        : "" },
                 new ToolBox.MessagePatternObj
                 {
                     Variable = "aftercareinstructions",
