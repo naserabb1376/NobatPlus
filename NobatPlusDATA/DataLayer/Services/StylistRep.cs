@@ -317,7 +317,7 @@ namespace NobatPlusDATA.DataLayer.Services
                         SlotIntervalMinutes = r.SlotIntervalMinutes,
                         BookingCreationMode = r.BookingCreationMode ?? "automatic",
                         SlotDisplayMode = r.SlotDisplayMode ?? "all",
-
+                        
                         StylistImagePath =
                             _context.Images.Any(x =>
                                 x.EntityType.ToLower() == "stylist" &&
@@ -556,7 +556,7 @@ namespace NobatPlusDATA.DataLayer.Services
                             .Select(b => b.CustomerID)
                             .Distinct()
                             .Count(),
-
+                        
                         IsOnLeaveNow = _context.StylistPacifics
                             .Any(p =>
                                 p.StylistID == r.ID &&

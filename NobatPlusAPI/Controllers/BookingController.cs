@@ -61,43 +61,6 @@ namespace NobatPlusAPI.Controllers
                 return BadRequest(requestBody);
             }
 
-            var roleId = User.GetCurrentRoleId();
-            if (roleId == (long)DbTools.BaseRole.Customer)
-            {
-                var currentCustomerId = await GetCurrentCustomerIdAsync();
-                if (currentCustomerId <= 0) return Forbid();
-                requestBody.CustomerId = currentCustomerId;
-            }
-            else if (roleId == (long)DbTools.BaseRole.Stylist)
-            {
-                if (requestBody.ViewAsCustomer)
-                {
-                    var currentCustomerId = await GetCurrentCustomerIdAsync();
-                    if (currentCustomerId <= 0) return Forbid();
-                    requestBody.CustomerId = currentCustomerId;
-                    requestBody.StylistId = 0;
-                }
-                else
-                {
-                    var currentStylistId = await GetCurrentStylistIdAsync();
-                    if (currentStylistId <= 0) return Forbid();
-                    requestBody.StylistId = currentStylistId;
-                }
-            }
-            else if (roleId == (long)DbTools.BaseRole.Salon)
-            {
-                var currentStylistId = await GetCurrentStylistIdAsync();
-                if (currentStylistId <= 0) return Forbid();
-                if (requestBody.StylistId > 0)
-                {
-                    if (!await CanAccessStylistAsync(requestBody.StylistId)) return Forbid();
-                }
-                else
-                {
-                    requestBody.StylistId = currentStylistId;
-                }
-            }
-
             result = await _BookingRep.GetAllBookingsAsync(requestBody.ServiceId,requestBody.CustomerId,requestBody.StylistId,requestBody.CancelState,requestBody.FromDate,requestBody.ToDate, requestBody.PageIndex, requestBody.PageSize, requestBody.SearchText, requestBody.SortQuery, requestBody.Status);
             if (result.Status)
             {

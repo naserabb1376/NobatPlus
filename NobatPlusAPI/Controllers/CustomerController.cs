@@ -66,27 +66,6 @@ namespace NobatPlusAPI.Controllers
                 return BadRequest(requestBody);
             }
 
-            var roleId = User.GetCurrentRoleId();
-            if (roleId == (long)DbTools.BaseRole.Stylist)
-            {
-                var currentStylistId = await GetCurrentStylistIdAsync();
-                if (currentStylistId <= 0) return Forbid();
-                requestBody.StylistId = currentStylistId;
-            }
-            else if (roleId == (long)DbTools.BaseRole.Salon)
-            {
-                var currentStylistId = await GetCurrentStylistIdAsync();
-                if (currentStylistId <= 0) return Forbid();
-                if (requestBody.StylistId > 0)
-                {
-                    if (!await CanAccessStylistAsync(requestBody.StylistId)) return Forbid();
-                }
-                else
-                {
-                    requestBody.StylistId = currentStylistId;
-                }
-            }
-
             var result = await _CustomerRep.GetAllCustomersAsync(requestBody.StylistId, requestBody.CityId, requestBody.DiscountId, requestBody.PageIndex, requestBody.PageSize, requestBody.SearchText, requestBody.SortQuery);
             if (result.Status)
             {

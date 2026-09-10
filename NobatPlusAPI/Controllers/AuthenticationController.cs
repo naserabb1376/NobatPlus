@@ -1,5 +1,4 @@
-﻿
-using Domain;
+﻿using Domain;
 using Domains;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Http;
@@ -143,7 +142,7 @@ namespace NobatPlusAPI.Controllers
 #if DEBUG
                 if (authenticationRequestBody.LoginType <= 0)
                 {
-                    authenticationRequestBody.UserName = "09134566305";
+                    authenticationRequestBody.UserName = "09136857124";
                     authenticationRequestBody.Password = "569022mt";
                     authenticationRequestBody.LoginType = 1;
                 }

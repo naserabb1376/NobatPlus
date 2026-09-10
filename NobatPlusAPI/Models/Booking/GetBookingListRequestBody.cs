@@ -25,9 +25,6 @@ namespace NobatPlusAPI.Models.Booking
 
         [Display(Name = "تا تاریخ")]
         public DateTime? ToDate { get; set; } = null;
-
-        [Display(Name = "مشاهده به عنوان مشتری")]
-        public bool ViewAsCustomer { get; set; } = false;
     }
 
 }
