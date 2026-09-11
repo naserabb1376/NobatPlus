@@ -1,4 +1,5 @@
-﻿using Domains;
+﻿using Domain;
+using Domains;
 
 namespace NobatPlusDATA.ViewModels
 {
@@ -19,6 +20,7 @@ namespace NobatPlusDATA.ViewModels
         public string CustomerName { get; set; }
         public string CustomerPhoneNumber { get; set; }
         public List<BookingSelectedServiceVM>? Services { get; set; }
+        public Address? StylistAddress { get; set; }
 
     }
 
