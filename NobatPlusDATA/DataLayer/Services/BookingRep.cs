@@ -314,12 +314,13 @@ namespace NobatPlusDATA.DataLayer.Services
                 {
                     bookingsQuery = _context.BookingServices
                         .Where(bs => bs.ServiceManagementID == serviceManagementId)
-                        .Select(bs => bs.Booking)
+                        .Select(bs => bs.Booking).Include(b=> b.Stylist).ThenInclude(b=> b.Person).ThenInclude(b=> b.Address)
                         .AsNoTracking();
                 }
                 else
                 {
-                    bookingsQuery = _context.Bookings.AsNoTracking();
+                    bookingsQuery = _context.Bookings.Include(b => b.Stylist).ThenInclude(b => b.Person).ThenInclude(b => b.Address)
+                        .AsNoTracking();
                 }
 
                 if (customerId > 0)
@@ -440,6 +441,7 @@ namespace NobatPlusDATA.DataLayer.Services
                         CancelReason = b.CancelReason,
 
                         Stylist = b.Stylist,
+                        StylistAddress = b.Stylist.Person.Address,
                         Customer = b.Customer,
                         Services = b.BookingServices.Select(bs => new BookingServiceSelectionDTO
                         {
@@ -480,7 +482,7 @@ namespace NobatPlusDATA.DataLayer.Services
             try
             {
                 var bookingQuery = _context.Bookings
-                    .Include(x => x.Stylist).ThenInclude(x => x.Person)
+                    .Include(x => x.Stylist).ThenInclude(x => x.Person).ThenInclude(b=> b.Address)
                     .Include(x => x.Customer).ThenInclude(x => x.Person)
                     .AsNoTracking()
                     .Where(x => x.ID == bookingId);
@@ -528,7 +530,7 @@ namespace NobatPlusDATA.DataLayer.Services
                         ID = b.ID,
                         StylistID = b.StylistID,
                         CustomerID = b.CustomerID,
-
+                        StylistAddress = b.Stylist.Person.Address,
                         CreateDate = b.CreateDate,
                         UpdateDate = b.UpdateDate,
                         Description = b.Description,

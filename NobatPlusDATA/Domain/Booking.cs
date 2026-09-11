@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Domain;
 using Domains;
 
 namespace NobatPlusDATA.Domain
@@ -40,6 +41,7 @@ namespace NobatPlusDATA.Domain
         public string CancelReason { get; set; }
 
         public Stylist Stylist { get; set; }
+        public Address? StylistAddress { get; set; }
         public Customer Customer { get; set; }
         public List<BookingServiceSelectionDTO>? Services { get; set; }
     }
