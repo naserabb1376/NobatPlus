@@ -140,7 +140,7 @@ namespace NobatPlusAPI.Models.Stylist
         public string? SlotDisplayMode { get; set; } = "all";
 
         [Display(Name = "وضعیت فعال")]
-        public bool IsActive { get; set; } = true;
+        public bool IsActive { get; set; } = false;
 
 
     }

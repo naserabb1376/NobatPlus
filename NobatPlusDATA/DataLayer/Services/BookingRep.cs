@@ -46,7 +46,8 @@ namespace NobatPlusDATA.DataLayer.Services
                     Booking.BookingDate,
                     bookingServiceIds,
                     newServiceDurationMinutesOverride: Booking.ServiceDurationMinutesSnapshot,
-                    newRestTimeMinutesOverride: Booking.RestTimeMinutesSnapshot);
+                    newRestTimeMinutesOverride: Booking.RestTimeMinutesSnapshot,
+                   bookingIsCanceled: Booking.IsCancelled);
 
                 if (hasConfilict)
                 {
@@ -126,7 +127,8 @@ namespace NobatPlusDATA.DataLayer.Services
                     Booking.ID,
                     bookingTimeChanged,
                     Booking.ServiceDurationMinutesSnapshot,
-                    Booking.RestTimeMinutesSnapshot);
+                    Booking.RestTimeMinutesSnapshot,
+                     bookingIsCanceled: Booking.IsCancelled);
 
                 if (hasConfilict)
                 {
@@ -711,8 +713,13 @@ namespace NobatPlusDATA.DataLayer.Services
     long bookingId = 0,
     bool validateSlotAlignment = true,
     int? newServiceDurationMinutesOverride = null,
-    int? newRestTimeMinutesOverride = null)
+    int? newRestTimeMinutesOverride = null,
+            bool bookingIsCanceled = false)
         {
+            if (bookingIsCanceled)
+            {
+                return false;
+            }
             if (serviceManagementIds == null || serviceManagementIds.Count == 0)
                 throw new ArgumentException("حداقل یک سرویس باید انتخاب شود.", nameof(serviceManagementIds));
 
@@ -1006,6 +1013,7 @@ namespace NobatPlusDATA.DataLayer.Services
                 // نوبت‌های Status==5 که در بازه این مرخصی قرار دارند
                 var candidates = await _context.Bookings
                     .Include(x => x.Customer).ThenInclude(x => x.Person)
+                    .Include(x => x.Stylist)
                     .Where(x =>
                         x.StylistID == stylistId &&
                         !x.IsCancelled &&
@@ -1044,7 +1052,10 @@ namespace NobatPlusDATA.DataLayer.Services
                     StylistID = booking.StylistID,
                     CustomerID = booking.CustomerID,
                     BookingStartDate = booking.BookingDate,
+                    BookingEndDate = booking.BookingDate.AddMinutes(
+                        booking.ServiceDurationMinutesSnapshot ?? 30),
                     Status = booking.Status,
+                    Stylist = booking.Stylist,
                     Customer = booking.Customer,
                 }).ToList();
                 result.TotalCount = result.Results.Count;

@@ -127,7 +127,7 @@ namespace NobatPlusAPI.Controllers
                 return BadRequest(result);
             }
 
-            if (theBooking.Result.CustomerID != customer.ID || theBooking.Result.Status.Trim() != "4")
+            if ((theBooking.Result != null) && (theBooking.Result.CustomerID != customer.ID || theBooking.Result.Status.Trim() != "4"))
             {
                 result.Status = false;
                 result.ErrorMessage = "شما اجازه ثبت بازخورد درباره این نوبت را ندارید";
@@ -137,10 +137,10 @@ namespace NobatPlusAPI.Controllers
             {
                 CreateDate = DateTime.Now.ToShamsi(),
                 UpdateDate = DateTime.Now.ToShamsi(),
-                BookingID = requestBody.BookingID,
+                BookingID = requestBody.BookingID == 0 ? null : requestBody.BookingID,
                 Comments = requestBody.Comments,
                 CustomerID = requestBody.CustomerID,
-                StylistID = theBooking.Result.StylistID,
+                StylistID = requestBody.StylistID,
                 DislikeCount = requestBody.DislikeCount,
                 LikeCount = requestBody.LikeCount,
                 Rating = requestBody.Rating,
@@ -242,7 +242,7 @@ namespace NobatPlusAPI.Controllers
                 return BadRequest(result);
             }
 
-            if (theBooking.Result.CustomerID != requestBody.CustomerID || theBooking.Result.Status.Trim() != "4")
+            if ((theBooking.Result != null) && (theBooking.Result.CustomerID != customer.ID || theBooking.Result.Status.Trim() != "4"))
             {
                 result.Status = false;
                 result.ErrorMessage = "شما اجازه ثبت بازخورد درباره این نوبت را ندارید";
@@ -254,10 +254,10 @@ namespace NobatPlusAPI.Controllers
                 CreateDate = theRow.Result.CreateDate,
                 UpdateDate = DateTime.Now.ToShamsi(),
                 ID = requestBody.ID,
-                BookingID = requestBody.BookingID,
+                BookingID = requestBody.BookingID == 0 ? null : requestBody.BookingID,
                 Comments = requestBody.Comments,
                 CustomerID = requestBody.CustomerID,
-                StylistID = theBooking.Result.StylistID,
+                StylistID = requestBody.StylistID,
                 DislikeCount = requestBody.DislikeCount,
                 LikeCount = requestBody.LikeCount,
                 Rating = requestBody.Rating,

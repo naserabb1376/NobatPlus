@@ -75,7 +75,7 @@ namespace NobatPlusDATA.DataLayer.Services
 
                 var reviews = await _context.Reviews
                     .AsNoTracking()
-                    .Where(x => bookingIds.Contains(x.BookingID))
+                    .Where(x => bookingIds.Contains(x.BookingID.Value))
                     .ToListAsync();
 
                 var settlementRequests = await _context.SettlementRequests

@@ -1563,7 +1563,7 @@ namespace NobatPlusDATA.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("ID"));
 
-                    b.Property<long>("BookingID")
+                    b.Property<long?>("BookingID")
                         .HasColumnType("bigint");
 
                     b.Property<string>("Comments")
@@ -3111,9 +3111,7 @@ namespace NobatPlusDATA.Migrations
                 {
                     b.HasOne("NobatPlusDATA.Domain.Booking", "Booking")
                         .WithMany("Reviews")
-                        .HasForeignKey("BookingID")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("BookingID");
 
                     b.HasOne("NobatPlusDATA.Domain.Customer", "Customer")
                         .WithMany("Reviews")

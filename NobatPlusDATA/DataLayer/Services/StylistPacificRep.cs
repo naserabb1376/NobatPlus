@@ -6,6 +6,7 @@ using NobatPlusDATA.ResultObjects;
 using NobatPlusDATA.Tools;
 using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Linq;
 using System.Reflection.Metadata;
 using System.Text;
@@ -28,20 +29,33 @@ namespace NobatPlusDATA.DataLayer.Services
             try
             {
                 if (StylistPacific.PacificEndDate <= StylistPacific.PacificStartDate)
-                    throw new InvalidOperationException("زمان پایان مرخصی باید بعد از زمان شروع باشد.");
+                {
+                    result.Status = false;
+                    result.ErrorMessage = "زمان پایان مرخصی باید بعد از زمان شروع باشد.";
+                    return result;
+                }
 
-                var overlaps = await _context.StylistPacifics
+                await using var transaction = await _context.Database.BeginTransactionAsync(IsolationLevel.Serializable);
+
+                var overlappingLeave = await _context.StylistPacifics
                     .AsNoTracking()
-                    .AnyAsync(x =>
+                    .Where(x =>
                         x.StylistID == StylistPacific.StylistID &&
                         x.PacificStartDate < StylistPacific.PacificEndDate &&
-                        x.PacificEndDate > StylistPacific.PacificStartDate);
+                        x.PacificEndDate > StylistPacific.PacificStartDate)
+                    .OrderBy(x => x.PacificStartDate)
+                    .FirstOrDefaultAsync();
 
-                if (overlaps)
-                    throw new InvalidOperationException("این بازه با مرخصی دیگری تداخل دارد.");
+                if (overlappingLeave != null)
+                {
+                    result.Status = false;
+                    result.ErrorMessage = BuildOverlapErrorMessage(overlappingLeave);
+                    return result;
+                }
 
                 await _context.StylistPacifics.AddAsync(StylistPacific);
                 await _context.SaveChangesAsync();
+                await transaction.CommitAsync();
                 result.ID = StylistPacific.ID;
                 _context.Entry(StylistPacific).State = EntityState.Detached;
             }
@@ -60,21 +74,34 @@ namespace NobatPlusDATA.DataLayer.Services
             try
             {
                 if (StylistPacific.PacificEndDate <= StylistPacific.PacificStartDate)
-                    throw new InvalidOperationException("زمان پایان مرخصی باید بعد از زمان شروع باشد.");
+                {
+                    result.Status = false;
+                    result.ErrorMessage = "زمان پایان مرخصی باید بعد از زمان شروع باشد.";
+                    return result;
+                }
 
-                var overlaps = await _context.StylistPacifics
+                await using var transaction = await _context.Database.BeginTransactionAsync(IsolationLevel.Serializable);
+
+                var overlappingLeave = await _context.StylistPacifics
                     .AsNoTracking()
-                    .AnyAsync(x =>
+                    .Where(x =>
                         x.ID != StylistPacific.ID &&
                         x.StylistID == StylistPacific.StylistID &&
                         x.PacificStartDate < StylistPacific.PacificEndDate &&
-                        x.PacificEndDate > StylistPacific.PacificStartDate);
+                        x.PacificEndDate > StylistPacific.PacificStartDate)
+                    .OrderBy(x => x.PacificStartDate)
+                    .FirstOrDefaultAsync();
 
-                if (overlaps)
-                    throw new InvalidOperationException("این بازه با مرخصی دیگری تداخل دارد.");
+                if (overlappingLeave != null)
+                {
+                    result.Status = false;
+                    result.ErrorMessage = BuildOverlapErrorMessage(overlappingLeave);
+                    return result;
+                }
 
                 _context.StylistPacifics.Update(StylistPacific);
                 await _context.SaveChangesAsync();
+                await transaction.CommitAsync();
                 result.ID = StylistPacific.ID;
                 _context.Entry(StylistPacific).State = EntityState.Detached;
             }
@@ -194,6 +221,13 @@ namespace NobatPlusDATA.DataLayer.Services
             }
             return result;
           
+        }
+
+        private static string BuildOverlapErrorMessage(StylistPacific overlappingLeave)
+        {
+            var start = overlappingLeave.PacificStartDate.ToShamsiString();
+            var end = overlappingLeave.PacificEndDate.ToShamsiString();
+            return $"برای این آرایشگر قبلاً از {start} تا {end} مرخصی ثبت شده است و بازه جدید با آن هم‌پوشانی دارد.".ToPersianDigits();
         }
     }
 }
