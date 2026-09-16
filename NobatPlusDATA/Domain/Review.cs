@@ -10,7 +10,7 @@ namespace NobatPlusDATA.Domain
 {
     public class Review : BaseEntity
     {
-        public long BookingID { get; set; }
+        public long? BookingID { get; set; }
         public long CustomerID { get; set; }
         public long StylistID { get; set; }
         public int Rating { get; set; }
@@ -28,14 +28,14 @@ namespace NobatPlusDATA.Domain
 
         public DateTime ReviewDate { get; set; }
 
-        public Booking Booking { get; set; }
+        public Booking? Booking { get; set; }
         public Customer Customer { get; set; }
         public Stylist Stylist { get; set; }
     }
 
     public class ReviewDto : BaseEntity
     {
-        public long BookingID { get; set; }
+        public long? BookingID { get; set; }
         public long CustomerID { get; set; }
         public long StylistID { get; set; }
         public int Rating { get; set; }

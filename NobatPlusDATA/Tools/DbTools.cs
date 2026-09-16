@@ -101,7 +101,43 @@ namespace NobatPlusDATA.Tools
             return query.OrderBy(sortingString.ToString());
         }
 
+        public static string ConvertDigits(string? text, bool toPersian)
+        {
+            if (string.IsNullOrEmpty(text))
+                return text ?? "";
 
+            var result = new StringBuilder(text.Length);
+            foreach (var ch in text)
+            {
+                result.Append(toPersian ? ToPersianDigit(ch) : ToEnglishDigit(ch));
+            }
+
+            return result.ToString();
+        }
+
+        public static string ToEnglishDigits(this string? text) => ConvertDigits(text, false);
+
+        public static string ToPersianDigits(this string? text) => ConvertDigits(text, true);
+
+        private static char ToEnglishDigit(char ch)
+        {
+            return ch switch
+            {
+                >= '۰' and <= '۹' => (char)('0' + ch - '۰'),
+                >= '٠' and <= '٩' => (char)('0' + ch - '٠'),
+                _ => ch
+            };
+        }
+
+        private static char ToPersianDigit(char ch)
+        {
+            return ch switch
+            {
+                >= '0' and <= '9' => (char)('۰' + ch - '0'),
+                >= '٠' and <= '٩' => (char)('۰' + ch - '٠'),
+                _ => ch
+            };
+        }
 
         public static string ToShamsiString(this DateTime miladiDate)
         {

@@ -7,7 +7,7 @@ namespace NobatPlusDATA.ViewModels
 {
     public class ReviewVM :BaseEntity
     {
-        public long BookingID { get; set; }
+        public long? BookingID { get; set; }
         public long StylistID { get; set; }
         public long CustomerID { get; set; }
         public string StylistName { get; set; }

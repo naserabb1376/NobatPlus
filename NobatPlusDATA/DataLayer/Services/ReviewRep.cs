@@ -300,7 +300,7 @@ namespace NobatPlusDATA.DataLayer.Services
                         .Select(review =>
                         {
                             var key = (
-                                review.BookingID,
+                                review.BookingID.Value,
                                 review.CustomerID,
                                 review.StylistID
                             );

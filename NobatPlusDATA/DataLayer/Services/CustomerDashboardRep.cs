@@ -59,7 +59,7 @@ namespace NobatPlusDATA.DataLayer.Services
 
                 var reviews = await _context.Reviews
                     .AsNoTracking()
-                    .Where(x => x.CustomerID == customer.ID && bookingIds.Contains(x.BookingID))
+                    .Where(x => x.CustomerID == customer.ID && bookingIds.Contains(x.BookingID.Value))
                     .ToListAsync();
 
                 var activeDiscountsCount = await _context.CustomerDiscounts
