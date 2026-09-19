@@ -197,7 +197,7 @@ namespace NobatPlusDATA.DataLayer.Services
                 Amount = payment?.DiscountedServiceAmount ?? payment?.TotalServiceAmount ?? 0,
                 PaidAmount = payment?.PayedAmount ?? 0,
                 RemainAmount = payment?.RemainAmount ?? 0,
-                Status = GetBookingStatusLabel(booking.Status, booking.IsCancelled),
+                Status = booking.Status, //GetBookingStatusLabel(booking.Status, booking.IsCancelled),
                 IsCancelled = booking.IsCancelled
             };
         }

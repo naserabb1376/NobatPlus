@@ -28,10 +28,11 @@ namespace NobatPlusDATA.DataLayer.Services
             BitResultObject result = new BitResultObject();
             try
             {
-                if (StylistPacific.PacificEndDate <= StylistPacific.PacificStartDate)
+                var validationError = ValidateLeavePeriod(StylistPacific);
+                if (!string.IsNullOrEmpty(validationError))
                 {
                     result.Status = false;
-                    result.ErrorMessage = "زمان پایان مرخصی باید بعد از زمان شروع باشد.";
+                    result.ErrorMessage = validationError;
                     return result;
                 }
 
@@ -73,10 +74,11 @@ namespace NobatPlusDATA.DataLayer.Services
             BitResultObject result = new BitResultObject();
             try
             {
-                if (StylistPacific.PacificEndDate <= StylistPacific.PacificStartDate)
+                var validationError = ValidateLeavePeriod(StylistPacific);
+                if (!string.IsNullOrEmpty(validationError))
                 {
                     result.Status = false;
-                    result.ErrorMessage = "زمان پایان مرخصی باید بعد از زمان شروع باشد.";
+                    result.ErrorMessage = validationError;
                     return result;
                 }
 
@@ -228,6 +230,27 @@ namespace NobatPlusDATA.DataLayer.Services
             var start = overlappingLeave.PacificStartDate.ToShamsiString();
             var end = overlappingLeave.PacificEndDate.ToShamsiString();
             return $"برای این آرایشگر قبلاً از {start} تا {end} مرخصی ثبت شده است و بازه جدید با آن هم‌پوشانی دارد.".ToPersianDigits();
+        }
+
+        private static string ValidateLeavePeriod(StylistPacific leave)
+        {
+            if (leave.PacificEndDate <= leave.PacificStartDate)
+                return "زمان پایان مرخصی باید بعد از زمان شروع باشد.";
+
+            var now = DateTime.Now.ToShamsi();
+            var startIsPast = leave.PacificStartDate < now;
+            var endIsPast = leave.PacificEndDate < now;
+
+            if (startIsPast && endIsPast)
+                return "زمان شروع و پایان مرخصی نمی‌تواند در گذشته باشد.";
+
+            if (startIsPast)
+                return "زمان شروع مرخصی نمی‌تواند در گذشته باشد.";
+
+            if (endIsPast)
+                return "زمان پایان مرخصی نمی‌تواند در گذشته باشد.";
+
+            return string.Empty;
         }
     }
 }
