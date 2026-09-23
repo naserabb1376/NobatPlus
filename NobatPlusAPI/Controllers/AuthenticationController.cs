@@ -485,7 +485,7 @@ namespace NobatPlusAPI.Controllers
                                     BookingCreationMode = signupRequestBody.stylist.BookingCreationMode ?? "automatic",
                                     SlotDisplayMode = signupRequestBody.stylist.SlotDisplayMode ?? "all",
                                     IsActive = false,
-
+                                    IsStylistOnly= signupRequestBody.stylist.IsStylistOnly,
 
                                 };
                                 result = await _stylistRep.AddStylistAsync(stylist);
