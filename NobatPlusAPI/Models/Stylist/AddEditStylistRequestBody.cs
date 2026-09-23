@@ -126,6 +126,7 @@ namespace NobatPlusAPI.Models.Stylist
         [Display(Name = "توضیحات")]
         public string? Description { get; set; }
         public bool IsWorkshop { get; set; }
+        public bool IsStylistOnly { get; set; }
 
         [Display(Name = "زمان استراحت")]
         [Required(ErrorMessage = "لطفا {0} را وارد کنید")]
