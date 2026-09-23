@@ -14,6 +14,8 @@ namespace NobatPlusAPI.Models.Log
         [Display(Name = "تاریخ لاگ")]
         [Required(ErrorMessage = "لطفا {0} را وارد کنید")]
         public DateTime LogTime { get; set; }
+        public string LogType { get; set; } = "INFO";
+        public string LogLayer { get; set; } = "Cobtroller";
         public string? Description { get; set; }
     }
 }

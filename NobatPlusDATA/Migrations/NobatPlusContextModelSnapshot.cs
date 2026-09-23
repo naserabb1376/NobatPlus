@@ -87,8 +87,16 @@ namespace NobatPlusDATA.Migrations
                     b.Property<bool>("IsActive")
                         .HasColumnType("bit");
 
+                    b.Property<string>("LogLayer")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<DateTime>("LogTime")
                         .HasColumnType("datetime2");
+
+                    b.Property<string>("LogType")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime?>("UpdateDate")
                         .HasColumnType("datetime2");
@@ -2035,6 +2043,9 @@ namespace NobatPlusDATA.Migrations
                     b.Property<bool>("IsActive")
                         .HasColumnType("bit");
 
+                    b.Property<bool>("IsStylistOnly")
+                        .HasColumnType("bit");
+
                     b.Property<bool>("IsWorkShop")
                         .HasColumnType("bit");
 
@@ -2146,6 +2157,9 @@ namespace NobatPlusDATA.Migrations
 
                     b.Property<int>("DepositPercent")
                         .HasColumnType("int");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<bool>("HasDynamicPricing")
                         .HasColumnType("bit");

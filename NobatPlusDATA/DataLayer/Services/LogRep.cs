@@ -89,6 +89,8 @@ namespace NobatPlusDATA.DataLayer.Services
                 .Where(x =>
                     (!string.IsNullOrEmpty(x.ActionName.ToString()) && x.ActionName.ToString().Contains(searchText)) ||
                     (!string.IsNullOrEmpty(x.Description.ToString()) && x.Description.ToString().Contains(searchText)) ||
+                    (!string.IsNullOrEmpty(x.LogType.ToString()) && x.LogType.ToString().Contains(searchText)) ||
+                    (!string.IsNullOrEmpty(x.LogLayer.ToString()) && x.LogLayer.ToString().Contains(searchText)) ||
                     (!string.IsNullOrEmpty(x.LogTime.ToString()) && x.LogTime.ToString().Contains(searchText)) ||
                     (x.CreateDate.HasValue && x.CreateDate.Value.ToString().Contains(searchText)) ||
                     (x.UpdateDate.HasValue && x.UpdateDate.Value.ToString().Contains(searchText))

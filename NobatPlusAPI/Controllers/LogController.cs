@@ -92,8 +92,12 @@ namespace NobatPlusAPI.Controllers
                 CreateDate = DateTime.Now.ToShamsi(),
                 UpdateDate = DateTime.Now.ToShamsi(),
                 ActionName = requestBody.ActionName,
-                LogTime= requestBody.LogTime,
+                LogTime = requestBody.LogTime,
                 Description = requestBody.Description,
+                LogLayer = requestBody.LogLayer ?? "",
+                LogType = requestBody.LogType ?? "",
+                IsActive = true
+
             };
             var result = await _LogRep.AddLogAsync(Log);
             if (result.Status)
@@ -126,6 +130,9 @@ namespace NobatPlusAPI.Controllers
                 ActionName = requestBody.ActionName,
                 LogTime = requestBody.LogTime,
                 Description = requestBody.Description,
+                LogLayer = requestBody.LogLayer ?? "",
+                LogType = requestBody.LogType ?? "",
+                IsActive = true
 
             };
             result = await _LogRep.EditLogAsync(Log);

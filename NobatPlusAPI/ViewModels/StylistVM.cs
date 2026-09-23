@@ -19,6 +19,7 @@ namespace NobatPlusDATA.ViewModels
         public string GenderAccepted { get; set; }
         public string WorkShopInteractMode { get; set; }
         public bool IsWorkShop { get; set; }
+        public bool IsStylistOnly { get; set; }
         public string AccountStatus { get; set; }
         public string PayMethod { get; set; }
         public long WorkShopRentAmount { get; set; }

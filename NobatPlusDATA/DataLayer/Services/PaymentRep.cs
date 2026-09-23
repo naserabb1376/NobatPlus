@@ -443,9 +443,9 @@ long discountId = 0
                     });
                 }
             }
-            catch (Exception ex)
+            catch
             {
-                
+                throw;
             }
 
             return results;

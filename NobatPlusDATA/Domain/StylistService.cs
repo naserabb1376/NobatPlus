@@ -18,6 +18,7 @@ namespace NobatPlusDATA.Domain
         public TimeSpan ServiceDuration { get; set; }
         public int DepositPercent { get; set; }
         public bool HasDynamicPricing { get; set; }
+        public string? Description { get; set; }
 
         public ICollection<StylistServicePriceVariant> PriceVariants { get; set; }
     }

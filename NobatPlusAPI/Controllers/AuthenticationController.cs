@@ -465,7 +465,7 @@ namespace NobatPlusAPI.Controllers
                                 {
                                     JobTypeID = signupRequestBody.stylist.JobTypeID,
                                     YearsOfExperience = signupRequestBody.stylist.YearsOfExperience,
-                                    Specialty = signupRequestBody.stylist.Specialty??"",
+                                    Specialty = signupRequestBody.stylist.Specialty ?? "",
                                     StylistParentID = signupRequestBody.stylist.StylistParentID,
                                     PersonID = person.ID,
                                     CreateDate = DateTime.Now.ToShamsi(),
@@ -475,7 +475,7 @@ namespace NobatPlusAPI.Controllers
                                     GenderAccepted = signupRequestBody.stylist.GenderAccepted ?? "",
                                     IsWorkShop = signupRequestBody.stylist.IsWorkshop,
                                     PayMethod = signupRequestBody.stylist.PayMethod ?? "",
-                                    StylistBio= signupRequestBody.stylist.StylistBio ?? "",
+                                    StylistBio = signupRequestBody.stylist.StylistBio ?? "",
                                     StylistName = signupRequestBody.stylist.StylistName ?? "",
                                     WorkShopDepositAmount = signupRequestBody.stylist.WorkShopRentAmount,
                                     WorkShopInteractMode = signupRequestBody.stylist.WorkShopInteractMode ?? "",
@@ -484,8 +484,9 @@ namespace NobatPlusAPI.Controllers
                                     SlotIntervalMinutes = signupRequestBody.stylist.SlotIntervalMinutes <= 0 ? 30 : signupRequestBody.stylist.SlotIntervalMinutes,
                                     BookingCreationMode = signupRequestBody.stylist.BookingCreationMode ?? "automatic",
                                     SlotDisplayMode = signupRequestBody.stylist.SlotDisplayMode ?? "all",
+                                    IsActive = false,
 
-                                    
+
                                 };
                                 result = await _stylistRep.AddStylistAsync(stylist);
                             }

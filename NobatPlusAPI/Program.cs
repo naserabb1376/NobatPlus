@@ -120,6 +120,7 @@ namespace NobatPlusAPI
                 //options.OutputFormatters.Add()
                 options.ReturnHttpNotAcceptable = true;
                 options.Filters.AddService<AdminAuditLogActionFilter>();
+                options.Filters.AddService<ApiExceptionLoggingFilter>();
             })
               .AddNewtonsoftJson(options =>
               {
@@ -240,7 +241,9 @@ namespace NobatPlusAPI
             builder.Services.AddScoped<IPermissionRep, PermissionRep>();
             builder.Services.AddScoped<IPermissionRoleRep, PermissionRoleRep>();
             builder.Services.AddScoped<IUserPermissionRep, UserPermissionRep>();
+            builder.Services.DecorateRepositoriesForErrorLogging();
             builder.Services.AddScoped<AdminAuditLogActionFilter>();
+            builder.Services.AddScoped<ApiExceptionLoggingFilter>();
 
             #endregion ImportDbServices
 
@@ -318,9 +321,13 @@ namespace NobatPlusAPI
 
 
             builder.Services.AddTransient<JobManager>();
+            builder.Services.AddSingleton<HangfireErrorLoggingFilter>();
 
 
             var app = builder.Build();
+
+            GlobalJobFilters.Filters.Add(
+                app.Services.GetRequiredService<HangfireErrorLoggingFilter>());
 
             //using (var scope = app.Services.CreateScope())
             //{
@@ -331,8 +338,7 @@ namespace NobatPlusAPI
 
             #region Pipeline
 
-            app.UseMiddleware<GlobalExceptionHandlingMiddleware>();
-
+            app.UseMiddleware<InfrastructureExceptionHandlingMiddleware>();
             app.UseStaticFiles();
 
             //if (app.Environment.IsDevelopment())
@@ -398,6 +404,10 @@ namespace NobatPlusAPI
 
             // IMPORTANT: after authentication
             app.UseMTPermissionCenter();
+
+            // Keep this immediately around controller execution so downstream
+            // middleware cannot convert repository/controller exceptions first.
+            app.UseMiddleware<GlobalExceptionHandlingMiddleware>();
 
             //Controller/Action/Id?
             app.UseEndpoints(endpoints =>
