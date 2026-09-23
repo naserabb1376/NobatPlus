@@ -137,7 +137,6 @@ namespace NobatPlusDATA.DataLayer.Services
                 result.ErrorMessage = $"{ex.Message} - {ex.InnerException?.Message}";
             }
             return result;
-            
         }
 
         public async Task<BitResultObject> RemoveCityAsync(City City)

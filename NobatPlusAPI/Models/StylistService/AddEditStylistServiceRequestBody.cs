@@ -29,6 +29,7 @@ namespace NobatPlusAPI.Models.StylistService
         public TimeSpan Duration { get; set; }
 
         public bool HasDynamicPricing { get; set; }
+        public string? Description { get; set; }
         public List<StylistServicePriceVariantRequestBody> PriceVariants { get; set; } = new List<StylistServicePriceVariantRequestBody>();
     }
 

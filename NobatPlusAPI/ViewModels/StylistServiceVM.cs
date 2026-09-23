@@ -21,6 +21,7 @@ namespace NobatPlusDATA.ViewModels
         public TimeSpan ServiceDuration { get; set; }
         public int DepositPercent { get; set; }
         public bool HasDynamicPricing { get; set; }
+        public string? Description { get; set; }
         public long? StylistServicePriceVariantID { get; set; }
         public List<long> AppliedOptionValueIDs { get; set; } = new();
         public string AppliedOptionSummary { get; set; } = "";

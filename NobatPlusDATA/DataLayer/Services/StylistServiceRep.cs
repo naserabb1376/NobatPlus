@@ -325,6 +325,7 @@ namespace NobatPlusDATA.DataLayer.Services
                 DepositPercent = source.DepositPercent,
                 ServiceDuration = source.ServiceDuration,
                 HasDynamicPricing = source.HasDynamicPricing,
+                Description = source.Description,
                 PriceVariants = source.PriceVariants?
                     .Select(variant => CloneVariantForReinsert(variant, updateDate))
                     .ToList() ?? new List<StylistServicePriceVariant>()
@@ -641,6 +642,9 @@ namespace NobatPlusDATA.DataLayer.Services
 
                         (x.Stylist.Specialty != null &&
                          x.Stylist.Specialty.Contains(searchText)) ||
+
+                          (x.Description != null &&
+                         x.Description.Contains(searchText)) ||
 
                         (x.Stylist.StylistName != null &&
                          x.Stylist.StylistName.Contains(searchText)) ||

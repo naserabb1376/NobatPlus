@@ -6,9 +6,8 @@ using System.Threading.Tasks;
 
 namespace NobatPlusDATA.ResultObjects
 {
-    public class RowResultObject<T>
+    public class RowResultObject<T> : ResultObjectBase
     {
-        public bool Status { get; set; } = true;
         public string ErrorMessage { get; set; } = "";
         public T Result { get; set; }
     }

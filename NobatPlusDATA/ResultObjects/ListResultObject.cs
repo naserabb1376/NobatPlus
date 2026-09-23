@@ -6,9 +6,8 @@ using System.Threading.Tasks;
 
 namespace NobatPlusDATA.ResultObjects
 {
-    public class ListResultObject<T>
+    public class ListResultObject<T> : ResultObjectBase
     {
-        public bool Status { get; set; } = true;
         public string ErrorMessage { get; set; } = "";
         public int TotalCount { get; set; } = 0;
         public int PageCount { get; set; } = 0;

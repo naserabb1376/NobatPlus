@@ -147,6 +147,7 @@ namespace NobatPlusAPI.Controllers
                 ServiceDuration = requestBody.Duration,
                 ServicePrice = requestBody.ServicePrice,
                 HasDynamicPricing = requestBody.HasDynamicPricing,
+                Description = requestBody.Description,
                 PriceVariants = BuildPriceVariants(requestBody)
             }).ToList();
 
@@ -190,6 +191,7 @@ namespace NobatPlusAPI.Controllers
                 DepositPercent = requestBody.DepositPercent,
                 ServicePrice = requestBody.ServicePrice,
                 HasDynamicPricing = requestBody.HasDynamicPricing,
+                Description = requestBody.Description,
                 PriceVariants = BuildPriceVariants(requestBody)
             }).ToList();
 
