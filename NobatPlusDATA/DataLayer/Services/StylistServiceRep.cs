@@ -214,7 +214,7 @@ namespace NobatPlusDATA.DataLayer.Services
                                         variant.OptionValues?.Select(x => x.ServiceOptionValueID));
                                     var oldVariant = oldItem.PriceVariants.FirstOrDefault(x =>
                                         (variant.ID > 0 && x.ID == variant.ID) ||
-                                        x.OptionValueCombinationKey == combinationKey);
+                                        (x.OptionValueCombinationKey == combinationKey && x.BookingTagID == variant.BookingTagID));
 
                                     variant.CreateDate = oldVariant?.CreateDate ?? now;
                                     variant.UpdateDate = now;
@@ -229,14 +229,14 @@ namespace NobatPlusDATA.DataLayer.Services
                                 .ToHashSet();
 
                             var requestedCombinationKeys = requestedVariants
-                                .Select(x => x.OptionValueCombinationKey)
-                                .Where(x => !string.IsNullOrWhiteSpace(x))
+                                .Where(x => !string.IsNullOrWhiteSpace(x.OptionValueCombinationKey))
+                                .Select(x => $"{x.OptionValueCombinationKey}:{x.BookingTagID?.ToString() ?? "null"}")
                                 .ToHashSet();
 
                             var untouchedOldVariants = oldItem.PriceVariants
                                 .Where(oldVariant =>
                                     !requestedVariantIds.Contains(oldVariant.ID) &&
-                                    !requestedCombinationKeys.Contains(oldVariant.OptionValueCombinationKey))
+                                    !requestedCombinationKeys.Contains($"{oldVariant.OptionValueCombinationKey}:{oldVariant.BookingTagID?.ToString() ?? "null"}"))
                                 .Select(variant => CloneVariantForReinsert(variant, now))
                                 .ToList();
 
@@ -303,6 +303,7 @@ namespace NobatPlusDATA.DataLayer.Services
                 Duration = source.Duration,
                 DepositPercent = source.DepositPercent,
                 IsActive = source.IsActive,
+                BookingTagID = source.BookingTagID,
                 OptionValueCombinationKey = source.OptionValueCombinationKey,
                 OptionValues = source.OptionValues
                     .Select(x => new StylistServicePriceVariantOptionValue
@@ -874,6 +875,7 @@ namespace NobatPlusDATA.DataLayer.Services
 
             var variants = await _context.StylistServicePriceVariants
                 .AsNoTracking()
+                .Include(x => x.BookingTag)
                 .Include(x => x.OptionValues)
                     .ThenInclude(x => x.ServiceOptionValue)
                     .ThenInclude(x => x.ServiceOption)
@@ -903,7 +905,10 @@ namespace NobatPlusDATA.DataLayer.Services
                     AppliedOptionSummary = string.Join("، ", optionValues.Select(x =>
                         $"{x.ServiceOptionValue.ServiceOption.OptionName}: {x.ServiceOptionValue.ValueName}")),
                     DiscountPercent = Convert.ToInt32(discountPercent),
-                    PriceAfterDiscount = priceAfterDiscount
+                    PriceAfterDiscount = priceAfterDiscount,
+                    BookingTagID = variant.BookingTagID,
+                    BookingTagTitle = variant.BookingTag?.Title ?? "",
+                    BookingTagColor = variant.BookingTag?.Color ?? ""
                 };
             }).ToList();
         }
@@ -958,28 +963,28 @@ namespace NobatPlusDATA.DataLayer.Services
             }
 
             var duplicateInput = variantList
-                .GroupBy(x => new { x.StylistID, x.ServiceManagementID, x.OptionValueCombinationKey })
+                .GroupBy(x => new { x.StylistID, x.ServiceManagementID, x.OptionValueCombinationKey, x.BookingTagID })
                 .FirstOrDefault(x => x.Count() > 1);
 
                 if (duplicateInput != null)
                     return "این خدمات قبلا ثبت شده است و تکراری است";
 
-            var keysByService = variantList
-                .GroupBy(x => new { x.StylistID, x.ServiceManagementID })
-                .ToList();
-
-            foreach (var group in keysByService)
+            foreach (var variant in variantList)
             {
-                var keys = group.Select(x => x.OptionValueCombinationKey).ToList();
                 var exists = await _context.StylistServicePriceVariants
                     .AsNoTracking()
                     .AnyAsync(x =>
-                        x.StylistID == group.Key.StylistID &&
-                        x.ServiceManagementID == group.Key.ServiceManagementID &&
-                        keys.Contains(x.OptionValueCombinationKey));
+                        x.ID != variant.ID &&
+                        x.StylistID == variant.StylistID &&
+                        x.ServiceManagementID == variant.ServiceManagementID &&
+                        x.OptionValueCombinationKey == variant.OptionValueCombinationKey &&
+                        x.BookingTagID == variant.BookingTagID);
 
                 if (exists)
                     return "این خدمات قبلا ثبت شده است و تکراری است";
+
+                if (variant.BookingTagID.HasValue && !await _context.BookingTags.AnyAsync(x => x.ID == variant.BookingTagID && x.StylistID == variant.StylistID && x.IsActive))
+                    return "برچسب انتخاب‌شده برای این آرایشگر معتبر نیست";
             }
 
             return "";
@@ -1031,7 +1036,7 @@ namespace NobatPlusDATA.DataLayer.Services
                 .Include(x => x.OptionValues)
                 .Where(x => x.StylistID == stylistId &&
                             x.ServiceManagementID == serviceManagementId &&
-                            x.IsActive)
+                            x.IsActive && x.BookingTagID == null)
                 .ToListAsync();
 
             var selected = optionValueIds.OrderBy(x => x).ToList();

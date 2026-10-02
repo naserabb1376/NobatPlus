@@ -42,5 +42,8 @@ namespace NobatPlusDATA.ViewModels
         public string AppliedOptionSummary { get; set; } = "";
         public int DiscountPercent { get; set; }
         public decimal PriceAfterDiscount { get; set; }
+        public long? BookingTagID { get; set; }
+        public string BookingTagTitle { get; set; } = "";
+        public string BookingTagColor { get; set; } = "";
     }
 }

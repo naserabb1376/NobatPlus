@@ -18,6 +18,7 @@ namespace NobatPlusAPI.Models.StylistServicePriceVariant
         public TimeSpan Duration { get; set; }
         public int DepositPercent { get; set; }
         public bool IsActive { get; set; } = true;
+        public long? BookingTagID { get; set; }
         public List<long> OptionValueIDs { get; set; } = new List<long>();
         public string? Description { get; set; }
     }

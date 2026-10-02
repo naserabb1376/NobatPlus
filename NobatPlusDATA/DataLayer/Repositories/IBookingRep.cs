@@ -18,6 +18,7 @@ namespace NobatPlusDATA.DataLayer.Repositories
         public Task<BitResultObject> RemoveBookingAsync(Booking Booking);
         public Task<BitResultObject> RemoveBookingAsync(long BookingId);
         public Task<BitResultObject> ExistBookingAsync(long BookingId);
+        public Task<ListResultObject<PublicBookingSlotDTO>> GetAvailableBookingSlotsAsync(long stylistId, long customerId, DateTime fromDate, DateTime toDate, List<BookingServiceSelectionDTO> services);
         public Task<ListResultObject<BookingDTO>> MarkBookingsForRescheduleByLeaveAsync(
             long stylistId,
             DateTime start,

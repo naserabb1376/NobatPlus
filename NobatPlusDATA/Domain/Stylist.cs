@@ -42,6 +42,8 @@ namespace NobatPlusDATA.Domain
         public ICollection<CustomerDiscount> CustomerDiscounts { get; set; }
         public ICollection<PaymentDetail> PaymentDetails { get; set; }
         public FinancialAccount FinancialAccount { get; set; }
+        public ICollection<BookingTag> BookingTags { get; set; }
+        public ICollection<StylistScheduleBlock> ScheduleBlocks { get; set; }
     }
 
     public class StylistDTO : BaseEntity

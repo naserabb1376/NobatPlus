@@ -36,8 +36,9 @@ namespace NobatPlusDATA.DataLayer.Services
                     .Distinct()
                     .ToList();
 
+                var preparedDuration = await PrepareBookingScheduleAndSnapshotsAsync(Booking);
                 var snapshot = await GetBookingDurationSnapshotAsync(Booking.StylistID, bookingServiceIds);
-                Booking.ServiceDurationMinutesSnapshot = snapshot.ServiceDurationMinutes;
+                Booking.ServiceDurationMinutesSnapshot = preparedDuration ?? snapshot.ServiceDurationMinutes;
                 Booking.RestTimeMinutesSnapshot = snapshot.RestTimeMinutes;
 
                 bool hasConfilict = await HasBookingConflictForStylistOrCustomerAsync(
@@ -93,6 +94,8 @@ namespace NobatPlusDATA.DataLayer.Services
                     .Distinct()
                     .ToList();
 
+                var preparedDuration = await PrepareBookingScheduleAndSnapshotsAsync(Booking, Booking.ID);
+
                 var previousServiceIds = previousBooking.BookingServices
                     .Select(x => x.ServiceManagementID)
                     .Where(x => x > 0)
@@ -112,8 +115,15 @@ namespace NobatPlusDATA.DataLayer.Services
                 else
                 {
                     var snapshot = await GetBookingDurationSnapshotAsync(Booking.StylistID, bookingServiceIds);
-                    Booking.ServiceDurationMinutesSnapshot = snapshot.ServiceDurationMinutes;
+                    Booking.ServiceDurationMinutesSnapshot = preparedDuration ?? snapshot.ServiceDurationMinutes;
                     Booking.RestTimeMinutesSnapshot = snapshot.RestTimeMinutes;
+                }
+
+                if (preparedDuration.HasValue)
+                {
+                    Booking.ServiceDurationMinutesSnapshot = preparedDuration.Value;
+                    Booking.RestTimeMinutesSnapshot = Convert.ToInt32((await _context.Stylists.AsNoTracking()
+                        .Where(x => x.ID == Booking.StylistID).Select(x => x.RestTime).SingleAsync()).TotalMinutes);
                 }
 
                 var bookingTimeChanged = previousBooking.StylistID != Booking.StylistID ||
@@ -441,6 +451,7 @@ namespace NobatPlusDATA.DataLayer.Services
                         Status = b.Status,
                         IsCancelled = b.IsCancelled,
                         CancelReason = b.CancelReason,
+                        ScheduleBlockID = b.ScheduleBlockID,
 
                         Stylist = b.Stylist,
                         StylistAddress = b.Stylist.Person.Address,
@@ -450,6 +461,12 @@ namespace NobatPlusDATA.DataLayer.Services
                             ServiceID = bs.ServiceManagementID,
                             ServiceName = bs.ServiceManagement.ServiceName,
                             OptionValueIDs = bs.OptionValues.Select(ov => ov.ServiceOptionValueID).ToList(),
+                            StylistServicePriceVariantID = bs.StylistServicePriceVariantID,
+                            UnitPriceSnapshot = bs.UnitPriceSnapshot,
+                            DiscountPercentSnapshot = bs.DiscountPercentSnapshot,
+                            PriceAfterDiscountSnapshot = bs.PriceAfterDiscountSnapshot,
+                            DepositPercentSnapshot = bs.DepositPercentSnapshot,
+                            DurationMinutesSnapshot = bs.DurationMinutesSnapshot,
                             OptionValues = bs.OptionValues.Select(ov => new BookingServiceOptionValueDTO
                             {
                                 ServiceOptionValueID = ov.ServiceOptionValueID,
@@ -552,6 +569,7 @@ namespace NobatPlusDATA.DataLayer.Services
                         Status = b.Status,
                         IsCancelled = b.IsCancelled,
                         CancelReason = b.CancelReason,
+                        ScheduleBlockID = b.ScheduleBlockID,
 
                         Stylist = b.Stylist,
                         Customer = b.Customer,
@@ -560,6 +578,12 @@ namespace NobatPlusDATA.DataLayer.Services
                             ServiceID = bs.ServiceManagementID,
                             ServiceName = bs.ServiceManagement.ServiceName,
                             OptionValueIDs = bs.OptionValues.Select(ov => ov.ServiceOptionValueID).ToList(),
+                            StylistServicePriceVariantID = bs.StylistServicePriceVariantID,
+                            UnitPriceSnapshot = bs.UnitPriceSnapshot,
+                            DiscountPercentSnapshot = bs.DiscountPercentSnapshot,
+                            PriceAfterDiscountSnapshot = bs.PriceAfterDiscountSnapshot,
+                            DepositPercentSnapshot = bs.DepositPercentSnapshot,
+                            DurationMinutesSnapshot = bs.DurationMinutesSnapshot,
                             OptionValues = bs.OptionValues.Select(ov => new BookingServiceOptionValueDTO
                             {
                                 ServiceOptionValueID = ov.ServiceOptionValueID,
@@ -662,6 +686,207 @@ namespace NobatPlusDATA.DataLayer.Services
             return result;
           
         }
+
+        private async Task<int?> PrepareBookingScheduleAndSnapshotsAsync(Booking booking, long excludedBookingId = 0)
+        {
+            if (booking.BookingServices == null || !booking.BookingServices.Any())
+                throw new InvalidOperationException("حداقل یک خدمت باید برای نوبت انتخاب شود.");
+
+            var stylist = await _context.Stylists.AsNoTracking()
+                .Where(x => x.ID == booking.StylistID)
+                .Select(x => new { x.BookingCreationMode, x.SlotIntervalMinutes })
+                .SingleOrDefaultAsync() ?? throw new InvalidOperationException("آرایشگر یافت نشد.");
+
+            var isScheduleMode = IsManualScheduleMode(stylist.BookingCreationMode);
+            StylistScheduleBlock? block = null;
+            if (booking.ScheduleBlockID.HasValue)
+            {
+                block = await _context.StylistScheduleBlocks
+                    .Include(x => x.StylistServicePriceVariant).ThenInclude(x => x.OptionValues)
+                    .SingleOrDefaultAsync(x => x.ID == booking.ScheduleBlockID.Value)
+                    ?? throw new InvalidOperationException("بازه زمانی انتخاب‌شده یافت نشد.");
+
+                if (block.StylistID != booking.StylistID) throw new InvalidOperationException("بازه زمانی متعلق به این آرایشگر نیست.");
+                if (!block.IsActive || !block.IsBookable) throw new InvalidOperationException("بازه زمانی انتخاب‌شده قابل رزرو نیست.");
+                if (await _context.Bookings.AnyAsync(x => x.ScheduleBlockID == block.ID && x.ID != excludedBookingId && !x.IsCancelled))
+                    throw new InvalidOperationException("این بازه زمانی قبلاً رزرو شده است.");
+
+                booking.BookingDate = block.StartDateTime;
+                if (block.ServiceManagementID.HasValue)
+                {
+                    if (booking.BookingServices.Count != 1 || booking.BookingServices.Single().ServiceManagementID != block.ServiceManagementID.Value)
+                        throw new InvalidOperationException("خدمت انتخاب‌شده با خدمت تعریف‌شده برای این بازه مطابقت ندارد.");
+                }
+            }
+            else if (isScheduleMode && !booking.IsCancelled)
+            {
+                throw new InvalidOperationException("برای این آرایشگر انتخاب بازه برنامه دستی الزامی است.");
+            }
+
+            var totalDuration = 0;
+            foreach (var bookingService in booking.BookingServices)
+            {
+                var service = await _context.StylistServices.AsNoTracking()
+                    .SingleOrDefaultAsync(x => x.StylistID == booking.StylistID && x.ServiceManagementID == bookingService.ServiceManagementID)
+                    ?? throw new InvalidOperationException("یک یا چند خدمت برای این آرایشگر تعریف نشده است.");
+
+                var optionIds = (bookingService.OptionValues ?? new List<BookingServiceOptionValue>())
+                    .Select(x => x.ServiceOptionValueID).Where(x => x > 0).Distinct().OrderBy(x => x).ToList();
+                StylistServicePriceVariant? variant = null;
+                if (block?.StylistServicePriceVariantID != null && block.ServiceManagementID == bookingService.ServiceManagementID)
+                {
+                    variant = await _context.StylistServicePriceVariants.AsNoTracking().Include(x => x.OptionValues)
+                        .SingleAsync(x => x.ID == block.StylistServicePriceVariantID.Value);
+                    var variantOptions = variant.OptionValues.Select(x => x.ServiceOptionValueID).OrderBy(x => x).ToList();
+                    if (!variantOptions.SequenceEqual(optionIds))
+                        throw new InvalidOperationException("گزینه‌های خدمت با قیمت متغیر تعریف‌شده برای این بازه مطابقت ندارند.");
+                }
+                else if (service.HasDynamicPricing)
+                {
+                    var key = StylistServicePriceVariant.BuildOptionValueCombinationKey(optionIds);
+                    variant = await _context.StylistServicePriceVariants.AsNoTracking().Include(x => x.OptionValues)
+                        .Where(x => x.StylistID == booking.StylistID && x.ServiceManagementID == bookingService.ServiceManagementID && x.OptionValueCombinationKey == key && x.IsActive && x.BookingTagID == null)
+                        .FirstOrDefaultAsync();
+                    if (variant == null) throw new InvalidOperationException("برای ترکیب گزینه‌های انتخاب‌شده قیمت فعالی تعریف نشده است.");
+                }
+
+                var basePrice = variant?.Price ?? service.ServicePrice;
+                var depositPercent = variant?.DepositPercent ?? service.DepositPercent;
+                var durationMinutes = Convert.ToInt32((variant?.Duration ?? service.ServiceDuration).TotalMinutes);
+                if (block != null && block.ServiceManagementID == bookingService.ServiceManagementID)
+                {
+                    basePrice = block.PriceOverride ?? basePrice;
+                    depositPercent = block.DepositPercentOverride ?? depositPercent;
+                }
+                var discountPercent = await GetApplicableDiscountPercentAsync(booking.StylistID, bookingService.ServiceManagementID, booking.CustomerID);
+
+                bookingService.StylistServicePriceVariantID = variant?.ID;
+                bookingService.UnitPriceSnapshot = basePrice;
+                bookingService.DiscountPercentSnapshot = discountPercent;
+                bookingService.PriceAfterDiscountSnapshot = basePrice * (1m - discountPercent / 100m);
+                bookingService.DepositPercentSnapshot = depositPercent;
+                bookingService.DurationMinutesSnapshot = durationMinutes;
+                totalDuration += durationMinutes;
+            }
+
+            if (block != null) return Math.Max(1, Convert.ToInt32((block.EndDateTime - block.StartDateTime).TotalMinutes));
+            if (string.Equals(stylist.BookingCreationMode, "manual", StringComparison.OrdinalIgnoreCase))
+                return NormalizeSlotIntervalMinutes(stylist.SlotIntervalMinutes);
+            return Math.Max(1, totalDuration);
+        }
+
+        public async Task<ListResultObject<PublicBookingSlotDTO>> GetAvailableBookingSlotsAsync(
+            long stylistId, long customerId, DateTime fromDate, DateTime toDate, List<BookingServiceSelectionDTO> services)
+        {
+            var result = new ListResultObject<PublicBookingSlotDTO>();
+            try
+            {
+                var stylist = await _context.Stylists.AsNoTracking()
+                    .Where(x => x.ID == stylistId)
+                    .Select(x => new { x.ID, x.BookingCreationMode, x.SlotDisplayMode, x.SlotIntervalMinutes, x.RestTime })
+                    .SingleOrDefaultAsync();
+                if (stylist == null) throw new InvalidOperationException("آرایشگر یافت نشد.");
+                if (IsManualScheduleMode(stylist.BookingCreationMode)) throw new InvalidOperationException("زمان‌های این آرایشگر باید از برنامه دستی دریافت شوند.");
+
+                services = services?.Where(x => x.ServiceID > 0).GroupBy(x => x.ServiceID).Select(x => x.First()).ToList() ?? new();
+                if (!services.Any()) throw new InvalidOperationException("حداقل یک خدمت برای محاسبه زمان‌های آزاد الزامی است.");
+
+                var totalDuration = 0;
+                var totalPrice = 0m;
+                var totalDiscountedPrice = 0m;
+                var depositAmount = 0m;
+                foreach (var selected in services)
+                {
+                    var service = await _context.StylistServices.AsNoTracking().SingleOrDefaultAsync(x => x.StylistID == stylistId && x.ServiceManagementID == selected.ServiceID)
+                        ?? throw new InvalidOperationException("یک یا چند خدمت برای این آرایشگر تعریف نشده است.");
+                    var price = service.ServicePrice;
+                    var duration = service.ServiceDuration;
+                    var deposit = service.DepositPercent;
+                    if (service.HasDynamicPricing)
+                    {
+                        var key = StylistServicePriceVariant.BuildOptionValueCombinationKey(selected.OptionValueIDs);
+                        var variant = await _context.StylistServicePriceVariants.AsNoTracking()
+                            .Where(x => x.StylistID == stylistId && x.ServiceManagementID == selected.ServiceID && x.OptionValueCombinationKey == key && x.IsActive && x.BookingTagID == null)
+                            .FirstOrDefaultAsync()
+                            ?? throw new InvalidOperationException("برای گزینه‌های انتخاب‌شده قیمت متغیر فعالی تعریف نشده است.");
+                        price = variant.Price; duration = variant.Duration; deposit = variant.DepositPercent;
+                    }
+                    var discount = await GetApplicableDiscountPercentAsync(stylistId, selected.ServiceID, customerId);
+                    var discounted = price * (1m - discount / 100m);
+                    totalDuration += Convert.ToInt32(duration.TotalMinutes);
+                    totalPrice += price;
+                    totalDiscountedPrice += discounted;
+                    depositAmount += discounted * deposit / 100m;
+                }
+
+                var isFixed = string.Equals(stylist.BookingCreationMode, "manual", StringComparison.OrdinalIgnoreCase);
+                if (isFixed) totalDuration = NormalizeSlotIntervalMinutes(stylist.SlotIntervalMinutes);
+                var restMinutes = Math.Max(0, Convert.ToInt32(stylist.RestTime.TotalMinutes));
+                var displayStep = isFixed ? totalDuration + restMinutes : NormalizeSlotIntervalMinutes(stylist.SlotIntervalMinutes);
+                var now = DateTime.Now.ToShamsi();
+
+                var workTimes = await _context.WorkTimes.AsNoTracking().Where(x => x.StylistID == stylistId).ToListAsync();
+                var leaves = await _context.StylistPacifics.AsNoTracking().Where(x => x.StylistID == stylistId && x.PacificStartDate < toDate && x.PacificEndDate > fromDate).ToListAsync();
+                var bookings = await _context.Bookings.AsNoTracking()
+                    .Where(x => !x.IsCancelled && (x.StylistID == stylistId || (customerId > 0 && x.CustomerID == customerId)) && x.BookingDate < toDate.AddDays(1) && x.BookingDate >= fromDate.AddDays(-1))
+                    .Select(x => new { x.BookingDate, Duration = x.ServiceDurationMinutesSnapshot ?? 30, Rest = x.RestTimeMinutesSnapshot ?? 0 }).ToListAsync();
+
+                var slots = new List<PublicBookingSlotDTO>();
+                for (var day = fromDate.Date; day <= toDate.Date; day = day.AddDays(1))
+                {
+                    var daySlots = new List<PublicBookingSlotDTO>();
+                    foreach (var work in workTimes.Where(x => MatchDayOfWeek(x.DayOfWeek, day.DayOfWeek)).OrderBy(x => x.WorkStartTime))
+                    {
+                        var cursor = day.Add(work.WorkStartTime);
+                        var workEnd = day.Add(work.WorkEndTime);
+                        while (cursor.AddMinutes(totalDuration) <= workEnd)
+                        {
+                            var serviceEnd = cursor.AddMinutes(totalDuration);
+                            var blockEnd = serviceEnd.AddMinutes(restMinutes);
+                            var inRange = cursor >= fromDate && cursor <= toDate && cursor >= now;
+                            var leaveConflict = leaves.Any(x => x.PacificStartDate < blockEnd && x.PacificEndDate > cursor);
+                            var bookingConflict = bookings.Any(x => x.BookingDate < blockEnd && x.BookingDate.AddMinutes(x.Duration + x.Rest) > cursor);
+                            if (inRange && !leaveConflict && !bookingConflict)
+                            {
+                                var discountPercent = totalPrice <= 0 ? 0 : Convert.ToInt32(Math.Round((totalPrice - totalDiscountedPrice) * 100m / totalPrice));
+                                daySlots.Add(new PublicBookingSlotDTO
+                                {
+                                    StylistID = stylistId, BookingStartDate = cursor, BookingEndDate = serviceEnd,
+                                    TotalDurationMinutes = totalDuration, TotalBlockMinutes = totalDuration + restMinutes,
+                                    ServiceIDs = services.Select(x => x.ServiceID).ToList(), BookingCreationMode = stylist.BookingCreationMode,
+                                    ServicePrice = totalPrice, DiscountPercent = discountPercent, PriceAfterDiscount = totalDiscountedPrice,
+                                    DepositPercent = totalDiscountedPrice <= 0 ? 0 : Convert.ToInt32(Math.Round(depositAmount * 100m / totalDiscountedPrice))
+                                });
+                            }
+                            cursor = cursor.AddMinutes(displayStep);
+                        }
+                    }
+                    if ((stylist.SlotDisplayMode ?? "").Contains("first", StringComparison.OrdinalIgnoreCase) && daySlots.Any())
+                        slots.Add(daySlots.OrderBy(x => x.BookingStartDate).First());
+                    else
+                        slots.AddRange(daySlots);
+                }
+                result.Results = slots.OrderBy(x => x.BookingStartDate).ToList();
+                result.TotalCount = result.Results.Count;
+                result.PageCount = result.TotalCount > 0 ? 1 : 0;
+            }
+            catch (Exception ex) { result.Status = false; result.ErrorMessage = $"{ex.Message} - {ex.InnerException?.Message}"; }
+            return result;
+        }
+
+        private async Task<int> GetApplicableDiscountPercentAsync(long stylistId, long serviceId, long customerId)
+        {
+            var now = DateTime.Now.ToShamsi();
+            var service = from sd in _context.ServiceDiscounts join d in _context.Discounts on sd.DiscountId equals d.ID where sd.ServiceManagementId == serviceId && (sd.StylistId == null || sd.StylistId <= 0 || sd.StylistId == stylistId) && d.StartDate <= now && d.EndDate >= now && !d.CodeRequired select d.DiscountAmount;
+            var customer = from cd in _context.CustomerDiscounts join d in _context.Discounts on cd.DiscountId equals d.ID where customerId > 0 && cd.CustomerId == customerId && (cd.StylistId <= 0 || cd.StylistId == stylistId) && d.StartDate <= now && d.EndDate >= now && !d.CodeRequired select d.DiscountAmount;
+            var assignment = from da in _context.DiscountAssignments join d in _context.Discounts on da.DiscountId equals d.ID where (da.StylistId == stylistId || ((da.StylistId == null || da.StylistId <= 0) && da.AdminId != null && da.AdminId > 0)) && d.StartDate <= now && d.EndDate >= now && !d.CodeRequired select d.DiscountAmount;
+            return Math.Clamp(await service.Concat(customer).Concat(assignment).Select(x => (int?)x).MaxAsync() ?? 0, 0, 100);
+        }
+
+        private static bool IsManualScheduleMode(string? mode) =>
+            string.Equals(mode, "manual-schedule", StringComparison.OrdinalIgnoreCase) ||
+            string.Equals(mode, "manualschedule", StringComparison.OrdinalIgnoreCase) ||
+            string.Equals(mode, "schedule", StringComparison.OrdinalIgnoreCase);
 
         private async Task<(int ServiceDurationMinutes, int RestTimeMinutes)> GetBookingDurationSnapshotAsync(
             long stylistId,

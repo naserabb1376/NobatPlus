@@ -136,6 +136,7 @@ namespace NobatPlusAPI.Controllers
                 Duration = requestBody.Duration,
                 DepositPercent = requestBody.DepositPercent,
                 IsActive = requestBody.IsActive,
+                BookingTagID = requestBody.BookingTagID,
                 Description = requestBody.Description,
                 OptionValueCombinationKey = StylistServicePriceVariant.BuildOptionValueCombinationKey(requestBody.OptionValueIDs),
                 OptionValues = requestBody.OptionValueIDs

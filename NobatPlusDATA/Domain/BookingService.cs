@@ -14,6 +14,14 @@ namespace NobatPlusDATA.Domain
         public long ServiceManagementID { get; set; }
         public ServiceManagement ServiceManagement { get; set; }
 
+        public long? StylistServicePriceVariantID { get; set; }
+        public decimal? UnitPriceSnapshot { get; set; }
+        public int? DiscountPercentSnapshot { get; set; }
+        public decimal? PriceAfterDiscountSnapshot { get; set; }
+        public int? DepositPercentSnapshot { get; set; }
+        public int? DurationMinutesSnapshot { get; set; }
+        public StylistServicePriceVariant? StylistServicePriceVariant { get; set; }
+
         public ICollection<BookingServiceOptionValue> OptionValues { get; set; }
     }
 

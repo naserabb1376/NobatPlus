@@ -41,6 +41,8 @@ namespace NobatPlusAPI.Models.Booking
         [Display(Name = "ثبت نوبت به عنوان مشتری")]
         public bool ViewAsCustomer { get; set; } = false;
 
+        public long? ScheduleBlockID { get; set; }
+
         public List<BookingServiceSelectionRequestBody> Services { get; set; } = new List<BookingServiceSelectionRequestBody>();
 
 

@@ -67,6 +67,7 @@ namespace NobatPlusAPI.Models.Stylist
         public int SlotIntervalMinutes { get; set; } = 30;
 
         [Display(Name = "روش ایجاد نوبت")]
+        [RegularExpression("^(automatic|manual|manual-schedule)$", ErrorMessage = "حالت ایجاد نوبت باید automatic، manual یا manual-schedule باشد")]
         public string? BookingCreationMode { get; set; } = "automatic";
 
         [Display(Name = "روش نمایش اسلات‌ها")]
@@ -136,6 +137,7 @@ namespace NobatPlusAPI.Models.Stylist
         public int SlotIntervalMinutes { get; set; } = 30;
 
         [Display(Name = "روش ایجاد نوبت")]
+        [RegularExpression("^(automatic|manual|manual-schedule)$", ErrorMessage = "حالت ایجاد نوبت باید automatic، manual یا manual-schedule باشد")]
         public string? BookingCreationMode { get; set; } = "automatic";
 
         [Display(Name = "روش نمایش اسلات‌ها")]

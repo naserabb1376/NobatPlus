@@ -394,7 +394,13 @@ long discountId = 0
                     ServicePrice = ss.ServicePrice,
                     ServiceDuration = ss.ServiceDuration,
                     DepositPercent = ss.DepositPercent,
-                    HasDynamicPricing = ss.HasDynamicPricing
+                    HasDynamicPricing = ss.HasDynamicPricing,
+                    bs.StylistServicePriceVariantID,
+                    bs.UnitPriceSnapshot,
+                    bs.DiscountPercentSnapshot,
+                    bs.PriceAfterDiscountSnapshot,
+                    bs.DepositPercentSnapshot,
+                    bs.DurationMinutesSnapshot
                 })
                     .OrderByDescending(x => x.ServiceManagementID)
                     .ToListAsync();
@@ -422,6 +428,21 @@ long discountId = 0
 
                     discountPercent = Math.Clamp(discountPercent, 0m, 100m);
 
+                    if (item.UnitPriceSnapshot.HasValue)
+                    {
+                        resolvedPricing = new ResolvedServicePricing(
+                            item.UnitPriceSnapshot.Value,
+                            item.DurationMinutesSnapshot.HasValue ? TimeSpan.FromMinutes(item.DurationMinutesSnapshot.Value) : resolvedPricing.Duration,
+                            item.DepositPercentSnapshot ?? resolvedPricing.DepositPercent,
+                            item.StylistServicePriceVariantID,
+                            resolvedPricing.OptionValueIds,
+                            resolvedPricing.OptionSummary);
+                        discountPercent = Math.Clamp(item.DiscountPercentSnapshot ?? Convert.ToInt32(discountPercent), 0, 100);
+                    }
+
+                    var priceAfterDiscount = item.PriceAfterDiscountSnapshot ??
+                        resolvedPricing.Price * (1m - (discountPercent / 100m));
+
                     results.Add(new StylistServiceWithDiscountDto
                     {
                         StylistID = item.StylistID,
@@ -439,7 +460,7 @@ long discountId = 0
                         AppliedOptionValueIDs = resolvedPricing.OptionValueIds,
                         AppliedOptionSummary = resolvedPricing.OptionSummary,
                         DiscountPercent = Convert.ToInt32(discountPercent),
-                        PriceAfterDiscount = resolvedPricing.Price * (1m - (discountPercent / 100m))
+                        PriceAfterDiscount = priceAfterDiscount
                     });
                 }
             }
@@ -479,7 +500,7 @@ long discountId = 0
                 .Include(x => x.OptionValues)
                 .Where(x => x.StylistID == stylistId &&
                             x.ServiceManagementID == serviceManagementId &&
-                            x.IsActive)
+                            x.IsActive && x.BookingTagID == null)
                 .ToListAsync();
 
             var matchedVariant = variants.FirstOrDefault(x =>

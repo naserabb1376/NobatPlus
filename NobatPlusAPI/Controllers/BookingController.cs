@@ -37,11 +37,12 @@ namespace NobatPlusAPI.Controllers
         ICustomerRep _CustomerRep;
         IStylistRep _StylistRep;
         ISettingRep _SettingRep;
+        IStylistScheduleBlockRep _StylistScheduleBlockRep;
         ILogRep _logRep;
         private readonly IMapper _mapper;
 
 
-        public BookingController(IBookingRep BookingRep,IBookingServiceRep BookingServiceRep,ICustomerRep customerRep,IStylistRep stylistRep,ISettingRep settingRep,ILogRep logRep, IMapper mapper)
+        public BookingController(IBookingRep BookingRep,IBookingServiceRep BookingServiceRep,ICustomerRep customerRep,IStylistRep stylistRep,ISettingRep settingRep,ILogRep logRep, IStylistScheduleBlockRep stylistScheduleBlockRep, IMapper mapper)
         {
             _BookingRep = BookingRep;
             _BookingServiceRep = BookingServiceRep;
@@ -49,6 +50,7 @@ namespace NobatPlusAPI.Controllers
             _StylistRep = stylistRep;
             _SettingRep = settingRep;
             _logRep = logRep;
+            _StylistScheduleBlockRep = stylistScheduleBlockRep;
             _mapper = mapper;
         }
 
@@ -82,7 +84,7 @@ namespace NobatPlusAPI.Controllers
 
         [HttpPost("GetPublicBookingSlots")]
         [AllowAnonymous]
-        public async Task<ActionResult<ListResultObject<PublicBookingSlotVM>>> GetPublicBookingSlots(GetBookingListRequestBody requestBody)
+        public async Task<ActionResult<ListResultObject<PublicBookingSlotVM>>> GetPublicBookingSlots(GetPublicBookingSlotsRequestBody requestBody)
         {
             if (!ModelState.IsValid)
                 return BadRequest(requestBody);
@@ -99,42 +101,43 @@ namespace NobatPlusAPI.Controllers
             if ((requestBody.ToDate.Value - requestBody.FromDate.Value).TotalDays > 31)
                 return BadRequest("بازه تاریخ عمومی نمی‌تواند بیشتر از ۳۱ روز باشد.");
 
-            var pageIndex = Math.Max(requestBody.PageIndex, 1);
-            var pageSize = Math.Clamp(requestBody.PageSize <= 0 ? 200 : requestBody.PageSize, 1, 500);
+            var stylist = await _StylistRep.GetStylistByIdAsync(requestBody.StylistId);
+            if (!stylist.Status || stylist.Result == null) return BadRequest("آرایشگر یافت نشد.");
+            var customerId = User.Identity?.IsAuthenticated == true ? await GetCurrentCustomerIdAsync() : 0;
+            var rangeEnd = requestBody.ToDate.Value.TimeOfDay == TimeSpan.Zero
+                ? requestBody.ToDate.Value.Date.AddDays(1).AddTicks(-1)
+                : requestBody.ToDate.Value;
 
-            var result = await _BookingRep.GetAllBookingsAsync(
-                ServiceManagementId: 0,
-                customerId: 0,
-                stylistId: requestBody.StylistId,
-                cancelState: 2,
-                fromDate: requestBody.FromDate,
-                toDate: requestBody.ToDate,
-                pageIndex: pageIndex,
-                pageSize: pageSize,
-                searchText: "",
-                sortQuery: "BookingStartDate-asc",
-                status: "");
-
-            if (!result.Status)
-                return BadRequest(result);
-
-            return Ok(new ListResultObject<PublicBookingSlotVM>
+            if (IsManualScheduleMode(stylist.Result.BookingCreationMode))
             {
-                Status = true,
-                TotalCount = result.TotalCount,
-                PageCount = result.PageCount,
-                Results = result.Results.Select(x => new PublicBookingSlotVM
+                var scheduleResult = await _StylistScheduleBlockRep.GetAllStylistScheduleBlocksAsync(
+                    requestBody.StylistId, requestBody.FromDate, rangeEnd,
+                    requestBody.ServiceId, 0, "available", customerId, requestBody.DiscountId,
+                    Math.Max(requestBody.PageIndex, 1), Math.Clamp(requestBody.PageSize <= 0 ? 500 : requestBody.PageSize, 1, 500));
+                if (!scheduleResult.Status) return BadRequest(scheduleResult);
+                return Ok(new ListResultObject<PublicBookingSlotVM>
                 {
-                    StylistID = x.StylistID,
-                    BookingStartDate = x.BookingStartDate,
-                    BookingEndDate = x.BookingEndDate,
-                    TotalDurationMinutes = x.TotalDurationMinutes,
-                    TotalBlockMinutes = x.TotalBlockMinutes,
-                    ServiceIDs = x.ServiceIDs,
-                    Status = x.Status,
-                    IsCancelled = x.IsCancelled
-                }).ToList()
-            });
+                    TotalCount = scheduleResult.TotalCount, PageCount = scheduleResult.PageCount,
+                    Results = scheduleResult.Results.Select(x => new PublicBookingSlotVM
+                    {
+                        StylistID = x.StylistID, ScheduleBlockID = x.ID, BookingStartDate = x.StartDateTime, BookingEndDate = x.EndDateTime,
+                        TotalDurationMinutes = x.DurationMinutes, TotalBlockMinutes = x.DurationMinutes + Convert.ToInt32(stylist.Result.RestTime.TotalMinutes),
+                        ServiceIDs = x.ServiceManagementID.HasValue ? new List<long> { x.ServiceManagementID.Value } : new(), Status = x.Status,
+                        BookingCreationMode = stylist.Result.BookingCreationMode, Title = x.Title, ServicePrice = x.ServicePrice,
+                        DiscountPercent = x.DiscountPercent, PriceAfterDiscount = x.PriceAfterDiscount, DepositPercent = x.DepositPercent,
+                        StylistServicePriceVariantID = x.StylistServicePriceVariantID, BookingTagID = x.BookingTagID,
+                        BookingTagTitle = x.BookingTagTitle, BookingTagColor = x.BookingTagColor,
+                        OptionValueIDs = x.OptionValueIDs, OptionSummary = x.OptionSummary
+                    }).ToList()
+                });
+            }
+
+            var selections = requestBody.Services.Any()
+                ? requestBody.Services
+                : requestBody.ServiceId > 0 ? new List<BookingServiceSelectionRequestBody> { new() { ServiceID = requestBody.ServiceId } } : new();
+            var result = await _BookingRep.GetAvailableBookingSlotsAsync(requestBody.StylistId, customerId, requestBody.FromDate.Value, rangeEnd,
+                selections.Select(x => new BookingServiceSelectionDTO { ServiceID = x.ServiceID, OptionValueIDs = x.OptionValueIDs }).ToList());
+            return result.Status ? Ok(_mapper.Map<ListResultObject<PublicBookingSlotVM>>(result)) : BadRequest(result);
         }
 
         [HttpGet("GetPublicBookingStats")]
@@ -244,6 +247,7 @@ namespace NobatPlusAPI.Controllers
                 Status = requestBody.Status,
                 StylistID = requestBody.StylistID,
                 Description = requestBody.Description,
+                ScheduleBlockID = requestBody.ScheduleBlockID,
             };
 
             Booking.BookingServices = BuildBookingServices(requestBody);
@@ -259,7 +263,8 @@ namespace NobatPlusAPI.Controllers
                 }
                 else
                 {
-                    ScheduleBookingReminders(result.ID, requestBody.BookingDate);
+                    var savedBooking = await _BookingRep.GetBookingByIdAsync(result.ID);
+                    ScheduleBookingReminders(result.ID, savedBooking.Result?.BookingStartDate ?? requestBody.BookingDate);
                 }
                 #region AddLog
 
@@ -341,6 +346,7 @@ namespace NobatPlusAPI.Controllers
                 Status = requestBody.Status,
                 StylistID = requestBody.StylistID,
                 Description = requestBody.Description,
+                ScheduleBlockID = requestBody.ScheduleBlockID,
             };
 
             Booking.BookingServices = BuildBookingServices(requestBody, Booking.ID);
@@ -348,8 +354,10 @@ namespace NobatPlusAPI.Controllers
             result = await _BookingRep.EditBookingAsync(Booking);
             if (result.Status)
             {
+                var savedBooking = await _BookingRep.GetBookingByIdAsync(result.ID);
+                var effectiveBookingDate = savedBooking.Result?.BookingStartDate ?? requestBody.BookingDate;
                 if (!requestBody.IsCancelled && requestBody.Status == "1")
-                    ScheduleBookingReminders(result.ID, requestBody.BookingDate);
+                    ScheduleBookingReminders(result.ID, effectiveBookingDate);
 
                 var bookingEvent = GetBookingEvent(
                     theRow.Result.IsCancelled,
@@ -357,7 +365,7 @@ namespace NobatPlusAPI.Controllers
                     theRow.Result.BookingStartDate,
                     requestBody.IsCancelled,
                     requestBody.Status,
-                    requestBody.BookingDate);
+                    effectiveBookingDate);
                 if (!string.IsNullOrWhiteSpace(bookingEvent))
                 {
                     BackgroundJob.Enqueue<JobManager>(job =>
@@ -555,17 +563,11 @@ namespace NobatPlusAPI.Controllers
 
             return string.Empty;
         }
+
+        private static bool IsManualScheduleMode(string? mode) =>
+            string.Equals(mode, "manual-schedule", StringComparison.OrdinalIgnoreCase) ||
+            string.Equals(mode, "manualschedule", StringComparison.OrdinalIgnoreCase) ||
+            string.Equals(mode, "schedule", StringComparison.OrdinalIgnoreCase);
     }
 
-    public class PublicBookingSlotVM
-    {
-        public long StylistID { get; set; }
-        public DateTime BookingStartDate { get; set; }
-        public DateTime BookingEndDate { get; set; }
-        public string Status { get; set; } = "";
-        public int TotalDurationMinutes { get; set; }
-        public int TotalBlockMinutes { get; set; }
-        public List<long> ServiceIDs { get; set; } = new();
-        public bool IsCancelled { get; set; }
-    }
 }

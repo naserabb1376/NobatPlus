@@ -30,6 +30,9 @@ namespace NobatPlusAPI.Tools
 
             CreateMap<BookingServiceOptionValueDTO, BookingSelectedServiceOptionValueVM>();
             CreateMap<BookingServiceSelectionDTO, BookingSelectedServiceVM>();
+            CreateMap<BookingTag, BookingTagVM>();
+            CreateMap<StylistScheduleBlockDTO, StylistScheduleBlockVM>();
+            CreateMap<PublicBookingSlotDTO, PublicBookingSlotVM>();
 
             CreateMap<BookingDTO, BookingVM>()
            .ForMember(dest => dest.SalonName, opt => opt.MapFrom(src => src.Stylist.StylistName))
@@ -95,6 +98,12 @@ namespace NobatPlusAPI.Tools
           .ForMember(dest => dest.OptionName, opt => opt.MapFrom(src => src.ServiceOptionValue.ServiceOption.OptionName))
           .ForMember(dest => dest.ValueName, opt => opt.MapFrom(src => src.ServiceOptionValue.ValueName))
           ;
+
+            CreateMap<StylistServicePriceVariant, StylistServicePriceVariantVM>()
+          .ForMember(dest => dest.OptionValueIDs, opt => opt.MapFrom(src => src.OptionValues.Select(x => x.ServiceOptionValueID).ToList()))
+          .ForMember(dest => dest.OptionSummary, opt => opt.MapFrom(src => string.Join("، ", src.OptionValues.OrderBy(x => x.ServiceOptionValue.ServiceOption.SortOrder).ThenBy(x => x.ServiceOptionValue.SortOrder).Select(x => x.ServiceOptionValue.ServiceOption.OptionName + ": " + x.ServiceOptionValue.ValueName))))
+          .ForMember(dest => dest.BookingTagTitle, opt => opt.MapFrom(src => src.BookingTag != null ? src.BookingTag.Title : ""))
+          .ForMember(dest => dest.BookingTagColor, opt => opt.MapFrom(src => src.BookingTag != null ? src.BookingTag.Color : ""));
 
             CreateMap<PaymentDetailOptionValue, PaymentDetailOptionValueVM>()
           .ForMember(dest => dest.PaymentID, opt => opt.MapFrom(src => src.PaymentDetail.PaymentID))

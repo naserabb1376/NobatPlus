@@ -55,8 +55,10 @@ namespace NobatPlusDATA.Domain
         public TimeSpan Duration { get; set; }
         public int DepositPercent { get; set; }
         public bool IsActive { get; set; } = true;
+        public long? BookingTagID { get; set; }
 
         public StylistService StylistService { get; set; }
+        public BookingTag? BookingTag { get; set; }
         public ICollection<StylistServicePriceVariantOptionValue> OptionValues { get; set; }
 
         public static string BuildOptionValueCombinationKey(IEnumerable<long>? optionValueIds)
@@ -113,5 +115,8 @@ namespace NobatPlusDATA.Domain
         public string AppliedOptionSummary { get; set; } = "";
         public int DiscountPercent { get; set; }
         public decimal PriceAfterDiscount { get; set; }
+        public long? BookingTagID { get; set; }
+        public string BookingTagTitle { get; set; } = "";
+        public string BookingTagColor { get; set; } = "";
     }
 }

@@ -191,6 +191,7 @@ namespace NobatPlusAPI
             builder.Services.AddScoped<IAdminDashboardRep, AdminDashboardRep>();
             builder.Services.AddScoped<IAdminMonitoringRep, AdminMonitoringRep>();
             builder.Services.AddScoped<IBookingRep, BookingRep>();
+            builder.Services.AddScoped<IBookingTagRep, BookingTagRep>();
             builder.Services.AddScoped<IBookingScheduledMessageRep, BookingScheduledMessageRep>();
             builder.Services.AddScoped<IBookingServiceRep, BookingServiceRep>();
             builder.Services.AddScoped<IBookingServiceOptionValueRep, BookingServiceOptionValueRep>();
@@ -223,6 +224,7 @@ namespace NobatPlusAPI
             builder.Services.AddScoped<IServiceOptionRep, ServiceOptionRep>();
             builder.Services.AddScoped<IServiceOptionValueRep, ServiceOptionValueRep>();
             builder.Services.AddScoped<IStylistRep, StylistRep>();
+            builder.Services.AddScoped<IStylistScheduleBlockRep, StylistScheduleBlockRep>();
             builder.Services.AddScoped<IStylistDashboardRep, StylistDashboardRep>();
             builder.Services.AddScoped<IStylistServiceFollowUpSettingRep, StylistServiceFollowUpSettingRep>();
             builder.Services.AddScoped<IStylistServiceRep, StylistServiceRep>();
