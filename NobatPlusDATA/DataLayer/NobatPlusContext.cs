@@ -127,6 +127,16 @@ namespace NobatPlusDATA.DataLayer
                 .Property(x => x.SlotDisplayMode)
                 .HasDefaultValue("all");
 
+            modelBuilder.Entity<Stylist>()
+                .HasOne(x => x.Person)
+                .WithMany(x => x.StylistProfiles)
+                .HasForeignKey(x => x.PersonID)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<Stylist>()
+                .HasIndex(x => new { x.PersonID, x.IsWorkShop })
+                .IsUnique();
+
             modelBuilder.Entity<AdminAuditLog>()
                 .HasOne(x => x.ActorPerson)
                 .WithMany()

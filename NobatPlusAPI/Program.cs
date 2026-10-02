@@ -237,7 +237,7 @@ namespace NobatPlusAPI
             builder.Services.AddScoped<IRateQuestionRep, RateQuestionRep>();
             builder.Services.AddScoped<IRateHistoryRep, RateHistoryRep>();
             builder.Services.AddScoped<ISettingRep, SettingRep>();
-            builder.Services.AddScoped<IUserRoleProvider, PersonRep>();
+            builder.Services.AddScoped<IUserRoleProvider, ActiveProfileUserRoleProvider>();
             builder.Services.AddScoped<IPermissionRep, PermissionRep>();
             builder.Services.AddScoped<IPermissionRoleRep, PermissionRoleRep>();
             builder.Services.AddScoped<IUserPermissionRep, UserPermissionRep>();

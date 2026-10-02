@@ -172,7 +172,13 @@ namespace NobatPlusAPI.Tools
         }
 
         // تابع تولید Access Token (JWT)
-        public static string GenerateAccessToken(Login login)
+        public static string GenerateAccessToken(
+            Login login,
+            long activeProfileId = 0,
+            string activeProfileType = "",
+            long stylistId = 0,
+            long salonId = 0,
+            long? activeRoleId = null)
         {
             var key = Configuration["Jwt:Key"];
             var issuer = Configuration["Jwt:Issuer"];
@@ -180,6 +186,7 @@ namespace NobatPlusAPI.Tools
 
             var securityKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(key));
             var signingCredentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
+            var effectiveRoleId = activeRoleId ?? login.Person.RoleId;
             var claims = new List<Claim>
             {
             new Claim(JwtRegisteredClaimNames.Sub, login.Username),
@@ -188,7 +195,11 @@ namespace NobatPlusAPI.Tools
             new Claim("firstName", login.Person.FirstName),
             new Claim("lastName", login.Person.LastName),
             new Claim("permVer", login.Person.PermissionsVersion.ToString()),
-            new Claim("Role", login.Person.RoleId.ToString())
+            new Claim("Role", effectiveRoleId.ToString()),
+            new Claim("activeProfileId", activeProfileId.ToString()),
+            new Claim("activeProfileType", activeProfileType ?? ""),
+            new Claim("stylistId", stylistId.ToString()),
+            new Claim("salonId", salonId.ToString())
         };
 
             var token = new JwtSecurityToken(
@@ -221,6 +232,26 @@ namespace NobatPlusAPI.Tools
                 idStr = "0";
 
             return long.Parse(idStr);
+        }
+
+        public static long GetCurrentProfileId(this ClaimsPrincipal user)
+        {
+            return long.TryParse(user.FindFirstValue("activeProfileId"), out var id) ? id : 0;
+        }
+
+        public static string GetCurrentProfileType(this ClaimsPrincipal user)
+        {
+            return user.FindFirstValue("activeProfileType") ?? "";
+        }
+
+        public static long GetCurrentStylistId(this ClaimsPrincipal user)
+        {
+            return long.TryParse(user.FindFirstValue("stylistId"), out var id) ? id : 0;
+        }
+
+        public static long GetCurrentSalonId(this ClaimsPrincipal user)
+        {
+            return long.TryParse(user.FindFirstValue("salonId"), out var id) ? id : 0;
         }
 
         public static bool ValidateCaptcha(this string enteredCode,string storedCode)

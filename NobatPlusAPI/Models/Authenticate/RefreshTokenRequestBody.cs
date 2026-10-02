@@ -6,5 +6,7 @@ namespace NobatPlusAPI.Models.Authenticate
     {
         [Display(Name = "رفرش توکن")]
         public string? RefreshToken { get; set; }
+        public string? ActiveProfileType { get; set; }
+        public long ActiveProfileId { get; set; }
     }
 }

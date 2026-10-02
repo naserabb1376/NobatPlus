@@ -84,4 +84,15 @@ namespace NobatPlusDATA.Domain
         public ICollection<ServiceDiscount> ServiceDiscounts { get; set; }
         public ICollection<CustomerDiscount> CustomerDiscounts { get; set; }
     }
+
+    public class StylistProfileDTO
+    {
+        public long ID { get; set; }
+        public long PersonID { get; set; }
+        public long StylistParentID { get; set; }
+        public string Name { get; set; } = "";
+        public string ProfileType { get; set; } = "";
+        public bool IsActive { get; set; }
+        public string AccountStatus { get; set; } = "";
+    }
 }
