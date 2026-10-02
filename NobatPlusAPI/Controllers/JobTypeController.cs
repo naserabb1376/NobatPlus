@@ -42,6 +42,7 @@ namespace NobatPlusAPI.Controllers
         }
 
         [HttpPost("GetAllJobTypes_Base")]
+        [AllowAnonymous]
         public async Task<ActionResult<ListResultObject<JobTypeVM>>> GetAllJobTypes_Base(GetJobTypeListRequestBody requestBody)
         {
             if (!ModelState.IsValid)

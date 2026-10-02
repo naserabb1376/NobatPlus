@@ -41,6 +41,7 @@ namespace NobatPlusAPI.Controllers
         }
 
         [HttpPost("GetAllRoles_Base")]
+        [AllowAnonymous]
         public async Task<ActionResult<ListResultObject<RoleVM>>> GetAllRoles_Base(GetRoleListRequestBody requestBody)
         {
             if (User.GetCurrentRoleId() != 4) return Forbid();

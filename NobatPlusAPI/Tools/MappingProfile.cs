@@ -281,6 +281,7 @@ namespace NobatPlusAPI.Tools
 .ForMember(dest => dest.CustomerDescription, opt => opt.MapFrom(src => src.Description))
            ;
             CreateMap<City, CityVM>();
+            CreateMap<JobType, JobTypeVM>();
             CreateMap<Role, RoleVM>();
             CreateMap<Setting, SettingVM>()
 .ForMember(dest => dest.ParentKey, opt => opt.MapFrom(src => src.Parent != null ? src.Parent.Key : ""))
