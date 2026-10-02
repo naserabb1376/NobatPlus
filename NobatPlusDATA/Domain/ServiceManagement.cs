@@ -19,6 +19,7 @@ namespace NobatPlusDATA.Domain
         public ICollection<StylistService> StylistServices { get; set; }
         public ICollection<ServiceDiscount> ServiceDiscounts { get; set; }
         public ICollection<PaymentDetail> PaymentDetails { get; set; }
+        public ICollection<StylistScheduleBlock> ScheduleBlocks { get; set; }
 
     }
     public class ServiceManagementDTO : BaseEntity

@@ -330,8 +330,12 @@ namespace NobatPlusAPI.Controllers
 
         private async Task<long> GetCurrentStylistIdAsync()
         {
-            var result = await _StylistRep.ExistStylistAsync(User.GetCurrentUserId().ToString(), "personid");
-            return result.Status ? result.ID : 0;
+            var profileId = User.GetCurrentProfileId();
+            if (profileId > 0) return profileId;
+
+            var profiles = await _StylistRep.GetStylistProfilesByPersonIdAsync(User.GetCurrentUserId());
+            var profileType = User.GetCurrentRoleId() == (long)DbTools.BaseRole.Salon ? "salon" : "stylist";
+            return profiles.Results?.FirstOrDefault(x => x.ProfileType == profileType)?.ID ?? 0;
         }
 
        

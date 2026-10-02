@@ -50,6 +50,7 @@ namespace NobatPlusAPI.Models.StylistService
         public TimeSpan Duration { get; set; }
 
         public bool IsActive { get; set; } = true;
+        public long? BookingTagID { get; set; }
         public List<long> OptionValueIDs { get; set; } = new List<long>();
     }
 }

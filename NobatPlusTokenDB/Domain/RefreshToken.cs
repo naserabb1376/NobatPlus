@@ -16,5 +16,7 @@ namespace Domain
         public DateTime ExpiryDate { get; set; } // تاریخ انقضا
         public DateTime CreatedDate { get; set; } = DateTime.Now; // تاریخ ایجاد
         public DateTime? RevokedDate { get; set; } // تاریخ لغو
+        public long? ActiveProfileId { get; set; }
+        public string? ActiveProfileType { get; set; }
     }
 }

@@ -208,8 +208,20 @@ namespace NobatPlusAPI.Controllers
 
         private async Task<BitResultObject> GetCurrentStylistAsync()
         {
-            var userId = User.GetCurrentUserId();
-            return await _stylistRep.ExistStylistAsync(userId.ToString(), "personid");
+            var profileId = User.GetCurrentProfileId();
+            if (profileId <= 0)
+            {
+                var profiles = await _stylistRep.GetStylistProfilesByPersonIdAsync(User.GetCurrentUserId());
+                var profileType = User.GetCurrentRoleId() == (long)DbTools.BaseRole.Salon ? "salon" : "stylist";
+                profileId = profiles.Results?.FirstOrDefault(x => x.ProfileType == profileType)?.ID ?? 0;
+            }
+
+            return new BitResultObject
+            {
+                ID = profileId,
+                Status = profileId > 0,
+                ErrorMessage = profileId > 0 ? "" : "پروفایل فعال یافت نشد"
+            };
         }
     }
 }

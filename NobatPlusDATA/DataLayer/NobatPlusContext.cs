@@ -77,6 +77,8 @@ namespace NobatPlusDATA.DataLayer
         public DbSet<Setting> Settings { get; set; }
         public DbSet<StylistServiceFollowUpSetting> StylistServiceFollowUpSettings { get; set; }
         public DbSet<BookingScheduledMessage> BookingScheduledMessages { get; set; }
+        public DbSet<BookingTag> BookingTags { get; set; }
+        public DbSet<StylistScheduleBlock> StylistScheduleBlocks { get; set; }
 
 
         // Views
@@ -126,6 +128,16 @@ namespace NobatPlusDATA.DataLayer
             modelBuilder.Entity<Stylist>()
                 .Property(x => x.SlotDisplayMode)
                 .HasDefaultValue("all");
+
+            modelBuilder.Entity<Stylist>()
+                .HasOne(x => x.Person)
+                .WithMany(x => x.StylistProfiles)
+                .HasForeignKey(x => x.PersonID)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<Stylist>()
+                .HasIndex(x => new { x.PersonID, x.IsWorkShop })
+                .IsUnique();
 
             modelBuilder.Entity<AdminAuditLog>()
                 .HasOne(x => x.ActorPerson)
@@ -254,8 +266,20 @@ namespace NobatPlusDATA.DataLayer
                 .OnDelete(DeleteBehavior.Cascade);
 
             modelBuilder.Entity<StylistServicePriceVariant>()
+                .HasIndex(x => new { x.StylistID, x.ServiceManagementID, x.OptionValueCombinationKey, x.BookingTagID })
+                .IsUnique()
+                .HasFilter("[BookingTagID] IS NOT NULL");
+
+            modelBuilder.Entity<StylistServicePriceVariant>()
                 .HasIndex(x => new { x.StylistID, x.ServiceManagementID, x.OptionValueCombinationKey })
-                .IsUnique();
+                .IsUnique()
+                .HasFilter("[BookingTagID] IS NULL");
+
+            modelBuilder.Entity<StylistServicePriceVariant>()
+                .HasOne(x => x.BookingTag)
+                .WithMany(x => x.PriceVariants)
+                .HasForeignKey(x => x.BookingTagID)
+                .OnDelete(DeleteBehavior.SetNull);
 
             modelBuilder.Entity<StylistServicePriceVariantOptionValue>()
                 .HasKey(x => new { x.StylistServicePriceVariantID, x.ServiceOptionValueID });
@@ -342,6 +366,63 @@ namespace NobatPlusDATA.DataLayer
                 .HasIndex(x => new { x.StylistID, x.BookingDate, x.IsCancelled });
             modelBuilder.Entity<Booking>()
                 .HasIndex(x => new { x.CustomerID, x.BookingDate, x.IsCancelled });
+
+            modelBuilder.Entity<Booking>()
+                .HasOne(x => x.ScheduleBlock)
+                .WithMany(x => x.Bookings)
+                .HasForeignKey(x => x.ScheduleBlockID)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            modelBuilder.Entity<Booking>()
+                .HasIndex(x => x.ScheduleBlockID)
+                .HasFilter("[ScheduleBlockID] IS NOT NULL");
+
+            modelBuilder.Entity<BookingService>()
+                .HasOne(x => x.StylistServicePriceVariant)
+                .WithMany()
+                .HasForeignKey(x => x.StylistServicePriceVariantID)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            modelBuilder.Entity<BookingTag>()
+                .HasOne(x => x.Stylist)
+                .WithMany(x => x.BookingTags)
+                .HasForeignKey(x => x.StylistID)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<BookingTag>()
+                .HasIndex(x => new { x.StylistID, x.Title })
+                .IsUnique();
+
+            modelBuilder.Entity<StylistScheduleBlock>()
+                .HasOne(x => x.Stylist)
+                .WithMany(x => x.ScheduleBlocks)
+                .HasForeignKey(x => x.StylistID)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<StylistScheduleBlock>()
+                .HasOne(x => x.ServiceManagement)
+                .WithMany(x => x.ScheduleBlocks)
+                .HasForeignKey(x => x.ServiceManagementID)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            modelBuilder.Entity<StylistScheduleBlock>()
+                .HasOne(x => x.StylistServicePriceVariant)
+                .WithMany()
+                .HasForeignKey(x => x.StylistServicePriceVariantID)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            modelBuilder.Entity<StylistScheduleBlock>()
+                .HasOne(x => x.BookingTag)
+                .WithMany(x => x.ScheduleBlocks)
+                .HasForeignKey(x => x.BookingTagID)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            modelBuilder.Entity<StylistScheduleBlock>()
+                .HasIndex(x => new { x.StylistID, x.StartDateTime, x.EndDateTime });
+
+            modelBuilder.Entity<StylistScheduleBlock>()
+                .Property(x => x.RowVersion)
+                .IsRowVersion();
             modelBuilder.Entity<CheckAvailability>()
                 .HasIndex(x => new { x.StylistID, x.Date, x.Time });
             // مدیریت رفتار حذف

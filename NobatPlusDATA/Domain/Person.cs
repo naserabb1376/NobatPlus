@@ -33,5 +33,6 @@ namespace NobatPlusDATA.Domain
 
         public ICollection<Notification> Notifications { get; set; }
         public ICollection<SMSMessage> SMSMessages { get; set; }
+        public ICollection<Stylist> StylistProfiles { get; set; } = new List<Stylist>();
     }
 }

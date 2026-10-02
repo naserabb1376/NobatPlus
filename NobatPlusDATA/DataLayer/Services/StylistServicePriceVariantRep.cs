@@ -95,6 +95,7 @@ namespace NobatPlusDATA.DataLayer.Services
             {
                 var query = _context.StylistServicePriceVariants
                     .AsNoTracking()
+                    .Include(x => x.BookingTag)
                     .Include(x => x.OptionValues)
                     .ThenInclude(x => x.ServiceOptionValue)
                     .ThenInclude(x => x.ServiceOption)
@@ -138,6 +139,7 @@ namespace NobatPlusDATA.DataLayer.Services
             {
                 result.Result = await _context.StylistServicePriceVariants
                     .AsNoTracking()
+                    .Include(x => x.BookingTag)
                     .Include(x => x.OptionValues)
                     .ThenInclude(x => x.ServiceOptionValue)
                     .ThenInclude(x => x.ServiceOption)
@@ -221,7 +223,12 @@ namespace NobatPlusDATA.DataLayer.Services
                     x.ID != excludedVariantId &&
                     x.StylistID == variant.StylistID &&
                     x.ServiceManagementID == variant.ServiceManagementID &&
-                    x.OptionValueCombinationKey == variant.OptionValueCombinationKey);
+                    x.OptionValueCombinationKey == variant.OptionValueCombinationKey &&
+                    x.BookingTagID == variant.BookingTagID);
+
+            if (variant.BookingTagID.HasValue && !await _context.BookingTags
+                    .AnyAsync(x => x.ID == variant.BookingTagID.Value && x.StylistID == variant.StylistID && x.IsActive))
+                return "برچسب انتخاب‌شده برای این آرایشگر معتبر نیست";
 
             return duplicateExists
                 ? "این خدمات قبلا ثبت شده است و تکراری است"

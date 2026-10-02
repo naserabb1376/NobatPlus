@@ -17,7 +17,7 @@ namespace NobatPlusDATA.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "10.0.3")
+                .HasAnnotation("ProductVersion", "10.0.5")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
@@ -437,6 +437,9 @@ namespace NobatPlusDATA.Migrations
                     b.Property<int?>("RestTimeMinutesSnapshot")
                         .HasColumnType("int");
 
+                    b.Property<long?>("ScheduleBlockID")
+                        .HasColumnType("bigint");
+
                     b.Property<int?>("ServiceDurationMinutesSnapshot")
                         .HasColumnType("int");
 
@@ -451,6 +454,9 @@ namespace NobatPlusDATA.Migrations
                         .HasColumnType("datetime2");
 
                     b.HasKey("ID");
+
+                    b.HasIndex("ScheduleBlockID")
+                        .HasFilter("[ScheduleBlockID] IS NOT NULL");
 
                     b.HasIndex("CustomerID", "BookingDate", "IsCancelled");
 
@@ -566,9 +572,31 @@ namespace NobatPlusDATA.Migrations
                     b.Property<long>("ServiceManagementID")
                         .HasColumnType("bigint");
 
+                    b.Property<int?>("DepositPercentSnapshot")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("DiscountPercentSnapshot")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("DurationMinutesSnapshot")
+                        .HasColumnType("int");
+
+                    b.Property<decimal?>("PriceAfterDiscountSnapshot")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<long?>("StylistServicePriceVariantID")
+                        .HasColumnType("bigint");
+
+                    b.Property<decimal?>("UnitPriceSnapshot")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
                     b.HasKey("BookingID", "ServiceManagementID");
 
                     b.HasIndex("ServiceManagementID");
+
+                    b.HasIndex("StylistServicePriceVariantID");
 
                     b.ToTable("BookingServices");
                 });
@@ -589,6 +617,48 @@ namespace NobatPlusDATA.Migrations
                     b.HasIndex("ServiceOptionValueID");
 
                     b.ToTable("BookingServiceOptionValues");
+                });
+
+            modelBuilder.Entity("NobatPlusDATA.Domain.BookingTag", b =>
+                {
+                    b.Property<long>("ID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("ID"));
+
+                    b.Property<string>("Color")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("CreateDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("SortOrder")
+                        .HasColumnType("int");
+
+                    b.Property<long>("StylistID")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<DateTime?>("UpdateDate")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("ID");
+
+                    b.HasIndex("StylistID", "Title")
+                        .IsUnique();
+
+                    b.ToTable("BookingTags");
                 });
 
             modelBuilder.Entity("NobatPlusDATA.Domain.CheckAvailability", b =>
@@ -2106,7 +2176,8 @@ namespace NobatPlusDATA.Migrations
 
                     b.HasIndex("JobTypeID");
 
-                    b.HasIndex("PersonID");
+                    b.HasIndex("PersonID", "IsWorkShop")
+                        .IsUnique();
 
                     b.ToTable("Stylists");
                 });
@@ -2145,6 +2216,77 @@ namespace NobatPlusDATA.Migrations
                     b.HasIndex("StylistID");
 
                     b.ToTable("StylistPacifics");
+                });
+
+            modelBuilder.Entity("NobatPlusDATA.Domain.StylistScheduleBlock", b =>
+                {
+                    b.Property<long>("ID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("ID"));
+
+                    b.Property<long?>("BookingTagID")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTime?>("CreateDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int?>("DepositPercentOverride")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("EndDateTime")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsBookable")
+                        .HasColumnType("bit");
+
+                    b.Property<decimal?>("PriceOverride")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .IsRequired()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
+
+                    b.Property<long?>("ServiceManagementID")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTime>("StartDateTime")
+                        .HasColumnType("datetime2");
+
+                    b.Property<long>("StylistID")
+                        .HasColumnType("bigint");
+
+                    b.Property<long?>("StylistServicePriceVariantID")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("UpdateDate")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("ID");
+
+                    b.HasIndex("BookingTagID");
+
+                    b.HasIndex("ServiceManagementID");
+
+                    b.HasIndex("StylistServicePriceVariantID");
+
+                    b.HasIndex("StylistID", "StartDateTime", "EndDateTime");
+
+                    b.ToTable("StylistScheduleBlocks");
                 });
 
             modelBuilder.Entity("NobatPlusDATA.Domain.StylistService", b =>
@@ -2259,6 +2401,9 @@ namespace NobatPlusDATA.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("ID"));
 
+                    b.Property<long?>("BookingTagID")
+                        .HasColumnType("bigint");
+
                     b.Property<DateTime?>("CreateDate")
                         .HasColumnType("datetime2");
 
@@ -2293,8 +2438,15 @@ namespace NobatPlusDATA.Migrations
 
                     b.HasKey("ID");
 
+                    b.HasIndex("BookingTagID");
+
                     b.HasIndex("StylistID", "ServiceManagementID", "OptionValueCombinationKey")
-                        .IsUnique();
+                        .IsUnique()
+                        .HasFilter("[BookingTagID] IS NULL");
+
+                    b.HasIndex("StylistID", "ServiceManagementID", "OptionValueCombinationKey", "BookingTagID")
+                        .IsUnique()
+                        .HasFilter("[BookingTagID] IS NOT NULL");
 
                     b.ToTable("StylistServicePriceVariants");
                 });
@@ -2699,6 +2851,11 @@ namespace NobatPlusDATA.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("NobatPlusDATA.Domain.StylistScheduleBlock", "ScheduleBlock")
+                        .WithMany("Bookings")
+                        .HasForeignKey("ScheduleBlockID")
+                        .OnDelete(DeleteBehavior.NoAction);
+
                     b.HasOne("NobatPlusDATA.Domain.Stylist", "Stylist")
                         .WithMany("Bookings")
                         .HasForeignKey("StylistID")
@@ -2706,6 +2863,8 @@ namespace NobatPlusDATA.Migrations
                         .IsRequired();
 
                     b.Navigation("Customer");
+
+                    b.Navigation("ScheduleBlock");
 
                     b.Navigation("Stylist");
                 });
@@ -2786,9 +2945,16 @@ namespace NobatPlusDATA.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("NobatPlusDATA.Domain.StylistServicePriceVariant", "StylistServicePriceVariant")
+                        .WithMany()
+                        .HasForeignKey("StylistServicePriceVariantID")
+                        .OnDelete(DeleteBehavior.NoAction);
+
                     b.Navigation("Booking");
 
                     b.Navigation("ServiceManagement");
+
+                    b.Navigation("StylistServicePriceVariant");
                 });
 
             modelBuilder.Entity("NobatPlusDATA.Domain.BookingServiceOptionValue", b =>
@@ -2808,6 +2974,17 @@ namespace NobatPlusDATA.Migrations
                     b.Navigation("BookingService");
 
                     b.Navigation("ServiceOptionValue");
+                });
+
+            modelBuilder.Entity("NobatPlusDATA.Domain.BookingTag", b =>
+                {
+                    b.HasOne("NobatPlusDATA.Domain.Stylist", "Stylist")
+                        .WithMany("BookingTags")
+                        .HasForeignKey("StylistID")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Stylist");
                 });
 
             modelBuilder.Entity("NobatPlusDATA.Domain.CheckAvailability", b =>
@@ -3252,7 +3429,7 @@ namespace NobatPlusDATA.Migrations
                         .IsRequired();
 
                     b.HasOne("NobatPlusDATA.Domain.Person", "Person")
-                        .WithMany()
+                        .WithMany("StylistProfiles")
                         .HasForeignKey("PersonID")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -3271,6 +3448,37 @@ namespace NobatPlusDATA.Migrations
                         .IsRequired();
 
                     b.Navigation("Stylist");
+                });
+
+            modelBuilder.Entity("NobatPlusDATA.Domain.StylistScheduleBlock", b =>
+                {
+                    b.HasOne("NobatPlusDATA.Domain.BookingTag", "BookingTag")
+                        .WithMany("ScheduleBlocks")
+                        .HasForeignKey("BookingTagID");
+
+                    b.HasOne("NobatPlusDATA.Domain.ServiceManagement", "ServiceManagement")
+                        .WithMany("ScheduleBlocks")
+                        .HasForeignKey("ServiceManagementID")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.HasOne("NobatPlusDATA.Domain.Stylist", "Stylist")
+                        .WithMany("ScheduleBlocks")
+                        .HasForeignKey("StylistID")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("NobatPlusDATA.Domain.StylistServicePriceVariant", "StylistServicePriceVariant")
+                        .WithMany()
+                        .HasForeignKey("StylistServicePriceVariantID")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.Navigation("BookingTag");
+
+                    b.Navigation("ServiceManagement");
+
+                    b.Navigation("Stylist");
+
+                    b.Navigation("StylistServicePriceVariant");
                 });
 
             modelBuilder.Entity("NobatPlusDATA.Domain.StylistService", b =>
@@ -3328,11 +3536,18 @@ namespace NobatPlusDATA.Migrations
 
             modelBuilder.Entity("NobatPlusDATA.Domain.StylistServicePriceVariant", b =>
                 {
+                    b.HasOne("NobatPlusDATA.Domain.BookingTag", "BookingTag")
+                        .WithMany("PriceVariants")
+                        .HasForeignKey("BookingTagID")
+                        .OnDelete(DeleteBehavior.SetNull);
+
                     b.HasOne("NobatPlusDATA.Domain.StylistService", "StylistService")
                         .WithMany("PriceVariants")
                         .HasForeignKey("StylistID", "ServiceManagementID")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.Navigation("BookingTag");
 
                     b.Navigation("StylistService");
                 });
@@ -3470,6 +3685,13 @@ namespace NobatPlusDATA.Migrations
                     b.Navigation("OptionValues");
                 });
 
+            modelBuilder.Entity("NobatPlusDATA.Domain.BookingTag", b =>
+                {
+                    b.Navigation("PriceVariants");
+
+                    b.Navigation("ScheduleBlocks");
+                });
+
             modelBuilder.Entity("NobatPlusDATA.Domain.City", b =>
                 {
                     b.Navigation("Addresses");
@@ -3527,6 +3749,8 @@ namespace NobatPlusDATA.Migrations
                     b.Navigation("Notifications");
 
                     b.Navigation("SMSMessages");
+
+                    b.Navigation("StylistProfiles");
                 });
 
             modelBuilder.Entity("NobatPlusDATA.Domain.ServiceManagement", b =>
@@ -3534,6 +3758,8 @@ namespace NobatPlusDATA.Migrations
                     b.Navigation("BookingServices");
 
                     b.Navigation("PaymentDetails");
+
+                    b.Navigation("ScheduleBlocks");
 
                     b.Navigation("ServiceDiscounts");
 
@@ -3557,6 +3783,8 @@ namespace NobatPlusDATA.Migrations
 
             modelBuilder.Entity("NobatPlusDATA.Domain.Stylist", b =>
                 {
+                    b.Navigation("BookingTags");
+
                     b.Navigation("Bookings");
 
                     b.Navigation("CustomerDiscounts");
@@ -3572,6 +3800,8 @@ namespace NobatPlusDATA.Migrations
 
                     b.Navigation("Reviews");
 
+                    b.Navigation("ScheduleBlocks");
+
                     b.Navigation("ServiceDiscounts");
 
                     b.Navigation("SocialNetworks");
@@ -3581,6 +3811,11 @@ namespace NobatPlusDATA.Migrations
                     b.Navigation("StylistServices");
 
                     b.Navigation("WorkTimes");
+                });
+
+            modelBuilder.Entity("NobatPlusDATA.Domain.StylistScheduleBlock", b =>
+                {
+                    b.Navigation("Bookings");
                 });
 
             modelBuilder.Entity("NobatPlusDATA.Domain.StylistService", b =>

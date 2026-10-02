@@ -249,23 +249,25 @@ namespace NobatPlusAPI.Controllers
 
             if (roleId == 2)
             {
-                var stylist = await _StylistRep.ExistStylistAsync(personId.ToString(), "personid");
-                if (!stylist.Status) return false;
-                requestBody.StylistId = stylist.ID;
+                var stylistId = User.GetCurrentProfileId();
+                if (stylistId <= 0) stylistId = User.GetCurrentStylistId();
+                if (stylistId <= 0) return false;
+                requestBody.StylistId = stylistId;
                 return true;
             }
 
             if (roleId == 3)
             {
-                var salon = await _StylistRep.ExistStylistAsync(personId.ToString(), "personid");
-                if (!salon.Status) return false;
+                var salonId = User.GetCurrentProfileId();
+                if (salonId <= 0) salonId = User.GetCurrentSalonId();
+                if (salonId <= 0) return false;
                 if (requestBody.StylistId <= 0)
                 {
-                    requestBody.StylistId = salon.ID;
+                    requestBody.StylistId = salonId;
                     return true;
                 }
                 var stylist = await _StylistRep.GetStylistByIdAsync(requestBody.StylistId);
-                return stylist.Status && stylist.Result != null && stylist.Result.StylistParentID == salon.ID;
+                return stylist.Status && stylist.Result != null && stylist.Result.StylistParentID == salonId;
             }
 
             return false;
@@ -291,17 +293,19 @@ namespace NobatPlusAPI.Controllers
 
             if (roleId == 2)
             {
-                var stylist = await _StylistRep.ExistStylistAsync(personId.ToString(), "personid");
-                return stylist.Status && detail.StylistID == stylist.ID;
+                var stylistId = User.GetCurrentProfileId();
+                if (stylistId <= 0) stylistId = User.GetCurrentStylistId();
+                return stylistId > 0 && detail.StylistID == stylistId;
             }
 
             if (roleId == 3)
             {
-                var salon = await _StylistRep.ExistStylistAsync(personId.ToString(), "personid");
-                if (!salon.Status) return false;
-                if (detail.StylistID == salon.ID) return true;
+                var salonId = User.GetCurrentProfileId();
+                if (salonId <= 0) salonId = User.GetCurrentSalonId();
+                if (salonId <= 0) return false;
+                if (detail.StylistID == salonId) return true;
                 var stylist = await _StylistRep.GetStylistByIdAsync(detail.StylistID);
-                return stylist.Status && stylist.Result != null && stylist.Result.StylistParentID == salon.ID;
+                return stylist.Status && stylist.Result != null && stylist.Result.StylistParentID == salonId;
             }
 
             return false;

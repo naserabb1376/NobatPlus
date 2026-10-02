@@ -1,6 +1,7 @@
 ﻿using Domain;
 using Domains;
 using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
@@ -142,7 +143,7 @@ namespace NobatPlusAPI.Controllers
 #if DEBUG
                 if (authenticationRequestBody.LoginType <= 0)
                 {
-                    authenticationRequestBody.UserName = "09136857124";
+                   // authenticationRequestBody.UserName = "09136857124";
                     authenticationRequestBody.Password = "569022mt";
                     authenticationRequestBody.LoginType = 1;
                 }
@@ -296,8 +297,30 @@ namespace NobatPlusAPI.Controllers
             if (expireTokenResult.Status)
             {
                 var login = await _loginRep.GetLoginByIdAsync(refreshTokenRecord.Result.UserId, 2);
+                if (!login.Status || login.Result == null)
+                {
+                    result.Status = false;
+                    result.ErrorMessage = "اطلاعات کاربر یافت نشد";
+                    ClearAuthCookies();
+                    return BadRequest(result);
+                }
+
+                var profileContext = await ResolveProfileContextAsync(
+                    login.Result.PersonID,
+                    login.Result.Person.RoleId,
+                    requestBody?.ActiveProfileType ?? refreshTokenRecord.Result.ActiveProfileType,
+                    requestBody?.ActiveProfileId > 0
+                        ? requestBody.ActiveProfileId
+                        : refreshTokenRecord.Result.ActiveProfileId ?? 0);
+                if (!profileContext.Status)
+                {
+                    result.Status = false;
+                    result.ErrorMessage = profileContext.ErrorMessage;
+                    return BadRequest(result);
+                }
+
                 var refreshToken = ToolBox.GenerateToken(); // تولید رفرش توکن
-                var accessToken = ToolBox.GenerateAccessToken(login.Result); // تولید رفرش توکن
+                var accessToken = GenerateProfileAccessToken(login.Result, profileContext);
                 var refreshTokenExpiryDate = DateTime.Now.ToShamsi().AddDays(30); // تنظیم تاریخ انقضای رفرش توکن برای 30 روز
 
 
@@ -308,7 +331,11 @@ namespace NobatPlusAPI.Controllers
                     Type = "RefreshToken", // نوع: RefreshToken
                     Status = true,
                     CreatedDate = DateTime.Now.ToShamsi(),
-                    ExpiryDate = refreshTokenExpiryDate // تاریخ انقضا
+                    ExpiryDate = refreshTokenExpiryDate, // تاریخ انقضا
+                    ActiveProfileId = profileContext.ActiveProfileId > 0 ? profileContext.ActiveProfileId : null,
+                    ActiveProfileType = string.IsNullOrWhiteSpace(profileContext.ActiveProfileType)
+                        ? null
+                        : profileContext.ActiveProfileType
                 };
 
                 var saverefreshToken = await _tokenRep.AddRefreshTokenAsync(newrefreshTokenRecord);
@@ -323,6 +350,12 @@ namespace NobatPlusAPI.Controllers
                     {
                         RefreshToken = refreshToken, // بازگرداندن رفرش توکن
                         AccessToken = accessToken, // بازگرداندن اکسس توکن
+                        RoleId = profileContext.RoleId,
+                        StylistId = profileContext.StylistId,
+                        SalonId = profileContext.SalonId,
+                        ActiveProfileId = profileContext.ActiveProfileId,
+                        ActiveProfileType = profileContext.ActiveProfileType,
+                        Profiles = profileContext.Profiles,
                     };
 
                     #region AddLog
@@ -345,6 +378,89 @@ namespace NobatPlusAPI.Controllers
                 result.ErrorMessage = expireTokenResult.ErrorMessage;
             }
             return BadRequest(result);
+        }
+
+        [Authorize]
+        [HttpPost("SwitchProfile")]
+        public async Task<ActionResult<RowResultObject<AuthenticationResultBody>>> SwitchProfile(
+            SwitchProfileRequestBody requestBody)
+        {
+            var result = new RowResultObject<AuthenticationResultBody>();
+            if (!ModelState.IsValid)
+                return BadRequest(requestBody);
+
+            var personId = User.GetCurrentUserId();
+            var login = await _loginRep.GetLoginByIdAsync(personId, 2);
+            if (!login.Status || login.Result?.Person == null)
+            {
+                result.Status = false;
+                result.ErrorMessage = "اطلاعات کاربر یافت نشد";
+                return BadRequest(result);
+            }
+
+            var profileContext = await ResolveProfileContextAsync(
+                personId,
+                login.Result.Person.RoleId,
+                requestBody.ProfileType,
+                requestBody.ProfileId);
+            if (!profileContext.Status || profileContext.ActiveProfileId <= 0)
+            {
+                result.Status = false;
+                result.ErrorMessage = profileContext.ErrorMessage;
+                return BadRequest(result);
+            }
+
+            var customer = await _customerRep.ExistCustomerAsync(personId.ToString(), "personid");
+            var accessToken = GenerateProfileAccessToken(login.Result, profileContext);
+            var currentRefreshToken = GetRefreshTokenFromRequest(null);
+            if (!string.IsNullOrWhiteSpace(currentRefreshToken))
+            {
+                var currentTokenRecord = await _tokenRep.FindTokenAsync(currentRefreshToken, "RefreshToken");
+                if (currentTokenRecord.Status && currentTokenRecord.Result != null)
+                    await _tokenRep.MakeTokenExpireAsync(currentTokenRecord.Result.ID);
+            }
+
+            var refreshToken = ToolBox.GenerateToken();
+            var refreshTokenExpiryDate = DateTime.Now.ToShamsi().AddDays(30);
+            var saveRefreshToken = await _tokenRep.AddRefreshTokenAsync(new RefreshToken
+            {
+                UserId = personId,
+                Token = refreshToken,
+                Type = "RefreshToken",
+                Status = true,
+                CreatedDate = DateTime.Now.ToShamsi(),
+                ExpiryDate = refreshTokenExpiryDate,
+                ActiveProfileId = profileContext.ActiveProfileId,
+                ActiveProfileType = profileContext.ActiveProfileType
+            });
+            if (!saveRefreshToken.Status)
+            {
+                result.Status = false;
+                result.ErrorMessage = saveRefreshToken.ErrorMessage;
+                return BadRequest(result);
+            }
+
+            SetAccessTokenCookie(accessToken);
+            SetRefreshTokenCookie(refreshToken, refreshTokenExpiryDate);
+
+            result.Result = new AuthenticationResultBody
+            {
+                AccessToken = accessToken,
+                RefreshToken = refreshToken,
+                PersonId = personId,
+                CustomerId = customer.ID,
+                StylistId = profileContext.StylistId,
+                SalonId = profileContext.SalonId,
+                ActiveProfileId = profileContext.ActiveProfileId,
+                ActiveProfileType = profileContext.ActiveProfileType,
+                Profiles = profileContext.Profiles,
+                RoleId = profileContext.RoleId,
+                FirstName = login.Result.Person.FirstName,
+                LastName = login.Result.Person.LastName,
+                IsActive = login.Result.Person.IsActive
+            };
+
+            return Ok(result);
         }
 
 
@@ -999,6 +1115,106 @@ namespace NobatPlusAPI.Controllers
             return Ok(result);
         }
 
+        private async Task<ProfileContextResult> ResolveProfileContextAsync(
+            long personId,
+            long personRoleId,
+            string? requestedProfileType,
+            long requestedProfileId)
+        {
+            var result = new ProfileContextResult
+            {
+                RoleId = personRoleId
+            };
+            var profilesResult = await _stylistRep.GetStylistProfilesByPersonIdAsync(personId);
+            if (!profilesResult.Status)
+            {
+                result.Status = false;
+                result.ErrorMessage = profilesResult.ErrorMessage;
+                return result;
+            }
+
+            var profiles = profilesResult.Results ?? new List<StylistProfileDTO>();
+            result.Profiles = profiles.Select(x => new AuthenticationProfileBody
+            {
+                ID = x.ID,
+                ProfileType = x.ProfileType,
+                Name = x.Name,
+                ParentId = x.StylistParentID,
+                IsActive = x.IsActive,
+                AccountStatus = x.AccountStatus
+            }).ToList();
+            result.StylistId = profiles.FirstOrDefault(x => x.ProfileType == "stylist")?.ID ?? 0;
+            result.SalonId = profiles.FirstOrDefault(x => x.ProfileType == "salon")?.ID ?? 0;
+
+            var normalizedType = requestedProfileType?.Trim().ToLowerInvariant() ?? "";
+            var hasRequestedProfile = requestedProfileId > 0 || !string.IsNullOrWhiteSpace(normalizedType);
+            StylistProfileDTO? activeProfile;
+            if (hasRequestedProfile)
+            {
+                activeProfile = profiles.FirstOrDefault(x =>
+                    (requestedProfileId <= 0 || x.ID == requestedProfileId) &&
+                    (string.IsNullOrWhiteSpace(normalizedType) || x.ProfileType == normalizedType));
+                if (activeProfile == null)
+                {
+                    result.Status = false;
+                    result.ErrorMessage = "پروفایل انتخاب‌شده متعلق به این کاربر نیست";
+                    return result;
+                }
+            }
+            else
+            {
+                var defaultType = personRoleId switch
+                {
+                    (long)DbTools.BaseRole.Salon => "salon",
+                    (long)DbTools.BaseRole.Stylist => "stylist",
+                    _ => ""
+                };
+                activeProfile = profiles.FirstOrDefault(x =>
+                    x.IsActive && x.ProfileType == defaultType);
+            }
+
+            if (activeProfile != null)
+            {
+                if (!activeProfile.IsActive)
+                {
+                    result.Status = false;
+                    result.ErrorMessage = "پروفایل انتخاب‌شده غیرفعال است";
+                    return result;
+                }
+
+                result.ActiveProfileId = activeProfile.ID;
+                result.ActiveProfileType = activeProfile.ProfileType;
+                result.RoleId = activeProfile.ProfileType == "salon"
+                    ? (long)DbTools.BaseRole.Salon
+                    : (long)DbTools.BaseRole.Stylist;
+            }
+
+            return result;
+        }
+
+        private static string GenerateProfileAccessToken(Login login, ProfileContextResult profile)
+        {
+            return ToolBox.GenerateAccessToken(
+                login,
+                profile.ActiveProfileId,
+                profile.ActiveProfileType,
+                profile.StylistId,
+                profile.SalonId,
+                profile.RoleId);
+        }
+
+        private sealed class ProfileContextResult
+        {
+            public bool Status { get; set; } = true;
+            public string ErrorMessage { get; set; } = "";
+            public long RoleId { get; set; }
+            public long StylistId { get; set; }
+            public long SalonId { get; set; }
+            public long ActiveProfileId { get; set; }
+            public string ActiveProfileType { get; set; } = "";
+            public List<AuthenticationProfileBody> Profiles { get; set; } = new();
+        }
+
         private async Task<RowResultObject<AuthenticationResultBody>> DoLoginAsync(AuthenticationRequestBody requestBody)
         {
             RowResultObject<AuthenticationResultBody> result = new RowResultObject<AuthenticationResultBody>();
@@ -1045,8 +1261,20 @@ namespace NobatPlusAPI.Controllers
 
                 if (authenticateResult.Status)
                 {
+                    var profileContext = await ResolveProfileContextAsync(
+                        authenticateResult.Result.PersonID,
+                        authenticateResult.Result.Person.RoleId,
+                        null,
+                        0);
+                    if (!profileContext.Status)
+                    {
+                        result.Status = false;
+                        result.ErrorMessage = profileContext.ErrorMessage;
+                        return result;
+                    }
+
                     var refreshToken = ToolBox.GenerateToken(); // تولید رفرش توکن
-                    var accessToken = ToolBox.GenerateAccessToken(authenticateResult.Result); // تولید رفرش توکن
+                    var accessToken = GenerateProfileAccessToken(authenticateResult.Result, profileContext);
                     var refreshTokenExpiryDate = DateTime.Now.ToShamsi().AddDays(30); // تنظیم تاریخ انقضای رفرش توکن برای 30 روز
 
 
@@ -1057,11 +1285,14 @@ namespace NobatPlusAPI.Controllers
                         Type = "RefreshToken", // نوع: RefreshToken
                         Status = true,
                         CreatedDate = DateTime.Now.ToShamsi(),
-                        ExpiryDate = refreshTokenExpiryDate // تاریخ انقضا
+                        ExpiryDate = refreshTokenExpiryDate, // تاریخ انقضا
+                        ActiveProfileId = profileContext.ActiveProfileId > 0 ? profileContext.ActiveProfileId : null,
+                        ActiveProfileType = string.IsNullOrWhiteSpace(profileContext.ActiveProfileType)
+                            ? null
+                            : profileContext.ActiveProfileType
                     };
 
                     var saverefreshToken = await _tokenRep.AddRefreshTokenAsync(refreshTokenRecord);
-                    var isstylist = await _stylistRep.ExistStylistAsync(authenticateResult.Result.PersonID.ToString(), "personid");
                     var iscustomer = await _customerRep.ExistCustomerAsync(authenticateResult.Result.PersonID.ToString(), "personid");
 
                     if (saverefreshToken.Status)
@@ -1076,9 +1307,13 @@ namespace NobatPlusAPI.Controllers
                             AccessToken = accessToken, // بازگرداندن اکسس توکن
                             PersonId = authenticateResult.Result.PersonID,
                             CustomerId = iscustomer.ID,
-                            StylistId = isstylist.ID,
+                            StylistId = profileContext.StylistId,
+                            SalonId = profileContext.SalonId,
+                            ActiveProfileId = profileContext.ActiveProfileId,
+                            ActiveProfileType = profileContext.ActiveProfileType,
+                            Profiles = profileContext.Profiles,
                             IsActive = authenticateResult.Result.Person.IsActive,
-                            RoleId = authenticateResult.Result.Person.RoleId,
+                            RoleId = profileContext.RoleId,
                             FirstName = authenticateResult.Result.Person.FirstName,
                             LastName = authenticateResult.Result.Person.LastName,
                         };

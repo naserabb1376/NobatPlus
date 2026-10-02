@@ -27,4 +27,10 @@ namespace NobatPlusAPI.Models.Booking
         public DateTime? ToDate { get; set; } = null;
     }
 
+    public class GetPublicBookingSlotsRequestBody : GetBookingListRequestBody
+    {
+        public long DiscountId { get; set; }
+        public List<BookingServiceSelectionRequestBody> Services { get; set; } = new();
+    }
+
 }

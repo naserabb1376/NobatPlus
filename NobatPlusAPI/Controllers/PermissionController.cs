@@ -296,7 +296,7 @@ namespace NobatPlusAPI.Controllers
 
                     if (result.Status)
                     {
-                        var roleIds = new long[] { (long)BaseRole.Customer, (long)BaseRole.Stylist, (long)BaseRole.Salon, (long)BaseRole.Admin };
+                        var roleIds = new long[] { /*(long)BaseRole.Customer,*/ (long)BaseRole.Stylist, (long)BaseRole.Salon, (long)BaseRole.Admin };
                         foreach (var roleId in roleIds)
                         {
                             MTPermissionCenter_PermissionRole permissionRole = new MTPermissionCenter_PermissionRole()

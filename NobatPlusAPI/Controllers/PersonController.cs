@@ -590,13 +590,16 @@ namespace NobatPlusAPI.Controllers
             if (roleId != (long)DbTools.BaseRole.Salon)
                 return false;
 
-            var currentStylist = await _stylistRep.ExistStylistAsync(currentPersonId.ToString(), "personid");
-            var targetStylist = await _stylistRep.ExistStylistAsync(personId.ToString(), "personid");
-            if (!currentStylist.Status || !targetStylist.Status)
+            var currentSalonId = User.GetCurrentProfileId();
+            if (currentSalonId <= 0) currentSalonId = User.GetCurrentSalonId();
+            var targetProfiles = await _stylistRep.GetStylistProfilesByPersonIdAsync(personId);
+            var targetStylistId = targetProfiles.Results?
+                .FirstOrDefault(x => x.ProfileType == "stylist")?.ID ?? 0;
+            if (currentSalonId <= 0 || targetStylistId <= 0)
                 return false;
 
-            var target = await _stylistRep.GetStylistByIdAsync(targetStylist.ID);
-            return target.Status && target.Result?.StylistParentID == currentStylist.ID;
+            var target = await _stylistRep.GetStylistByIdAsync(targetStylistId);
+            return target.Status && target.Result?.StylistParentID == currentSalonId;
         }
     }
 }

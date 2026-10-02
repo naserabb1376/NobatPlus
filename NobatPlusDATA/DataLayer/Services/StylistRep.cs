@@ -29,6 +29,18 @@ namespace NobatPlusDATA.DataLayer.Services
             BitResultObject result = new BitResultObject();
             try
             {
+                var duplicateProfile = await _context.Stylists.AsNoTracking().AnyAsync(x =>
+                    x.PersonID == Stylist.PersonID &&
+                    x.IsWorkShop == Stylist.IsWorkShop);
+                if (duplicateProfile)
+                {
+                    result.Status = false;
+                    result.ErrorMessage = Stylist.IsWorkShop
+                        ? "برای این کاربر قبلاً پروفایل سالن ثبت شده است"
+                        : "برای این کاربر قبلاً پروفایل آرایشگر ثبت شده است";
+                    return result;
+                }
+
                 await _context.Stylists.AddAsync(Stylist);
                 await _context.SaveChangesAsync();
                 result.ID = Stylist.ID;
@@ -48,6 +60,19 @@ namespace NobatPlusDATA.DataLayer.Services
             BitResultObject result = new BitResultObject();
             try
             {
+                var duplicateProfile = await _context.Stylists.AsNoTracking().AnyAsync(x =>
+                    x.ID != Stylist.ID &&
+                    x.PersonID == Stylist.PersonID &&
+                    x.IsWorkShop == Stylist.IsWorkShop);
+                if (duplicateProfile)
+                {
+                    result.Status = false;
+                    result.ErrorMessage = Stylist.IsWorkShop
+                        ? "برای این کاربر قبلاً پروفایل سالن ثبت شده است"
+                        : "برای این کاربر قبلاً پروفایل آرایشگر ثبت شده است";
+                    return result;
+                }
+
                 _context.Stylists.Update(Stylist);
                 await _context.SaveChangesAsync();
                 result.ID = Stylist.ID;
@@ -92,6 +117,39 @@ namespace NobatPlusDATA.DataLayer.Services
                 result.Status = false;
                 result.ErrorMessage = $"{ex.Message} - {ex.InnerException?.Message}";
             }
+            return result;
+        }
+
+        public async Task<ListResultObject<StylistProfileDTO>> GetStylistProfilesByPersonIdAsync(long personId)
+        {
+            var result = new ListResultObject<StylistProfileDTO>();
+            try
+            {
+                result.Results = await _context.Stylists
+                    .AsNoTracking()
+                    .Where(x => x.PersonID == personId)
+                    .OrderByDescending(x => x.IsWorkShop)
+                    .ThenBy(x => x.ID)
+                    .Select(x => new StylistProfileDTO
+                    {
+                        ID = x.ID,
+                        PersonID = x.PersonID,
+                        StylistParentID = x.StylistParentID,
+                        Name = x.StylistName,
+                        ProfileType = x.IsWorkShop ? "salon" : "stylist",
+                        IsActive = x.IsActive,
+                        AccountStatus = x.AccountStatus
+                    })
+                    .ToListAsync();
+                result.TotalCount = result.Results.Count;
+                result.PageCount = result.TotalCount > 0 ? 1 : 0;
+            }
+            catch (Exception ex)
+            {
+                result.Status = false;
+                result.ErrorMessage = $"{ex.Message} - {ex.InnerException?.Message}";
+            }
+
             return result;
         }
 
