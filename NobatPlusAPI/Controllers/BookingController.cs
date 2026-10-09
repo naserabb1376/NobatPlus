@@ -136,7 +136,12 @@ namespace NobatPlusAPI.Controllers
                 ? requestBody.Services
                 : requestBody.ServiceId > 0 ? new List<BookingServiceSelectionRequestBody> { new() { ServiceID = requestBody.ServiceId } } : new();
             var result = await _BookingRep.GetAvailableBookingSlotsAsync(requestBody.StylistId, customerId, requestBody.FromDate.Value, rangeEnd,
-                selections.Select(x => new BookingServiceSelectionDTO { ServiceID = x.ServiceID, OptionValueIDs = x.OptionValueIDs }).ToList());
+                selections.Select(x => new BookingServiceSelectionDTO
+                {
+                    ServiceID = x.ServiceID,
+                    OptionValueIDs = x.OptionValueIDs,
+                    StylistServicePriceVariantID = x.StylistServicePriceVariantID > 0 ? x.StylistServicePriceVariantID : null
+                }).ToList());
             return result.Status ? Ok(_mapper.Map<ListResultObject<PublicBookingSlotVM>>(result)) : BadRequest(result);
         }
 
@@ -212,12 +217,15 @@ namespace NobatPlusAPI.Controllers
             var currentStylistId = await GetCurrentStylistIdAsync();
             var currentCustomerId = await GetCurrentCustomerIdAsync();
 
-            if (roleId == (long)DbTools.BaseRole.Customer)
+            // A logged-in person may book for themselves through any active
+            // stylist/salon profile. Profile ownership is only relevant when
+            // the request is made as a staff member, not as a customer.
+            if (requestBody.ViewAsCustomer)
             {
                 if (currentCustomerId <= 0) return Forbid();
                 requestBody.CustomerID = currentCustomerId;
             }
-            else if (roleId == (long)DbTools.BaseRole.Stylist && requestBody.ViewAsCustomer)
+            else if (roleId == (long)DbTools.BaseRole.Customer)
             {
                 if (currentCustomerId <= 0) return Forbid();
                 requestBody.CustomerID = currentCustomerId;
@@ -444,6 +452,9 @@ namespace NobatPlusAPI.Controllers
                 {
                     BookingID = bookingId,
                     ServiceManagementID = service.ServiceID,
+                    StylistServicePriceVariantID = service.StylistServicePriceVariantID > 0
+                        ? service.StylistServicePriceVariantID
+                        : null,
                     OptionValues = service.OptionValueIDs?
                         .Where(optionValueId => optionValueId > 0)
                         .Distinct()

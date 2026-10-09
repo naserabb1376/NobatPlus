@@ -743,10 +743,28 @@ namespace NobatPlusDATA.DataLayer.Services
                 }
                 else if (service.HasDynamicPricing)
                 {
-                    var key = StylistServicePriceVariant.BuildOptionValueCombinationKey(optionIds);
-                    variant = await _context.StylistServicePriceVariants.AsNoTracking().Include(x => x.OptionValues)
-                        .Where(x => x.StylistID == booking.StylistID && x.ServiceManagementID == bookingService.ServiceManagementID && x.OptionValueCombinationKey == key && x.IsActive && x.BookingTagID == null)
-                        .FirstOrDefaultAsync();
+                    if (bookingService.StylistServicePriceVariantID.HasValue)
+                    {
+                        variant = await _context.StylistServicePriceVariants.AsNoTracking().Include(x => x.OptionValues)
+                            .SingleOrDefaultAsync(x => x.ID == bookingService.StylistServicePriceVariantID.Value &&
+                                x.StylistID == booking.StylistID &&
+                                x.ServiceManagementID == bookingService.ServiceManagementID &&
+                                x.IsActive && x.BookingTagID == null);
+
+                        if (variant != null)
+                        {
+                            var variantOptions = variant.OptionValues.Select(x => x.ServiceOptionValueID).OrderBy(x => x).ToList();
+                            if (!variantOptions.SequenceEqual(optionIds))
+                                throw new InvalidOperationException("گزینه‌های خدمت با قیمت متغیر انتخاب‌شده مطابقت ندارند.");
+                        }
+                    }
+                    else
+                    {
+                        var key = StylistServicePriceVariant.BuildOptionValueCombinationKey(optionIds);
+                        variant = await _context.StylistServicePriceVariants.AsNoTracking().Include(x => x.OptionValues)
+                            .Where(x => x.StylistID == booking.StylistID && x.ServiceManagementID == bookingService.ServiceManagementID && x.OptionValueCombinationKey == key && x.IsActive && x.BookingTagID == null)
+                            .FirstOrDefaultAsync();
+                    }
                     if (variant == null) throw new InvalidOperationException("برای ترکیب گزینه‌های انتخاب‌شده قیمت فعالی تعریف نشده است.");
                 }
 
@@ -802,7 +820,28 @@ namespace NobatPlusDATA.DataLayer.Services
                     var price = service.ServicePrice;
                     var duration = service.ServiceDuration;
                     var deposit = service.DepositPercent;
-                    if (service.HasDynamicPricing)
+                    if (service.HasDynamicPricing && selected.StylistServicePriceVariantID.HasValue)
+                    {
+                        var selectedVariant = await _context.StylistServicePriceVariants.AsNoTracking()
+                            .Include(x => x.OptionValues)
+                            .SingleOrDefaultAsync(x => x.ID == selected.StylistServicePriceVariantID.Value &&
+                                x.StylistID == stylistId && x.ServiceManagementID == selected.ServiceID &&
+                                x.IsActive && x.BookingTagID == null);
+                        if (selectedVariant == null)
+                            throw new InvalidOperationException("قیمت متغیر انتخاب‌شده معتبر نیست.");
+
+                        var optionIds = (selected.OptionValueIDs ?? new List<long>())
+                            .Where(x => x > 0).Distinct().OrderBy(x => x).ToList();
+                        var variantOptionIds = selectedVariant.OptionValues.Select(x => x.ServiceOptionValueID)
+                            .OrderBy(x => x).ToList();
+                        if (!variantOptionIds.SequenceEqual(optionIds))
+                            throw new InvalidOperationException("گزینه‌های خدمت با قیمت متغیر انتخاب‌شده مطابقت ندارند.");
+
+                        price = selectedVariant.Price;
+                        duration = selectedVariant.Duration;
+                        deposit = selectedVariant.DepositPercent;
+                    }
+                    else if (service.HasDynamicPricing)
                     {
                         var key = StylistServicePriceVariant.BuildOptionValueCombinationKey(selected.OptionValueIDs);
                         var variant = await _context.StylistServicePriceVariants.AsNoTracking()
