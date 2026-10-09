@@ -56,6 +56,10 @@ namespace NobatPlusAPI.Models.Booking
         [Range(1, long.MaxValue, ErrorMessage = "مقدار {0} باید بزرگتر از 0 باشد")]
         public long ServiceID { get; set; }
 
+        // Optional for fixed-price services; required only when the client
+        // selects a specific dynamic-price variant.
+        public long? StylistServicePriceVariantID { get; set; }
+
         public List<long> OptionValueIDs { get; set; } = new List<long>();
     }
 }

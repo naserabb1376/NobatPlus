@@ -190,6 +190,9 @@ namespace NobatPlusDATA.DataLayer.Services
         private async Task<string?> ValidateAsync(StylistScheduleBlock block, long excludedId, IReadOnlyCollection<StylistScheduleBlock>? pending = null)
         {
             block.Title = block.Title?.Trim() ?? "";
+            // Variant selection is optional; normalize the common client sentinel (0).
+            if (block.StylistServicePriceVariantID.HasValue && block.StylistServicePriceVariantID.Value <= 0)
+                block.StylistServicePriceVariantID = null;
             if (block.StylistID <= 0 || !await _context.Stylists.AnyAsync(x => x.ID == block.StylistID)) return "آرایشگر معتبر نیست.";
             if (block.EndDateTime <= block.StartDateTime) return "زمان پایان باید بعد از زمان شروع باشد.";
             if (block.StartDateTime < DateTime.Now.ToShamsi()) return "امکان ثبت بازه در زمان گذشته وجود ندارد.";
