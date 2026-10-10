@@ -207,11 +207,11 @@ namespace NobatPlusDATA.DataLayer.Services
             if (optionRows.Count != optionValueIds.Count)
                 return "یک یا چند مقدار گزینه انتخاب شده معتبر نیست";
 
-            var rootServiceManagementId = await GetRootServiceManagementIdAsync(variant.ServiceManagementID);
-            if (rootServiceManagementId <= 0)
+            if (!await _context.ServiceManagements.AsNoTracking()
+                    .AnyAsync(x => x.ID == variant.ServiceManagementID))
                 return "خدمت انتخاب شده معتبر نیست";
 
-            if (optionRows.Any(x => x.ServiceManagementID != rootServiceManagementId))
+            if (optionRows.Any(x => x.ServiceManagementID != variant.ServiceManagementID))
                 return "گزینه‌های انتخاب شده باید متعلق به همان خدمت باشند";
 
             if (optionRows.GroupBy(x => x.ServiceOptionID).Any(x => x.Count() > 1))
