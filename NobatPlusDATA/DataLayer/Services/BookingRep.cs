@@ -741,7 +741,9 @@ namespace NobatPlusDATA.DataLayer.Services
                     if (!variantOptions.SequenceEqual(optionIds))
                         throw new InvalidOperationException("گزینه‌های خدمت با قیمت متغیر تعریف‌شده برای این بازه مطابقت ندارند.");
                 }
-                else if (service.HasDynamicPricing)
+                else if (service.HasDynamicPricing &&
+                    (block == null || bookingService.StylistServicePriceVariantID.HasValue ||
+                     block.ServiceManagementID != bookingService.ServiceManagementID))
                 {
                     if (bookingService.StylistServicePriceVariantID.HasValue)
                     {
@@ -773,8 +775,8 @@ namespace NobatPlusDATA.DataLayer.Services
                 var durationMinutes = Convert.ToInt32((variant?.Duration ?? service.ServiceDuration).TotalMinutes);
                 if (block != null && block.ServiceManagementID == bookingService.ServiceManagementID)
                 {
-                    basePrice = block.PriceOverride ?? basePrice;
-                    depositPercent = block.DepositPercentOverride ?? depositPercent;
+                    basePrice = block.PriceOverride > 0 ? block.PriceOverride.Value : basePrice;
+                    depositPercent = block.DepositPercentOverride > 0 ? block.DepositPercentOverride.Value : depositPercent;
                 }
                 var discountPercent = await GetApplicableDiscountPercentAsync(booking.StylistID, bookingService.ServiceManagementID, booking.CustomerID);
 

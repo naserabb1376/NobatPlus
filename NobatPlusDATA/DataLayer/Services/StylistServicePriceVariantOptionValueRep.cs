@@ -272,8 +272,8 @@ namespace NobatPlusDATA.DataLayer.Services
             foreach (var group in optionValues.GroupBy(x => x.StylistServicePriceVariantID))
             {
                 var variant = variants.First(x => x.ID == group.Key);
-                var rootServiceManagementId = await GetRootServiceManagementIdAsync(variant.ServiceManagementID);
-                if (rootServiceManagementId <= 0)
+                if (!await _context.ServiceManagements.AsNoTracking()
+                        .AnyAsync(x => x.ID == variant.ServiceManagementID))
                 {
                     return "خدمت انتخاب شده معتبر نیست";
                 }
@@ -282,7 +282,7 @@ namespace NobatPlusDATA.DataLayer.Services
                     .Where(x => group.Select(g => g.ServiceOptionValueID).Contains(x.ID))
                     .ToList();
 
-                if (selectedOptionRows.Any(x => x.ServiceManagementID != rootServiceManagementId))
+                if (selectedOptionRows.Any(x => x.ServiceManagementID != variant.ServiceManagementID))
                 {
                     return "گزینه‌های انتخاب شده باید متعلق به همان خدمت باشند";
                 }

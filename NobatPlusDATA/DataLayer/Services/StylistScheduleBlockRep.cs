@@ -193,6 +193,8 @@ namespace NobatPlusDATA.DataLayer.Services
             // Variant selection is optional; normalize the common client sentinel (0).
             if (block.StylistServicePriceVariantID.HasValue && block.StylistServicePriceVariantID.Value <= 0)
                 block.StylistServicePriceVariantID = null;
+            if (block.BookingTagID.HasValue && block.BookingTagID.Value <= 0)
+                block.BookingTagID = null;
             if (block.StylistID <= 0 || !await _context.Stylists.AnyAsync(x => x.ID == block.StylistID)) return "آرایشگر معتبر نیست.";
             if (block.EndDateTime <= block.StartDateTime) return "زمان پایان باید بعد از زمان شروع باشد.";
             if (block.StartDateTime < DateTime.Now.ToShamsi()) return "امکان ثبت بازه در زمان گذشته وجود ندارد.";
@@ -236,13 +238,16 @@ namespace NobatPlusDATA.DataLayer.Services
             if (row.StylistServicePriceVariant != null)
             {
                 var options = row.StylistServicePriceVariant.OptionValues?.OrderBy(x => x.ServiceOptionValue.ServiceOption.SortOrder).ThenBy(x => x.ServiceOptionValue.SortOrder).ToList() ?? new();
-                return (row.PriceOverride ?? row.StylistServicePriceVariant.Price, row.DepositPercentOverride ?? row.StylistServicePriceVariant.DepositPercent,
+                return (row.PriceOverride > 0 ? row.PriceOverride.Value : row.StylistServicePriceVariant.Price,
+                    row.DepositPercentOverride > 0 ? row.DepositPercentOverride.Value : row.StylistServicePriceVariant.DepositPercent,
                     options.Select(x => x.ServiceOptionValueID).ToList(), string.Join("، ", options.Select(x => $"{x.ServiceOptionValue.ServiceOption.OptionName}: {x.ServiceOptionValue.ValueName}")));
             }
             if (row.ServiceManagementID.HasValue)
             {
                 var service = await _context.StylistServices.AsNoTracking().SingleAsync(x => x.StylistID == row.StylistID && x.ServiceManagementID == row.ServiceManagementID.Value);
-                return (row.PriceOverride ?? service.ServicePrice, row.DepositPercentOverride ?? service.DepositPercent, new List<long>(), "");
+                return (row.PriceOverride > 0 ? row.PriceOverride.Value : service.ServicePrice,
+                    row.DepositPercentOverride > 0 ? row.DepositPercentOverride.Value : service.DepositPercent,
+                    new List<long>(), "");
             }
             return (row.PriceOverride ?? 0, row.DepositPercentOverride ?? 0, new List<long>(), "");
         }
