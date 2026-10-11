@@ -1169,8 +1169,7 @@ namespace NobatPlusAPI.Controllers
                     (long)DbTools.BaseRole.Stylist => "stylist",
                     _ => ""
                 };
-                activeProfile = profiles.FirstOrDefault(x =>
-                    x.IsActive && x.ProfileType == defaultType);
+                activeProfile = profiles.FirstOrDefault(x =>x.ProfileType == defaultType);
             }
 
             if (activeProfile != null)
