@@ -166,6 +166,7 @@ namespace NobatPlusDATA.DataLayer.Services
                     return result;
                 }
 
+                await DetachVariantReferencesAsync(stylistServicePriceVariantId);
                 _context.StylistServicePriceVariants.Remove(variant);
                 await _context.SaveChangesAsync();
                 result.ID = stylistServicePriceVariantId;
@@ -176,6 +177,37 @@ namespace NobatPlusDATA.DataLayer.Services
                 result.ErrorMessage = $"{ex.Message} - {ex.InnerException?.Message}";
             }
             return result;
+        }
+
+        private async Task DetachVariantReferencesAsync(long variantId)
+        {
+            var scheduleBlocks = await _context.StylistScheduleBlocks
+                .Where(x => x.StylistServicePriceVariantID == variantId)
+                .ToListAsync();
+            var bookingServices = await _context.BookingServices
+                .Where(x => x.StylistServicePriceVariantID == variantId)
+                .ToListAsync();
+            var paymentDetails = await _context.PaymentDetails
+                .Where(x => x.StylistServicePriceVariantID == variantId)
+                .ToListAsync();
+            var followUpSettings = await _context.StylistServiceFollowUpSettings
+                .Where(x => x.StylistServicePriceVariantID == variantId)
+                .ToListAsync();
+            var scheduledMessages = await _context.BookingScheduledMessages
+                .Where(x => x.StylistServicePriceVariantID == variantId)
+                .ToListAsync();
+
+            foreach (var row in scheduleBlocks) row.StylistServicePriceVariantID = null;
+            foreach (var row in bookingServices) row.StylistServicePriceVariantID = null;
+            foreach (var row in paymentDetails) row.StylistServicePriceVariantID = null;
+            foreach (var row in followUpSettings) row.StylistServicePriceVariantID = null;
+            foreach (var row in scheduledMessages) row.StylistServicePriceVariantID = null;
+
+            if (scheduleBlocks.Any() || bookingServices.Any() || paymentDetails.Any() ||
+                followUpSettings.Any() || scheduledMessages.Any())
+            {
+                await _context.SaveChangesAsync();
+            }
         }
 
         private async Task<string> ValidateVariantAsync(StylistServicePriceVariant variant, long excludedVariantId = 0)
