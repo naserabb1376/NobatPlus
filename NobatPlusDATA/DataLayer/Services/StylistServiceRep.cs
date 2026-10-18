@@ -199,7 +199,11 @@ namespace NobatPlusDATA.DataLayer.Services
                         var requestedVariants = inputService.PriceVariants?.ToList() ??
                             new List<StylistServicePriceVariant>();
 
-                        if (!requestedVariants.Any())
+                        if (!inputService.HasDynamicPricing)
+                        {
+                            requestedVariants = new List<StylistServicePriceVariant>();
+                        }
+                        else if (!requestedVariants.Any())
                         {
                             requestedVariants = oldItem.PriceVariants
                                 .Select(variant => CloneVariantForReinsert(variant, now))
@@ -250,24 +254,16 @@ namespace NobatPlusDATA.DataLayer.Services
                         .Select(x => x.ServiceManagementID)
                         .ToHashSet();
 
-                    var candidateServiceIds = oldItems
-                        .Select(x => x.ServiceManagementID)
-                        .ToHashSet();
+                    var itemsToReplace = oldItems
+                        .Where(x => requestedServiceIds.Contains(x.ServiceManagementID))
+                        .ToList();
 
-                    foreach (var oldItem in oldItems.Where(x => !requestedServiceIds.Contains(x.ServiceManagementID)))
+                    if (itemsToReplace.Any())
                     {
-                        var descendants = await GetServiceDescendantsAsync(oldItem.ServiceManagementID);
-                        var isParentOfAnotherKeptService = descendants.Any(x => candidateServiceIds.Contains(x.ID));
-
-                        if (isParentOfAnotherKeptService)
-                            continue;
-
-                        servicesToReinsert.Add(CloneStylistServiceForReinsert(oldItem, now));
-                    }
-
-                    if (oldItems.Any())
-                    {
-                        _context.StylistServices.RemoveRange(oldItems);
+                        await DetachVariantReferencesAsync(itemsToReplace
+                            .SelectMany(x => x.PriceVariants ?? new List<StylistServicePriceVariant>())
+                            .Select(x => x.ID));
+                        _context.StylistServices.RemoveRange(itemsToReplace);
                         await _context.SaveChangesAsync();
                     }
 
@@ -495,6 +491,7 @@ namespace NobatPlusDATA.DataLayer.Services
                 if (optionValues.Any())
                     _context.StylistServicePriceVariantOptionValues.RemoveRange(optionValues);
 
+                await DetachVariantReferencesAsync(new[] { stylistServicePriceVariantId });
                 _context.StylistServicePriceVariants.Remove(variant);
                 await _context.SaveChangesAsync();
 
@@ -564,6 +561,11 @@ namespace NobatPlusDATA.DataLayer.Services
 
             if (stylistServices.Any())
             {
+                        var variantIds = await _context.StylistServicePriceVariants
+                            .Where(x => x.StylistID == stylistId && serviceIdsToRemove.Contains(x.ServiceManagementID))
+                            .Select(x => x.ID)
+                            .ToListAsync();
+                        await DetachVariantReferencesAsync(variantIds);
                 _context.StylistServices.RemoveRange(stylistServices);
                 await _context.SaveChangesAsync();
             }
@@ -916,7 +918,6 @@ namespace NobatPlusDATA.DataLayer.Services
         private async Task<string> ValidatePriceVariantsAsync(IEnumerable<StylistServicePriceVariant> variants)
         {
             var variantList = variants.ToList();
-            var rootServiceIds = new Dictionary<long, long>();
             foreach (var variant in variantList)
             {
                 var optionValueIds = variant.OptionValues?
@@ -946,16 +947,11 @@ namespace NobatPlusDATA.DataLayer.Services
                 if (optionRows.Count != optionValueIds.Count)
                     return "یک یا چند مقدار گزینه انتخاب شده معتبر نیست";
 
-                if (!rootServiceIds.TryGetValue(variant.ServiceManagementID, out var rootServiceManagementId))
-                {
-                    rootServiceManagementId = await GetRootServiceManagementIdAsync(variant.ServiceManagementID);
-                    rootServiceIds[variant.ServiceManagementID] = rootServiceManagementId;
-                }
-
-                if (rootServiceManagementId <= 0)
+                if (!await _context.ServiceManagements.AsNoTracking()
+                        .AnyAsync(x => x.ID == variant.ServiceManagementID))
                     return "خدمت انتخاب شده معتبر نیست";
 
-                if (optionRows.Any(x => x.ServiceManagementID != rootServiceManagementId))
+                if (optionRows.Any(x => x.ServiceManagementID != variant.ServiceManagementID))
                     return "گزینه‌های انتخاب شده باید متعلق به همان خدمت باشند";
 
                 if (optionRows.GroupBy(x => x.ServiceOptionID).Any(x => x.Count() > 1))
@@ -1114,6 +1110,41 @@ namespace NobatPlusDATA.DataLayer.Services
             long? VariantId,
             List<long> OptionValueIds,
             string OptionSummary);
+
+        private async Task DetachVariantReferencesAsync(IEnumerable<long> variantIds)
+        {
+            var ids = variantIds.Where(x => x > 0).Distinct().ToList();
+            if (!ids.Any())
+                return;
+
+            var scheduleBlocks = await _context.StylistScheduleBlocks
+                .Where(x => x.StylistServicePriceVariantID.HasValue && ids.Contains(x.StylistServicePriceVariantID.Value))
+                .ToListAsync();
+            var bookingServices = await _context.BookingServices
+                .Where(x => x.StylistServicePriceVariantID.HasValue && ids.Contains(x.StylistServicePriceVariantID.Value))
+                .ToListAsync();
+            var paymentDetails = await _context.PaymentDetails
+                .Where(x => x.StylistServicePriceVariantID.HasValue && ids.Contains(x.StylistServicePriceVariantID.Value))
+                .ToListAsync();
+            var followUpSettings = await _context.StylistServiceFollowUpSettings
+                .Where(x => x.StylistServicePriceVariantID.HasValue && ids.Contains(x.StylistServicePriceVariantID.Value))
+                .ToListAsync();
+            var scheduledMessages = await _context.BookingScheduledMessages
+                .Where(x => x.StylistServicePriceVariantID.HasValue && ids.Contains(x.StylistServicePriceVariantID.Value))
+                .ToListAsync();
+
+            foreach (var row in scheduleBlocks) row.StylistServicePriceVariantID = null;
+            foreach (var row in bookingServices) row.StylistServicePriceVariantID = null;
+            foreach (var row in paymentDetails) row.StylistServicePriceVariantID = null;
+            foreach (var row in followUpSettings) row.StylistServicePriceVariantID = null;
+            foreach (var row in scheduledMessages) row.StylistServicePriceVariantID = null;
+
+            if (scheduleBlocks.Any() || bookingServices.Any() || paymentDetails.Any() ||
+                followUpSettings.Any() || scheduledMessages.Any())
+            {
+                await _context.SaveChangesAsync();
+            }
+        }
 
         private async Task<List<ServiceManagement>> GetServiceHierarchyAsync(long serviceId)
         {

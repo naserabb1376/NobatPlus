@@ -219,7 +219,7 @@ namespace NobatPlusDATA.DataLayer.Services
                 var variant = await _context.StylistServicePriceVariants.AsNoTracking().SingleOrDefaultAsync(x => x.ID == block.StylistServicePriceVariantID.Value);
                 if (variant == null || !variant.IsActive || variant.StylistID != block.StylistID) return "قیمت متغیر انتخاب‌شده معتبر نیست.";
                 if (block.ServiceManagementID.HasValue && variant.ServiceManagementID != block.ServiceManagementID.Value) return "قیمت متغیر متعلق به خدمت انتخاب‌شده نیست.";
-                if (block.BookingTagID.HasValue && variant.BookingTagID != block.BookingTagID) return "برچسب بازه با برچسب قیمت متغیر مطابقت ندارد.";
+                if (block.BookingTagID.HasValue && variant.BookingTagID != block.BookingTagID) return "برای این خدمت قبلا برچسب ثبت شده است";
                 block.ServiceManagementID ??= variant.ServiceManagementID;
                 block.BookingTagID ??= variant.BookingTagID;
             }
