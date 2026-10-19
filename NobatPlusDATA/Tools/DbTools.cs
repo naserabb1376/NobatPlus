@@ -17,8 +17,8 @@ namespace NobatPlusDATA.Tools
         public enum BaseRole : long
         {
             Customer = 1,
-            Stylist = 2,
-            Salon = 3,
+            Worker = 2,
+            WorkShop = 3,
             Admin = 4
         }
 

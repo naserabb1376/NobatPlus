@@ -212,7 +212,7 @@ namespace NobatPlusAPI.Controllers
             if (profileId <= 0)
             {
                 var profiles = await _stylistRep.GetStylistProfilesByPersonIdAsync(User.GetCurrentUserId());
-                var profileType = User.GetCurrentRoleId() == (long)DbTools.BaseRole.Salon ? "salon" : "stylist";
+                var profileType = User.GetCurrentRoleId() == (long)DbTools.BaseRole.WorkShop ? nameof(DbTools.BaseRole.WorkShop).ToLower() : nameof(DbTools.BaseRole.Worker).ToLower();
                 profileId = profiles.Results?.FirstOrDefault(x => x.ProfileType == profileType)?.ID ?? 0;
             }
 

@@ -17,7 +17,7 @@ namespace NobatPlusDATA.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "10.0.5")
+                .HasAnnotation("ProductVersion", "10.0.3")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
@@ -1136,6 +1136,12 @@ namespace NobatPlusDATA.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<long>("JobTypeParentID")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("RoleId")
+                        .HasColumnType("bigint");
+
                     b.Property<int>("SexTypeChecked")
                         .HasColumnType("int");
 
@@ -1143,6 +1149,8 @@ namespace NobatPlusDATA.Migrations
                         .HasColumnType("datetime2");
 
                     b.HasKey("ID");
+
+                    b.HasIndex("RoleId");
 
                     b.ToTable("JobTypes");
                 });
@@ -2111,9 +2119,6 @@ namespace NobatPlusDATA.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<bool>("IsActive")
-                        .HasColumnType("bit");
-
-                    b.Property<bool>("IsStylistOnly")
                         .HasColumnType("bit");
 
                     b.Property<bool>("IsWorkShop")
@@ -3114,6 +3119,17 @@ namespace NobatPlusDATA.Migrations
                     b.Navigation("SettlementRequest");
                 });
 
+            modelBuilder.Entity("NobatPlusDATA.Domain.JobType", b =>
+                {
+                    b.HasOne("NobatPlusDATA.Domain.Role", "Role")
+                        .WithMany("JobTypes")
+                        .HasForeignKey("RoleId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Role");
+                });
+
             modelBuilder.Entity("NobatPlusDATA.Domain.Login", b =>
                 {
                     b.HasOne("NobatPlusDATA.Domain.Person", "Person")
@@ -3454,7 +3470,8 @@ namespace NobatPlusDATA.Migrations
                 {
                     b.HasOne("NobatPlusDATA.Domain.BookingTag", "BookingTag")
                         .WithMany("ScheduleBlocks")
-                        .HasForeignKey("BookingTagID");
+                        .HasForeignKey("BookingTagID")
+                        .OnDelete(DeleteBehavior.NoAction);
 
                     b.HasOne("NobatPlusDATA.Domain.ServiceManagement", "ServiceManagement")
                         .WithMany("ScheduleBlocks")
@@ -3751,6 +3768,11 @@ namespace NobatPlusDATA.Migrations
                     b.Navigation("SMSMessages");
 
                     b.Navigation("StylistProfiles");
+                });
+
+            modelBuilder.Entity("NobatPlusDATA.Domain.Role", b =>
+                {
+                    b.Navigation("JobTypes");
                 });
 
             modelBuilder.Entity("NobatPlusDATA.Domain.ServiceManagement", b =>

@@ -230,7 +230,7 @@ namespace NobatPlusAPI.Controllers
                 if (currentCustomerId <= 0) return Forbid();
                 requestBody.CustomerID = currentCustomerId;
             }
-            else if (roleId == (long)DbTools.BaseRole.Stylist || roleId == (long)DbTools.BaseRole.Salon)
+            else if (roleId == (long)DbTools.BaseRole.Worker || roleId == (long)DbTools.BaseRole.WorkShop)
             {
                 if (!await CanAccessStylistAsync(requestBody.StylistID)) return Forbid();
             }
@@ -481,7 +481,7 @@ namespace NobatPlusAPI.Controllers
             if (profileId > 0) return profileId;
 
             var profiles = await _StylistRep.GetStylistProfilesByPersonIdAsync(User.GetCurrentUserId());
-            var profileType = User.GetCurrentRoleId() == (long)DbTools.BaseRole.Salon ? "salon" : "stylist";
+            var profileType = User.GetCurrentRoleId() == (long)DbTools.BaseRole.WorkShop ? nameof(DbTools.BaseRole.WorkShop).ToLower() : nameof(DbTools.BaseRole.Worker).ToLower();
             return profiles.Results?.FirstOrDefault(x => x.ProfileType == profileType)?.ID ?? 0;
         }
 
@@ -499,7 +499,7 @@ namespace NobatPlusAPI.Controllers
                 return currentCustomerId > 0 && booking.CustomerID == currentCustomerId;
             }
 
-            if (roleId == (long)DbTools.BaseRole.Stylist)
+            if (roleId == (long)DbTools.BaseRole.Worker)
             {
                 if (await CanAccessStylistAsync(booking.StylistID))
                     return true;
@@ -508,7 +508,7 @@ namespace NobatPlusAPI.Controllers
                 return currentCustomerId > 0 && booking.CustomerID == currentCustomerId;
             }
 
-            if (roleId == (long)DbTools.BaseRole.Salon)
+            if (roleId == (long)DbTools.BaseRole.WorkShop)
                 return await CanAccessStylistAsync(booking.StylistID);
 
             return false;
@@ -526,10 +526,10 @@ namespace NobatPlusAPI.Controllers
             if (currentStylistId <= 0)
                 return false;
 
-            if (roleId == (long)DbTools.BaseRole.Stylist)
+            if (roleId == (long)DbTools.BaseRole.Worker)
                 return stylistId == currentStylistId;
 
-            if (roleId == (long)DbTools.BaseRole.Salon)
+            if (roleId == (long)DbTools.BaseRole.WorkShop)
             {
                 if (stylistId == currentStylistId)
                     return true;

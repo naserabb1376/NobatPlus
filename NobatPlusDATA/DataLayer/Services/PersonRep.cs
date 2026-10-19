@@ -94,7 +94,7 @@ namespace NobatPlusDATA.DataLayer.Services
             ListResultObject<Person> results = new ListResultObject<Person>();
             try
             {
-                IQueryable<Person> query = _context.Persons.Include(x => x.Address).ThenInclude(x => x.City).AsNoTracking(); ;
+                IQueryable<Person> query = _context.Persons.Include(x=> x.Role).Include(x => x.Address).ThenInclude(x => x.City).AsNoTracking(); ;
 
                 if (cityId > 0)
                 {
@@ -119,6 +119,7 @@ namespace NobatPlusDATA.DataLayer.Services
                     (!string.IsNullOrEmpty(x.Email) && x.Email.Contains(searchText)) ||
                     (!string.IsNullOrEmpty(x.Description) && x.Description.Contains(searchText)) ||
                     (!string.IsNullOrEmpty(x.Address.City.CityName.ToString()) && x.Address.City.CityName.ToString().Contains(searchText)) ||
+                    (!string.IsNullOrEmpty(x.Role.Name.ToString()) && x.Role.Name.ToString().Contains(searchText)) ||
                     (!string.IsNullOrEmpty(x.Address.AddressLocationHorizentalPoint.ToString()) && x.Address.AddressLocationHorizentalPoint.ToString().Contains(searchText)) ||
                     (!string.IsNullOrEmpty(x.Address.AddressLocationVerticalPoint.ToString()) && x.Address.AddressLocationVerticalPoint.ToString().Contains(searchText)) ||
                     (!string.IsNullOrEmpty(x.Address.AddressPostalCode.ToString()) && x.Address.AddressPostalCode.ToString().Contains(searchText)) ||
@@ -150,7 +151,7 @@ namespace NobatPlusDATA.DataLayer.Services
             RowResultObject<Person> result = new RowResultObject<Person>();
             try
             {
-                result.Result = await _context.Persons.Include(x=> x.Address).ThenInclude(x => x.City)
+                result.Result = await _context.Persons.Include(x=> x.Role).Include(x=> x.Address).ThenInclude(x => x.City)
                 .AsNoTracking()
                 .SingleOrDefaultAsync(x => x.ID == personId);
             }

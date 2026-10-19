@@ -49,7 +49,7 @@ namespace NobatPlusAPI.Controllers
             {
                 return BadRequest(requestBody);
             }
-            var result = await _jobTypeRep.GetAllJobTypesAsync(requestBody.SexTypeChecked,requestBody.PageIndex,requestBody.PageSize,requestBody.SearchText,requestBody.SortQuery);
+            var result = await _jobTypeRep.GetAllJobTypesAsync(requestBody.RoleId,requestBody.ParentID,requestBody.SexTypeChecked,requestBody.PageIndex,requestBody.PageSize,requestBody.SearchText,requestBody.SortQuery);
             if (result.Status)
             {
                 var resultVM = _mapper.Map<ListResultObject<JobTypeVM>>(result);
@@ -100,6 +100,8 @@ namespace NobatPlusAPI.Controllers
             {
                 CreateDate = DateTime.Now.ToShamsi(),
                 UpdateDate = DateTime.Now.ToShamsi(),
+                RoleId = requestBody.RoleId,
+                JobTypeParentID = requestBody.JobTypeParentID,
                 JobTitle = requestBody.JobTitle,
                 SexTypeChecked = requestBody.SexTypeChecked,
                 Description = requestBody.Description,
@@ -147,6 +149,8 @@ namespace NobatPlusAPI.Controllers
                 CreateDate = theRow.Result.CreateDate,
                 UpdateDate = DateTime.Now.ToShamsi(),
                 ID = requestBody.ID,
+                RoleId = requestBody.RoleId,
+                JobTypeParentID = requestBody.JobTypeParentID,
                 JobTitle = requestBody.JobTitle,
                 SexTypeChecked = requestBody.SexTypeChecked,
                 Description = requestBody.Description,

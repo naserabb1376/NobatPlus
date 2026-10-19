@@ -79,17 +79,28 @@ namespace NobatPlusDATA.DataLayer.Services
             
         }
 
-        public async Task<ListResultObject<JobType>> GetAllJobTypesAsync(int SexTypeChecked = 0, int pageIndex = 1, int pageSize = 20, string searchText = "",string sortQuery ="")
+        public async Task<ListResultObject<JobType>> GetAllJobTypesAsync(long roleId = 0,long parentId = 0, int SexTypeChecked = 0, int pageIndex = 1, int pageSize = 20, string searchText = "",string sortQuery ="")
         {
             ListResultObject<JobType> results = new ListResultObject<JobType>();
             try
             {
-                var query = _context.JobTypes
-                .AsNoTracking()
-                .Where(x =>
+                var query = _context.JobTypes.Include(x=> x.Role).AsNoTracking();
+
+                if (roleId > 0)
+                {
+                    query = query.Where(x => x.RoleId == roleId);
+                }
+
+                if (parentId > 0)
+                {
+                    query = query.Where(x => x.JobTypeParentID == parentId);
+                }
+
+                query = query.Where(x =>
                     x.SexTypeChecked == SexTypeChecked &&
                     (
                         (!string.IsNullOrEmpty(x.JobTitle.ToString()) && x.JobTitle.ToString().Contains(searchText)) ||
+                        (!string.IsNullOrEmpty(x.Role.Name.ToString()) && x.Role.Name.ToString().Contains(searchText)) ||
                         (!string.IsNullOrEmpty(x.SexTypeChecked.ToString()) && x.SexTypeChecked.ToString().Contains(searchText)) ||
                         (!string.IsNullOrEmpty(x.Description.ToString()) && x.Description.ToString().Contains(searchText)) ||
                         (x.CreateDate.HasValue && x.CreateDate.Value.ToString().Contains(searchText)) ||
@@ -116,7 +127,7 @@ namespace NobatPlusDATA.DataLayer.Services
             RowResultObject<JobType> result = new RowResultObject<JobType>();
             try
             {
-                result.Result = await _context.JobTypes
+                result.Result = await _context.JobTypes.Include(x=> x.Role)
                 .AsNoTracking()
                 .SingleOrDefaultAsync(x => x.ID == JobTypeId);
             }

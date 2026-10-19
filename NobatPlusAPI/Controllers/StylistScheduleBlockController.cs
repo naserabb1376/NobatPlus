@@ -101,7 +101,7 @@ namespace NobatPlusAPI.Controllers
             var current = User.GetCurrentProfileId() > 0 ? User.GetCurrentProfileId() : User.GetCurrentStylistId();
             if (current <= 0) return false;
             if (stylistId == current) return true;
-            if (User.GetCurrentRoleId() != (long)DbTools.BaseRole.Salon) return false;
+            if (User.GetCurrentRoleId() != (long)DbTools.BaseRole.WorkShop) return false;
             var target = await _stylistRep.GetStylistByIdAsync(stylistId);
             return target.Status && target.Result?.StylistParentID == current;
         }

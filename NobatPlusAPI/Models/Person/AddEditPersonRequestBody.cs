@@ -50,7 +50,7 @@ namespace NobatPlusAPI.Models.Person
         [Display(Name = "نقش کاربر")]
         [Required(ErrorMessage = "لطفا {0} را وارد کنید")]
         [Range(1, long.MaxValue, ErrorMessage = "مقدار {0} باید بزرگتر از 0 باشد")]
-        public int RoleId { get; set; } // 1. User 2.Stylist 3. Salon
+        public long RoleId { get; set; } // 1.User 2.Worker 3.WorkShop 4.Admin
         public string? Description { get; set; }
 
         [Display(Name = "وضعیت فعال پروفایل")]
@@ -111,7 +111,7 @@ namespace NobatPlusAPI.Models.Person
         [Display(Name = "نقش کاربر")]
         [Required(ErrorMessage = "لطفا {0} را وارد کنید")]
         [Range(1, long.MaxValue, ErrorMessage = "مقدار {0} باید بزرگتر از 0 باشد")]
-        public int RoleId { get; set; } // 1. User 2.Stylist 3. Salon
+        public long RoleId { get; set; } // 1.User 2.Worker 3.WorkShop 4.Admin
         //public long PermissionsVersion { get; set; } = 1;
         public string? Description { get; set; }
 

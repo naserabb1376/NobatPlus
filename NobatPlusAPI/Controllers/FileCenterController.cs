@@ -45,7 +45,7 @@ public class FileCenterController : ControllerBase
         "servicediscount",
         "servicemanagement",
         "stylistservice",
-        "stylist",
+        nameof(DbTools.BaseRole.Worker).ToLower(),
         "servicecategory",
         "other"
     };
@@ -354,7 +354,7 @@ public class FileCenterController : ControllerBase
     {
         entityName = (entityName ?? "").Trim().ToLowerInvariant();
         if (entityName == "stylists")
-            entityName = "stylist";
+            entityName = nameof(DbTools.BaseRole.Worker).ToLower();
 
         if (entityName.Length is < 2 or > 50)
             return "";
