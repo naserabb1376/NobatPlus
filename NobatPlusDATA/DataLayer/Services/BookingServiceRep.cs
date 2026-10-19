@@ -147,7 +147,7 @@ namespace NobatPlusDATA.DataLayer.Services
             {
                 var query = _context.BookingServices
                 .AsNoTracking()
-                .Include(x => x.Booking).ThenInclude(x => x.Stylist).ThenInclude(x => x.Person)
+                .Include(x => x.Booking).ThenInclude(x => x.Worker).ThenInclude(x => x.Person)
                 .Include(x => x.Booking).ThenInclude(x => x.Customer).ThenInclude(x => x.Person)
                 .Include(x => x.ServiceManagement)
                 .Where(x =>
@@ -155,9 +155,9 @@ namespace NobatPlusDATA.DataLayer.Services
                     //|| (!string.IsNullOrEmpty(x.Booking.BookingTime.ToString()) && x.Booking.BookingTime.ToString().Contains(searchText))
                     || (!string.IsNullOrEmpty(x.Booking.Status.ToString()) && x.Booking.Status.ToString().Contains(searchText))
                     || (!string.IsNullOrEmpty(x.ServiceManagement.ServiceName.ToString()) && x.ServiceManagement.ServiceName.ToString().Contains(searchText))
-                    || (!string.IsNullOrEmpty(x.Booking.Stylist.Specialty.ToString()) && x.Booking.Stylist.Specialty.ToString().Contains(searchText))
-                    || (!string.IsNullOrEmpty(x.Booking.Stylist.Person.FirstName.ToString()) && x.Booking.Stylist.Person.FirstName.ToString().Contains(searchText))
-                    || (!string.IsNullOrEmpty(x.Booking.Stylist.Person.LastName.ToString()) && x.Booking.Stylist.Person.LastName.ToString().Contains(searchText))
+                    || (!string.IsNullOrEmpty(x.Booking.Worker.Specialty.ToString()) && x.Booking.Worker.Specialty.ToString().Contains(searchText))
+                    || (!string.IsNullOrEmpty(x.Booking.Worker.Person.FirstName.ToString()) && x.Booking.Worker.Person.FirstName.ToString().Contains(searchText))
+                    || (!string.IsNullOrEmpty(x.Booking.Worker.Person.LastName.ToString()) && x.Booking.Worker.Person.LastName.ToString().Contains(searchText))
                 );
                 results.TotalCount = query.Count();
                 results.PageCount = DbTools.GetPageCount(results.TotalCount, pageSize);
@@ -181,7 +181,7 @@ namespace NobatPlusDATA.DataLayer.Services
             {
                 result.Result = await _context.BookingServices
                 .AsNoTracking()
-                .Include(x => x.Booking).ThenInclude(x => x.Stylist).ThenInclude(x => x.Person)
+                .Include(x => x.Booking).ThenInclude(x => x.Worker).ThenInclude(x => x.Person)
                 .Include(x => x.Booking).ThenInclude(x => x.Customer).ThenInclude(x => x.Person)
                 .Include(x => x.ServiceManagement)
                 .SingleOrDefaultAsync(x => x.BookingID == BookingId && x.ServiceManagementID == ServiceManagementId);

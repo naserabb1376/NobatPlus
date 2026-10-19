@@ -32,7 +32,7 @@ namespace NobatPlusAPI.Controllers
     public class CustomerController : ControllerBase
     {
         ICustomerRep _CustomerRep;
-        IStylistRep _StylistRep;
+        IWorkerRep _WorkerRep;
         IPersonRep _PersonRep;
         IAddressRep _AddressRep;
         ILoginRep _LoginRep;
@@ -42,7 +42,7 @@ namespace NobatPlusAPI.Controllers
 
         public CustomerController(
             ICustomerRep CustomerRep,
-            IStylistRep stylistRep,
+            IWorkerRep workerRep,
             IPersonRep personRep,
             IAddressRep addressRep,
             ILoginRep loginRep,
@@ -50,7 +50,7 @@ namespace NobatPlusAPI.Controllers
             IMapper mapper)
         {
            _CustomerRep = CustomerRep;
-            _StylistRep = stylistRep;
+            _WorkerRep = workerRep;
             _PersonRep = personRep;
             _AddressRep = addressRep;
             _LoginRep = loginRep;
@@ -66,7 +66,7 @@ namespace NobatPlusAPI.Controllers
                 return BadRequest(requestBody);
             }
 
-            var result = await _CustomerRep.GetAllCustomersAsync(requestBody.StylistId, requestBody.CityId, requestBody.DiscountId, requestBody.PageIndex, requestBody.PageSize, requestBody.SearchText, requestBody.SortQuery);
+            var result = await _CustomerRep.GetAllCustomersAsync(requestBody.WorkerId, requestBody.CityId, requestBody.DiscountId, requestBody.PageIndex, requestBody.PageSize, requestBody.SearchText, requestBody.SortQuery);
             if (result.Status)
             {
                 var resultVM = _mapper.Map<ListResultObject<CustomerVM>>(result);
@@ -75,7 +75,7 @@ namespace NobatPlusAPI.Controllers
             return BadRequest(result);
         }
 
-        // اختصاصی برای انتخاب مشتری در فرم ثبت نوبت دستی: فقط مشتریانی که قبلاً از همین آرایشگر/سالن نوبت گرفته‌اند.
+        // اختصاصی برای انتخاب مشتری در فرم ثبت نوبت دستی: فقط مشتریانی که قبلاً از همین خدمات دهنده/محل خدمت نوبت گرفته‌اند.
         [HttpPost("GetMyBookingCustomers_Base")]
         [RequireRole((long)DbTools.BaseRole.Worker, (long)DbTools.BaseRole.WorkShop, (long)DbTools.BaseRole.Admin)]
         public async Task<ActionResult<ListResultObject<CustomerVM>>> GetMyBookingCustomers_Base(GetMyBookingCustomersRequestBody requestBody)
@@ -85,15 +85,15 @@ namespace NobatPlusAPI.Controllers
                 return BadRequest(requestBody);
             }
 
-            long stylistId = 0;
+            long workerId = 0;
             var roleId = User.GetCurrentRoleId();
             if (roleId == (long)DbTools.BaseRole.Worker || roleId == (long)DbTools.BaseRole.WorkShop)
             {
-                stylistId = await GetCurrentStylistIdAsync();
-                if (stylistId <= 0) return Forbid();
+                workerId = await GetCurrentWorkerIdAsync();
+                if (workerId <= 0) return Forbid();
             }
 
-            var result = await _CustomerRep.GetAllCustomersAsync(stylistId, 0, 0, requestBody.PageIndex, requestBody.PageSize, requestBody.SearchText, requestBody.SortQuery);
+            var result = await _CustomerRep.GetAllCustomersAsync(workerId, 0, 0, requestBody.PageIndex, requestBody.PageSize, requestBody.SearchText, requestBody.SortQuery);
             if (result.Status)
             {
                 var resultVM = _mapper.Map<ListResultObject<CustomerVM>>(result);
@@ -102,41 +102,41 @@ namespace NobatPlusAPI.Controllers
             return BadRequest(result);
         }
 
-        // اختصاصی پنل سالن: مشتریان آرایشگر انتخاب‌شده یا همه آرایشگرهای زیرمجموعه سالن جاری.
-        [HttpPost("GetSalonBookingCustomers_Base")]
+        // اختصاصی پنل محل خدمت: مشتریان خدمات دهنده انتخاب‌شده یا همه خدمات دهندههای زیرمجموعه محل خدمت جاری.
+        [HttpPost("GetWorkshopBookingCustomers_Base")]
         [RequireRole((long)DbTools.BaseRole.WorkShop, (long)DbTools.BaseRole.Admin)]
-        public async Task<ActionResult<ListResultObject<CustomerVM>>> GetSalonBookingCustomers_Base(GetCustomerListRequestBody requestBody)
+        public async Task<ActionResult<ListResultObject<CustomerVM>>> GetWorkshopBookingCustomers_Base(GetCustomerListRequestBody requestBody)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(requestBody);
             }
 
-            var stylistIds = new List<long>();
+            var workerIds = new List<long>();
             var roleId = User.GetCurrentRoleId();
 
             if (roleId == (long)DbTools.BaseRole.WorkShop)
             {
-                var currentStylistId = await GetCurrentStylistIdAsync();
-                if (currentStylistId <= 0) return Forbid();
+                var currentWorkerId = await GetCurrentWorkerIdAsync();
+                if (currentWorkerId <= 0) return Forbid();
 
-                if (requestBody.StylistId > 0)
+                if (requestBody.WorkerId > 0)
                 {
-                    if (!await CanAccessStylistAsync(requestBody.StylistId)) return Forbid();
-                    stylistIds.Add(requestBody.StylistId);
+                    if (!await CanAccessWorkerAsync(requestBody.WorkerId)) return Forbid();
+                    workerIds.Add(requestBody.WorkerId);
                 }
                 else
                 {
-                    stylistIds = await GetSalonAccessibleStylistIdsAsync(currentStylistId);
+                    workerIds = await GetWorkshopAccessibleWorkerIdsAsync(currentWorkerId);
                 }
             }
-            else if (roleId == (long)DbTools.BaseRole.Admin && requestBody.StylistId > 0)
+            else if (roleId == (long)DbTools.BaseRole.Admin && requestBody.WorkerId > 0)
             {
-                stylistIds.Add(requestBody.StylistId);
+                workerIds.Add(requestBody.WorkerId);
             }
 
-            var result = await _CustomerRep.GetAllCustomersByStylistIdsAsync(
-                stylistIds,
+            var result = await _CustomerRep.GetAllCustomersByWorkerIdsAsync(
+                workerIds,
                 requestBody.CityId,
                 requestBody.DiscountId,
                 requestBody.PageIndex,
@@ -152,51 +152,51 @@ namespace NobatPlusAPI.Controllers
             return BadRequest(result);
         }
 
-        private async Task<long> GetCurrentStylistIdAsync()
+        private async Task<long> GetCurrentWorkerIdAsync()
         {
             var profileId = User.GetCurrentProfileId();
             if (profileId > 0) return profileId;
 
-            var profiles = await _StylistRep.GetStylistProfilesByPersonIdAsync(User.GetCurrentUserId());
+            var profiles = await _WorkerRep.GetWorkerProfilesByPersonIdAsync(User.GetCurrentUserId());
             var profileType = User.GetCurrentRoleId() == (long)DbTools.BaseRole.WorkShop ? nameof(DbTools.BaseRole.WorkShop).ToLower() : nameof(DbTools.BaseRole.Worker).ToLower();
             return profiles.Results?.FirstOrDefault(x => x.ProfileType == profileType)?.ID ?? 0;
         }
 
-        private async Task<List<long>> GetSalonAccessibleStylistIdsAsync(long currentStylistId)
+        private async Task<List<long>> GetWorkshopAccessibleWorkerIdsAsync(long currentWorkerId)
         {
-            var stylistIds = new List<long> { currentStylistId };
-            var children = await _StylistRep.GetAllStylistsAsync(parentId: currentStylistId, pageIndex: 1, pageSize: 10000);
+            var workerIds = new List<long> { currentWorkerId };
+            var children = await _WorkerRep.GetAllWorkersAsync(parentId: currentWorkerId, pageIndex: 1, pageSize: 10000);
 
             if (children.Status && children.Results != null)
             {
-                stylistIds.AddRange(children.Results.Select(x => x.ID));
+                workerIds.AddRange(children.Results.Select(x => x.ID));
             }
 
-            return stylistIds.Distinct().ToList();
+            return workerIds.Distinct().ToList();
         }
 
-        private async Task<bool> CanAccessStylistAsync(long stylistId)
+        private async Task<bool> CanAccessWorkerAsync(long workerId)
         {
-            if (stylistId <= 0) return false;
+            if (workerId <= 0) return false;
 
             var roleId = User.GetCurrentRoleId();
             if (roleId == (long)DbTools.BaseRole.Admin)
                 return true;
 
-            var currentStylistId = await GetCurrentStylistIdAsync();
-            if (currentStylistId <= 0)
+            var currentWorkerId = await GetCurrentWorkerIdAsync();
+            if (currentWorkerId <= 0)
                 return false;
 
             if (roleId == (long)DbTools.BaseRole.Worker)
-                return stylistId == currentStylistId;
+                return workerId == currentWorkerId;
 
             if (roleId == (long)DbTools.BaseRole.WorkShop)
             {
-                if (stylistId == currentStylistId)
+                if (workerId == currentWorkerId)
                     return true;
 
-                var target = await _StylistRep.GetStylistByIdAsync(stylistId);
-                return target.Status && target.Result?.StylistParentID == currentStylistId;
+                var target = await _WorkerRep.GetWorkerByIdAsync(workerId);
+                return target.Status && target.Result?.WorkerParentID == currentWorkerId;
             }
 
             return false;

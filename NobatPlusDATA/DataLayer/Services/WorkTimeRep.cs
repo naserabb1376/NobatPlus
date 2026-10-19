@@ -77,7 +77,7 @@ namespace NobatPlusDATA.DataLayer.Services
              
         }
 
-        public async Task<ListResultObject<WorkTime>> GetAllWorkTimesAsync(long stylistId = 0, int pageIndex = 1, int pageSize = 20, string searchText = "",string sortQuery ="")
+        public async Task<ListResultObject<WorkTime>> GetAllWorkTimesAsync(long workerId = 0, int pageIndex = 1, int pageSize = 20, string searchText = "",string sortQuery ="")
         {
             ListResultObject<WorkTime> results = new ListResultObject<WorkTime>();
             try
@@ -86,10 +86,10 @@ namespace NobatPlusDATA.DataLayer.Services
 
                 query = _context.WorkTimes
                         .AsNoTracking()
-                        .Include(x => x.Stylist).ThenInclude(x => x.Person)
+                        .Include(x => x.Worker).ThenInclude(x => x.Person)
                         .Where(x =>
-                            (!string.IsNullOrEmpty(x.Stylist.Person.FirstName.ToString()) && x.Stylist.Person.FirstName.ToString().Contains(searchText))
-                            || (!string.IsNullOrEmpty(x.Stylist.Person.LastName.ToString()) && x.Stylist.Person.LastName.ToString().Contains(searchText))
+                            (!string.IsNullOrEmpty(x.Worker.Person.FirstName.ToString()) && x.Worker.Person.FirstName.ToString().Contains(searchText))
+                            || (!string.IsNullOrEmpty(x.Worker.Person.LastName.ToString()) && x.Worker.Person.LastName.ToString().Contains(searchText))
                             || (!string.IsNullOrEmpty(x.DayOfWeek.ToString()) && x.DayOfWeek.ToString().Contains(searchText))
                             || (!string.IsNullOrEmpty(x.Description.ToString()) && x.Description.ToString().Contains(searchText))
                             || (x.WorkStartTime != null && x.WorkStartTime.ToString().Contains(searchText))
@@ -97,9 +97,9 @@ namespace NobatPlusDATA.DataLayer.Services
                             || (x.CreateDate.HasValue && x.CreateDate.Value.ToString().Contains(searchText))
                             || (x.UpdateDate.HasValue && x.UpdateDate.Value.ToString().Contains(searchText))
                         );
-                if (stylistId > 0)
+                if (workerId > 0)
                 {
-                    query = query.Where(x=> x.StylistID == stylistId);
+                    query = query.Where(x=> x.WorkerID == workerId);
                 }
                 results.TotalCount = query.Count();
                 results.PageCount = DbTools.GetPageCount(results.TotalCount, pageSize);
@@ -123,7 +123,7 @@ namespace NobatPlusDATA.DataLayer.Services
             {
                 result.Result = await _context.WorkTimes
                 .AsNoTracking()
-                .Include(x => x.Stylist).ThenInclude(x => x.Person)
+                .Include(x => x.Worker).ThenInclude(x => x.Person)
                 .SingleOrDefaultAsync(x => x.ID == WorkTimeId);
             }
             catch (Exception ex)

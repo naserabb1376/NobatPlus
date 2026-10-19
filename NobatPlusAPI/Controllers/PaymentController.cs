@@ -36,17 +36,17 @@ namespace NobatPlusAPI.Controllers
         IPaymentRep _PaymentRep;
         IPaymentHistoryRep _PaymentHistoryRep;
         ICustomerRep _customerRep;
-        IStylistServiceRep _stylistServiceRep;
+        IWorkerServiceRep _workerServiceRep;
         ILogRep _logRep;
         private readonly IOnlinePayment _onlinePayment;
         private readonly IMapper _mapper;
 
-        public PaymentController(IPaymentRep PaymentRep,IPaymentHistoryRep paymentHistoryRep,ICustomerRep customerRep,IStylistServiceRep stylistServiceRep,ILogRep logRep, IOnlinePayment onlinePayment, IMapper mapper)
+        public PaymentController(IPaymentRep PaymentRep,IPaymentHistoryRep paymentHistoryRep,ICustomerRep customerRep,IWorkerServiceRep workerServiceRep,ILogRep logRep, IOnlinePayment onlinePayment, IMapper mapper)
         {
            _PaymentRep = PaymentRep;
             _PaymentHistoryRep = paymentHistoryRep;
             _customerRep = customerRep;
-            _stylistServiceRep = stylistServiceRep;
+            _workerServiceRep = workerServiceRep;
            _logRep = logRep;
             _onlinePayment = onlinePayment;
             _mapper = mapper;
@@ -207,7 +207,7 @@ namespace NobatPlusAPI.Controllers
                 DepositAmount = calcPayment.Result.DepositAmount,
                 TotalServiceAmount = calcPayment.Result.TotalServiceAmount,
                 PlarformAmount = calcPayment.Result.PlatformAmount,
-                StylistAmount = calcPayment.Result.StylistAmount,
+                WorkerAmount = calcPayment.Result.WorkerAmount,
                 AllPaymentAmount = calcPayment.Result.AllPaymentAmount,
                 PayedAmount = calcPayment.Result.PayedAmount,
                 RemainAmount = calcPayment.Result.RemainAmount,
@@ -223,17 +223,17 @@ namespace NobatPlusAPI.Controllers
                 {
                     BookingID = bookingId
                 }).ToList(),
-                PaymentDetails = calcPayment.Result.stylistServiceWithDiscountDtos.Select(d=> new PaymentDetail()
+                PaymentDetails = calcPayment.Result.workerServiceWithDiscountDtos.Select(d=> new PaymentDetail()
                 {
                     CreateDate = DateTime.Now.ToShamsi(),
                     UpdateDate = DateTime.Now.ToShamsi(),
                     Description = requestBody.Description,
                     BookingID = d.BookingID,
-                    StylistID = d.StylistID,
+                    WorkerID = d.WorkerID,
                     ServiceManagementID = d.ServiceManagementID,
-                    StylistServicePriceVariantID = d.StylistServicePriceVariantID,
+                    WorkerServicePriceVariantID = d.WorkerServicePriceVariantID,
                     AppliedOptionSummary = d.AppliedOptionSummary,
-                    StylistServiceAmount = d.ServicePrice,
+                    WorkerServiceAmount = d.ServicePrice,
                     DiscountAmount = d.ServicePrice - d.PriceAfterDiscount,
                     DiscountPercent = d.DiscountPercent,
                     OptionValues = d.AppliedOptionValueIDs.Select(optionValueId => new PaymentDetailOptionValue
@@ -349,7 +349,7 @@ namespace NobatPlusAPI.Controllers
                 DepositAmount = calcPayment.Result.DepositAmount,
                 TotalServiceAmount = calcPayment.Result.TotalServiceAmount,
                 PlarformAmount = calcPayment.Result.PlatformAmount,
-                StylistAmount = calcPayment.Result.StylistAmount,
+                WorkerAmount = calcPayment.Result.WorkerAmount,
                 AllPaymentAmount = calcPayment.Result.AllPaymentAmount,
                 PayedAmount = calcPayment.Result.PayedAmount,
                 RemainAmount = calcPayment.Result.RemainAmount,
@@ -366,18 +366,18 @@ namespace NobatPlusAPI.Controllers
                     PaymentID = requestBody.ID,
                     BookingID = bookingId
                 }).ToList(),
-                PaymentDetails = calcPayment.Result.stylistServiceWithDiscountDtos.Select(d => new PaymentDetail()
+                PaymentDetails = calcPayment.Result.workerServiceWithDiscountDtos.Select(d => new PaymentDetail()
                 {
                     CreateDate = theRow.Result.CreateDate,
                     UpdateDate = DateTime.Now.ToShamsi(),
                     Description = requestBody.Description,
                     PaymentID = requestBody.ID,
                     BookingID = d.BookingID,
-                    StylistID = d.StylistID,
+                    WorkerID = d.WorkerID,
                     ServiceManagementID = d.ServiceManagementID,
-                    StylistServicePriceVariantID = d.StylistServicePriceVariantID,
+                    WorkerServicePriceVariantID = d.WorkerServicePriceVariantID,
                     AppliedOptionSummary = d.AppliedOptionSummary,
-                    StylistServiceAmount = d.ServicePrice,
+                    WorkerServiceAmount = d.ServicePrice,
                     DiscountAmount = d.ServicePrice - d.PriceAfterDiscount,
                     DiscountPercent = d.DiscountPercent,
                     OptionValues = d.AppliedOptionValueIDs.Select(optionValueId => new PaymentDetailOptionValue
@@ -655,7 +655,7 @@ namespace NobatPlusAPI.Controllers
                         RemainAmount = Math.Max(0, payment.AllPaymentAmount - paidAmount),
                         TotalServiceAmount = payment.TotalServiceAmount,
                         DiscountedServiceAmount = payment.DiscountedServiceAmount,
-                        StylistAmount = payment.StylistAmount,
+                        WorkerAmount = payment.WorkerAmount,
                         PlarformAmount = payment.PlarformAmount,
                         VatAmount = payment.VatAmount,
                         PaymentDate = DateTime.Now.ToShamsi(),

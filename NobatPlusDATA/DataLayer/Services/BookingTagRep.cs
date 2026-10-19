@@ -12,13 +12,13 @@ namespace NobatPlusDATA.DataLayer.Services
 
         public BookingTagRep(NobatPlusContext context) => _context = context;
 
-        public async Task<ListResultObject<BookingTag>> GetAllBookingTagsAsync(long stylistId = 0, int isActive = -1, int pageIndex = 1, int pageSize = 20, string searchText = "", string sortQuery = "")
+        public async Task<ListResultObject<BookingTag>> GetAllBookingTagsAsync(long workerId = 0, int isActive = -1, int pageIndex = 1, int pageSize = 20, string searchText = "", string sortQuery = "")
         {
             var result = new ListResultObject<BookingTag>();
             try
             {
                 var query = _context.BookingTags.AsNoTracking().AsQueryable();
-                if (stylistId > 0) query = query.Where(x => x.StylistID == stylistId);
+                if (workerId > 0) query = query.Where(x => x.WorkerID == workerId);
                 if (isActive >= 0) query = query.Where(x => x.IsActive == (isActive == 1));
                 if (!string.IsNullOrWhiteSpace(searchText)) query = query.Where(x => x.Title.Contains(searchText));
 
@@ -81,8 +81,8 @@ namespace NobatPlusDATA.DataLayer.Services
             {
                 var row = await _context.BookingTags.SingleOrDefaultAsync(x => x.ID == id);
                 if (row == null) return Fail(result, "برچسب یافت نشد.");
-                if (await _context.StylistServicePriceVariants.AnyAsync(x => x.BookingTagID == id) ||
-                    await _context.StylistScheduleBlocks.AnyAsync(x => x.BookingTagID == id))
+                if (await _context.WorkerServicePriceVariants.AnyAsync(x => x.BookingTagID == id) ||
+                    await _context.WorkerScheduleBlocks.AnyAsync(x => x.BookingTagID == id))
                     return Fail(result, "این برچسب در قیمت‌های متغیر یا برنامه زمانی استفاده شده و قابل حذف نیست؛ آن را غیرفعال کنید.");
                 _context.BookingTags.Remove(row);
                 await _context.SaveChangesAsync();
@@ -96,9 +96,9 @@ namespace NobatPlusDATA.DataLayer.Services
         {
             tag.Title = tag.Title?.Trim() ?? "";
             tag.Color = tag.Color?.Trim() ?? "";
-            if (tag.StylistID <= 0 || !await _context.Stylists.AnyAsync(x => x.ID == tag.StylistID)) return "آرایشگر معتبر نیست.";
+            if (tag.WorkerID <= 0 || !await _context.Workers.AnyAsync(x => x.ID == tag.WorkerID)) return "خدمات دهنده معتبر نیست.";
             if (string.IsNullOrWhiteSpace(tag.Title)) return "عنوان برچسب الزامی است.";
-            if (await _context.BookingTags.AnyAsync(x => x.ID != excludedId && x.StylistID == tag.StylistID && x.Title == tag.Title)) return "این عنوان برای آرایشگر قبلاً ثبت شده است.";
+            if (await _context.BookingTags.AnyAsync(x => x.ID != excludedId && x.WorkerID == tag.WorkerID && x.Title == tag.Title)) return "این عنوان برای خدمات دهنده قبلاً ثبت شده است.";
             return null;
         }
 

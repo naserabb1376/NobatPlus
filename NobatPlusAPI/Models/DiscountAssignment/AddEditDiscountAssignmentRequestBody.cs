@@ -18,7 +18,7 @@ namespace NobatPlusAPI.Models.DiscountAssignment
 
         [Display(Name = "کد خدمات دهنده")]
         [Required(ErrorMessage = "لطفا {0} را وارد کنید")]
-        public long StylistId { get; set; }
+        public long WorkerId { get; set; }
         public string? Description { get; set; }
 
     }

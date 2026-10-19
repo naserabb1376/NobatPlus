@@ -1,0 +1,27 @@
+using Domains;
+
+namespace NobatPlusDATA.Domain
+{
+    public class WorkerServiceFollowUpSetting : BaseEntity
+    {
+        public long WorkerID { get; set; }
+        public long ServiceManagementID { get; set; }
+        public long? WorkerServicePriceVariantID { get; set; }
+
+        public bool RepairEnabled { get; set; }
+        public int? RepairAfterDays { get; set; }
+        public bool RepairReminderEnabled { get; set; }
+        public int? RepairReminderBeforeDays { get; set; }
+        public string? RepairReminderMessageSettingKey { get; set; }
+
+        public bool AfterCareEnabled { get; set; }
+        public int? AfterCareDelayMinutes { get; set; }
+        public string? AfterCareMessageSettingKey { get; set; }
+        public string? AfterCareInstructions { get; set; }
+
+        public Worker Worker { get; set; }
+        public ServiceManagement ServiceManagement { get; set; }
+        public WorkerService WorkerService { get; set; }
+        public WorkerServicePriceVariant? WorkerServicePriceVariant { get; set; }
+    }
+}

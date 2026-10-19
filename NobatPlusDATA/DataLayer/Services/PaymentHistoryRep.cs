@@ -93,7 +93,7 @@ namespace NobatPlusDATA.DataLayer.Services
                     .Include(x => x.Payment)
                         .ThenInclude(x => x.PaymentBookings)
                             .ThenInclude(x => x.Booking)
-                                .ThenInclude(x => x.Stylist)
+                                .ThenInclude(x => x.Worker)
                                     .ThenInclude(x => x.Person)
                          .AsNoTracking();
 
@@ -124,7 +124,7 @@ namespace NobatPlusDATA.DataLayer.Services
                                (!string.IsNullOrEmpty(x.Payment.AllPaymentAmount.ToString()) && x.Payment.AllPaymentAmount.ToString().Contains(searchText)) ||
                                (!string.IsNullOrEmpty(x.Payment.TotalServiceAmount.ToString()) && x.Payment.TotalServiceAmount.ToString().Contains(searchText)) ||
                                (!string.IsNullOrEmpty(x.Payment.PlarformAmount.ToString()) && x.Payment.PlarformAmount.ToString().Contains(searchText)) ||
-                               (!string.IsNullOrEmpty(x.Payment.StylistAmount.ToString()) && x.Payment.StylistAmount.ToString().Contains(searchText)) ||
+                               (!string.IsNullOrEmpty(x.Payment.WorkerAmount.ToString()) && x.Payment.WorkerAmount.ToString().Contains(searchText)) ||
                                (!string.IsNullOrEmpty(x.PaymentDate.ToString()) && x.PaymentDate.ToString().Contains(searchText)) ||
                                (x.CreateDate.HasValue && x.CreateDate.Value.ToString().Contains(searchText)) ||
                                (x.UpdateDate.HasValue && x.UpdateDate.Value.ToString().Contains(searchText))
@@ -160,7 +160,7 @@ namespace NobatPlusDATA.DataLayer.Services
                     .Include(x => x.Payment)
                         .ThenInclude(x => x.PaymentBookings)
                             .ThenInclude(x => x.Booking)
-                                .ThenInclude(x => x.Stylist)
+                                .ThenInclude(x => x.Worker)
                                     .ThenInclude(x => x.Person)
                 .AsNoTracking()
                 .SingleOrDefaultAsync(x => x.ID == PaymentHistoryId);

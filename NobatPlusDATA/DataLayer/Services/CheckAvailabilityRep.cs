@@ -78,22 +78,22 @@ namespace NobatPlusDATA.DataLayer.Services
             return result;
         }
 
-        public async Task<ListResultObject<CheckAvailability>> GetAllCheckAvailabilitiesAsync(long stylistId = 0, int pageIndex = 1, int pageSize = 20, string searchText = "",string sortQuery ="")
+        public async Task<ListResultObject<CheckAvailability>> GetAllCheckAvailabilitiesAsync(long workerId = 0, int pageIndex = 1, int pageSize = 20, string searchText = "",string sortQuery ="")
         {
             ListResultObject<CheckAvailability> results = new ListResultObject<CheckAvailability>();
             try
             {
                 IQueryable<CheckAvailability> query;
 
-                if (stylistId == 0)
+                if (workerId == 0)
                 {
                     query = _context.CheckAvailabilities
                         .AsNoTracking()
-                        .Include(x => x.Stylist).ThenInclude(x => x.Person)
+                        .Include(x => x.Worker).ThenInclude(x => x.Person)
                         .Where(x =>
-                            (!string.IsNullOrEmpty(x.Stylist.Person.FirstName.ToString()) && x.Stylist.Person.FirstName.ToString().Contains(searchText)) ||
-                            (!string.IsNullOrEmpty(x.Stylist.Person.LastName.ToString()) && x.Stylist.Person.LastName.ToString().Contains(searchText)) ||
-                            (!string.IsNullOrEmpty(x.Stylist.Specialty.ToString()) && x.Stylist.Specialty.ToString().Contains(searchText)) ||
+                            (!string.IsNullOrEmpty(x.Worker.Person.FirstName.ToString()) && x.Worker.Person.FirstName.ToString().Contains(searchText)) ||
+                            (!string.IsNullOrEmpty(x.Worker.Person.LastName.ToString()) && x.Worker.Person.LastName.ToString().Contains(searchText)) ||
+                            (!string.IsNullOrEmpty(x.Worker.Specialty.ToString()) && x.Worker.Specialty.ToString().Contains(searchText)) ||
                             (!string.IsNullOrEmpty(x.Time.ToString()) && x.Time.ToString().Contains(searchText)) ||
                             (!string.IsNullOrEmpty(x.Description.ToString()) && x.Description.ToString().Contains(searchText)) ||
                             (!string.IsNullOrEmpty(x.Date.ToString()) && x.Date.ToString().Contains(searchText)) ||
@@ -105,13 +105,13 @@ namespace NobatPlusDATA.DataLayer.Services
                 {
                     query = _context.CheckAvailabilities
                         .AsNoTracking()
-                        .Include(x => x.Stylist).ThenInclude(x => x.Person)
+                        .Include(x => x.Worker).ThenInclude(x => x.Person)
                         .Where(x =>
-                            x.StylistID == stylistId &&
+                            x.WorkerID == workerId &&
                             (
-                                (!string.IsNullOrEmpty(x.Stylist.Person.FirstName.ToString()) && x.Stylist.Person.FirstName.ToString().Contains(searchText)) ||
-                                (!string.IsNullOrEmpty(x.Stylist.Person.LastName.ToString()) && x.Stylist.Person.LastName.ToString().Contains(searchText)) ||
-                                (!string.IsNullOrEmpty(x.Stylist.Specialty.ToString()) && x.Stylist.Specialty.ToString().Contains(searchText)) ||
+                                (!string.IsNullOrEmpty(x.Worker.Person.FirstName.ToString()) && x.Worker.Person.FirstName.ToString().Contains(searchText)) ||
+                                (!string.IsNullOrEmpty(x.Worker.Person.LastName.ToString()) && x.Worker.Person.LastName.ToString().Contains(searchText)) ||
+                                (!string.IsNullOrEmpty(x.Worker.Specialty.ToString()) && x.Worker.Specialty.ToString().Contains(searchText)) ||
                                 (!string.IsNullOrEmpty(x.Time.ToString()) && x.Time.ToString().Contains(searchText)) ||
                                 (!string.IsNullOrEmpty(x.Description.ToString()) && x.Description.ToString().Contains(searchText)) ||
                                 (!string.IsNullOrEmpty(x.Date.ToString()) && x.Date.ToString().Contains(searchText)) ||
@@ -141,7 +141,7 @@ namespace NobatPlusDATA.DataLayer.Services
             try
             {
                 result.Result = await _context.CheckAvailabilities
-                               .Include(x => x.Stylist).ThenInclude(x => x.Person).AsNoTracking()
+                               .Include(x => x.Worker).ThenInclude(x => x.Person).AsNoTracking()
  .SingleOrDefaultAsync(x => x.ID == CheckAvailabilityId);
             }
             catch (Exception ex)

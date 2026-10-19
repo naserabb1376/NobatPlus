@@ -176,8 +176,8 @@ namespace NobatPlusAPI.Tools
             Login login,
             long activeProfileId = 0,
             string activeProfileType = "",
-            long stylistId = 0,
-            long salonId = 0,
+            long workerId = 0,
+            long workshopId = 0,
             long? activeRoleId = null)
         {
             var key = Configuration["Jwt:Key"];
@@ -198,8 +198,8 @@ namespace NobatPlusAPI.Tools
             new Claim("Role", effectiveRoleId.ToString()),
             new Claim("activeProfileId", activeProfileId.ToString()),
             new Claim("activeProfileType", activeProfileType ?? ""),
-            new Claim("stylistId", stylistId.ToString()),
-            new Claim("salonId", salonId.ToString())
+            new Claim("workerId", workerId.ToString()),
+            new Claim("workshopId", workshopId.ToString())
         };
 
             var token = new JwtSecurityToken(
@@ -244,14 +244,14 @@ namespace NobatPlusAPI.Tools
             return user.FindFirstValue("activeProfileType") ?? "";
         }
 
-        public static long GetCurrentStylistId(this ClaimsPrincipal user)
+        public static long GetCurrentWorkerId(this ClaimsPrincipal user)
         {
-            return long.TryParse(user.FindFirstValue("stylistId"), out var id) ? id : 0;
+            return long.TryParse(user.FindFirstValue("workerId"), out var id) ? id : 0;
         }
 
-        public static long GetCurrentSalonId(this ClaimsPrincipal user)
+        public static long GetCurrentWorkshopId(this ClaimsPrincipal user)
         {
-            return long.TryParse(user.FindFirstValue("salonId"), out var id) ? id : 0;
+            return long.TryParse(user.FindFirstValue("workshopId"), out var id) ? id : 0;
         }
 
         public static bool ValidateCaptcha(this string enteredCode,string storedCode)
@@ -418,6 +418,16 @@ namespace NobatPlusAPI.Tools
             }
 
             return ApiVersion;
+        }
+
+        public static string CustomizeAppTitle(string defaultAppName)
+        {
+            string appName = "Nobatix API";
+
+            if (!string.IsNullOrEmpty(appName) || string.IsNullOrEmpty(defaultAppName))
+                return appName;
+
+            return defaultAppName;
         }
 
         public static string GetContentType(this string path)

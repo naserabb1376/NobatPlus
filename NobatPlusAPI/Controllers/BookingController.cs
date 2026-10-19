@@ -35,22 +35,22 @@ namespace NobatPlusAPI.Controllers
         IBookingRep _BookingRep;
         IBookingServiceRep _BookingServiceRep;
         ICustomerRep _CustomerRep;
-        IStylistRep _StylistRep;
+        IWorkerRep _WorkerRep;
         ISettingRep _SettingRep;
-        IStylistScheduleBlockRep _StylistScheduleBlockRep;
+        IWorkerScheduleBlockRep _WorkerScheduleBlockRep;
         ILogRep _logRep;
         private readonly IMapper _mapper;
 
 
-        public BookingController(IBookingRep BookingRep,IBookingServiceRep BookingServiceRep,ICustomerRep customerRep,IStylistRep stylistRep,ISettingRep settingRep,ILogRep logRep, IStylistScheduleBlockRep stylistScheduleBlockRep, IMapper mapper)
+        public BookingController(IBookingRep BookingRep,IBookingServiceRep BookingServiceRep,ICustomerRep customerRep,IWorkerRep workerRep,ISettingRep settingRep,ILogRep logRep, IWorkerScheduleBlockRep workerScheduleBlockRep, IMapper mapper)
         {
             _BookingRep = BookingRep;
             _BookingServiceRep = BookingServiceRep;
             _CustomerRep = customerRep;
-            _StylistRep = stylistRep;
+            _WorkerRep = workerRep;
             _SettingRep = settingRep;
             _logRep = logRep;
-            _StylistScheduleBlockRep = stylistScheduleBlockRep;
+            _WorkerScheduleBlockRep = workerScheduleBlockRep;
             _mapper = mapper;
         }
 
@@ -63,7 +63,7 @@ namespace NobatPlusAPI.Controllers
                 return BadRequest(requestBody);
             }
 
-            result = await _BookingRep.GetAllBookingsAsync(requestBody.ServiceId,requestBody.CustomerId,requestBody.StylistId,requestBody.CancelState,requestBody.FromDate,requestBody.ToDate, requestBody.PageIndex, requestBody.PageSize, requestBody.SearchText, requestBody.SortQuery, requestBody.Status);
+            result = await _BookingRep.GetAllBookingsAsync(requestBody.ServiceId,requestBody.CustomerId,requestBody.WorkerId,requestBody.CancelState,requestBody.FromDate,requestBody.ToDate, requestBody.PageIndex, requestBody.PageSize, requestBody.SearchText, requestBody.SortQuery, requestBody.Status);
             if (result.Status)
             {
                 var resultVM = _mapper.Map<ListResultObject<BookingVM>>(result);
@@ -89,8 +89,8 @@ namespace NobatPlusAPI.Controllers
             if (!ModelState.IsValid)
                 return BadRequest(requestBody);
 
-            if (requestBody.StylistId <= 0)
-                return BadRequest("کد آرایشگر برای دریافت نوبت‌های اشغال الزامی است.");
+            if (requestBody.WorkerId <= 0)
+                return BadRequest("کد خدمات دهنده برای دریافت نوبت‌های اشغال الزامی است.");
 
             if (requestBody.FromDate == null || requestBody.ToDate == null)
                 return BadRequest("بازه تاریخ برای دریافت نوبت‌های اشغال الزامی است.");
@@ -101,17 +101,17 @@ namespace NobatPlusAPI.Controllers
             if ((requestBody.ToDate.Value - requestBody.FromDate.Value).TotalDays > 31)
                 return BadRequest("بازه تاریخ عمومی نمی‌تواند بیشتر از ۳۱ روز باشد.");
 
-            var stylist = await _StylistRep.GetStylistByIdAsync(requestBody.StylistId);
-            if (!stylist.Status || stylist.Result == null) return BadRequest("آرایشگر یافت نشد.");
+            var worker = await _WorkerRep.GetWorkerByIdAsync(requestBody.WorkerId);
+            if (!worker.Status || worker.Result == null) return BadRequest("خدمات دهنده یافت نشد.");
             var customerId = User.Identity?.IsAuthenticated == true ? await GetCurrentCustomerIdAsync() : 0;
             var rangeEnd = requestBody.ToDate.Value.TimeOfDay == TimeSpan.Zero
                 ? requestBody.ToDate.Value.Date.AddDays(1).AddTicks(-1)
                 : requestBody.ToDate.Value;
 
-            if (IsManualScheduleMode(stylist.Result.BookingCreationMode))
+            if (IsManualScheduleMode(worker.Result.BookingCreationMode))
             {
-                var scheduleResult = await _StylistScheduleBlockRep.GetAllStylistScheduleBlocksAsync(
-                    requestBody.StylistId, requestBody.FromDate, rangeEnd,
+                var scheduleResult = await _WorkerScheduleBlockRep.GetAllWorkerScheduleBlocksAsync(
+                    requestBody.WorkerId, requestBody.FromDate, rangeEnd,
                     requestBody.ServiceId, 0, "available", customerId, requestBody.DiscountId,
                     Math.Max(requestBody.PageIndex, 1), Math.Clamp(requestBody.PageSize <= 0 ? 500 : requestBody.PageSize, 1, 500));
                 if (!scheduleResult.Status) return BadRequest(scheduleResult);
@@ -120,12 +120,12 @@ namespace NobatPlusAPI.Controllers
                     TotalCount = scheduleResult.TotalCount, PageCount = scheduleResult.PageCount,
                     Results = scheduleResult.Results.Select(x => new PublicBookingSlotVM
                     {
-                        StylistID = x.StylistID, ScheduleBlockID = x.ID, BookingStartDate = x.StartDateTime, BookingEndDate = x.EndDateTime,
-                        TotalDurationMinutes = x.DurationMinutes, TotalBlockMinutes = x.DurationMinutes + Convert.ToInt32(stylist.Result.RestTime.TotalMinutes),
+                        WorkerID = x.WorkerID, ScheduleBlockID = x.ID, BookingStartDate = x.StartDateTime, BookingEndDate = x.EndDateTime,
+                        TotalDurationMinutes = x.DurationMinutes, TotalBlockMinutes = x.DurationMinutes + Convert.ToInt32(worker.Result.RestTime.TotalMinutes),
                         ServiceIDs = x.ServiceManagementID.HasValue ? new List<long> { x.ServiceManagementID.Value } : new(), Status = x.Status,
-                        BookingCreationMode = stylist.Result.BookingCreationMode, Title = x.Title, ServicePrice = x.ServicePrice,
+                        BookingCreationMode = worker.Result.BookingCreationMode, Title = x.Title, ServicePrice = x.ServicePrice,
                         DiscountPercent = x.DiscountPercent, PriceAfterDiscount = x.PriceAfterDiscount, DepositPercent = x.DepositPercent,
-                        StylistServicePriceVariantID = x.StylistServicePriceVariantID, BookingTagID = x.BookingTagID,
+                        WorkerServicePriceVariantID = x.WorkerServicePriceVariantID, BookingTagID = x.BookingTagID,
                         BookingTagTitle = x.BookingTagTitle, BookingTagColor = x.BookingTagColor,
                         OptionValueIDs = x.OptionValueIDs, OptionSummary = x.OptionSummary
                     }).ToList()
@@ -135,12 +135,12 @@ namespace NobatPlusAPI.Controllers
             var selections = requestBody.Services.Any()
                 ? requestBody.Services
                 : requestBody.ServiceId > 0 ? new List<BookingServiceSelectionRequestBody> { new() { ServiceID = requestBody.ServiceId } } : new();
-            var result = await _BookingRep.GetAvailableBookingSlotsAsync(requestBody.StylistId, customerId, requestBody.FromDate.Value, rangeEnd,
+            var result = await _BookingRep.GetAvailableBookingSlotsAsync(requestBody.WorkerId, customerId, requestBody.FromDate.Value, rangeEnd,
                 selections.Select(x => new BookingServiceSelectionDTO
                 {
                     ServiceID = x.ServiceID,
                     OptionValueIDs = x.OptionValueIDs,
-                    StylistServicePriceVariantID = x.StylistServicePriceVariantID > 0 ? x.StylistServicePriceVariantID : null
+                    WorkerServicePriceVariantID = x.WorkerServicePriceVariantID > 0 ? x.WorkerServicePriceVariantID : null
                 }).ToList());
             return result.Status ? Ok(_mapper.Map<ListResultObject<PublicBookingSlotVM>>(result)) : BadRequest(result);
         }
@@ -214,11 +214,11 @@ namespace NobatPlusAPI.Controllers
             }
 
             var roleId = User.GetCurrentRoleId();
-            var currentStylistId = await GetCurrentStylistIdAsync();
+            var currentWorkerId = await GetCurrentWorkerIdAsync();
             var currentCustomerId = await GetCurrentCustomerIdAsync();
 
             // A logged-in person may book for themselves through any active
-            // stylist/salon profile. Profile ownership is only relevant when
+            // worker/workshop profile. Profile ownership is only relevant when
             // the request is made as a staff member, not as a customer.
             if (requestBody.ViewAsCustomer)
             {
@@ -232,10 +232,10 @@ namespace NobatPlusAPI.Controllers
             }
             else if (roleId == (long)DbTools.BaseRole.Worker || roleId == (long)DbTools.BaseRole.WorkShop)
             {
-                if (!await CanAccessStylistAsync(requestBody.StylistID)) return Forbid();
+                if (!await CanAccessWorkerAsync(requestBody.WorkerID)) return Forbid();
             }
 
-            if (currentCustomerId == requestBody.CustomerID && currentStylistId > 0 && currentStylistId == requestBody.StylistID)
+            if (currentCustomerId == requestBody.CustomerID && currentWorkerId > 0 && currentWorkerId == requestBody.WorkerID)
             {
                 result.Status = false;
                 result.ID = 0;
@@ -253,7 +253,7 @@ namespace NobatPlusAPI.Controllers
                 CustomerID = requestBody.CustomerID,
                 IsCancelled = requestBody.IsCancelled,
                 Status = requestBody.Status,
-                StylistID = requestBody.StylistID,
+                WorkerID = requestBody.WorkerID,
                 Description = requestBody.Description,
                 ScheduleBlockID = requestBody.ScheduleBlockID,
             };
@@ -324,7 +324,7 @@ namespace NobatPlusAPI.Controllers
             if ( currentRoleId != (long)DbTools.BaseRole.Admin)
             {
                 requestBody.CustomerID = theRow.Result.CustomerID;
-                requestBody.StylistID = theRow.Result.StylistID;
+                requestBody.WorkerID = theRow.Result.WorkerID;
             }
 
             var cancelableBookingHrsRow = await _SettingRep.GetSettingRowAsync(0,"cancelablebookinghours");
@@ -352,7 +352,7 @@ namespace NobatPlusAPI.Controllers
                 CustomerID = requestBody.CustomerID,
                 IsCancelled = requestBody.IsCancelled,
                 Status = requestBody.Status,
-                StylistID = requestBody.StylistID,
+                WorkerID = requestBody.WorkerID,
                 Description = requestBody.Description,
                 ScheduleBlockID = requestBody.ScheduleBlockID,
             };
@@ -452,8 +452,8 @@ namespace NobatPlusAPI.Controllers
                 {
                     BookingID = bookingId,
                     ServiceManagementID = service.ServiceID,
-                    StylistServicePriceVariantID = service.StylistServicePriceVariantID > 0
-                        ? service.StylistServicePriceVariantID
+                    WorkerServicePriceVariantID = service.WorkerServicePriceVariantID > 0
+                        ? service.WorkerServicePriceVariantID
                         : null,
                     OptionValues = service.OptionValueIDs?
                         .Where(optionValueId => optionValueId > 0)
@@ -475,12 +475,12 @@ namespace NobatPlusAPI.Controllers
             return result.Status ? result.ID : 0;
         }
 
-        private async Task<long> GetCurrentStylistIdAsync()
+        private async Task<long> GetCurrentWorkerIdAsync()
         {
             var profileId = User.GetCurrentProfileId();
             if (profileId > 0) return profileId;
 
-            var profiles = await _StylistRep.GetStylistProfilesByPersonIdAsync(User.GetCurrentUserId());
+            var profiles = await _WorkerRep.GetWorkerProfilesByPersonIdAsync(User.GetCurrentUserId());
             var profileType = User.GetCurrentRoleId() == (long)DbTools.BaseRole.WorkShop ? nameof(DbTools.BaseRole.WorkShop).ToLower() : nameof(DbTools.BaseRole.Worker).ToLower();
             return profiles.Results?.FirstOrDefault(x => x.ProfileType == profileType)?.ID ?? 0;
         }
@@ -501,7 +501,7 @@ namespace NobatPlusAPI.Controllers
 
             if (roleId == (long)DbTools.BaseRole.Worker)
             {
-                if (await CanAccessStylistAsync(booking.StylistID))
+                if (await CanAccessWorkerAsync(booking.WorkerID))
                     return true;
 
                 var currentCustomerId = await GetCurrentCustomerIdAsync();
@@ -509,33 +509,33 @@ namespace NobatPlusAPI.Controllers
             }
 
             if (roleId == (long)DbTools.BaseRole.WorkShop)
-                return await CanAccessStylistAsync(booking.StylistID);
+                return await CanAccessWorkerAsync(booking.WorkerID);
 
             return false;
         }
 
-        private async Task<bool> CanAccessStylistAsync(long stylistId)
+        private async Task<bool> CanAccessWorkerAsync(long workerId)
         {
-            if (stylistId <= 0) return false;
+            if (workerId <= 0) return false;
 
             var roleId = User.GetCurrentRoleId();
             if (roleId == (long)DbTools.BaseRole.Admin)
                 return true;
 
-            var currentStylistId = await GetCurrentStylistIdAsync();
-            if (currentStylistId <= 0)
+            var currentWorkerId = await GetCurrentWorkerIdAsync();
+            if (currentWorkerId <= 0)
                 return false;
 
             if (roleId == (long)DbTools.BaseRole.Worker)
-                return stylistId == currentStylistId;
+                return workerId == currentWorkerId;
 
             if (roleId == (long)DbTools.BaseRole.WorkShop)
             {
-                if (stylistId == currentStylistId)
+                if (workerId == currentWorkerId)
                     return true;
 
-                var target = await _StylistRep.GetStylistByIdAsync(stylistId);
-                return target.Status && target.Result?.StylistParentID == currentStylistId;
+                var target = await _WorkerRep.GetWorkerByIdAsync(workerId);
+                return target.Status && target.Result?.WorkerParentID == currentWorkerId;
             }
 
             return false;

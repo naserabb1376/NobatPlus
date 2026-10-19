@@ -5,9 +5,9 @@ namespace NobatPlusDATA.DataLayer.Repositories
 {
     public interface IFinancialAccountRep
     {
-        Task<RowResultObject<FinancialAccountReport>> GetFinancialAccountAsync(long stylistId, int pageIndex = 1, int pageSize = 20, DateTime? fromDate = null, DateTime? toDate = null, string transactionType = "");
-        Task<BitResultObject> UpdateBankInfoAsync(long stylistId, string iban, string ownerName);
-        Task<BitResultObject> RequestSettlementAsync(long stylistId, decimal amount, string description = "");
+        Task<RowResultObject<FinancialAccountReport>> GetFinancialAccountAsync(long workerId, int pageIndex = 1, int pageSize = 20, DateTime? fromDate = null, DateTime? toDate = null, string transactionType = "");
+        Task<BitResultObject> UpdateBankInfoAsync(long workerId, string iban, string ownerName);
+        Task<BitResultObject> RequestSettlementAsync(long workerId, decimal amount, string description = "");
         Task<ListResultObject<AdminSettlementRequestReport>> GetSettlementRequestsAsync(string status = "", int pageIndex = 1, int pageSize = 20, string searchText = "", string accountType = "", DateTime? fromDate = null, DateTime? toDate = null, string sortQuery = "");
         Task<BitResultObject> UpdateSettlementStatusAsync(long settlementRequestId, string status, string trackingCode = "", string rejectReason = "");
     }

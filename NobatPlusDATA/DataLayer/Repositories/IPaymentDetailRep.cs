@@ -10,7 +10,7 @@ namespace NobatPlusDATA.DataLayer.Repositories
 {
     public interface IPaymentDetailRep
     {
-        public Task<ListResultObject<PaymentDetail>> GetAllPaymentDetailsAsync(long stylistId = 0, long ServiceId = 0, long paymentId = 0, int pageIndex = 1, int pageSize = 20, string searchText = "",string sortQuery ="");
+        public Task<ListResultObject<PaymentDetail>> GetAllPaymentDetailsAsync(long workerId = 0, long ServiceId = 0, long paymentId = 0, int pageIndex = 1, int pageSize = 20, string searchText = "",string sortQuery ="");
         public Task<RowResultObject<PaymentDetail>> GetPaymentDetailByIdAsync(long PaymentDetailId);
         public Task<BitResultObject> AddPaymentDetailAsync(PaymentDetail PaymentDetail);
         public Task<BitResultObject> EditPaymentDetailAsync(PaymentDetail PaymentDetail);

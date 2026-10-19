@@ -4,9 +4,9 @@ namespace NobatPlusDATA.ViewModels
 {
     public class SocialNetworkVM : BaseEntity
     {
-        public long StylistID { get; set; }
-        public string StylistName { get; set; }
-        public string SalonName { get; set; }
+        public long WorkerID { get; set; }
+        public string WorkerName { get; set; }
+        public string WorkshopName { get; set; }
         public string SocialNetworkName { get; set; }
         public string PhoneNumber { get; set; }
         public string AccountLink { get; set; }

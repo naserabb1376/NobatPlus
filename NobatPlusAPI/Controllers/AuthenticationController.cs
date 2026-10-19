@@ -36,21 +36,21 @@ namespace NobatPlusAPI.Controllers
         private readonly IRegisterRep _registerRep;
         private readonly IPersonRep _personRep;
         private readonly ICustomerRep _customerRep;
-        private readonly IStylistRep _stylistRep;
+        private readonly IWorkerRep _workerRep;
         private readonly IAddressRep _addressRep;
         private readonly ILogRep _logRep;
         private readonly ITokenRep _tokenRep;
         private const string AccessTokenCookieName = "nobatix_access_token";
         private const string RefreshTokenCookieName = "nobatix_refresh_token";
 
-        public AuthenticationController(IConfiguration configuration,ILoginRep loginRep, IRegisterRep registerRep, IPersonRep personRep, ICustomerRep customerRep, IStylistRep stylistRep, IAddressRep addressRep,ILogRep logRep,ITokenRep tokenRep)
+        public AuthenticationController(IConfiguration configuration,ILoginRep loginRep, IRegisterRep registerRep, IPersonRep personRep, ICustomerRep customerRep, IWorkerRep workerRep, IAddressRep addressRep,ILogRep logRep,ITokenRep tokenRep)
         {
             _configuration = configuration;
             _loginRep = loginRep;
             _registerRep = registerRep;
             _personRep = personRep;
             _customerRep = customerRep;
-            _stylistRep = stylistRep;
+            _workerRep = workerRep;
             _addressRep = addressRep;
             _logRep = logRep;
             _tokenRep = tokenRep;
@@ -351,8 +351,8 @@ namespace NobatPlusAPI.Controllers
                         RefreshToken = refreshToken, // بازگرداندن رفرش توکن
                         AccessToken = accessToken, // بازگرداندن اکسس توکن
                         RoleId = profileContext.RoleId,
-                        StylistId = profileContext.StylistId,
-                        SalonId = profileContext.SalonId,
+                        WorkerId = profileContext.WorkerId,
+                        WorkshopId = profileContext.WorkshopId,
                         ActiveProfileId = profileContext.ActiveProfileId,
                         ActiveProfileType = profileContext.ActiveProfileType,
                         Profiles = profileContext.Profiles,
@@ -449,8 +449,8 @@ namespace NobatPlusAPI.Controllers
                 RefreshToken = refreshToken,
                 PersonId = personId,
                 CustomerId = customer.ID,
-                StylistId = profileContext.StylistId,
-                SalonId = profileContext.SalonId,
+                WorkerId = profileContext.WorkerId,
+                WorkshopId = profileContext.WorkshopId,
                 ActiveProfileId = profileContext.ActiveProfileId,
                 ActiveProfileType = profileContext.ActiveProfileType,
                 Profiles = profileContext.Profiles,
@@ -575,35 +575,35 @@ namespace NobatPlusAPI.Controllers
                         if (result.Status)
                         {
                           
-                            if (result.Status && signupRequestBody.stylist != null)
+                            if (result.Status && signupRequestBody.worker != null)
                             {
-                                Stylist stylist = new Stylist()
+                                Worker worker = new Worker()
                                 {
-                                    JobTypeID = signupRequestBody.stylist.JobTypeID,
-                                    YearsOfExperience = signupRequestBody.stylist.YearsOfExperience,
-                                    Specialty = signupRequestBody.stylist.Specialty ?? "",
-                                    StylistParentID = signupRequestBody.stylist.StylistParentID,
+                                    JobTypeID = signupRequestBody.worker.JobTypeID,
+                                    YearsOfExperience = signupRequestBody.worker.YearsOfExperience,
+                                    Specialty = signupRequestBody.worker.Specialty ?? "",
+                                    WorkerParentID = signupRequestBody.worker.WorkerParentID,
                                     PersonID = person.ID,
                                     CreateDate = DateTime.Now.ToShamsi(),
                                     UpdateDate = DateTime.Now.ToShamsi(),
-                                    Description = signupRequestBody.stylist.Description ?? "",
-                                    AccountStatus = signupRequestBody.stylist.AccountStatus ?? "",
-                                    GenderAccepted = signupRequestBody.stylist.GenderAccepted ?? "",
-                                    IsWorkShop = signupRequestBody.stylist.IsWorkshop,
-                                    PayMethod = signupRequestBody.stylist.PayMethod ?? "",
-                                    StylistBio = signupRequestBody.stylist.StylistBio ?? "",
-                                    StylistName = signupRequestBody.stylist.StylistName ?? "",
-                                    WorkShopDepositAmount = signupRequestBody.stylist.WorkShopRentAmount,
-                                    WorkShopInteractMode = signupRequestBody.stylist.WorkShopInteractMode ?? "",
-                                    WorkShopRentAmount = signupRequestBody.stylist.WorkShopRentAmount,
-                                    RestTime = signupRequestBody.stylist.RestTime,
-                                    SlotIntervalMinutes = signupRequestBody.stylist.SlotIntervalMinutes <= 0 ? 30 : signupRequestBody.stylist.SlotIntervalMinutes,
-                                    BookingCreationMode = signupRequestBody.stylist.BookingCreationMode ?? "automatic",
-                                    SlotDisplayMode = signupRequestBody.stylist.SlotDisplayMode ?? "all",
+                                    Description = signupRequestBody.worker.Description ?? "",
+                                    AccountStatus = signupRequestBody.worker.AccountStatus ?? "",
+                                    GenderAccepted = signupRequestBody.worker.GenderAccepted ?? "",
+                                    IsWorkShop = signupRequestBody.worker.IsWorkshop,
+                                    PayMethod = signupRequestBody.worker.PayMethod ?? "",
+                                    WorkerBio = signupRequestBody.worker.WorkerBio ?? "",
+                                    WorkerName = signupRequestBody.worker.WorkerName ?? "",
+                                    WorkShopDepositAmount = signupRequestBody.worker.WorkShopRentAmount,
+                                    WorkShopInteractMode = signupRequestBody.worker.WorkShopInteractMode ?? "",
+                                    WorkShopRentAmount = signupRequestBody.worker.WorkShopRentAmount,
+                                    RestTime = signupRequestBody.worker.RestTime,
+                                    SlotIntervalMinutes = signupRequestBody.worker.SlotIntervalMinutes <= 0 ? 30 : signupRequestBody.worker.SlotIntervalMinutes,
+                                    BookingCreationMode = signupRequestBody.worker.BookingCreationMode ?? "automatic",
+                                    SlotDisplayMode = signupRequestBody.worker.SlotDisplayMode ?? "all",
                                     IsActive = false,
 
                                 };
-                                result = await _stylistRep.AddStylistAsync(stylist);
+                                result = await _workerRep.AddWorkerAsync(worker);
                             }
                             if (result.Status)
                             {
@@ -675,11 +675,11 @@ namespace NobatPlusAPI.Controllers
         {
             int roleId = 0;
 
-            if (signupRequestBody.stylist == null)
+            if (signupRequestBody.worker == null)
             {
                 roleId = 1;
             }
-            else if (signupRequestBody.stylist.IsWorkshop)
+            else if (signupRequestBody.worker.IsWorkshop)
             {
                 roleId = 3;
             }
@@ -1124,7 +1124,7 @@ namespace NobatPlusAPI.Controllers
             {
                 RoleId = personRoleId
             };
-            var profilesResult = await _stylistRep.GetStylistProfilesByPersonIdAsync(personId);
+            var profilesResult = await _workerRep.GetWorkerProfilesByPersonIdAsync(personId);
             if (!profilesResult.Status)
             {
                 result.Status = false;
@@ -1132,26 +1132,26 @@ namespace NobatPlusAPI.Controllers
                 return result;
             }
 
-            var profiles = profilesResult.Results ?? new List<StylistProfileDTO>();
+            var profiles = profilesResult.Results ?? new List<WorkerProfileDTO>();
             result.Profiles = profiles.Select(x => new AuthenticationProfileBody
             {
                 ID = x.ID,
                 ProfileType = x.ProfileType,
                 Name = x.Name,
-                ParentId = x.StylistParentID,
+                ParentId = x.WorkerParentID,
                 IsActive = x.IsActive,
                 JobTypeId = x.JobTypeId,
                 JobTitle = x.JobTitle,
                 AccountStatus = x.AccountStatus,
             }).ToList();
-            result.StylistId = profiles.FirstOrDefault(x =>
+            result.WorkerId = profiles.FirstOrDefault(x =>
                 string.Equals(x.ProfileType, nameof(DbTools.BaseRole.Worker).ToLower(), StringComparison.OrdinalIgnoreCase))?.ID ?? 0;
-            result.SalonId = profiles.FirstOrDefault(x =>
+            result.WorkshopId = profiles.FirstOrDefault(x =>
                 string.Equals(x.ProfileType, nameof(DbTools.BaseRole.WorkShop).ToLower(), StringComparison.OrdinalIgnoreCase))?.ID ?? 0;
 
             var normalizedType = requestedProfileType?.Trim().ToLowerInvariant() ?? "";
             var hasRequestedProfile = requestedProfileId > 0 || !string.IsNullOrWhiteSpace(normalizedType);
-            StylistProfileDTO? activeProfile;
+            WorkerProfileDTO? activeProfile;
             if (hasRequestedProfile)
             {
                 activeProfile = profiles.FirstOrDefault(x =>
@@ -1203,8 +1203,8 @@ namespace NobatPlusAPI.Controllers
                 login,
                 profile.ActiveProfileId,
                 profile.ActiveProfileType,
-                profile.StylistId,
-                profile.SalonId,
+                profile.WorkerId,
+                profile.WorkshopId,
                 profile.RoleId);
         }
 
@@ -1213,8 +1213,8 @@ namespace NobatPlusAPI.Controllers
             public bool Status { get; set; } = true;
             public string ErrorMessage { get; set; } = "";
             public long RoleId { get; set; }
-            public long StylistId { get; set; }
-            public long SalonId { get; set; }
+            public long WorkerId { get; set; }
+            public long WorkshopId { get; set; }
             public long ActiveProfileId { get; set; }
             public string ActiveProfileType { get; set; } = "";
             public List<AuthenticationProfileBody> Profiles { get; set; } = new();
@@ -1312,8 +1312,8 @@ namespace NobatPlusAPI.Controllers
                             AccessToken = accessToken, // بازگرداندن اکسس توکن
                             PersonId = authenticateResult.Result.PersonID,
                             CustomerId = iscustomer.ID,
-                            StylistId = profileContext.StylistId,
-                            SalonId = profileContext.SalonId,
+                            WorkerId = profileContext.WorkerId,
+                            WorkshopId = profileContext.WorkshopId,
                             ActiveProfileId = profileContext.ActiveProfileId,
                             ActiveProfileType = profileContext.ActiveProfileType,
                             Profiles = profileContext.Profiles,

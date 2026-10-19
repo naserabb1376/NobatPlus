@@ -9,8 +9,8 @@ namespace NobatPlusDATA.ViewModels
 {
     public class CustomerDiscountVM : BaseEntity
     {
-        public string StylistName { get; set; }
-        public string SalonName { get; set; }
+        public string WorkerName { get; set; }
+        public string WorkshopName { get; set; }
         public string CustomerName { get; set; }
         public string DiscountCode { get; set; }
         public int DiscountAmount { get; set; }

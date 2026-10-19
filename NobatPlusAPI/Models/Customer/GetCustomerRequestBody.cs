@@ -6,9 +6,9 @@ namespace NobatPlusAPI.Models.Customer
 {
     public class GetCustomerListRequestBody:GetListRequestBody
     {
-        [Display(Name = "کد آرایشگر")]
+        [Display(Name = "کد خدمات دهنده")]
         [Required(ErrorMessage = "لطفا {0} را وارد کنید")]
-        public long StylistId { get; set; }
+        public long WorkerId { get; set; }
 
         [Display(Name = "شناسه تخفیف")]
         [Required(ErrorMessage = "لطفا {0} را وارد کنید")]

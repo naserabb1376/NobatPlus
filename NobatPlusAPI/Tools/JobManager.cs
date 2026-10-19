@@ -15,7 +15,7 @@ namespace NobatPlusAPI.Tools
         private readonly ISettingRep _settingRep;
         private readonly INotificationRep _notificationRep;
         private readonly ILogRep _logRep;
-        private readonly IStylistServiceFollowUpSettingRep _followUpSettingRep;
+        private readonly IWorkerServiceFollowUpSettingRep _followUpSettingRep;
         private readonly IBookingScheduledMessageRep _bookingScheduledMessageRep;
 
         public JobManager(
@@ -25,7 +25,7 @@ namespace NobatPlusAPI.Tools
             ISettingRep settingRep,
             INotificationRep notificationRep,
             ILogRep logRep,
-            IStylistServiceFollowUpSettingRep followUpSettingRep,
+            IWorkerServiceFollowUpSettingRep followUpSettingRep,
             IBookingScheduledMessageRep bookingScheduledMessageRep)
         {
             _BookingRep = bookingRep;
@@ -66,8 +66,8 @@ namespace NobatPlusAPI.Tools
                             {
                                 new ToolBox.MessagePatternObj
                                 {
-                                    Variable = "stylistname",
-                                    Value = $"{booking.Result.Stylist.Person.FirstName} {booking.Result.Stylist.Person.LastName}"
+                                    Variable = "workername",
+                                    Value = $"{booking.Result.Worker.Person.FirstName} {booking.Result.Worker.Person.LastName}"
                                 },
                                  new ToolBox.MessagePatternObj
                                 {
@@ -170,9 +170,9 @@ namespace NobatPlusAPI.Tools
                 return;
 
             var customer = row.Customer.Person;
-            var stylistName = row.Stylist?.Person == null
-                ? "آرایشگر"
-                : $"{row.Stylist.Person.FirstName} {row.Stylist.Person.LastName}".Trim();
+            var workerName = row.Worker?.Person == null
+                ? "خدمات دهنده"
+                : $"{row.Worker.Person.FirstName} {row.Worker.Person.LastName}".Trim();
             var customerName = string.IsNullOrWhiteSpace(customer.FirstName) ? "کاربر عزیز" : $"{customer.FirstName} عزیز";
             var services = row.Services?
                 .Select(x => x.ServiceName)
@@ -182,7 +182,7 @@ namespace NobatPlusAPI.Tools
             var servicesText = services.Any() ? string.Join("، ", services) : "خدمت ثبت‌شده";
             var bookingDetails =
                 $"شماره نوبت: {row.ID}\n" +
-                $"آرایشگر: {stylistName}\n" +
+                $"خدمات دهنده: {workerName}\n" +
                 $"خدمت: {servicesText}\n" +
                 $"تاریخ: {row.BookingStartDate.ToShamsiString().Split(' ')[0]}\n" +
                 $"ساعت: {row.BookingStartDate:HH:mm}";
@@ -206,8 +206,8 @@ namespace NobatPlusAPI.Tools
                                 },
                                   new ToolBox.MessagePatternObj
                                 {
-                                    Variable = "stylistname",
-                                    Value = stylistName
+                                    Variable = "workername",
+                                    Value = workerName
                                 },
                                  new ToolBox.MessagePatternObj
                                 {
@@ -393,7 +393,7 @@ namespace NobatPlusAPI.Tools
             if (serviceIds == null || !serviceIds.Any())
                 return;
 
-            var settings = await _followUpSettingRep.GetActiveStylistServiceFollowUpSettingsAsync(booking.StylistID, serviceIds);
+            var settings = await _followUpSettingRep.GetActiveWorkerServiceFollowUpSettingsAsync(booking.WorkerID, serviceIds);
             if (!settings.Any())
                 return;
 
@@ -444,7 +444,7 @@ namespace NobatPlusAPI.Tools
             if (row == null || !row.IsActive || row.Status != (byte)BookingScheduledMessageStatus.Pending)
                 return;
 
-            if (row.StylistServiceFollowUpSetting == null || !row.StylistServiceFollowUpSetting.IsActive)
+            if (row.WorkerServiceFollowUpSetting == null || !row.WorkerServiceFollowUpSetting.IsActive)
             {
                 await _bookingScheduledMessageRep.MarkBookingScheduledMessageAsync(
                     row.ID,
@@ -543,7 +543,7 @@ namespace NobatPlusAPI.Tools
         private async Task CreateAndScheduleBookingMessageAsync(
             BookingDTO booking,
             BookingServiceSelectionDTO service,
-            StylistServiceFollowUpSetting followUpSetting,
+            WorkerServiceFollowUpSetting followUpSetting,
             BookingScheduledMessageType messageType,
             DateTime scheduledAt,
             string messageSettingKey)
@@ -572,11 +572,11 @@ namespace NobatPlusAPI.Tools
                 CreateDate = now,
                 UpdateDate = now,
                 BookingID = booking.ID,
-                StylistID = booking.StylistID,
+                WorkerID = booking.WorkerID,
                 CustomerID = booking.CustomerID,
                 ServiceManagementID = service.ServiceID,
-                StylistServiceFollowUpSettingID = followUpSetting.ID,
-                StylistServicePriceVariantID = followUpSetting.StylistServicePriceVariantID,
+                WorkerServiceFollowUpSettingID = followUpSetting.ID,
+                WorkerServicePriceVariantID = followUpSetting.WorkerServicePriceVariantID,
                 MessageType = (byte)messageType,
                 MessageText = message,
                 ScheduledAt = scheduledAt,
@@ -609,14 +609,14 @@ namespace NobatPlusAPI.Tools
             string template,
             BookingDTO booking,
             BookingServiceSelectionDTO service,
-            StylistServiceFollowUpSetting followUpSetting,
+            WorkerServiceFollowUpSetting followUpSetting,
             DateTime scheduledAt,
             BookingScheduledMessageType messageType)
         {
             var customer = booking.Customer.Person;
-            var stylistName = booking.Stylist?.Person == null
+            var workerName = booking.Worker?.Person == null
                 ? ""
-                : $"{booking.Stylist.Person.FirstName} {booking.Stylist.Person.LastName}".Trim();
+                : $"{booking.Worker.Person.FirstName} {booking.Worker.Person.LastName}".Trim();
             var customerFullName = $"{customer.FirstName} {customer.LastName}".Trim();
             var repairDate = followUpSetting.RepairAfterDays.HasValue
                 ? booking.BookingEndDate.AddDays(followUpSetting.RepairAfterDays.Value)
@@ -626,8 +626,8 @@ namespace NobatPlusAPI.Tools
             {
                 new ToolBox.MessagePatternObj { Variable = "customerfirstname", Value = customer.FirstName ?? "" },
                 new ToolBox.MessagePatternObj { Variable = "customerfullname", Value = customerFullName },
-                new ToolBox.MessagePatternObj { Variable = "stylistname", Value = stylistName },
-                new ToolBox.MessagePatternObj { Variable = "salonname", Value = booking.Stylist?.StylistName ?? "" },
+                new ToolBox.MessagePatternObj { Variable = "workername", Value = workerName },
+                new ToolBox.MessagePatternObj { Variable = "workshopname", Value = booking.Worker?.WorkerName ?? "" },
                 new ToolBox.MessagePatternObj { Variable = "servicename", Value = service.ServiceName ?? "خدمت ثبت‌شده" },
                 new ToolBox.MessagePatternObj { Variable = "bookingdate", Value = booking.BookingEndDate.ToShamsiString().Split(' ')[0] },
                 new ToolBox.MessagePatternObj { Variable = "bookingtime", Value = booking.BookingEndDate.ToString("HH:mm") },

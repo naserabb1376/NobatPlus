@@ -5,11 +5,11 @@ namespace NobatPlusAPI.ViewModels
     public class BookingScheduledMessageVM : BaseEntity
     {
         public long BookingID { get; set; }
-        public long StylistID { get; set; }
+        public long WorkerID { get; set; }
         public long CustomerID { get; set; }
         public long? ServiceManagementID { get; set; }
-        public long? StylistServiceFollowUpSettingID { get; set; }
-        public long? StylistServicePriceVariantID { get; set; }
+        public long? WorkerServiceFollowUpSettingID { get; set; }
+        public long? WorkerServicePriceVariantID { get; set; }
         public byte MessageType { get; set; }
         public string MessageTypeTitle { get; set; } = "";
         public string MessageText { get; set; } = "";
@@ -25,8 +25,8 @@ namespace NobatPlusAPI.ViewModels
         public long? NotificationID { get; set; }
         public string CustomerName { get; set; } = "";
         public string CustomerPhoneNumber { get; set; } = "";
-        public string StylistName { get; set; } = "";
-        public string SalonName { get; set; } = "";
+        public string WorkerName { get; set; } = "";
+        public string WorkshopName { get; set; } = "";
         public string ServiceName { get; set; } = "";
         public bool FollowUpSettingIsActive { get; set; }
         public DateTime BookingDate { get; set; }

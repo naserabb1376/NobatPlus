@@ -5,7 +5,7 @@ namespace NobatPlusDATA.ViewModels
 {
     public class BookingVM : BaseEntity
     {
-        public long StylistID { get; set; }
+        public long WorkerID { get; set; }
         public long CustomerID { get; set; }
         public DateTime BookingStartDate { get; set; }
         public DateTime BookingEndDate { get; set; }
@@ -15,12 +15,12 @@ namespace NobatPlusDATA.ViewModels
         public List<long> ServiceIDs { get; set; } = new();
         public bool IsCancelled { get; set; }
         public string CancelReason { get; set; }
-        public string StylistName { get; set; }
-        public string SalonName { get; set; }
+        public string WorkerName { get; set; }
+        public string WorkshopName { get; set; }
         public string CustomerName { get; set; }
         public string CustomerPhoneNumber { get; set; }
         public List<BookingSelectedServiceVM>? Services { get; set; }
-        public Address? StylistAddress { get; set; }
+        public Address? WorkerAddress { get; set; }
         public long? ScheduleBlockID { get; set; }
 
     }
@@ -31,7 +31,7 @@ namespace NobatPlusDATA.ViewModels
         public string? ServiceName { get; set; }
         public List<long>? OptionValueIDs { get; set; }
         public List<BookingSelectedServiceOptionValueVM>? OptionValues { get; set; }
-        public long? StylistServicePriceVariantID { get; set; }
+        public long? WorkerServicePriceVariantID { get; set; }
         public decimal? UnitPriceSnapshot { get; set; }
         public int? DiscountPercentSnapshot { get; set; }
         public decimal? PriceAfterDiscountSnapshot { get; set; }
@@ -49,7 +49,7 @@ namespace NobatPlusDATA.ViewModels
 
     public class PublicBookingSlotVM
     {
-        public long StylistID { get; set; }
+        public long WorkerID { get; set; }
         public DateTime BookingStartDate { get; set; }
         public DateTime BookingEndDate { get; set; }
         public string Status { get; set; } = "";
@@ -64,7 +64,7 @@ namespace NobatPlusDATA.ViewModels
         public int DiscountPercent { get; set; }
         public decimal PriceAfterDiscount { get; set; }
         public int DepositPercent { get; set; }
-        public long? StylistServicePriceVariantID { get; set; }
+        public long? WorkerServicePriceVariantID { get; set; }
         public long? BookingTagID { get; set; }
         public string BookingTagTitle { get; set; } = "";
         public string BookingTagColor { get; set; } = "";

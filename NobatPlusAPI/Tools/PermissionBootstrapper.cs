@@ -217,8 +217,8 @@ namespace NobatPlusAPI.Tools
             return controller switch
             {
                 "CustomerDashboard" => CustomerOnly,
-                "StylistDashboard" when actionName.Contains("Salon", StringComparison.OrdinalIgnoreCase) => SalonOnly,
-                "StylistDashboard" => StylistOnly,
+                "WorkerDashboard" when actionName.Contains("Workshop", StringComparison.OrdinalIgnoreCase) => WorkshopOnly,
+                "WorkerDashboard" => WorkerOnly,
                 "Address" when actionName.StartsWith("Delete", StringComparison.OrdinalIgnoreCase)
                     || actionName.StartsWith("Exist", StringComparison.OrdinalIgnoreCase) => AdminOnly,
                 "Address" => AllPanelRoles,
@@ -234,7 +234,7 @@ namespace NobatPlusAPI.Tools
                     || actionName.Contains("Transactions", StringComparison.OrdinalIgnoreCase) => AdminOnly,
                 "Wallet" => CustomerOnly,
                 "Customer" when actionName.Equals("GetAllCustomers_Base", StringComparison.OrdinalIgnoreCase) => ProviderOnly,
-                "Customer" when actionName.Equals("GetSalonBookingCustomers_Base", StringComparison.OrdinalIgnoreCase) => ProviderOnly,
+                "Customer" when actionName.Equals("GetWorkshopBookingCustomers_Base", StringComparison.OrdinalIgnoreCase) => ProviderOnly,
                 "Customer" when actionName.Equals("QuickAddCustomer", StringComparison.OrdinalIgnoreCase) => ProviderOnly,
                 "Customer" when actionName.StartsWith("Delete", StringComparison.OrdinalIgnoreCase) => AdminOnly,
                 "Notification" when actionName.StartsWith("Add", StringComparison.OrdinalIgnoreCase)
@@ -309,8 +309,8 @@ namespace NobatPlusAPI.Tools
             {
                 Menu("داشبورد ادمین", "/admin/dashboard", "LayoutDashboard", BaseRole.Admin),
                 Menu("مدیریت کاربران", "/admin/users", "Users", BaseRole.Admin),
-                Menu("مدیریت سالن‌ها", "/admin/salons", "Building2", BaseRole.Admin),
-                Menu("آرایشگران", "/admin/stylists", "UserCog", BaseRole.Admin),
+                Menu("مدیریت سالن‌ها", "/admin/workshops", "Building2", BaseRole.Admin),
+                Menu("آرایشگران", "/admin/workers", "UserCog", BaseRole.Admin),
                 Menu("مشتریان", "/admin/customers", "Users", BaseRole.Admin),
                 Menu("نقش‌ها و دسترسی‌ها", "/admin/roles", "Shield", BaseRole.Admin),
                 Menu("مدیریت خدمات", "/admin/services", "Scissors", BaseRole.Admin),
@@ -333,45 +333,45 @@ namespace NobatPlusAPI.Tools
                 Menu("داشبورد مشتری", "/customer/dashboard", "LayoutDashboard", BaseRole.Customer),
                 Menu("پروفایل مشتری", "/customer/profile", "User", BaseRole.Customer),
                 Menu("نوبت‌های مشتری", "/customer/appointments", "CalendarDays", BaseRole.Customer),
-                Menu("آرایشگران مشتری", "/customer/stylists", "Users", BaseRole.Customer),
+                Menu("آرایشگران مشتری", "/customer/workers", "Users", BaseRole.Customer),
                 Menu("پرداخت‌های مشتری", "/customer/payments", "CreditCard", BaseRole.Customer),
                 Menu("کیف پول مشتری", "/customer/wallet", "Wallet2", BaseRole.Customer),
                 Menu("تخفیف‌های مشتری", "/customer/discounts", "BadgePercent", BaseRole.Customer),
                 Menu("اعلان‌های مشتری", "/customer/notifications", "Bell", BaseRole.Customer),
                 Menu("تنظیمات مشتری", "/customer/settings", "Settings", BaseRole.Customer),
 
-                Menu("داشبورد آرایشگر", "/stylist/dashboard", "LayoutDashboard", BaseRole.Stylist),
-                Menu("پروفایل آرایشگر", "/stylist/profile", "IdCard", BaseRole.Stylist),
-                Menu("اطلاعات شغلی آرایشگر", "/stylist/workInfo", "Briefcase", BaseRole.Stylist),
-                Menu("شبکه‌های اجتماعی آرایشگر", "/stylist/SocialNetwork", "Share2", BaseRole.Stylist),
-                Menu("نوبت‌های مشتریان آرایشگر", "/stylist/customer-appointments", "CalendarDays", BaseRole.Stylist),
-                Menu("نوبت‌های آرایشگر", "/stylist/stylist-appointments", "CalendarCheck", BaseRole.Stylist),
-                Menu("خدمات آرایشگر", "/stylist/services", "Scissors", BaseRole.Stylist),
-                Menu("ساعات کاری آرایشگر", "/stylist/worktime", "Clock", BaseRole.Stylist),
-                Menu("مرخصی‌های آرایشگر", "/stylist/leaves", "CalendarClock", BaseRole.Stylist),
-                Menu("مشتریان آرایشگر", "/stylist/customers", "Users", BaseRole.Stylist),
-                Menu("نظرات آرایشگر", "/stylist/reviews", "MessageSquareText", BaseRole.Stylist),
-                Menu("QR تبلیغاتی آرایشگر", "/stylist/promotion-qr", "QrCode", BaseRole.Stylist),
-                Menu("گزارش‌های آرایشگر", "/stylist/reports", "BarChart3", BaseRole.Stylist),
-                Menu("تقویم آرایشگر", "/stylist/calendar", "CalendarClock", BaseRole.Stylist),
-                Menu("حساب مالی آرایشگر", "/stylist/financial", "CircleDollarSign", BaseRole.Stylist),
+                Menu("داشبورد آرایشگر", "/worker/dashboard", "LayoutDashboard", BaseRole.Worker),
+                Menu("پروفایل آرایشگر", "/worker/profile", "IdCard", BaseRole.Worker),
+                Menu("اطلاعات شغلی آرایشگر", "/worker/workInfo", "Briefcase", BaseRole.Worker),
+                Menu("شبکه‌های اجتماعی آرایشگر", "/worker/SocialNetwork", "Share2", BaseRole.Worker),
+                Menu("نوبت‌های مشتریان آرایشگر", "/worker/customer-appointments", "CalendarDays", BaseRole.Worker),
+                Menu("نوبت‌های آرایشگر", "/worker/worker-appointments", "CalendarCheck", BaseRole.Worker),
+                Menu("خدمات آرایشگر", "/worker/services", "Scissors", BaseRole.Worker),
+                Menu("ساعات کاری آرایشگر", "/worker/worktime", "Clock", BaseRole.Worker),
+                Menu("مرخصی‌های آرایشگر", "/worker/leaves", "CalendarClock", BaseRole.Worker),
+                Menu("مشتریان آرایشگر", "/worker/customers", "Users", BaseRole.Worker),
+                Menu("نظرات آرایشگر", "/worker/reviews", "MessageSquareText", BaseRole.Worker),
+                Menu("QR تبلیغاتی آرایشگر", "/worker/promotion-qr", "QrCode", BaseRole.Worker),
+                Menu("گزارش‌های آرایشگر", "/worker/reports", "BarChart3", BaseRole.Worker),
+                Menu("تقویم آرایشگر", "/worker/calendar", "CalendarClock", BaseRole.Worker),
+                Menu("حساب مالی آرایشگر", "/worker/financial", "CircleDollarSign", BaseRole.Worker),
 
-                Menu("داشبورد سالن", "/salon/dashboard", "LayoutDashboard", BaseRole.Salon),
-                Menu("پروفایل سالن", "/salon/profile", "IdCard", BaseRole.Salon),
-                Menu("اطلاعات شغلی سالن", "/salon/workInfo", "Briefcase", BaseRole.Salon),
-                Menu("شبکه‌های اجتماعی سالن", "/salon/SocialNetwork", "Share2", BaseRole.Salon),
-                Menu("ساعات کاری سالن", "/salon/SalonWorkTime", "Clock", BaseRole.Salon),
-                Menu("نوبت‌های سالن", "/salon/stylist-appointmentsSalon", "CalendarDays", BaseRole.Salon),
-                Menu("لیست آرایشگران سالن", "/salon/stylists", "Users", BaseRole.Salon),
-                Menu("برنامه کاری آرایشگران سالن", "/salon/work-time-list", "CalendarClock", BaseRole.Salon),
-                Menu("خدمات آرایشگران سالن", "/salon/stylist-services-list", "Scissors", BaseRole.Salon),
-                Menu("شبکه‌های اجتماعی آرایشگران سالن", "/salon/StylistSocialNetwork", "Share2", BaseRole.Salon),
-                Menu("مشتریان سالن", "/salon/customerStylistList", "Users", BaseRole.Salon),
-                Menu("تقویم سالن", "/salon/calendar", "CalendarClock", BaseRole.Salon),
-                Menu("مرخصی‌های سالن", "/salon/leaves", "CalendarClock", BaseRole.Salon),
-                Menu("QR تبلیغاتی سالن", "/salon/promotion-qr", "QrCode", BaseRole.Salon),
-                Menu("نظرات سالن", "/salon/reviews", "MessageCircle", BaseRole.Salon),
-                Menu("حساب مالی سالن", "/salon/financial", "CircleDollarSign", BaseRole.Salon),
+                Menu("داشبورد سالن", "/workshop/dashboard", "LayoutDashboard", BaseRole.Workshop),
+                Menu("پروفایل سالن", "/workshop/profile", "IdCard", BaseRole.Workshop),
+                Menu("اطلاعات شغلی سالن", "/workshop/workInfo", "Briefcase", BaseRole.Workshop),
+                Menu("شبکه‌های اجتماعی سالن", "/workshop/SocialNetwork", "Share2", BaseRole.Workshop),
+                Menu("ساعات کاری سالن", "/workshop/WorkshopWorkTime", "Clock", BaseRole.Workshop),
+                Menu("نوبت‌های سالن", "/workshop/worker-appointmentsWorkshop", "CalendarDays", BaseRole.Workshop),
+                Menu("لیست آرایشگران سالن", "/workshop/workers", "Users", BaseRole.Workshop),
+                Menu("برنامه کاری آرایشگران سالن", "/workshop/work-time-list", "CalendarClock", BaseRole.Workshop),
+                Menu("خدمات آرایشگران سالن", "/workshop/worker-services-list", "Scissors", BaseRole.Workshop),
+                Menu("شبکه‌های اجتماعی آرایشگران سالن", "/workshop/WorkerSocialNetwork", "Share2", BaseRole.Workshop),
+                Menu("مشتریان سالن", "/workshop/customerWorkerList", "Users", BaseRole.Workshop),
+                Menu("تقویم سالن", "/workshop/calendar", "CalendarClock", BaseRole.Workshop),
+                Menu("مرخصی‌های سالن", "/workshop/leaves", "CalendarClock", BaseRole.Workshop),
+                Menu("QR تبلیغاتی سالن", "/workshop/promotion-qr", "QrCode", BaseRole.Workshop),
+                Menu("نظرات سالن", "/workshop/reviews", "MessageCircle", BaseRole.Workshop),
+                Menu("حساب مالی سالن", "/workshop/financial", "CircleDollarSign", BaseRole.Workshop),
             };
         }
 
@@ -383,10 +383,10 @@ namespace NobatPlusAPI.Tools
         private static readonly long[] AdminOnly = { (long)BaseRole.Admin };
         private static readonly long[] NoRoles = Array.Empty<long>();
         private static readonly long[] CustomerOnly = { (long)BaseRole.Customer, (long)BaseRole.Admin };
-        private static readonly long[] StylistOnly = { (long)BaseRole.Stylist, (long)BaseRole.Admin };
-        private static readonly long[] SalonOnly = { (long)BaseRole.Salon, (long)BaseRole.Admin };
-        private static readonly long[] ProviderOnly = { (long)BaseRole.Stylist, (long)BaseRole.Salon, (long)BaseRole.Admin };
-        private static readonly long[] AllPanelRoles = { (long)BaseRole.Customer, (long)BaseRole.Stylist, (long)BaseRole.Salon, (long)BaseRole.Admin };
+        private static readonly long[] WorkerOnly = { (long)BaseRole.Worker, (long)BaseRole.Admin };
+        private static readonly long[] WorkshopOnly = { (long)BaseRole.Workshop, (long)BaseRole.Admin };
+        private static readonly long[] ProviderOnly = { (long)BaseRole.Worker, (long)BaseRole.Workshop, (long)BaseRole.Admin };
+        private static readonly long[] AllPanelRoles = { (long)BaseRole.Customer, (long)BaseRole.Worker, (long)BaseRole.Workshop, (long)BaseRole.Admin };
         private static readonly HashSet<long> ManagedBaseRoleIds = new(AllPanelRoles);
 
         private static readonly HashSet<string> AdminOnlyControllers = new(StringComparer.OrdinalIgnoreCase)
@@ -398,12 +398,12 @@ namespace NobatPlusAPI.Tools
 
         private static readonly HashSet<string> AdminReadMostlyControllers = new(StringComparer.OrdinalIgnoreCase)
         {
-            "Person", "Address", "Customer", "Stylist", "Notification", "Payment", "Review"
+            "Person", "Address", "Customer", "Worker", "Notification", "Payment", "Review"
         };
 
         private static readonly HashSet<string> AdminDeleteControllers = new(StringComparer.OrdinalIgnoreCase)
         {
-            "Person", "Address", "Customer", "Stylist", "Notification", "Payment", "Review"
+            "Person", "Address", "Customer", "Worker", "Notification", "Payment", "Review"
         };
 
         private static readonly HashSet<string> CustomerControllers = new(StringComparer.OrdinalIgnoreCase)
@@ -413,9 +413,9 @@ namespace NobatPlusAPI.Tools
 
         private static readonly HashSet<string> ProviderControllers = new(StringComparer.OrdinalIgnoreCase)
         {
-            "CheckAvailability", "FinancialAccount", "SocialNetwork", "StylistDashboard", "StylistPacific",
-            "StylistService", "StylistServiceFollowUpSetting", "StylistServicePriceVariant",
-            "StylistServicePriceVariantOptionValue", "WorkTime"
+            "CheckAvailability", "FinancialAccount", "SocialNetwork", "WorkerDashboard", "WorkerPacific",
+            "WorkerService", "WorkerServiceFollowUpSetting", "WorkerServicePriceVariant",
+            "WorkerServicePriceVariantOptionValue", "WorkTime"
         };
 
         private static readonly HashSet<string> SharedPanelControllers = new(StringComparer.OrdinalIgnoreCase)
@@ -424,7 +424,7 @@ namespace NobatPlusAPI.Tools
             "Image", "Notification", "Payment", "PaymentBooking", "PaymentDetail", "PaymentDetailOptionValue",
             "PaymentHistory", "Person", "RateHistory", "RateQuestion", "Review", "ServiceDiscount",
             "BookingScheduledMessage",
-            "SupportTicket", "Stylist"
+            "SupportTicket", "Worker"
         };
 
         private sealed record MenuPermissionDefinition(string Name, string Route, string Icon, string Description, IReadOnlyCollection<long> RoleIds);

@@ -79,17 +79,17 @@ namespace NobatPlusDATA.DataLayer.Services
             
         }
 
-        public async Task<ListResultObject<PaymentDetail>> GetAllPaymentDetailsAsync(long stylistId = 0, long ServiceId = 0, long paymentId = 0, int pageIndex = 1, int pageSize = 20, string searchText = "",string sortQuery ="")
+        public async Task<ListResultObject<PaymentDetail>> GetAllPaymentDetailsAsync(long workerId = 0, long ServiceId = 0, long paymentId = 0, int pageIndex = 1, int pageSize = 20, string searchText = "",string sortQuery ="")
         {
             ListResultObject<PaymentDetail> results = new ListResultObject<PaymentDetail>();
             try
             {
-                IQueryable<PaymentDetail> query = _context.PaymentDetails.Include(x=> x.Payment).Include(x => x.ServiceManagement).Include(x => x.Stylist).ThenInclude(x=> x.Person)
+                IQueryable<PaymentDetail> query = _context.PaymentDetails.Include(x=> x.Payment).Include(x => x.ServiceManagement).Include(x => x.Worker).ThenInclude(x=> x.Person)
                          .AsNoTracking();
 
-                if (stylistId > 0)
+                if (workerId > 0)
                 {
-                    query = query.Where(x => x.StylistID == stylistId);
+                    query = query.Where(x => x.WorkerID == workerId);
                 }
 
                 if (ServiceId > 0)
@@ -111,17 +111,17 @@ namespace NobatPlusDATA.DataLayer.Services
                                (!string.IsNullOrEmpty(x.Payment.PaymentStatus.ToString()) && x.Payment.PaymentStatus.ToString().Contains(searchText)) ||
                                (!string.IsNullOrEmpty(x.Description) && x.Description.Contains(searchText)) ||
                                (!string.IsNullOrEmpty(x.ServiceManagement.ServiceName) && x.ServiceManagement.ServiceName.Contains(searchText)) ||
-                               (!string.IsNullOrEmpty(x.Stylist.Person.FirstName) && x.Stylist.Person.FirstName.Contains(searchText)) ||
-                               (!string.IsNullOrEmpty(x.Stylist.Person.LastName) && x.Stylist.Person.LastName.Contains(searchText)) ||
-                               (!string.IsNullOrEmpty(x.Stylist.StylistName) && x.Stylist.StylistName.Contains(searchText)) ||
+                               (!string.IsNullOrEmpty(x.Worker.Person.FirstName) && x.Worker.Person.FirstName.Contains(searchText)) ||
+                               (!string.IsNullOrEmpty(x.Worker.Person.LastName) && x.Worker.Person.LastName.Contains(searchText)) ||
+                               (!string.IsNullOrEmpty(x.Worker.WorkerName) && x.Worker.WorkerName.Contains(searchText)) ||
                                (!string.IsNullOrEmpty(x.Payment.DepositAmount.ToString()) && x.Payment.DepositAmount.ToString().Contains(searchText)) ||
                                (!string.IsNullOrEmpty(x.Payment.AllPaymentAmount.ToString()) && x.Payment.AllPaymentAmount.ToString().Contains(searchText)) ||
                                (!string.IsNullOrEmpty(x.Payment.TotalServiceAmount.ToString()) && x.Payment.TotalServiceAmount.ToString().Contains(searchText)) ||
                                (!string.IsNullOrEmpty(x.Payment.PlarformAmount.ToString()) && x.Payment.PlarformAmount.ToString().Contains(searchText)) ||
-                               (!string.IsNullOrEmpty(x.Payment.StylistAmount.ToString()) && x.Payment.StylistAmount.ToString().Contains(searchText)) ||
+                               (!string.IsNullOrEmpty(x.Payment.WorkerAmount.ToString()) && x.Payment.WorkerAmount.ToString().Contains(searchText)) ||
                                (!string.IsNullOrEmpty(x.DiscountAmount.ToString()) && x.DiscountAmount.ToString().Contains(searchText)) ||
                                (!string.IsNullOrEmpty(x.DiscountPercent.ToString()) && x.DiscountPercent.ToString().Contains(searchText)) ||
-                               (!string.IsNullOrEmpty(x.StylistServiceAmount.ToString()) && x.StylistServiceAmount.ToString().Contains(searchText)) ||
+                               (!string.IsNullOrEmpty(x.WorkerServiceAmount.ToString()) && x.WorkerServiceAmount.ToString().Contains(searchText)) ||
                                (x.CreateDate.HasValue && x.CreateDate.Value.ToString().Contains(searchText)) ||
                                (x.UpdateDate.HasValue && x.UpdateDate.Value.ToString().Contains(searchText))
                            
@@ -147,7 +147,7 @@ namespace NobatPlusDATA.DataLayer.Services
             RowResultObject<PaymentDetail> result = new RowResultObject<PaymentDetail>();
             try
             {
-                result.Result = await _context.PaymentDetails.Include(x=> x.Payment).Include(x => x.ServiceManagement).Include(x => x.Stylist).ThenInclude(x=> x.Person)
+                result.Result = await _context.PaymentDetails.Include(x=> x.Payment).Include(x => x.ServiceManagement).Include(x => x.Worker).ThenInclude(x=> x.Person)
                 .AsNoTracking()
                 .SingleOrDefaultAsync(x => x.ID == PaymentDetailId);
             }

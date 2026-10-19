@@ -22,8 +22,8 @@ namespace NobatPlusAPI.Tools
             CreateMap(typeof(BitResultObject), typeof(BitResultObject));
 
             CreateMap<RateHistoryDTO, RateHistoryVM>()
-.ForMember(dest => dest.SalonName, opt => opt.MapFrom(src => src.Stylist.StylistName))
-.ForMember(dest => dest.StylistName, opt => opt.MapFrom(src => src.Stylist.Person.FirstName + " " + src.Stylist.Person.LastName))
+.ForMember(dest => dest.WorkshopName, opt => opt.MapFrom(src => src.Worker.WorkerName))
+.ForMember(dest => dest.WorkerName, opt => opt.MapFrom(src => src.Worker.Person.FirstName + " " + src.Worker.Person.LastName))
 .ForMember(dest => dest.CustomerName, opt => opt.MapFrom(src => src.Customer.Person.FirstName + " " + src.Customer.Person.LastName))
 .ForMember(dest => dest.RateQuestionText, opt => opt.MapFrom(src => src.RateQuestion.RateQuestionText))
 ;
@@ -31,12 +31,12 @@ namespace NobatPlusAPI.Tools
             CreateMap<BookingServiceOptionValueDTO, BookingSelectedServiceOptionValueVM>();
             CreateMap<BookingServiceSelectionDTO, BookingSelectedServiceVM>();
             CreateMap<BookingTag, BookingTagVM>();
-            CreateMap<StylistScheduleBlockDTO, StylistScheduleBlockVM>();
+            CreateMap<WorkerScheduleBlockDTO, WorkerScheduleBlockVM>();
             CreateMap<PublicBookingSlotDTO, PublicBookingSlotVM>();
 
             CreateMap<BookingDTO, BookingVM>()
-           .ForMember(dest => dest.SalonName, opt => opt.MapFrom(src => src.Stylist.StylistName))
-           .ForMember(dest => dest.StylistName, opt => opt.MapFrom(src => src.Stylist.Person.FirstName + " " + src.Stylist.Person.LastName))
+           .ForMember(dest => dest.WorkshopName, opt => opt.MapFrom(src => src.Worker.WorkerName))
+           .ForMember(dest => dest.WorkerName, opt => opt.MapFrom(src => src.Worker.Person.FirstName + " " + src.Worker.Person.LastName))
            .ForMember(dest => dest.CustomerName, opt => opt.MapFrom(src => src.Customer.Person.FirstName + " " + src.Customer.Person.LastName))
            .ForMember(dest => dest.CustomerPhoneNumber, opt => opt.MapFrom(src => src.Customer.Person.PhoneNumber))
            ;
@@ -44,40 +44,40 @@ namespace NobatPlusAPI.Tools
             CreateMap<ReviewDto, ReviewVM>();
 
             CreateMap<SocialNetwork, SocialNetworkVM>()
-          .ForMember(dest => dest.SalonName, opt => opt.MapFrom(src => src.Stylist.StylistName))
-          .ForMember(dest => dest.StylistName, opt => opt.MapFrom(src => src.Stylist.Person.FirstName + " " + src.Stylist.Person.LastName))
+          .ForMember(dest => dest.WorkshopName, opt => opt.MapFrom(src => src.Worker.WorkerName))
+          .ForMember(dest => dest.WorkerName, opt => opt.MapFrom(src => src.Worker.Person.FirstName + " " + src.Worker.Person.LastName))
           ;
 
             CreateMap<CheckAvailability,CheckAvailabilityVM>()
-          .ForMember(dest => dest.SalonName, opt => opt.MapFrom(src => src.Stylist.StylistName))
-          .ForMember(dest => dest.StylistName, opt => opt.MapFrom(src => src.Stylist.Person.FirstName + " " + src.Stylist.Person.LastName))
+          .ForMember(dest => dest.WorkshopName, opt => opt.MapFrom(src => src.Worker.WorkerName))
+          .ForMember(dest => dest.WorkerName, opt => opt.MapFrom(src => src.Worker.Person.FirstName + " " + src.Worker.Person.LastName))
           ;
 
             CreateMap<WorkTime, WorkTimeVM>()
-       .ForMember(dest => dest.SalonName, opt => opt.MapFrom(src => src.Stylist.StylistName))
-       .ForMember(dest => dest.StylistRestTime, opt => opt.MapFrom(src => src.Stylist.RestTime))
-       .ForMember(dest => dest.StylistName, opt => opt.MapFrom(src => src.Stylist.Person.FirstName + " " + src.Stylist.Person.LastName))
+       .ForMember(dest => dest.WorkshopName, opt => opt.MapFrom(src => src.Worker.WorkerName))
+       .ForMember(dest => dest.WorkerRestTime, opt => opt.MapFrom(src => src.Worker.RestTime))
+       .ForMember(dest => dest.WorkerName, opt => opt.MapFrom(src => src.Worker.Person.FirstName + " " + src.Worker.Person.LastName))
        ;
-            CreateMap<StylistPacific, StylistPacificVM>()
-      .ForMember(dest => dest.SalonName, opt => opt.MapFrom(src => src.Stylist.StylistName))
-      .ForMember(dest => dest.StylistName, opt => opt.MapFrom(src => src.Stylist.Person.FirstName + " " + src.Stylist.Person.LastName))
+            CreateMap<WorkerPacific, WorkerPacificVM>()
+      .ForMember(dest => dest.WorkshopName, opt => opt.MapFrom(src => src.Worker.WorkerName))
+      .ForMember(dest => dest.WorkerName, opt => opt.MapFrom(src => src.Worker.Person.FirstName + " " + src.Worker.Person.LastName))
       ;
 
             CreateMap<BookingService, BookingServiceVM>()
-          .ForMember(dest => dest.SalonName, opt => opt.MapFrom(src => src.Booking.Stylist.StylistName))
-          .ForMember(dest => dest.StylistID, opt => opt.MapFrom(src => src.Booking.Stylist.Person.ID))
+          .ForMember(dest => dest.WorkshopName, opt => opt.MapFrom(src => src.Booking.Worker.WorkerName))
+          .ForMember(dest => dest.WorkerID, opt => opt.MapFrom(src => src.Booking.Worker.Person.ID))
           .ForMember(dest => dest.CustomerID, opt => opt.MapFrom(src => src.Booking.Customer.Person.ID))
           .ForMember(dest => dest.ServiceTitle, opt => opt.MapFrom(src => src.ServiceManagement.ServiceName))
-          .ForMember(dest => dest.StylistName, opt => opt.MapFrom(src => src.Booking.Stylist.Person.FirstName + " " + src.Booking.Stylist.Person.LastName))
+          .ForMember(dest => dest.WorkerName, opt => opt.MapFrom(src => src.Booking.Worker.Person.FirstName + " " + src.Booking.Worker.Person.LastName))
           .ForMember(dest => dest.CustomerName, opt => opt.MapFrom(src => src.Booking.Customer.Person.FirstName + " " + src.Booking.Customer.Person.LastName))
           ;
 
             CreateMap<PaymentBooking, PaymentBookingVM>()
           .ForMember(dest => dest.BookingDate, opt => opt.MapFrom(src => src.Booking.BookingDate))
           .ForMember(dest => dest.CustomerID, opt => opt.MapFrom(src => src.Booking.CustomerID))
-          .ForMember(dest => dest.StylistID, opt => opt.MapFrom(src => src.Booking.StylistID))
+          .ForMember(dest => dest.WorkerID, opt => opt.MapFrom(src => src.Booking.WorkerID))
           .ForMember(dest => dest.CustomerName, opt => opt.MapFrom(src => src.Booking.Customer.Person.FirstName + " " + src.Booking.Customer.Person.LastName))
-          .ForMember(dest => dest.StylistName, opt => opt.MapFrom(src => src.Booking.Stylist.Person.FirstName + " " + src.Booking.Stylist.Person.LastName))
+          .ForMember(dest => dest.WorkerName, opt => opt.MapFrom(src => src.Booking.Worker.Person.FirstName + " " + src.Booking.Worker.Person.LastName))
           .ForMember(dest => dest.PaymentStatus, opt => opt.MapFrom(src => src.Payment.PaymentStatus))
           .ForMember(dest => dest.AllPaymentAmount, opt => opt.MapFrom(src => src.Payment.AllPaymentAmount))
           ;
@@ -89,17 +89,17 @@ namespace NobatPlusAPI.Tools
           .ForMember(dest => dest.ValueName, opt => opt.MapFrom(src => src.ServiceOptionValue.ValueName))
           ;
 
-            CreateMap<StylistServicePriceVariantOptionValue, StylistServicePriceVariantOptionValueVM>()
-          .ForMember(dest => dest.StylistID, opt => opt.MapFrom(src => src.StylistServicePriceVariant.StylistID))
-          .ForMember(dest => dest.ServiceManagementID, opt => opt.MapFrom(src => src.StylistServicePriceVariant.ServiceManagementID))
-          .ForMember(dest => dest.Price, opt => opt.MapFrom(src => src.StylistServicePriceVariant.Price))
-          .ForMember(dest => dest.Duration, opt => opt.MapFrom(src => src.StylistServicePriceVariant.Duration))
+            CreateMap<WorkerServicePriceVariantOptionValue, WorkerServicePriceVariantOptionValueVM>()
+          .ForMember(dest => dest.WorkerID, opt => opt.MapFrom(src => src.WorkerServicePriceVariant.WorkerID))
+          .ForMember(dest => dest.ServiceManagementID, opt => opt.MapFrom(src => src.WorkerServicePriceVariant.ServiceManagementID))
+          .ForMember(dest => dest.Price, opt => opt.MapFrom(src => src.WorkerServicePriceVariant.Price))
+          .ForMember(dest => dest.Duration, opt => opt.MapFrom(src => src.WorkerServicePriceVariant.Duration))
           .ForMember(dest => dest.ServiceOptionID, opt => opt.MapFrom(src => src.ServiceOptionValue.ServiceOptionID))
           .ForMember(dest => dest.OptionName, opt => opt.MapFrom(src => src.ServiceOptionValue.ServiceOption.OptionName))
           .ForMember(dest => dest.ValueName, opt => opt.MapFrom(src => src.ServiceOptionValue.ValueName))
           ;
 
-            CreateMap<StylistServicePriceVariant, StylistServicePriceVariantVM>()
+            CreateMap<WorkerServicePriceVariant, WorkerServicePriceVariantVM>()
           .ForMember(dest => dest.OptionValueIDs, opt => opt.MapFrom(src => src.OptionValues.Select(x => x.ServiceOptionValueID).ToList()))
           .ForMember(dest => dest.OptionSummary, opt => opt.MapFrom(src => string.Join("، ", src.OptionValues.OrderBy(x => x.ServiceOptionValue.ServiceOption.SortOrder).ThenBy(x => x.ServiceOptionValue.SortOrder).Select(x => x.ServiceOptionValue.ServiceOption.OptionName + ": " + x.ServiceOptionValue.ValueName))))
           .ForMember(dest => dest.BookingTagTitle, opt => opt.MapFrom(src => src.BookingTag != null ? src.BookingTag.Title : ""))
@@ -116,21 +116,21 @@ namespace NobatPlusAPI.Tools
           ;
 
             CreateMap<Payment, PaymentVM>()
-         .ForMember(dest => dest.SalonName, opt => opt.MapFrom(src =>
+         .ForMember(dest => dest.WorkshopName, opt => opt.MapFrom(src =>
             src.PaymentBookings != null && src.PaymentBookings.Any()
-                ? src.PaymentBookings.First().Booking.Stylist.StylistName
+                ? src.PaymentBookings.First().Booking.Worker.WorkerName
                 : ""))
-         .ForMember(dest => dest.StylistID, opt => opt.MapFrom(src =>
+         .ForMember(dest => dest.WorkerID, opt => opt.MapFrom(src =>
             src.PaymentBookings != null && src.PaymentBookings.Any()
-                ? src.PaymentBookings.First().Booking.StylistID
+                ? src.PaymentBookings.First().Booking.WorkerID
                 : 0))
          .ForMember(dest => dest.CustomerID, opt => opt.MapFrom(src =>
             src.PaymentBookings != null && src.PaymentBookings.Any()
                 ? src.PaymentBookings.First().Booking.CustomerID
                 : 0))
-         .ForMember(dest => dest.StylistName, opt => opt.MapFrom(src =>
+         .ForMember(dest => dest.WorkerName, opt => opt.MapFrom(src =>
             src.PaymentBookings != null && src.PaymentBookings.Any()
-                ? src.PaymentBookings.First().Booking.Stylist.Person.FirstName + " " + src.PaymentBookings.First().Booking.Stylist.Person.LastName
+                ? src.PaymentBookings.First().Booking.Worker.Person.FirstName + " " + src.PaymentBookings.First().Booking.Worker.Person.LastName
                 : ""))
          .ForMember(dest => dest.CustomerName, opt => opt.MapFrom(src =>
             src.PaymentBookings != null && src.PaymentBookings.Any()
@@ -142,26 +142,26 @@ namespace NobatPlusAPI.Tools
             {
                 BookingID = pb.BookingID,
                 BookingDate = pb.Booking.BookingDate,
-                StylistID = pb.Booking.StylistID,
+                WorkerID = pb.Booking.WorkerID,
                 CustomerID = pb.Booking.CustomerID,
-                SalonName = pb.Booking.Stylist.StylistName,
-                StylistName = $"{pb.Booking.Stylist.Person.FirstName} {pb.Booking.Stylist.Person.LastName}",
+                WorkshopName = pb.Booking.Worker.WorkerName,
+                WorkerName = $"{pb.Booking.Worker.Person.FirstName} {pb.Booking.Worker.Person.LastName}",
                 PaymentItems = src.PaymentDetails
                     .Where(ss => ss.BookingID == pb.BookingID)
                     .Select(ss => new PaymentItemVM()
                     {
                         BookingID = ss.BookingID,
                         DiscountAmount = ss.DiscountAmount,
-                        PriceAfterDiscount = ss.StylistServiceAmount - ss.DiscountAmount,
-                        StylistID = ss.StylistID,
+                        PriceAfterDiscount = ss.WorkerServiceAmount - ss.DiscountAmount,
+                        WorkerID = ss.WorkerID,
                         DiscountPercent = ss.DiscountPercent,
-                        StylistServicePriceVariantID = ss.StylistServicePriceVariantID,
+                        WorkerServicePriceVariantID = ss.WorkerServicePriceVariantID,
                         AppliedOptionSummary = ss.AppliedOptionSummary,
                         AppliedOptionValueIDs = ss.OptionValues.Select(x => x.ServiceOptionValueID).ToList(),
                         ServiceManagementID = ss.ServiceManagementID,
-                        StylistServiceAmount = ss.StylistServiceAmount,
-                        SalonName = ss.Stylist.StylistName,
-                        StylistName = $"{ss.Stylist.Person.FirstName} {ss.Stylist.Person.LastName}",
+                        WorkerServiceAmount = ss.WorkerServiceAmount,
+                        WorkshopName = ss.Worker.WorkerName,
+                        WorkerName = $"{ss.Worker.Person.FirstName} {ss.Worker.Person.LastName}",
                         ServiceTitle = ss.ServiceManagement.ServiceName,
                     }).ToList()
             }).ToList()
@@ -171,47 +171,47 @@ namespace NobatPlusAPI.Tools
 
             CreateMap<PaymentHistory, PaymentHistoryVM>()
          .ForMember(dest => dest.BookingIDs, opt => opt.MapFrom(src => src.Payment.PaymentBookings.Select(x => x.BookingID).ToList()))
-         .ForMember(dest => dest.SalonName, opt => opt.MapFrom(src => src.Payment.PaymentBookings.Select(x => x.Booking.Stylist.StylistName).FirstOrDefault()))
-         .ForMember(dest => dest.StylistID, opt => opt.MapFrom(src => src.Payment.PaymentBookings.Select(x => x.Booking.Stylist.PersonID).FirstOrDefault()))
+         .ForMember(dest => dest.WorkshopName, opt => opt.MapFrom(src => src.Payment.PaymentBookings.Select(x => x.Booking.Worker.WorkerName).FirstOrDefault()))
+         .ForMember(dest => dest.WorkerID, opt => opt.MapFrom(src => src.Payment.PaymentBookings.Select(x => x.Booking.Worker.PersonID).FirstOrDefault()))
          .ForMember(dest => dest.CustomerID, opt => opt.MapFrom(src => src.Payment.PaymentBookings.Select(x => x.Booking.Customer.PersonID).FirstOrDefault()))
-         .ForMember(dest => dest.StylistName, opt => opt.MapFrom(src => src.Payment.PaymentBookings.Select(x => x.Booking.Stylist.Person.FirstName + " " + x.Booking.Stylist.Person.LastName).FirstOrDefault()))
+         .ForMember(dest => dest.WorkerName, opt => opt.MapFrom(src => src.Payment.PaymentBookings.Select(x => x.Booking.Worker.Person.FirstName + " " + x.Booking.Worker.Person.LastName).FirstOrDefault()))
          .ForMember(dest => dest.CustomerName, opt => opt.MapFrom(src => src.Payment.PaymentBookings.Select(x => x.Booking.Customer.Person.FirstName + " " + x.Booking.Customer.Person.LastName).FirstOrDefault()))
          .ForMember(dest => dest.AllPaymentAmount, opt => opt.MapFrom(src => src.Payment.AllPaymentAmount))
          .ForMember(dest => dest.DepositAmount, opt => opt.MapFrom(src => src.Payment.DepositAmount))
          .ForMember(dest => dest.PlatformAmount, opt => opt.MapFrom(src => src.Payment.PlarformAmount))
-         .ForMember(dest => dest.StylistAmount, opt => opt.MapFrom(src => src.Payment.StylistAmount))
+         .ForMember(dest => dest.WorkerAmount, opt => opt.MapFrom(src => src.Payment.WorkerAmount))
          .ForMember(dest => dest.TotalServiceAmount, opt => opt.MapFrom(src => src.Payment.TotalServiceAmount))
          ;
 
             CreateMap<CustomerDiscount, CustomerDiscountVM>()
-          .ForMember(dest => dest.SalonName, opt => opt.MapFrom(src => src.Stylist.StylistName))
+          .ForMember(dest => dest.WorkshopName, opt => opt.MapFrom(src => src.Worker.WorkerName))
           .ForMember(dest => dest.DiscountCode, opt => opt.MapFrom(src => src.Discount.DiscountCode))
           .ForMember(dest => dest.DiscountAmount, opt => opt.MapFrom(src => src.Discount.DiscountAmount))
-          .ForMember(dest => dest.StylistName, opt => opt.MapFrom(src => src.Stylist.Person.FirstName + " " + src.Stylist.Person.LastName))
+          .ForMember(dest => dest.WorkerName, opt => opt.MapFrom(src => src.Worker.Person.FirstName + " " + src.Worker.Person.LastName))
           .ForMember(dest => dest.CustomerName, opt => opt.MapFrom(src => src.Customer.Person.FirstName + " " + src.Customer.Person.LastName))
           ;
 
             CreateMap<DiscountAssignment, DiscountAssignmentVM>()
-       .ForMember(dest => dest.SalonName, opt => opt.MapFrom(src => src.Stylist.StylistName))
+       .ForMember(dest => dest.WorkshopName, opt => opt.MapFrom(src => src.Worker.WorkerName))
        .ForMember(dest => dest.DiscountCode, opt => opt.MapFrom(src => src.Discount.DiscountCode))
        .ForMember(dest => dest.DiscountAmount, opt => opt.MapFrom(src => src.Discount.DiscountAmount))
-       .ForMember(dest => dest.StylistName, opt => opt.MapFrom(src => src.Stylist.Person.FirstName + " " + src.Stylist.Person.LastName))
+       .ForMember(dest => dest.WorkerName, opt => opt.MapFrom(src => src.Worker.Person.FirstName + " " + src.Worker.Person.LastName))
        .ForMember(dest => dest.AdminFullName, opt => opt.MapFrom(src => src.Admin.Person.FirstName + " " + src.Admin.Person.LastName))
        ;
             CreateMap<Discount, DiscountVM>()
        .ForMember(dest => dest.IsActive, opt => opt.MapFrom(src => src.StartDate <= DateTime.Now && src.EndDate >= DateTime.Now))
        .ForMember(dest => dest.IsExpired, opt => opt.MapFrom(src => src.EndDate < DateTime.Now))
-       .ForMember(dest => dest.AssignmentCount, opt => opt.MapFrom(src => src.DiscountAssignments != null ? src.DiscountAssignments.Count(x => x.AdminId.HasValue || x.StylistId.HasValue) : 0))
+       .ForMember(dest => dest.AssignmentCount, opt => opt.MapFrom(src => src.DiscountAssignments != null ? src.DiscountAssignments.Count(x => x.AdminId.HasValue || x.WorkerId.HasValue) : 0))
        .ForMember(dest => dest.CustomerCount, opt => opt.MapFrom(src => src.CustomerDiscounts != null ? src.CustomerDiscounts.Count : 0))
        .ForMember(dest => dest.ServiceCount, opt => opt.MapFrom(src => src.ServiceDiscounts != null ? src.ServiceDiscounts.Count : 0))
-       .ForMember(dest => dest.StylistIds, opt => opt.MapFrom(src => src.DiscountAssignments != null ? src.DiscountAssignments.Where(x => x.StylistId.HasValue).Select(x => x.StylistId.GetValueOrDefault()).ToList() : new List<long>()))
+       .ForMember(dest => dest.WorkerIds, opt => opt.MapFrom(src => src.DiscountAssignments != null ? src.DiscountAssignments.Where(x => x.WorkerId.HasValue).Select(x => x.WorkerId.GetValueOrDefault()).ToList() : new List<long>()))
        .ForMember(dest => dest.CustomerIds, opt => opt.MapFrom(src => src.CustomerDiscounts != null ? src.CustomerDiscounts.Select(x => x.CustomerId).ToList() : new List<long>()))
        .ForMember(dest => dest.ServiceIds, opt => opt.MapFrom(src => src.ServiceDiscounts != null ? src.ServiceDiscounts.Select(x => x.ServiceManagementId).ToList() : new List<long>()));
             CreateMap<ServiceDiscount, ServiceDiscountVM>()
-     .ForMember(dest => dest.SalonName, opt => opt.MapFrom(src => src.Stylist.StylistName))
+     .ForMember(dest => dest.WorkshopName, opt => opt.MapFrom(src => src.Worker.WorkerName))
      .ForMember(dest => dest.DiscountCode, opt => opt.MapFrom(src => src.Discount.DiscountCode))
      .ForMember(dest => dest.DiscountAmount, opt => opt.MapFrom(src => src.Discount.DiscountAmount))
-     .ForMember(dest => dest.StylistName, opt => opt.MapFrom(src => src.Stylist.Person.FirstName + " " + src.Stylist.Person.LastName))
+     .ForMember(dest => dest.WorkerName, opt => opt.MapFrom(src => src.Worker.Person.FirstName + " " + src.Worker.Person.LastName))
      .ForMember(dest => dest.AdminFullName, opt => opt.MapFrom(src => src.Admin.Person.FirstName + " " + src.Admin.Person.LastName))
      .ForMember(dest => dest.ServiceTitle, opt => opt.MapFrom(src => src.ServiceManagement.ServiceName))
      ;
@@ -219,7 +219,7 @@ namespace NobatPlusAPI.Tools
                 .ForMember(dest => dest.ServiceName, opt => opt.MapFrom(src => src.ServiceManagement.ServiceName));
             CreateMap<ServiceOptionValue, ServiceOptionValueVM>()
                 .ForMember(dest => dest.OptionName, opt => opt.MapFrom(src => src.ServiceOption.OptionName));
-            CreateMap<StylistServicePriceVariant, StylistServicePriceVariantVM>()
+            CreateMap<WorkerServicePriceVariant, WorkerServicePriceVariantVM>()
                 .ForMember(dest => dest.OptionValueIDs, opt => opt.MapFrom(src =>
                     src.OptionValues.Select(x => x.ServiceOptionValueID).ToList()))
                 .ForMember(dest => dest.OptionSummary, opt => opt.MapFrom(src =>
@@ -227,12 +227,12 @@ namespace NobatPlusAPI.Tools
                         .OrderBy(x => x.ServiceOptionValue.ServiceOption.SortOrder)
                         .ThenBy(x => x.ServiceOptionValue.SortOrder)
                         .Select(x => x.ServiceOptionValue.ServiceOption.OptionName + ": " + x.ServiceOptionValue.ValueName))));
-            CreateMap<StylistServicePriceVariantPriceDto, StylistServicePriceVariantPriceVM>();
-            CreateMap<StylistServiceWithDiscountDto, StylistServiceVM>()
+            CreateMap<WorkerServicePriceVariantPriceDto, WorkerServicePriceVariantPriceVM>();
+            CreateMap<WorkerServiceWithDiscountDto, WorkerServiceVM>()
  
   ;
 
-            CreateMap<StylistDTO, StylistVM>()
+            CreateMap<WorkerDTO, WorkerVM>()
 .ForMember(dest => dest.JobTypeTitle, opt => opt.MapFrom(src => src.JobType.JobTitle))
 .ForMember(dest => dest.PersonFirstName, opt => opt.MapFrom(src => src.Person.FirstName))
 .ForMember(dest => dest.PersonLastName, opt => opt.MapFrom(src => src.Person.LastName))
@@ -249,7 +249,7 @@ namespace NobatPlusAPI.Tools
 .ForMember(dest => dest.AddressStreet, opt => opt.MapFrom(src => src.Person.Address.AddressStreet))
 .ForMember(dest => dest.AddressPostalCode, opt => opt.MapFrom(src => src.Person.Address.AddressPostalCode))
   .ForMember(dest => dest.ServiceNames,
-        opt => opt.MapFrom(src => src.StylistServices
+        opt => opt.MapFrom(src => src.WorkerServices
             .Where(x => x.ServiceManagement != null &&
                         !string.IsNullOrWhiteSpace(x.ServiceManagement.ServiceName))
             .Select(x => x.ServiceManagement.ServiceName)
@@ -307,18 +307,18 @@ namespace NobatPlusAPI.Tools
 .ForMember(dest => dest.PersonFullName, opt => opt.MapFrom(src => src.Person.FirstName + " " + src.Person.LastName))
           ;
 
-            CreateMap<StylistServiceFollowUpSetting, StylistServiceFollowUpSettingVM>()
+            CreateMap<WorkerServiceFollowUpSetting, WorkerServiceFollowUpSettingVM>()
 .ForMember(dest => dest.ServiceName, opt => opt.MapFrom(src => src.ServiceManagement != null ? src.ServiceManagement.ServiceName : ""))
-.ForMember(dest => dest.SalonName, opt => opt.MapFrom(src => src.Stylist != null ? src.Stylist.StylistName : ""))
-.ForMember(dest => dest.StylistName, opt => opt.MapFrom(src => src.Stylist != null && src.Stylist.Person != null ? src.Stylist.Person.FirstName + " " + src.Stylist.Person.LastName : ""));
+.ForMember(dest => dest.WorkshopName, opt => opt.MapFrom(src => src.Worker != null ? src.Worker.WorkerName : ""))
+.ForMember(dest => dest.WorkerName, opt => opt.MapFrom(src => src.Worker != null && src.Worker.Person != null ? src.Worker.Person.FirstName + " " + src.Worker.Person.LastName : ""));
 
             CreateMap<BookingScheduledMessage, BookingScheduledMessageVM>()
 .ForMember(dest => dest.CustomerName, opt => opt.MapFrom(src => src.Customer.Person.FirstName + " " + src.Customer.Person.LastName))
 .ForMember(dest => dest.CustomerPhoneNumber, opt => opt.MapFrom(src => src.Customer.Person.PhoneNumber))
-.ForMember(dest => dest.SalonName, opt => opt.MapFrom(src => src.Stylist.StylistName))
-.ForMember(dest => dest.StylistName, opt => opt.MapFrom(src => src.Stylist.Person.FirstName + " " + src.Stylist.Person.LastName))
+.ForMember(dest => dest.WorkshopName, opt => opt.MapFrom(src => src.Worker.WorkerName))
+.ForMember(dest => dest.WorkerName, opt => opt.MapFrom(src => src.Worker.Person.FirstName + " " + src.Worker.Person.LastName))
 .ForMember(dest => dest.ServiceName, opt => opt.MapFrom(src => src.ServiceManagement != null ? src.ServiceManagement.ServiceName : ""))
-.ForMember(dest => dest.FollowUpSettingIsActive, opt => opt.MapFrom(src => src.StylistServiceFollowUpSetting != null && src.StylistServiceFollowUpSetting.IsActive))
+.ForMember(dest => dest.FollowUpSettingIsActive, opt => opt.MapFrom(src => src.WorkerServiceFollowUpSetting != null && src.WorkerServiceFollowUpSetting.IsActive))
 .ForMember(dest => dest.BookingDate, opt => opt.MapFrom(src => src.Booking.BookingDate))
 .ForMember(dest => dest.MessageTypeTitle, opt => opt.MapFrom(src => src.MessageType == 1 ? "مراقبت بعد از خدمت" : src.MessageType == 2 ? "یادآوری ترمیم" : "نامشخص"))
 .ForMember(dest => dest.StatusTitle, opt => opt.MapFrom(src => src.Status == 0 ? "در انتظار" : src.Status == 1 ? "ارسال شده" : src.Status == 2 ? "ناموفق" : src.Status == 3 ? "لغو شده" : "نامشخص"));

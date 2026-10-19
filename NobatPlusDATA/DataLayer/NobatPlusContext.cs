@@ -30,7 +30,7 @@ namespace NobatPlusDATA.DataLayer
         public DbSet<City> Cities { get; set; }
         public DbSet<Customer> Customers { get; set; }
         public DbSet<Admin> Admins { get; set; }
-        public DbSet<Stylist> Stylists { get; set; }
+        public DbSet<Worker> Workers { get; set; }
         public DbSet<Booking> Bookings { get; set; }
         public DbSet<WorkTime> WorkTimes { get; set; }
         public DbSet<SocialNetwork> SocialNetworks { get; set; }
@@ -53,11 +53,11 @@ namespace NobatPlusDATA.DataLayer
         public DbSet<ServiceManagement> ServiceManagements { get; set; }
         public DbSet<BookingService> BookingServices { get; set; }
         public DbSet<BookingServiceOptionValue> BookingServiceOptionValues { get; set; }
-        public DbSet<StylistService> StylistServices { get; set; }
+        public DbSet<WorkerService> WorkerServices { get; set; }
         public DbSet<ServiceOption> ServiceOptions { get; set; }
         public DbSet<ServiceOptionValue> ServiceOptionValues { get; set; }
-        public DbSet<StylistServicePriceVariant> StylistServicePriceVariants { get; set; }
-        public DbSet<StylistServicePriceVariantOptionValue> StylistServicePriceVariantOptionValues { get; set; }
+        public DbSet<WorkerServicePriceVariant> WorkerServicePriceVariants { get; set; }
+        public DbSet<WorkerServicePriceVariantOptionValue> WorkerServicePriceVariantOptionValues { get; set; }
         public DbSet<PaymentDetailOptionValue> PaymentDetailOptionValues { get; set; }
         public DbSet<Review> Reviews { get; set; }
         public DbSet<JobType> JobTypes { get; set; }
@@ -73,12 +73,12 @@ namespace NobatPlusDATA.DataLayer
         public DbSet<RateQuestion> RateQuestions { get; set; }
         public DbSet<RateHistory> RateHistories { get; set; }
         public DbSet<Role> Roles { get; set; }
-        public DbSet<StylistPacific> StylistPacifics { get; set; }
+        public DbSet<WorkerPacific> WorkerPacifics { get; set; }
         public DbSet<Setting> Settings { get; set; }
-        public DbSet<StylistServiceFollowUpSetting> StylistServiceFollowUpSettings { get; set; }
+        public DbSet<WorkerServiceFollowUpSetting> WorkerServiceFollowUpSettings { get; set; }
         public DbSet<BookingScheduledMessage> BookingScheduledMessages { get; set; }
         public DbSet<BookingTag> BookingTags { get; set; }
-        public DbSet<StylistScheduleBlock> StylistScheduleBlocks { get; set; }
+        public DbSet<WorkerScheduleBlock> WorkerScheduleBlocks { get; set; }
 
 
         // Views
@@ -117,25 +117,25 @@ namespace NobatPlusDATA.DataLayer
             // demo config
             modelBuilder.Entity<Role>().HasIndex(x => x.Name).IsUnique();
 
-            modelBuilder.Entity<Stylist>()
+            modelBuilder.Entity<Worker>()
                 .Property(x => x.SlotIntervalMinutes)
                 .HasDefaultValue(30);
 
-            modelBuilder.Entity<Stylist>()
+            modelBuilder.Entity<Worker>()
                 .Property(x => x.BookingCreationMode)
                 .HasDefaultValue("automatic");
 
-            modelBuilder.Entity<Stylist>()
+            modelBuilder.Entity<Worker>()
                 .Property(x => x.SlotDisplayMode)
                 .HasDefaultValue("all");
 
-            modelBuilder.Entity<Stylist>()
+            modelBuilder.Entity<Worker>()
                 .HasOne(x => x.Person)
-                .WithMany(x => x.StylistProfiles)
+                .WithMany(x => x.WorkerProfiles)
                 .HasForeignKey(x => x.PersonID)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            modelBuilder.Entity<Stylist>()
+            modelBuilder.Entity<Worker>()
                 .HasIndex(x => new { x.PersonID, x.IsWorkShop })
                 .IsUnique();
 
@@ -228,18 +228,18 @@ namespace NobatPlusDATA.DataLayer
                 .HasForeignKey(x => x.ServiceOptionValueID)
                 .OnDelete(DeleteBehavior.NoAction);
 
-            modelBuilder.Entity<StylistService>()
-                .HasKey(bs => new { bs.StylistID, bs.ServiceManagementID });
+            modelBuilder.Entity<WorkerService>()
+                .HasKey(bs => new { bs.WorkerID, bs.ServiceManagementID });
 
             // تعریف روابط
-            modelBuilder.Entity<StylistService>()
-                .HasOne(bs => bs.Stylist)
-                .WithMany(b => b.StylistServices)
-                .HasForeignKey(bs => bs.StylistID);
+            modelBuilder.Entity<WorkerService>()
+                .HasOne(bs => bs.Worker)
+                .WithMany(b => b.WorkerServices)
+                .HasForeignKey(bs => bs.WorkerID);
 
-            modelBuilder.Entity<StylistService>()
+            modelBuilder.Entity<WorkerService>()
                 .HasOne(bs => bs.ServiceManagement)
-                .WithMany(sm => sm.StylistServices)
+                .WithMany(sm => sm.WorkerServices)
                 .HasForeignKey(bs => bs.ServiceManagementID);
 
             modelBuilder.Entity<ServiceOption>()
@@ -258,39 +258,39 @@ namespace NobatPlusDATA.DataLayer
                 .HasForeignKey(x => x.ServiceOptionID)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            modelBuilder.Entity<StylistServicePriceVariant>()
-                .HasOne(x => x.StylistService)
+            modelBuilder.Entity<WorkerServicePriceVariant>()
+                .HasOne(x => x.WorkerService)
                 .WithMany(x => x.PriceVariants)
-                .HasForeignKey(x => new { x.StylistID, x.ServiceManagementID })
-                .HasPrincipalKey(x => new { x.StylistID, x.ServiceManagementID })
+                .HasForeignKey(x => new { x.WorkerID, x.ServiceManagementID })
+                .HasPrincipalKey(x => new { x.WorkerID, x.ServiceManagementID })
                 .OnDelete(DeleteBehavior.Cascade);
 
-            modelBuilder.Entity<StylistServicePriceVariant>()
-                .HasIndex(x => new { x.StylistID, x.ServiceManagementID, x.OptionValueCombinationKey, x.BookingTagID })
+            modelBuilder.Entity<WorkerServicePriceVariant>()
+                .HasIndex(x => new { x.WorkerID, x.ServiceManagementID, x.OptionValueCombinationKey, x.BookingTagID })
                 .IsUnique()
                 .HasFilter("[BookingTagID] IS NOT NULL");
 
-            modelBuilder.Entity<StylistServicePriceVariant>()
-                .HasIndex(x => new { x.StylistID, x.ServiceManagementID, x.OptionValueCombinationKey })
+            modelBuilder.Entity<WorkerServicePriceVariant>()
+                .HasIndex(x => new { x.WorkerID, x.ServiceManagementID, x.OptionValueCombinationKey })
                 .IsUnique()
                 .HasFilter("[BookingTagID] IS NULL");
 
-            modelBuilder.Entity<StylistServicePriceVariant>()
+            modelBuilder.Entity<WorkerServicePriceVariant>()
                 .HasOne(x => x.BookingTag)
                 .WithMany(x => x.PriceVariants)
                 .HasForeignKey(x => x.BookingTagID)
                 .OnDelete(DeleteBehavior.SetNull);
 
-            modelBuilder.Entity<StylistServicePriceVariantOptionValue>()
-                .HasKey(x => new { x.StylistServicePriceVariantID, x.ServiceOptionValueID });
+            modelBuilder.Entity<WorkerServicePriceVariantOptionValue>()
+                .HasKey(x => new { x.WorkerServicePriceVariantID, x.ServiceOptionValueID });
 
-            modelBuilder.Entity<StylistServicePriceVariantOptionValue>()
-                .HasOne(x => x.StylistServicePriceVariant)
+            modelBuilder.Entity<WorkerServicePriceVariantOptionValue>()
+                .HasOne(x => x.WorkerServicePriceVariant)
                 .WithMany(x => x.OptionValues)
-                .HasForeignKey(x => x.StylistServicePriceVariantID)
+                .HasForeignKey(x => x.WorkerServicePriceVariantID)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            modelBuilder.Entity<StylistServicePriceVariantOptionValue>()
+            modelBuilder.Entity<WorkerServicePriceVariantOptionValue>()
                 .HasOne(x => x.ServiceOptionValue)
                 .WithMany()
                 .HasForeignKey(x => x.ServiceOptionValueID)
@@ -310,9 +310,9 @@ namespace NobatPlusDATA.DataLayer
                 .OnDelete(DeleteBehavior.Restrict);
 
             modelBuilder.Entity<DiscountAssignment>()
-                .HasOne(da => da.Stylist)
+                .HasOne(da => da.Worker)
                 .WithMany(s => s.DiscountAssignments)
-                .HasForeignKey(da => da.StylistId)
+                .HasForeignKey(da => da.WorkerId)
                 .OnDelete(DeleteBehavior.Restrict);
 
             // تعریف روابط برای تخفیف‌های سرویس‌ها
@@ -334,9 +334,9 @@ namespace NobatPlusDATA.DataLayer
                 .OnDelete(DeleteBehavior.Restrict);
 
             modelBuilder.Entity<ServiceDiscount>()
-                .HasOne(sd => sd.Stylist)
+                .HasOne(sd => sd.Worker)
                 .WithMany(s => s.ServiceDiscounts)
-                .HasForeignKey(sd => sd.StylistId)
+                .HasForeignKey(sd => sd.WorkerId)
                 .OnDelete(DeleteBehavior.Restrict);
 
             // تعریف روابط برای تخفیف‌های مشتریان
@@ -352,18 +352,18 @@ namespace NobatPlusDATA.DataLayer
                 .HasForeignKey(cd => cd.CustomerId);
 
             modelBuilder.Entity<CustomerDiscount>()
-                .HasOne(cd => cd.Stylist)
+                .HasOne(cd => cd.Worker)
                 .WithMany(s => s.CustomerDiscounts)
-                .HasForeignKey(cd => cd.StylistId)
+                .HasForeignKey(cd => cd.WorkerId)
                 .OnDelete(DeleteBehavior.Restrict);
 
             modelBuilder.Entity<Booking>()
-                .HasOne(cd => cd.Stylist)
+                .HasOne(cd => cd.Worker)
                 .WithMany(s => s.Bookings)
-                .HasForeignKey(cd => cd.StylistID)
+                .HasForeignKey(cd => cd.WorkerID)
                 .OnDelete(DeleteBehavior.NoAction);
             modelBuilder.Entity<Booking>()
-                .HasIndex(x => new { x.StylistID, x.BookingDate, x.IsCancelled });
+                .HasIndex(x => new { x.WorkerID, x.BookingDate, x.IsCancelled });
             modelBuilder.Entity<Booking>()
                 .HasIndex(x => new { x.CustomerID, x.BookingDate, x.IsCancelled });
 
@@ -378,53 +378,53 @@ namespace NobatPlusDATA.DataLayer
                 .HasFilter("[ScheduleBlockID] IS NOT NULL");
 
             modelBuilder.Entity<BookingService>()
-                .HasOne(x => x.StylistServicePriceVariant)
+                .HasOne(x => x.WorkerServicePriceVariant)
                 .WithMany()
-                .HasForeignKey(x => x.StylistServicePriceVariantID)
+                .HasForeignKey(x => x.WorkerServicePriceVariantID)
                 .OnDelete(DeleteBehavior.NoAction);
 
             modelBuilder.Entity<BookingTag>()
-                .HasOne(x => x.Stylist)
+                .HasOne(x => x.Worker)
                 .WithMany(x => x.BookingTags)
-                .HasForeignKey(x => x.StylistID)
+                .HasForeignKey(x => x.WorkerID)
                 .OnDelete(DeleteBehavior.Cascade);
 
             modelBuilder.Entity<BookingTag>()
-                .HasIndex(x => new { x.StylistID, x.Title })
+                .HasIndex(x => new { x.WorkerID, x.Title })
                 .IsUnique();
 
-            modelBuilder.Entity<StylistScheduleBlock>()
-                .HasOne(x => x.Stylist)
+            modelBuilder.Entity<WorkerScheduleBlock>()
+                .HasOne(x => x.Worker)
                 .WithMany(x => x.ScheduleBlocks)
-                .HasForeignKey(x => x.StylistID)
+                .HasForeignKey(x => x.WorkerID)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            modelBuilder.Entity<StylistScheduleBlock>()
+            modelBuilder.Entity<WorkerScheduleBlock>()
                 .HasOne(x => x.ServiceManagement)
                 .WithMany(x => x.ScheduleBlocks)
                 .HasForeignKey(x => x.ServiceManagementID)
                 .OnDelete(DeleteBehavior.NoAction);
 
-            modelBuilder.Entity<StylistScheduleBlock>()
-                .HasOne(x => x.StylistServicePriceVariant)
+            modelBuilder.Entity<WorkerScheduleBlock>()
+                .HasOne(x => x.WorkerServicePriceVariant)
                 .WithMany()
-                .HasForeignKey(x => x.StylistServicePriceVariantID)
+                .HasForeignKey(x => x.WorkerServicePriceVariantID)
                 .OnDelete(DeleteBehavior.NoAction);
 
-            modelBuilder.Entity<StylistScheduleBlock>()
+            modelBuilder.Entity<WorkerScheduleBlock>()
                 .HasOne(x => x.BookingTag)
                 .WithMany(x => x.ScheduleBlocks)
                 .HasForeignKey(x => x.BookingTagID)
                 .OnDelete(DeleteBehavior.NoAction);
 
-            modelBuilder.Entity<StylistScheduleBlock>()
-                .HasIndex(x => new { x.StylistID, x.StartDateTime, x.EndDateTime });
+            modelBuilder.Entity<WorkerScheduleBlock>()
+                .HasIndex(x => new { x.WorkerID, x.StartDateTime, x.EndDateTime });
 
-            modelBuilder.Entity<StylistScheduleBlock>()
+            modelBuilder.Entity<WorkerScheduleBlock>()
                 .Property(x => x.RowVersion)
                 .IsRowVersion();
             modelBuilder.Entity<CheckAvailability>()
-                .HasIndex(x => new { x.StylistID, x.Date, x.Time });
+                .HasIndex(x => new { x.WorkerID, x.Date, x.Time });
             // مدیریت رفتار حذف
             modelBuilder.Entity<BookingService>()
                 .HasOne(bs => bs.Booking)
@@ -432,10 +432,10 @@ namespace NobatPlusDATA.DataLayer
                 .HasForeignKey(bs => bs.BookingID)
                 .OnDelete(DeleteBehavior.NoAction);
 
-            modelBuilder.Entity<StylistService>()
-                .HasOne(ss => ss.Stylist)
-                .WithMany(s => s.StylistServices)
-                .HasForeignKey(ss => ss.StylistID)
+            modelBuilder.Entity<WorkerService>()
+                .HasOne(ss => ss.Worker)
+                .WithMany(s => s.WorkerServices)
+                .HasForeignKey(ss => ss.WorkerID)
                 .OnDelete(DeleteBehavior.NoAction);
 
             modelBuilder.Entity<Review>()
@@ -475,9 +475,9 @@ namespace NobatPlusDATA.DataLayer
                 .OnDelete(DeleteBehavior.NoAction);
 
             modelBuilder.Entity<PaymentDetail>()
-                .HasOne(pd => pd.Stylist)
+                .HasOne(pd => pd.Worker)
                 .WithMany(s => s.PaymentDetails)
-                .HasForeignKey(pd => pd.StylistID)
+                .HasForeignKey(pd => pd.WorkerID)
                 .OnDelete(DeleteBehavior.NoAction);
 
             modelBuilder.Entity<PaymentDetail>()
@@ -487,16 +487,16 @@ namespace NobatPlusDATA.DataLayer
                 .OnDelete(DeleteBehavior.NoAction);
 
             modelBuilder.Entity<PaymentDetail>()
-                .HasOne(pd => pd.StylistService)
+                .HasOne(pd => pd.WorkerService)
                 .WithMany()
-                .HasForeignKey(pd => new { pd.StylistID, pd.ServiceManagementID })
-                .HasPrincipalKey(ss => new { ss.StylistID, ss.ServiceManagementID })
+                .HasForeignKey(pd => new { pd.WorkerID, pd.ServiceManagementID })
+                .HasPrincipalKey(ss => new { ss.WorkerID, ss.ServiceManagementID })
                 .OnDelete(DeleteBehavior.NoAction);
 
             modelBuilder.Entity<PaymentDetail>()
-                .HasOne(pd => pd.StylistServicePriceVariant)
+                .HasOne(pd => pd.WorkerServicePriceVariant)
                 .WithMany()
-                .HasForeignKey(pd => pd.StylistServicePriceVariantID)
+                .HasForeignKey(pd => pd.WorkerServicePriceVariantID)
                 .OnDelete(DeleteBehavior.NoAction);
 
             modelBuilder.Entity<PaymentDetailOptionValue>()
@@ -520,46 +520,46 @@ namespace NobatPlusDATA.DataLayer
                 .HasForeignKey(ph => ph.PaymentID)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            modelBuilder.Entity<StylistServiceFollowUpSetting>()
+            modelBuilder.Entity<WorkerServiceFollowUpSetting>()
                 .Property(x => x.AfterCareMessageSettingKey)
                 .HasMaxLength(100);
 
-            modelBuilder.Entity<StylistServiceFollowUpSetting>()
+            modelBuilder.Entity<WorkerServiceFollowUpSetting>()
                 .Property(x => x.RepairReminderMessageSettingKey)
                 .HasMaxLength(100);
 
-            modelBuilder.Entity<StylistServiceFollowUpSetting>()
-                .HasOne(x => x.Stylist)
+            modelBuilder.Entity<WorkerServiceFollowUpSetting>()
+                .HasOne(x => x.Worker)
                 .WithMany()
-                .HasForeignKey(x => x.StylistID)
+                .HasForeignKey(x => x.WorkerID)
                 .OnDelete(DeleteBehavior.NoAction);
 
-            modelBuilder.Entity<StylistServiceFollowUpSetting>()
+            modelBuilder.Entity<WorkerServiceFollowUpSetting>()
                 .HasOne(x => x.ServiceManagement)
                 .WithMany()
                 .HasForeignKey(x => x.ServiceManagementID)
                 .OnDelete(DeleteBehavior.NoAction);
 
-            modelBuilder.Entity<StylistServiceFollowUpSetting>()
-                .HasOne(x => x.StylistService)
+            modelBuilder.Entity<WorkerServiceFollowUpSetting>()
+                .HasOne(x => x.WorkerService)
                 .WithMany()
-                .HasForeignKey(x => new { x.StylistID, x.ServiceManagementID })
-                .HasPrincipalKey(x => new { x.StylistID, x.ServiceManagementID })
+                .HasForeignKey(x => new { x.WorkerID, x.ServiceManagementID })
+                .HasPrincipalKey(x => new { x.WorkerID, x.ServiceManagementID })
                 .OnDelete(DeleteBehavior.Cascade);
 
-            modelBuilder.Entity<StylistServiceFollowUpSetting>()
-                .HasOne(x => x.StylistServicePriceVariant)
+            modelBuilder.Entity<WorkerServiceFollowUpSetting>()
+                .HasOne(x => x.WorkerServicePriceVariant)
                 .WithMany()
-                .HasForeignKey(x => x.StylistServicePriceVariantID)
+                .HasForeignKey(x => x.WorkerServicePriceVariantID)
                 .OnDelete(DeleteBehavior.NoAction);
 
-            modelBuilder.Entity<StylistServiceFollowUpSetting>()
-                .HasIndex(x => new { x.StylistID, x.ServiceManagementID, x.StylistServicePriceVariantID })
+            modelBuilder.Entity<WorkerServiceFollowUpSetting>()
+                .HasIndex(x => new { x.WorkerID, x.ServiceManagementID, x.WorkerServicePriceVariantID })
                 .IsUnique()
-                .HasFilter("[StylistServicePriceVariantID] IS NOT NULL");
+                .HasFilter("[WorkerServicePriceVariantID] IS NOT NULL");
 
-            modelBuilder.Entity<StylistServiceFollowUpSetting>()
-                .HasIndex(x => new { x.StylistID, x.ServiceManagementID });
+            modelBuilder.Entity<WorkerServiceFollowUpSetting>()
+                .HasIndex(x => new { x.WorkerID, x.ServiceManagementID });
 
             modelBuilder.Entity<BookingScheduledMessage>()
                 .Property(x => x.HangfireJobID)
@@ -576,9 +576,9 @@ namespace NobatPlusDATA.DataLayer
                 .OnDelete(DeleteBehavior.NoAction);
 
             modelBuilder.Entity<BookingScheduledMessage>()
-                .HasOne(x => x.Stylist)
+                .HasOne(x => x.Worker)
                 .WithMany()
-                .HasForeignKey(x => x.StylistID)
+                .HasForeignKey(x => x.WorkerID)
                 .OnDelete(DeleteBehavior.NoAction);
 
             modelBuilder.Entity<BookingScheduledMessage>()
@@ -594,15 +594,15 @@ namespace NobatPlusDATA.DataLayer
                 .OnDelete(DeleteBehavior.NoAction);
 
             modelBuilder.Entity<BookingScheduledMessage>()
-                .HasOne(x => x.StylistServiceFollowUpSetting)
+                .HasOne(x => x.WorkerServiceFollowUpSetting)
                 .WithMany()
-                .HasForeignKey(x => x.StylistServiceFollowUpSettingID)
+                .HasForeignKey(x => x.WorkerServiceFollowUpSettingID)
                 .OnDelete(DeleteBehavior.NoAction);
 
             modelBuilder.Entity<BookingScheduledMessage>()
-                .HasOne(x => x.StylistServicePriceVariant)
+                .HasOne(x => x.WorkerServicePriceVariant)
                 .WithMany()
-                .HasForeignKey(x => x.StylistServicePriceVariantID)
+                .HasForeignKey(x => x.WorkerServicePriceVariantID)
                 .OnDelete(DeleteBehavior.NoAction);
 
             modelBuilder.Entity<BookingScheduledMessage>()
@@ -618,7 +618,7 @@ namespace NobatPlusDATA.DataLayer
                 .OnDelete(DeleteBehavior.NoAction);
 
             modelBuilder.Entity<BookingScheduledMessage>()
-                .HasIndex(x => new { x.BookingID, x.ServiceManagementID, x.StylistServicePriceVariantID, x.MessageType, x.ScheduledAt })
+                .HasIndex(x => new { x.BookingID, x.ServiceManagementID, x.WorkerServicePriceVariantID, x.MessageType, x.ScheduledAt })
                 .IsUnique()
                 .HasFilter("[ServiceManagementID] IS NOT NULL");
 
@@ -626,7 +626,7 @@ namespace NobatPlusDATA.DataLayer
                 .HasIndex(x => new { x.Status, x.ScheduledAt });
 
             modelBuilder.Entity<BookingScheduledMessage>()
-                .HasIndex(x => x.StylistServiceFollowUpSettingID);
+                .HasIndex(x => x.WorkerServiceFollowUpSettingID);
 
             modelBuilder.Entity<Wallet>()
                 .HasOne(w => w.Customer)
@@ -657,13 +657,13 @@ namespace NobatPlusDATA.DataLayer
                 .OnDelete(DeleteBehavior.NoAction);
 
             modelBuilder.Entity<FinancialAccount>()
-                .HasOne(fa => fa.Stylist)
+                .HasOne(fa => fa.Worker)
                 .WithOne(s => s.FinancialAccount)
-                .HasForeignKey<FinancialAccount>(fa => fa.StylistID)
+                .HasForeignKey<FinancialAccount>(fa => fa.WorkerID)
                 .OnDelete(DeleteBehavior.Cascade);
 
             modelBuilder.Entity<FinancialAccount>()
-                .HasIndex(fa => fa.StylistID)
+                .HasIndex(fa => fa.WorkerID)
                 .IsUnique();
 
             modelBuilder.Entity<FinancialTransaction>()
@@ -703,9 +703,9 @@ namespace NobatPlusDATA.DataLayer
      .OnDelete(DeleteBehavior.NoAction);
 
             modelBuilder.Entity<RateHistory>()
-                .HasOne(r => r.Stylist)
+                .HasOne(r => r.Worker)
                 .WithMany(s => s.RateHistories)
-                .HasForeignKey(r => r.StylistID)
+                .HasForeignKey(r => r.WorkerID)
                 .OnDelete(DeleteBehavior.NoAction);
 
             modelBuilder.Entity<Address>()

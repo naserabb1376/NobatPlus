@@ -9,12 +9,12 @@ namespace NobatPlusDATA.Domain
 {
     public class WorkTime : BaseEntity
     {
-        public long StylistID { get; set; }
+        public long WorkerID { get; set; }
         public TimeSpan WorkStartTime { get; set; }
         public TimeSpan WorkEndTime { get; set; }
         public string DayOfWeek { get; set; }
 
-        public Stylist Stylist { get; set; }
+        public Worker Worker { get; set; }
     }
 
     public class WorkTimeDTO

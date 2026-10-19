@@ -7,10 +7,10 @@ namespace NobatPlusDATA.ViewModels
 {
     public class PaymentVM :BaseEntity
     {
-        public long StylistID { get; set; }
+        public long WorkerID { get; set; }
         public long CustomerID { get; set; }
-        public string StylistName { get; set; }
-        public string SalonName { get; set; }
+        public string WorkerName { get; set; }
+        public string WorkshopName { get; set; }
         public string CustomerName { get; set; }
         public decimal AllPaymentAmount { get; set; }
         public decimal DepositAmount { get; set; }
@@ -20,7 +20,7 @@ namespace NobatPlusDATA.ViewModels
         public decimal DiscountedServiceAmount { get; set; }
         public decimal PlatformAmount { get; set; }
         public decimal VatAmount { get; set; }
-        public decimal StylistAmount { get; set; }
+        public decimal WorkerAmount { get; set; }
         public DateTime PaymentDate { get; set; }
         public string PaymentStatus { get; set; }
         public bool PaymentFinished { get; set; }
@@ -33,10 +33,10 @@ namespace NobatPlusDATA.ViewModels
     {
         public long BookingID { get; set; }
         public DateTime BookingDate { get; set; }
-        public long StylistID { get; set; }
+        public long WorkerID { get; set; }
         public long CustomerID { get; set; }
-        public string StylistName { get; set; }
-        public string SalonName { get; set; }
+        public string WorkerName { get; set; }
+        public string WorkshopName { get; set; }
         public List<PaymentItemVM> PaymentItems { get; set; }
     }
 }

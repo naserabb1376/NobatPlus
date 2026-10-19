@@ -12,9 +12,9 @@
 |---|---|
 | `automatic` | مدت نوبت از مجموع مدت خدمات یا Variantهای انتخاب‌شده محاسبه می‌شود. |
 | `manual` | مدت هر نوبت از `SlotIntervalMinutes` گرفته می‌شود. این همان رفتار دستی قبلی پروژه است. |
-| `manual-schedule` | مشتری فقط یکی از بازه‌های از قبل ساخته‌شده در `StylistScheduleBlocks` را رزرو می‌کند. |
+| `manual-schedule` | مشتری فقط یکی از بازه‌های از قبل ساخته‌شده در `WorkerScheduleBlocks` را رزرو می‌کند. |
 
-در هر سه حالت `WorkTime`، مرخصی‌های `StylistPacific`، نوبت‌های موجود و `RestTime` کنترل می‌شوند.
+در هر سه حالت `WorkTime`، مرخصی‌های `WorkerPacific`، نوبت‌های موجود و `RestTime` کنترل می‌شوند.
 
 ## جداول و فیلدهای جدید
 
@@ -24,7 +24,7 @@
 
 فیلدهای اصلی:
 
-- `StylistID`
+- `WorkerID`
 - `Title`
 - `Color`
 - `SortOrder`
@@ -32,15 +32,15 @@
 
 عنوان برچسب برای هر آرایشگر Unique است.
 
-### StylistScheduleBlocks
+### WorkerScheduleBlocks
 
 هر رکورد یک بازه قابل نمایش در تقویم دستی است.
 
-- `StylistID`
+- `WorkerID`
 - `StartDateTime`
 - `EndDateTime`
 - `ServiceManagementID` اختیاری
-- `StylistServicePriceVariantID` اختیاری
+- `WorkerServicePriceVariantID` اختیاری
 - `BookingTagID` اختیاری
 - `Title`
 - `PriceOverride` اختیاری
@@ -72,7 +72,7 @@ ScheduleBlockID
 
 برای اینکه تغییر قیمت‌های آینده روی رزرو قبلی اثر نگذارد، این فیلدها اضافه شده‌اند:
 
-- `StylistServicePriceVariantID`
+- `WorkerServicePriceVariantID`
 - `UnitPriceSnapshot`
 - `DiscountPercentSnapshot`
 - `PriceAfterDiscountSnapshot`
@@ -81,7 +81,7 @@ ScheduleBlockID
 
 محاسبه Payment ابتدا Snapshot را می‌خواند و فقط برای رکوردهای قدیمی که Snapshot ندارند از قیمت جاری استفاده می‌کند.
 
-### تغییرات StylistServicePriceVariants
+### تغییرات WorkerServicePriceVariants
 
 فیلد nullable `BookingTagID` اضافه شده است. بنابراین یک ترکیب طول و حجم می‌تواند قیمت عادی و چند قیمت برچسب‌دار داشته باشد.
 
@@ -106,7 +106,7 @@ ScheduleBlockID
 
 ```json
 {
-  "stylistID": 80,
+  "workerID": 80,
   "title": "VIP",
   "color": "#C89B3C",
   "sortOrder": 1,
@@ -114,16 +114,16 @@ ScheduleBlockID
 }
 ```
 
-## اکشن‌های StylistScheduleBlock
+## اکشن‌های WorkerScheduleBlock
 
-مسیر پایه: `StylistScheduleBlock`
+مسیر پایه: `WorkerScheduleBlock`
 
 - `GetPublicScheduleSlots`: خروجی عمومی بازه‌های آزاد
-- `GetAllStylistScheduleBlocks_Base`: تقویم مدیریتی با وضعیت‌های آزاد، رزروشده و مسدود
-- `GetStylistScheduleBlockById_Base`
-- `AddStylistScheduleBlocks_Base`: افزودن گروهی برنامه یک یا چند روز
-- `EditStylistScheduleBlock_Base`
-- `DeleteStylistScheduleBlock_Base`
+- `GetAllWorkerScheduleBlocks_Base`: تقویم مدیریتی با وضعیت‌های آزاد، رزروشده و مسدود
+- `GetWorkerScheduleBlockById_Base`
+- `AddWorkerScheduleBlocks_Base`: افزودن گروهی برنامه یک یا چند روز
+- `EditWorkerScheduleBlock_Base`
+- `DeleteWorkerScheduleBlock_Base`
 
 افزودن گروهی باعث کاهش تعداد درخواست‌های فرانت‌اند می‌شود و همه بازه‌ها را در یک Transaction ثبت می‌کند.
 
@@ -133,11 +133,11 @@ ScheduleBlockID
 {
   "blocks": [
     {
-      "stylistID": 80,
+      "workerID": 80,
       "startDateTime": "2026-10-10T09:00:00",
       "endDateTime": "2026-10-10T10:00:00",
       "serviceManagementID": 10123,
-      "stylistServicePriceVariantID": 51,
+      "workerServicePriceVariantID": 51,
       "bookingTagID": 3,
       "title": "هایلایت VIP",
       "priceOverride": 5500000,
@@ -163,7 +163,7 @@ POST Booking/GetPublicBookingSlots
 
 ```json
 {
-  "stylistId": 80,
+  "workerId": 80,
   "fromDate": "2026-10-10T00:00:00",
   "toDate": "2026-10-16T00:00:00",
   "pageIndex": 1,
@@ -187,7 +187,7 @@ POST Booking/GetPublicBookingSlots
 - `discountPercent`
 - `priceAfterDiscount`
 - `depositPercent`
-- `stylistServicePriceVariantID`
+- `workerServicePriceVariantID`
 - اطلاعات Tag
 - OptionValueها و خلاصه گزینه‌ها
 
@@ -197,7 +197,7 @@ POST Booking/GetPublicBookingSlots
 
 ```json
 {
-  "stylistID": 80,
+  "workerID": 80,
   "customerID": 25,
   "bookingDate": "2026-10-10T09:00:00",
   "bookingTime": "09:00:00",
@@ -222,7 +222,7 @@ POST Booking/GetPublicBookingSlots
 - زمان پایان قبل یا مساوی شروع باشد.
 - زمان شروع گذشته باشد.
 - بازه خارج از WorkTime باشد.
-- بازه با StylistPacific تداخل داشته باشد.
+- بازه با WorkerPacific تداخل داشته باشد.
 - بازه با Block دیگر یا RestTime آن تداخل داشته باشد.
 - خدمت برای آرایشگر تعریف نشده باشد.
 - Variant متعلق به همان آرایشگر و خدمت نباشد.
@@ -245,7 +245,7 @@ POST Booking/GetPublicBookingSlots
 2. برای آرایشگر `BookingCreationMode` را روی `manual-schedule` قرار دهید.
 3. در صورت نیاز BookingTag بسازید.
 4. Tag را به Variantهای ویژه متصل کنید.
-5. برنامه روزانه را با `AddStylistScheduleBlocks_Base` ثبت کنید.
+5. برنامه روزانه را با `AddWorkerScheduleBlocks_Base` ثبت کنید.
 6. فرانت‌اند Slotها را فقط از `Booking/GetPublicBookingSlots` دریافت کند.
 7. هنگام رزرو `scheduleBlockID` و همان Service/OptionValueهای Slot را ارسال کند.
 

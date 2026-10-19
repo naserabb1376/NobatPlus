@@ -202,7 +202,7 @@ namespace NobatPlusDATA.DataLayer.Services
                     DepositAmount = calcPayment.Result.DepositAmount,
                     TotalServiceAmount = calcPayment.Result.TotalServiceAmount,
                     PlarformAmount = calcPayment.Result.PlatformAmount,
-                    StylistAmount = calcPayment.Result.StylistAmount,
+                    WorkerAmount = calcPayment.Result.WorkerAmount,
                     AllPaymentAmount = calcPayment.Result.AllPaymentAmount,
                     PayedAmount = calcPayment.Result.PayedAmount,
                     RemainAmount = calcPayment.Result.RemainAmount,
@@ -218,17 +218,17 @@ namespace NobatPlusDATA.DataLayer.Services
                     {
                         new PaymentBooking { BookingID = bookingId }
                     },
-                    PaymentDetails = calcPayment.Result.stylistServiceWithDiscountDtos.Select(d => new PaymentDetail
+                    PaymentDetails = calcPayment.Result.workerServiceWithDiscountDtos.Select(d => new PaymentDetail
                     {
                         CreateDate = now,
                         UpdateDate = now,
                         Description = description,
                         BookingID = d.BookingID,
-                        StylistID = d.StylistID,
+                        WorkerID = d.WorkerID,
                         ServiceManagementID = d.ServiceManagementID,
-                        StylistServicePriceVariantID = d.StylistServicePriceVariantID,
+                        WorkerServicePriceVariantID = d.WorkerServicePriceVariantID,
                         AppliedOptionSummary = d.AppliedOptionSummary,
-                        StylistServiceAmount = d.ServicePrice,
+                        WorkerServiceAmount = d.ServicePrice,
                         DiscountAmount = d.ServicePrice - d.PriceAfterDiscount,
                         DiscountPercent = d.DiscountPercent,
                         OptionValues = d.AppliedOptionValueIDs.Select(optionValueId => new PaymentDetailOptionValue

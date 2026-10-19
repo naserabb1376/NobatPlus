@@ -16,7 +16,7 @@ namespace NobatPlusAPI.Models.Booking
 
         [Display(Name = "کد خدمات دهنده")]
         //[Required(ErrorMessage = "لطفا {0} را وارد کنید")]
-        public long StylistId { get; set; } = 0;
+        public long WorkerId { get; set; } = 0;
         public int CancelState { get; set; } = 0;
         public string Status { get; set; } = "";
 

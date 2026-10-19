@@ -34,17 +34,17 @@ namespace NobatPlusAPI.Controllers
         ILoginRep _loginRep;
         ILogRep _logRep;
         IAddressRep _addressRep;
-        IStylistRep _stylistRep;
+        IWorkerRep _workerRep;
         private readonly IMapper _mapper;
 
 
-        public PersonController(IPersonRep PersonRep,ILoginRep loginRep,IAddressRep addressRep,IStylistRep stylistRep,ILogRep logRep, IMapper mapper)
+        public PersonController(IPersonRep PersonRep,ILoginRep loginRep,IAddressRep addressRep,IWorkerRep workerRep,ILogRep logRep, IMapper mapper)
         {
            _PersonRep = PersonRep;
             _loginRep = loginRep;
            _logRep = logRep;
            _addressRep = addressRep;
-           _stylistRep = stylistRep;
+           _workerRep = workerRep;
             _mapper = mapper;
         }
 
@@ -590,16 +590,16 @@ namespace NobatPlusAPI.Controllers
             if (roleId != (long)DbTools.BaseRole.WorkShop)
                 return false;
 
-            var currentSalonId = User.GetCurrentProfileId();
-            if (currentSalonId <= 0) currentSalonId = User.GetCurrentSalonId();
-            var targetProfiles = await _stylistRep.GetStylistProfilesByPersonIdAsync(personId);
-            var targetStylistId = targetProfiles.Results?
+            var currentWorkshopId = User.GetCurrentProfileId();
+            if (currentWorkshopId <= 0) currentWorkshopId = User.GetCurrentWorkshopId();
+            var targetProfiles = await _workerRep.GetWorkerProfilesByPersonIdAsync(personId);
+            var targetWorkerId = targetProfiles.Results?
                 .FirstOrDefault(x => x.ProfileType == nameof(DbTools.BaseRole.Worker).ToLower())?.ID ?? 0;
-            if (currentSalonId <= 0 || targetStylistId <= 0)
+            if (currentWorkshopId <= 0 || targetWorkerId <= 0)
                 return false;
 
-            var target = await _stylistRep.GetStylistByIdAsync(targetStylistId);
-            return target.Status && target.Result?.StylistParentID == currentSalonId;
+            var target = await _workerRep.GetWorkerByIdAsync(targetWorkerId);
+            return target.Status && target.Result?.WorkerParentID == currentWorkshopId;
         }
     }
 }

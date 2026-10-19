@@ -20,7 +20,7 @@ namespace NobatPlusAPI.Models.Review
         [Display(Name = "کد خدمات دهنده")]
         [Required(ErrorMessage = "لطفا {0} را وارد کنید")]
         [Range(1, long.MaxValue, ErrorMessage = "مقدار {0} باید بزرگتر از 0 باشد")]
-        public long StylistID { get; set; }
+        public long WorkerID { get; set; }
 
         [Display(Name = "امتیاز")]
         [Required(ErrorMessage = "لطفا {0} را وارد کنید")]

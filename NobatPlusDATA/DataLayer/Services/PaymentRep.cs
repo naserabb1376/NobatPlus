@@ -119,13 +119,13 @@ namespace NobatPlusDATA.DataLayer.Services
             try
             {
                 IQueryable<Payment> query = _context.Payments
-                    .Include(x => x.PaymentDetails).ThenInclude(x=> x.Stylist).ThenInclude(x=> x.Person)
+                    .Include(x => x.PaymentDetails).ThenInclude(x=> x.Worker).ThenInclude(x=> x.Person)
                     .Include(x => x.PaymentDetails).ThenInclude(x => x.ServiceManagement)
-                    .Include(x => x.PaymentDetails).ThenInclude(x => x.StylistService)
-                    .Include(x => x.PaymentDetails).ThenInclude(x => x.StylistServicePriceVariant)
+                    .Include(x => x.PaymentDetails).ThenInclude(x => x.WorkerService)
+                    .Include(x => x.PaymentDetails).ThenInclude(x => x.WorkerServicePriceVariant)
                     .Include(x => x.PaymentDetails).ThenInclude(x => x.OptionValues).ThenInclude(x => x.ServiceOptionValue).ThenInclude(x => x.ServiceOption)
                     .Include(x => x.PaymentBookings).ThenInclude(x => x.Booking).ThenInclude(x => x.Customer).ThenInclude(x => x.Person)
-                    .Include(x => x.PaymentBookings).ThenInclude(x => x.Booking).ThenInclude(x => x.Stylist).ThenInclude(x => x.Person)
+                    .Include(x => x.PaymentBookings).ThenInclude(x => x.Booking).ThenInclude(x => x.Worker).ThenInclude(x => x.Person)
                         .AsNoTracking();
 
                 if (customerId > 0)
@@ -182,15 +182,15 @@ namespace NobatPlusDATA.DataLayer.Services
                                        pb.Booking.Customer.Person.FirstName.Contains(searchText) ||
                                        pb.Booking.Customer.Person.LastName.Contains(searchText) ||
                                        pb.Booking.Customer.Person.PhoneNumber.Contains(searchText) ||
-                                       pb.Booking.Stylist.StylistName.Contains(searchText) ||
-                                       pb.Booking.Stylist.Person.FirstName.Contains(searchText) ||
-                                       pb.Booking.Stylist.Person.LastName.Contains(searchText) ||
-                                       pb.Booking.Stylist.Person.PhoneNumber.Contains(searchText)) ||
+                                       pb.Booking.Worker.WorkerName.Contains(searchText) ||
+                                       pb.Booking.Worker.Person.FirstName.Contains(searchText) ||
+                                       pb.Booking.Worker.Person.LastName.Contains(searchText) ||
+                                       pb.Booking.Worker.Person.PhoneNumber.Contains(searchText)) ||
                                    (!string.IsNullOrEmpty(x.DepositAmount.ToString()) && x.DepositAmount.ToString().Contains(searchText)) ||
                                    (!string.IsNullOrEmpty(x.AllPaymentAmount.ToString()) && x.AllPaymentAmount.ToString().Contains(searchText)) ||
                                    (!string.IsNullOrEmpty(x.TotalServiceAmount.ToString()) && x.TotalServiceAmount.ToString().Contains(searchText)) ||
                                    (!string.IsNullOrEmpty(x.PlarformAmount.ToString()) && x.PlarformAmount.ToString().Contains(searchText)) ||
-                                   (!string.IsNullOrEmpty(x.StylistAmount.ToString()) && x.StylistAmount.ToString().Contains(searchText)) ||
+                                   (!string.IsNullOrEmpty(x.WorkerAmount.ToString()) && x.WorkerAmount.ToString().Contains(searchText)) ||
                                    (!string.IsNullOrEmpty(x.DiscountedServiceAmount.ToString()) && x.DiscountedServiceAmount.ToString().Contains(searchText)) ||
                                    (!string.IsNullOrEmpty(x.PayedAmount.ToString()) && x.PayedAmount.ToString().Contains(searchText)) ||
                                    (!string.IsNullOrEmpty(x.RemainAmount.ToString()) && x.RemainAmount.ToString().Contains(searchText)) ||
@@ -223,13 +223,13 @@ namespace NobatPlusDATA.DataLayer.Services
             try
             {
                 result.Result = await _context.Payments
-                    .Include(x=> x.PaymentDetails).ThenInclude(x => x.Stylist).ThenInclude(x=> x.Person)
+                    .Include(x=> x.PaymentDetails).ThenInclude(x => x.Worker).ThenInclude(x=> x.Person)
                     .Include(x => x.PaymentDetails).ThenInclude(x => x.ServiceManagement)
-                    .Include(x => x.PaymentDetails).ThenInclude(x => x.StylistService)
-                    .Include(x => x.PaymentDetails).ThenInclude(x => x.StylistServicePriceVariant)
+                    .Include(x => x.PaymentDetails).ThenInclude(x => x.WorkerService)
+                    .Include(x => x.PaymentDetails).ThenInclude(x => x.WorkerServicePriceVariant)
                     .Include(x => x.PaymentDetails).ThenInclude(x => x.OptionValues).ThenInclude(x => x.ServiceOptionValue).ThenInclude(x => x.ServiceOption)
                     .Include(x => x.PaymentBookings).ThenInclude(x => x.Booking).ThenInclude(x => x.Customer).ThenInclude(x => x.Person)
-                    .Include(x => x.PaymentBookings).ThenInclude(x => x.Booking).ThenInclude(x => x.Stylist).ThenInclude(x => x.Person)
+                    .Include(x => x.PaymentBookings).ThenInclude(x => x.Booking).ThenInclude(x => x.Worker).ThenInclude(x => x.Person)
                 .AsNoTracking()
                 .SingleOrDefaultAsync(x => x.ID == PaymentId);
             }
@@ -312,7 +312,7 @@ namespace NobatPlusDATA.DataLayer.Services
                     return result;
                 }
 
-                var ssService = await GetAllStylistServicesAsync(customerId,bookingIds,discountId);
+                var ssService = await GetAllWorkerServicesAsync(customerId,bookingIds,discountId);
                 if (!ssService.Any())
                 {
                     result.Status = false;
@@ -324,12 +324,12 @@ namespace NobatPlusDATA.DataLayer.Services
                 decimal discounted = ssService.Sum(x => x.PriceAfterDiscount);
                 decimal deposit = ssService.Sum(x => x.PriceAfterDiscount * x.DepositPercent / 100);
                 decimal platform = decimal.Parse(_context.Settings.FirstOrDefault(x => x.Key.ToLower() == "platformamount").Value ?? "0");
-                decimal stylist = discounted;
+                decimal worker = discounted;
                 decimal allPay = discounted + platform;
                 decimal vatAmount = allPay * int.Parse(_context.Settings.FirstOrDefault(x => x.Key.ToLower() == "vatpercent").Value ?? "0") / 100;
                 allPay += vatAmount;
 
-                result.Result.StylistAmount = stylist;
+                result.Result.WorkerAmount = worker;
                 result.Result.DepositAmount = deposit;
                 result.Result.TotalServiceAmount = total;
                 result.Result.DiscountedServiceAmount = discounted;
@@ -338,7 +338,7 @@ namespace NobatPlusDATA.DataLayer.Services
                 result.Result.VatAmount =  vatAmount ;
                 result.Result.PayedAmount =  vatAmount + deposit + platform ;
                 result.Result.RemainAmount = allPay - result.Result.PayedAmount;
-                result.Result.stylistServiceWithDiscountDtos = ssService;
+                result.Result.workerServiceWithDiscountDtos = ssService;
             }
             catch (Exception ex)
             {
@@ -350,22 +350,22 @@ namespace NobatPlusDATA.DataLayer.Services
         }
 
 
-        public async Task<List<StylistServiceWithDiscountDto>> GetAllStylistServicesAsync(
+        public async Task<List<WorkerServiceWithDiscountDto>> GetAllWorkerServicesAsync(
 long customerId = 0,
 long bookingId = 0,
 long discountId = 0
 )
         {
-            return await GetAllStylistServicesAsync(customerId, new List<long> { bookingId }, discountId);
+            return await GetAllWorkerServicesAsync(customerId, new List<long> { bookingId }, discountId);
         }
 
-        public async Task<List<StylistServiceWithDiscountDto>> GetAllStylistServicesAsync(
+        public async Task<List<WorkerServiceWithDiscountDto>> GetAllWorkerServicesAsync(
 long customerId,
 List<long> bookingIds,
 long discountId = 0
 )
         {
-            var results = new List<StylistServiceWithDiscountDto>();
+            var results = new List<WorkerServiceWithDiscountDto>();
             try
             {
                 var now = DateTime.Now.ToShamsi();
@@ -375,27 +375,27 @@ long discountId = 0
                     from b in _context.Bookings.AsNoTracking()
                     join bs in _context.BookingServices.AsNoTracking()
                         on b.ID equals bs.BookingID
-                    join ss in _context.StylistServices.AsNoTracking()
-                        on new { b.StylistID, bs.ServiceManagementID }
-                        equals new { ss.StylistID, ss.ServiceManagementID }
+                    join ss in _context.WorkerServices.AsNoTracking()
+                        on new { b.WorkerID, bs.ServiceManagementID }
+                        equals new { ss.WorkerID, ss.ServiceManagementID }
                     where bookingIds.Contains(b.ID)
                     select new
                 {
                     BookingID = b.ID,
-                    StylistID = ss.StylistID,
+                    WorkerID = ss.WorkerID,
                     ServiceManagementID = ss.ServiceManagementID,
 
                     ServiceTitle = ss.ServiceManagement.ServiceName,
                     ServiceDescription = ss.ServiceManagement.Description ?? "",
 
-                    SalonName = ss.Stylist.StylistName,
-                    StylistName = $"{ss.Stylist.Person.FirstName} {ss.Stylist.Person.LastName}",
+                    WorkshopName = ss.Worker.WorkerName,
+                    WorkerName = $"{ss.Worker.Person.FirstName} {ss.Worker.Person.LastName}",
 
                     ServicePrice = ss.ServicePrice,
                     ServiceDuration = ss.ServiceDuration,
                     DepositPercent = ss.DepositPercent,
                     HasDynamicPricing = ss.HasDynamicPricing,
-                    bs.StylistServicePriceVariantID,
+                    bs.WorkerServicePriceVariantID,
                     bs.UnitPriceSnapshot,
                     bs.DiscountPercentSnapshot,
                     bs.PriceAfterDiscountSnapshot,
@@ -409,7 +409,7 @@ long discountId = 0
                 {
                     var resolvedPricing = await ResolvePricingAsync(
                         item.BookingID,
-                        item.StylistID,
+                        item.WorkerID,
                         item.ServiceManagementID,
                         item.ServicePrice,
                         item.ServiceDuration,
@@ -417,7 +417,7 @@ long discountId = 0
                         item.HasDynamicPricing);
 
                     var discountPercent = await GetApplicableDiscountPercentsQuery(
-                            item.StylistID,
+                            item.WorkerID,
                             item.ServiceManagementID,
                             customerId,
                             discountId,
@@ -434,7 +434,7 @@ long discountId = 0
                             item.UnitPriceSnapshot.Value,
                             item.DurationMinutesSnapshot.HasValue ? TimeSpan.FromMinutes(item.DurationMinutesSnapshot.Value) : resolvedPricing.Duration,
                             item.DepositPercentSnapshot ?? resolvedPricing.DepositPercent,
-                            item.StylistServicePriceVariantID,
+                            item.WorkerServicePriceVariantID,
                             resolvedPricing.OptionValueIds,
                             resolvedPricing.OptionSummary);
                         discountPercent = Math.Clamp(item.DiscountPercentSnapshot ?? Convert.ToInt32(discountPercent), 0, 100);
@@ -443,20 +443,20 @@ long discountId = 0
                     var priceAfterDiscount = item.PriceAfterDiscountSnapshot ??
                         resolvedPricing.Price * (1m - (discountPercent / 100m));
 
-                    results.Add(new StylistServiceWithDiscountDto
+                    results.Add(new WorkerServiceWithDiscountDto
                     {
-                        StylistID = item.StylistID,
+                        WorkerID = item.WorkerID,
                         ServiceManagementID = item.ServiceManagementID,
                         BookingID = item.BookingID,
                         ServiceTitle = item.ServiceTitle,
                         ServiceDescription = item.ServiceDescription,
-                        SalonName = item.SalonName,
-                        StylistName = item.StylistName,
+                        WorkshopName = item.WorkshopName,
+                        WorkerName = item.WorkerName,
                         ServicePrice = resolvedPricing.Price,
                         ServiceDuration = resolvedPricing.Duration,
                         DepositPercent = resolvedPricing.DepositPercent,
                         HasDynamicPricing = item.HasDynamicPricing,
-                        StylistServicePriceVariantID = resolvedPricing.VariantId,
+                        WorkerServicePriceVariantID = resolvedPricing.VariantId,
                         AppliedOptionValueIDs = resolvedPricing.OptionValueIds,
                         AppliedOptionSummary = resolvedPricing.OptionSummary,
                         DiscountPercent = Convert.ToInt32(discountPercent),
@@ -475,7 +475,7 @@ long discountId = 0
 
         private async Task<ResolvedServicePricing> ResolvePricingAsync(
             long bookingId,
-            long stylistId,
+            long workerId,
             long serviceManagementId,
             decimal basePrice,
             TimeSpan baseDuration,
@@ -495,10 +495,10 @@ long discountId = 0
                 return new ResolvedServicePricing(basePrice, baseDuration, baseDepositPercent, null, optionValueIds, await BuildOptionSummaryAsync(optionValueIds));
             }
 
-            var variants = await _context.StylistServicePriceVariants
+            var variants = await _context.WorkerServicePriceVariants
                 .AsNoTracking()
                 .Include(x => x.OptionValues)
-                .Where(x => x.StylistID == stylistId &&
+                .Where(x => x.WorkerID == workerId &&
                             x.ServiceManagementID == serviceManagementId &&
                             x.IsActive && x.BookingTagID == null)
                 .ToListAsync();
@@ -552,7 +552,7 @@ long discountId = 0
             string OptionSummary);
 
         private IQueryable<int> GetApplicableDiscountPercentsQuery(
-  long stylistId,
+  long workerId,
   long serviceManagementId,
   long customerId,
   long discountId,
@@ -564,7 +564,7 @@ long discountId = 0
                 from sd in _context.ServiceDiscounts
                 join d in _context.Discounts on sd.DiscountId equals d.ID
                 where sd.ServiceManagementId == serviceManagementId
-                      && (sd.StylistId == null || sd.StylistId <= 0 || sd.StylistId == stylistId)
+                      && (sd.WorkerId == null || sd.WorkerId <= 0 || sd.WorkerId == workerId)
                       && d.StartDate <= now && d.EndDate >= now
                       && (
                             (discountId <= 0 && d.CodeRequired == false) ||
@@ -577,7 +577,7 @@ long discountId = 0
                 from cd in _context.CustomerDiscounts
                 join d in _context.Discounts on cd.DiscountId equals d.ID
                 where (customerId > 0 && cd.CustomerId == customerId)
-                      && (cd.StylistId <= 0 || cd.StylistId == stylistId)
+                      && (cd.WorkerId <= 0 || cd.WorkerId == workerId)
                       && d.StartDate <= now && d.EndDate >= now
                       && (
                             (discountId <= 0 && d.CodeRequired == false) ||
@@ -589,9 +589,9 @@ long discountId = 0
             var assignmentDiscounts =
                 from da in _context.DiscountAssignments
                 join d in _context.Discounts on da.DiscountId equals d.ID
-                where (da.StylistId == stylistId
+                where (da.WorkerId == workerId
                        // اگر می‌خوای AdminId هم "عمومی" حساب شود:
-                       || ((da.StylistId == null || da.StylistId <= 0) && da.AdminId != null && da.AdminId > 0))
+                       || ((da.WorkerId == null || da.WorkerId <= 0) && da.AdminId != null && da.AdminId > 0))
                       && d.StartDate <= now && d.EndDate >= now
                       && (
                             (discountId <= 0 && d.CodeRequired == false) ||

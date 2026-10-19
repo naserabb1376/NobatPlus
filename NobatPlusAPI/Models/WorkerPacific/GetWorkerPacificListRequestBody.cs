@@ -1,0 +1,14 @@
+﻿using Domain;
+using NobatPlusAPI.Models.Public;
+using System.ComponentModel.DataAnnotations;
+
+namespace NobatPlusAPI.Models.WorkerPacific
+{
+    public class GetWorkerPacificListRequestBody : GetListRequestBody
+    {
+        [Display(Name = "کد خدمات دهنده")]
+        [Required(ErrorMessage = "لطفا {0} را وارد کنید")]
+        public long WorkerId { get; set; } = 0;  
+    }
+
+}

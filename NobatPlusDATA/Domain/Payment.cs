@@ -16,7 +16,7 @@ namespace NobatPlusDATA.Domain
         public decimal RemainAmount { get; set; }
         public decimal TotalServiceAmount { get; set; }
         public decimal DiscountedServiceAmount { get; set; }
-        public decimal StylistAmount { get; set; }
+        public decimal WorkerAmount { get; set; }
         public decimal PlarformAmount { get; set; }
         public decimal VatAmount { get; set; }
         public DateTime PaymentDate { get; set; }
@@ -46,10 +46,10 @@ namespace NobatPlusDATA.Domain
         public decimal RemainAmount { get; set; }
         public decimal TotalServiceAmount { get; set; }
         public decimal DiscountedServiceAmount { get; set; }
-        public decimal StylistAmount { get; set; }
+        public decimal WorkerAmount { get; set; }
         public decimal PlatformAmount { get; set; }
         public decimal VatAmount { get; set; }
-        public List<StylistServiceWithDiscountDto> stylistServiceWithDiscountDtos { get; set; } = new List<StylistServiceWithDiscountDto>();
+        public List<WorkerServiceWithDiscountDto> workerServiceWithDiscountDtos { get; set; } = new List<WorkerServiceWithDiscountDto>();
 
     }
 }

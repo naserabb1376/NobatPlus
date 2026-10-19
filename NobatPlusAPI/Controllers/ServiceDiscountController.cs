@@ -50,7 +50,7 @@ namespace NobatPlusAPI.Controllers
             {
                 return BadRequest(requestBody);
             }
-            var result = await _ServiceDiscountRep.GetAllServiceDiscountsAsync(requestBody.DiscountID,requestBody.ServiceID,requestBody.AdminID,requestBody.StylistID,requestBody.PageIndex,requestBody.PageSize,requestBody.SearchText,requestBody.SortQuery);
+            var result = await _ServiceDiscountRep.GetAllServiceDiscountsAsync(requestBody.DiscountID,requestBody.ServiceID,requestBody.AdminID,requestBody.WorkerID,requestBody.PageIndex,requestBody.PageSize,requestBody.SearchText,requestBody.SortQuery);
             if (result.Status)
             {
                 var resultVM = _mapper.Map<ListResultObject<ServiceDiscountVM>>(result);
@@ -105,7 +105,7 @@ namespace NobatPlusAPI.Controllers
                 DiscountId = requestBody.DiscountID,
                 AdminId = requestBody.AdminID,
                 ServiceManagementId = requestBody.ServiceID,
-                StylistId = requestBody.StylistID,
+                WorkerId = requestBody.WorkerID,
                 Description = requestBody.Description
             }).ToList();
 
@@ -161,7 +161,7 @@ namespace NobatPlusAPI.Controllers
                     DiscountId = requestBody.DiscountID,
                     AdminId = requestBody.AdminID,
                     ServiceManagementId = requestBody.ServiceID,
-                    StylistId = requestBody.StylistID,
+                    WorkerId = requestBody.WorkerID,
                     Description = requestBody.Description
                 };
 

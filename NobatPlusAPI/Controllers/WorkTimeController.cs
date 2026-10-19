@@ -49,7 +49,7 @@ namespace NobatPlusAPI.Controllers
             {
                 return BadRequest(requestBody);
             }
-            result = await _WorkTimeRep.GetAllWorkTimesAsync(requestBody.StylistId, requestBody.PageIndex, requestBody.PageSize, requestBody.SearchText, requestBody.SortQuery);
+            result = await _WorkTimeRep.GetAllWorkTimesAsync(requestBody.WorkerId, requestBody.PageIndex, requestBody.PageSize, requestBody.SearchText, requestBody.SortQuery);
             if (result.Status)
             {
                 var resultVM = _mapper.Map<ListResultObject<WorkTimeVM>>(result);
@@ -105,7 +105,7 @@ namespace NobatPlusAPI.Controllers
                 WorkStartTime = requestBody.WorkStartTime,
                 WorkEndTime = requestBody.WorkEndTime,
                 DayOfWeek = requestBody.DayOfWeek,
-                StylistID = requestBody.StylistID,
+                WorkerID = requestBody.WorkerID,
                 Description = "",
             };
             var result = await _WorkTimeRep.AddWorkTimeAsync(WorkTime);
@@ -156,7 +156,7 @@ namespace NobatPlusAPI.Controllers
                 WorkStartTime = requestBody.WorkStartTime,
                 WorkEndTime = requestBody.WorkEndTime,
                 DayOfWeek = requestBody.DayOfWeek,
-                StylistID = requestBody.StylistID,
+                WorkerID = requestBody.WorkerID,
                 Description = "",
             };
              result = await _WorkTimeRep.EditWorkTimeAsync(WorkTime);

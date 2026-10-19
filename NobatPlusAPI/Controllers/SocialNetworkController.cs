@@ -50,7 +50,7 @@ namespace NobatPlusAPI.Controllers
             {
                 return BadRequest(requestBody);
             }
-            result = await _SocialNetworkRep.GetAllSocialNetworksAsync(requestBody.StylistId, requestBody.PageIndex, requestBody.PageSize, requestBody.SearchText, requestBody.SortQuery);
+            result = await _SocialNetworkRep.GetAllSocialNetworksAsync(requestBody.WorkerId, requestBody.PageIndex, requestBody.PageSize, requestBody.SearchText, requestBody.SortQuery);
             if (result.Status)
             {
                 var resultVM = _mapper.Map<ListResultObject<SocialNetworkVM>>(result);
@@ -99,7 +99,7 @@ namespace NobatPlusAPI.Controllers
             {
                 return BadRequest(requestBody);
             }
-            var existSocialNetwork = await _SocialNetworkRep.ExistSocialNetworkAccountAsync(requestBody.SocialNetworkName,requestBody.StylistID,requestBody.PhoneNumber,requestBody.AccountLink);
+            var existSocialNetwork = await _SocialNetworkRep.ExistSocialNetworkAccountAsync(requestBody.SocialNetworkName,requestBody.WorkerID,requestBody.PhoneNumber,requestBody.AccountLink);
             if (!existSocialNetwork.Status)
             {
                 SocialNetwork SocialNetwork = new SocialNetwork()
@@ -110,7 +110,7 @@ namespace NobatPlusAPI.Controllers
                     PhoneNumber = requestBody.PhoneNumber,
                     SocialNetworkIcon = requestBody.SocialNetworkIcon ?? "",
                     SocialNetworkName = requestBody.SocialNetworkName,
-                    StylistID = requestBody.StylistID,
+                    WorkerID = requestBody.WorkerID,
                     Description = "",
                 };
                 var result = await _SocialNetworkRep.AddSocialNetworkAsync(SocialNetwork);
@@ -150,7 +150,7 @@ namespace NobatPlusAPI.Controllers
             {
                 return BadRequest(requestBody);
             }
-            var existSocialNetwork = await _SocialNetworkRep.ExistSocialNetworkAccountAsync(requestBody.SocialNetworkName, requestBody.StylistID, requestBody.PhoneNumber, requestBody.AccountLink);
+            var existSocialNetwork = await _SocialNetworkRep.ExistSocialNetworkAccountAsync(requestBody.SocialNetworkName, requestBody.WorkerID, requestBody.PhoneNumber, requestBody.AccountLink);
             if (!existSocialNetwork.Status)
             {
 
@@ -171,7 +171,7 @@ namespace NobatPlusAPI.Controllers
                     PhoneNumber = requestBody.PhoneNumber,
                     SocialNetworkIcon = requestBody.SocialNetworkIcon ?? "",
                     SocialNetworkName = requestBody.SocialNetworkName,
-                    StylistID = requestBody.StylistID,
+                    WorkerID = requestBody.WorkerID,
                     Description = "",
                 };
                 result = await _SocialNetworkRep.EditSocialNetworkAsync(SocialNetwork);

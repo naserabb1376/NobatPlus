@@ -85,7 +85,7 @@ namespace NobatPlusDATA.DataLayer.Services
 
         public async Task<ListResultObject<RateHistoryDTO>> GetAllRateHistoriesAsync(
       long customerId = 0,
-      long stylistId = 0,
+      long workerId = 0,
        long bookingId = 0,
       long rateQuestionId = 0,
       int pageIndex = 1,
@@ -98,12 +98,12 @@ namespace NobatPlusDATA.DataLayer.Services
             {
                 IQueryable<RateHistory> query = _context.RateHistories
                     .Include(x => x.RateQuestion)
-                    .Include(x => x.Stylist).ThenInclude(x => x.Person)
+                    .Include(x => x.Worker).ThenInclude(x => x.Person)
                     .Include(x => x.Customer).ThenInclude(x => x.Person)
                     .AsNoTracking();
 
-                if (stylistId > 0)
-                    query = query.Where(x => x.StylistID == stylistId);
+                if (workerId > 0)
+                    query = query.Where(x => x.WorkerID == workerId);
 
 
                 if (bookingId > 0)
@@ -135,14 +135,14 @@ namespace NobatPlusDATA.DataLayer.Services
                     .Select(r => new RateHistoryDTO
                     {
                         ID = r.ID,
-                        StylistID = r.StylistID,
+                        WorkerID = r.WorkerID,
                         CustomerID = r.CustomerID,
                         BookingID = r.BookingID,
                         RateQuestionID = r.RateQuestionID,
                         RateScore = r.RateScore,
                         RateDate = r.RateDate,
                         Description = r.Description,
-                        Stylist = r.Stylist,
+                        Worker = r.Worker,
                         Customer = r.Customer,
                         RateQuestion = r.RateQuestion,
                         UpdateDate = r.UpdateDate,
@@ -150,11 +150,11 @@ namespace NobatPlusDATA.DataLayer.Services
 
                         // محاسباتی
                         AvgScorePerQuestion = _context.RateHistories
-                            .Where(x => x.StylistID == r.StylistID && x.RateQuestionID == r.RateQuestionID)
+                            .Where(x => x.WorkerID == r.WorkerID && x.RateQuestionID == r.RateQuestionID)
                             .Average(x => x.RateScore),
 
-                        AvgScoreForStylist = _context.RateHistories
-                            .Where(x => x.StylistID == r.StylistID)
+                        AvgScoreForWorker = _context.RateHistories
+                            .Where(x => x.WorkerID == r.WorkerID)
                             .Average(x => x.RateScore)
                     })
                      .SortBy(sortQuery)
@@ -177,31 +177,31 @@ namespace NobatPlusDATA.DataLayer.Services
             {
                 result.Result = await _context.RateHistories
                     .Include(x => x.RateQuestion)
-                    .Include(x => x.Stylist).ThenInclude(x=> x.Person)
+                    .Include(x => x.Worker).ThenInclude(x=> x.Person)
                     .Include(x => x.Customer).ThenInclude(x => x.Person)
                     .Where(x => x.ID == rateHistoryId)
                     .Select(r => new RateHistoryDTO
                     {
                         ID = r.ID,
-                        StylistID = r.StylistID,
+                        WorkerID = r.WorkerID,
                         CustomerID = r.CustomerID,
                         RateQuestionID = r.RateQuestionID,
                         BookingID = r.BookingID,
                         RateScore = r.RateScore,
                         RateDate = r.RateDate,
                         Description = r.Description,
-                        Stylist = r.Stylist,
+                        Worker = r.Worker,
                         Customer = r.Customer,
                         RateQuestion = r.RateQuestion,
                         CreateDate = r.CreateDate,
                         UpdateDate = r.UpdateDate,
 
                         AvgScorePerQuestion = _context.RateHistories
-                            .Where(x => x.StylistID == r.StylistID && x.RateQuestionID == r.RateQuestionID)
+                            .Where(x => x.WorkerID == r.WorkerID && x.RateQuestionID == r.RateQuestionID)
                             .Average(x => x.RateScore),
 
-                        AvgScoreForStylist = _context.RateHistories
-                            .Where(x => x.StylistID == r.StylistID)
+                        AvgScoreForWorker = _context.RateHistories
+                            .Where(x => x.WorkerID == r.WorkerID)
                             .Average(x => x.RateScore)
                     })
                     .AsNoTracking()
@@ -254,7 +254,7 @@ namespace NobatPlusDATA.DataLayer.Services
                     Description = RateHistoryDTO.Result.Description,
                     ID = RateHistoryDTO.Result.ID,
                     RateQuestionID = RateHistoryDTO.Result.RateQuestionID,
-                    StylistID = RateHistoryDTO.Result.StylistID,
+                    WorkerID = RateHistoryDTO.Result.WorkerID,
                     RateScore = RateHistoryDTO.Result.RateScore,
                 };
                 result = await RemoveRateHistoryAsync(RateHistory);

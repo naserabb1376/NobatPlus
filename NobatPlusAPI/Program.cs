@@ -113,7 +113,7 @@ namespace NobatPlusAPI
             // Add services to the container.
 
             var apiVersion = ToolBox.CalculateAppVersionNo();
-            var apiTitle = builder.Environment.ApplicationName;
+            var apiTitle = ToolBox.CustomizeAppTitle(builder.Environment.ApplicationName);
 
             builder.Services.AddControllers(options =>
             {
@@ -223,14 +223,14 @@ namespace NobatPlusAPI
             builder.Services.AddScoped<IServiceManagementRep, ServiceManagementRep>();
             builder.Services.AddScoped<IServiceOptionRep, ServiceOptionRep>();
             builder.Services.AddScoped<IServiceOptionValueRep, ServiceOptionValueRep>();
-            builder.Services.AddScoped<IStylistRep, StylistRep>();
-            builder.Services.AddScoped<IStylistScheduleBlockRep, StylistScheduleBlockRep>();
-            builder.Services.AddScoped<IStylistDashboardRep, StylistDashboardRep>();
-            builder.Services.AddScoped<IStylistServiceFollowUpSettingRep, StylistServiceFollowUpSettingRep>();
-            builder.Services.AddScoped<IStylistServiceRep, StylistServiceRep>();
-            builder.Services.AddScoped<IStylistServicePriceVariantRep, StylistServicePriceVariantRep>();
-            builder.Services.AddScoped<IStylistServicePriceVariantOptionValueRep, StylistServicePriceVariantOptionValueRep>();
-            builder.Services.AddScoped<IStylistPacificRep, StylistPacificRep>();
+            builder.Services.AddScoped<IWorkerRep, WorkerRep>();
+            builder.Services.AddScoped<IWorkerScheduleBlockRep, WorkerScheduleBlockRep>();
+            builder.Services.AddScoped<IWorkerDashboardRep, WorkerDashboardRep>();
+            builder.Services.AddScoped<IWorkerServiceFollowUpSettingRep, WorkerServiceFollowUpSettingRep>();
+            builder.Services.AddScoped<IWorkerServiceRep, WorkerServiceRep>();
+            builder.Services.AddScoped<IWorkerServicePriceVariantRep, WorkerServicePriceVariantRep>();
+            builder.Services.AddScoped<IWorkerServicePriceVariantOptionValueRep, WorkerServicePriceVariantOptionValueRep>();
+            builder.Services.AddScoped<IWorkerPacificRep, WorkerPacificRep>();
             builder.Services.AddScoped<ISupportTicketRep, SupportTicketRep>();
             builder.Services.AddScoped<ITokenRep, TokenRep>();
             builder.Services.AddScoped<ISocialNetworkRep, SocialNetworkRep>();

@@ -39,7 +39,7 @@ namespace NobatPlusDATA.DataLayer.Services
 
                 var bookings = await _context.Bookings
                     .AsNoTracking()
-                    .Include(x => x.Stylist).ThenInclude(x => x.Person)
+                    .Include(x => x.Worker).ThenInclude(x => x.Person)
                     .Include(x => x.PaymentBookings).ThenInclude(x => x.Payment)
                     .Include(x => x.BookingServices).ThenInclude(x => x.ServiceManagement)
                     .Where(x => x.CustomerID == customer.ID)
@@ -50,11 +50,11 @@ namespace NobatPlusDATA.DataLayer.Services
                     .ToList();
 
                 var bookingIds = bookings.Select(x => x.ID).ToList();
-                var bookingStylistIds = bookings.Select(x => x.StylistID).Distinct().ToList();
+                var bookingWorkerIds = bookings.Select(x => x.WorkerID).Distinct().ToList();
 
-                var stylistServices = await _context.StylistServices
+                var workerServices = await _context.WorkerServices
                     .AsNoTracking()
-                    .Where(x => bookingStylistIds.Contains(x.StylistID))
+                    .Where(x => bookingWorkerIds.Contains(x.WorkerID))
                     .ToListAsync();
 
                 var reviews = await _context.Reviews
@@ -130,18 +130,18 @@ namespace NobatPlusDATA.DataLayer.Services
                         BookingCount = g.Count(),
                         LastBookingDate = g.Max(x => x.Booking.BookingDate),
                         LastBookingDateText = FormatDate(g.Max(x => x.Booking.BookingDate)),
-                        PaidAmount = g.Sum(x => GetAllocatedServiceRevenue(x.Booking, x.BookingService, stylistServices))
+                        PaidAmount = g.Sum(x => GetAllocatedServiceRevenue(x.Booking, x.BookingService, workerServices))
                     })
                     .OrderByDescending(x => x.LastBookingDate)
                     .Take(6)
                     .ToList();
 
-                report.RecentStylists = bookings
-                    .GroupBy(x => x.StylistID)
-                    .Select(g => new CustomerStylistHistoryDto
+                report.RecentWorkers = bookings
+                    .GroupBy(x => x.WorkerID)
+                    .Select(g => new CustomerWorkerHistoryDto
                     {
-                        StylistId = g.Key,
-                        StylistName = GetStylistDisplayName(g.First().Stylist),
+                        WorkerId = g.Key,
+                        WorkerName = GetWorkerDisplayName(g.First().Worker),
                         BookingCount = g.Count(),
                         LastBookingDate = g.Max(x => x.BookingDate),
                         LastBookingDateText = FormatDate(g.Max(x => x.BookingDate)),
@@ -156,10 +156,10 @@ namespace NobatPlusDATA.DataLayer.Services
                     {
                         BookingId = x.ID,
                         CustomerID = x.CustomerID,
-                        StylistID = x.StylistID,
+                        WorkerID = x.WorkerID,
                         Date = FormatDate(x.BookingDate),
                         Services = GetServicesTitle(x),
-                        StylistName = GetStylistDisplayName(x.Stylist)
+                        WorkerName = GetWorkerDisplayName(x.Worker)
                     })
                     .ToList();
 
@@ -193,7 +193,7 @@ namespace NobatPlusDATA.DataLayer.Services
                 Date = FormatDate(booking.BookingDate),
                 Time = booking.BookingDate.ToString("HH:mm"),
                 Services = GetServicesTitle(booking),
-                StylistName = GetStylistDisplayName(booking.Stylist),
+                WorkerName = GetWorkerDisplayName(booking.Worker),
                 Amount = payment?.DiscountedServiceAmount ?? payment?.TotalServiceAmount ?? 0,
                 PaidAmount = payment?.PayedAmount ?? 0,
                 RemainAmount = payment?.RemainAmount ?? 0,
@@ -211,7 +211,7 @@ namespace NobatPlusDATA.DataLayer.Services
                 PaymentDate = payment.PaymentDate,
                 Date = FormatDate(payment.PaymentDate),
                 Services = GetServicesTitle(booking),
-                StylistName = GetStylistDisplayName(booking.Stylist),
+                WorkerName = GetWorkerDisplayName(booking.Worker),
                 Amount = payment.AllPaymentAmount,
                 PaidAmount = payment.PayedAmount,
                 RemainAmount = payment.RemainAmount,
@@ -229,42 +229,42 @@ namespace NobatPlusDATA.DataLayer.Services
             return names.Any() ? string.Join("، ", names) : "خدمت نامشخص";
         }
 
-        private static string GetStylistDisplayName(Stylist? stylist)
+        private static string GetWorkerDisplayName(Worker? worker)
         {
-            if (stylist == null)
+            if (worker == null)
                 return "نامشخص";
 
-            var personFullName = $"{stylist.Person?.FirstName} {stylist.Person?.LastName}".Trim();
+            var personFullName = $"{worker.Person?.FirstName} {worker.Person?.LastName}".Trim();
 
-            if (!stylist.IsWorkShop && !string.IsNullOrWhiteSpace(personFullName))
+            if (!worker.IsWorkShop && !string.IsNullOrWhiteSpace(personFullName))
                 return personFullName;
 
-            if (!string.IsNullOrWhiteSpace(stylist.StylistName))
-                return stylist.StylistName.Trim();
+            if (!string.IsNullOrWhiteSpace(worker.WorkerName))
+                return worker.WorkerName.Trim();
 
             return !string.IsNullOrWhiteSpace(personFullName) ? personFullName : "نامشخص";
         }
 
-        private static decimal GetAllocatedServiceRevenue(Booking booking, BookingService bookingService, List<StylistService> stylistServices)
+        private static decimal GetAllocatedServiceRevenue(Booking booking, BookingService bookingService, List<WorkerService> workerServices)
         {
-            var amount = GetPayments(booking).Sum(x => x.StylistAmount);
+            var amount = GetPayments(booking).Sum(x => x.WorkerAmount);
             if (amount == 0 || booking.BookingServices == null || !booking.BookingServices.Any())
                 return 0;
 
             var totalServicePrice = booking.BookingServices
-                .Sum(x => GetBookingServicePrice(booking.StylistID, x, stylistServices));
+                .Sum(x => GetBookingServicePrice(booking.WorkerID, x, workerServices));
 
             if (totalServicePrice <= 0)
                 return amount / booking.BookingServices.Count;
 
-            var servicePrice = GetBookingServicePrice(booking.StylistID, bookingService, stylistServices);
+            var servicePrice = GetBookingServicePrice(booking.WorkerID, bookingService, workerServices);
             return amount * servicePrice / totalServicePrice;
         }
 
-        private static decimal GetBookingServicePrice(long stylistId, BookingService bookingService, List<StylistService> stylistServices)
+        private static decimal GetBookingServicePrice(long workerId, BookingService bookingService, List<WorkerService> workerServices)
         {
-            return stylistServices
-                .FirstOrDefault(x => x.StylistID == stylistId && x.ServiceManagementID == bookingService.ServiceManagementID)
+            return workerServices
+                .FirstOrDefault(x => x.WorkerID == workerId && x.ServiceManagementID == bookingService.ServiceManagementID)
                 ?.ServicePrice ?? 0;
         }
 

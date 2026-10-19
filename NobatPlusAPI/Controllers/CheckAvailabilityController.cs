@@ -49,7 +49,7 @@ namespace NobatPlusAPI.Controllers
             {
                 return BadRequest(requestBody);
             }
-            var result = await _CheckAvailabilityRep.GetAllCheckAvailabilitiesAsync(requestBody.StylistId,requestBody.PageIndex,requestBody.PageSize,requestBody.SearchText,requestBody.SortQuery);
+            var result = await _CheckAvailabilityRep.GetAllCheckAvailabilitiesAsync(requestBody.WorkerId,requestBody.PageIndex,requestBody.PageSize,requestBody.SearchText,requestBody.SortQuery);
             if (result.Status)
             {
                 var resultVM = _mapper.Map<ListResultObject<CheckAvailabilityVM>>(result);
@@ -102,7 +102,7 @@ namespace NobatPlusAPI.Controllers
                 Date = requestBody.Date,
                 Time = requestBody.Time,
                 Description = requestBody.Description,
-                StylistID = requestBody.StylistID,
+                WorkerID = requestBody.WorkerID,
                 UpdateDate = DateTime.Now.ToShamsi(),
             };
             var result = await _CheckAvailabilityRep.AddCheckAvailabilityAsync(CheckAvailability);
@@ -150,7 +150,7 @@ namespace NobatPlusAPI.Controllers
                 ID = requestBody.ID,
                 Date = requestBody.Date,
                 Time = requestBody.Time,
-                StylistID = requestBody.StylistID,
+                WorkerID = requestBody.WorkerID,
                 Description = requestBody.Description,
             };
             result = await _CheckAvailabilityRep.EditCheckAvailabilityAsync(CheckAvailability);

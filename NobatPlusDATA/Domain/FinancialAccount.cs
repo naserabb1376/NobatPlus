@@ -4,14 +4,14 @@ namespace NobatPlusDATA.Domain
 {
     public class FinancialAccount : BaseEntity
     {
-        public long StylistID { get; set; }
+        public long WorkerID { get; set; }
         public string AccountType { get; set; } = "";
         public decimal Balance { get; set; }
         public string Iban { get; set; } = "";
         public string BankAccountOwnerName { get; set; } = "";
         public bool IsActive { get; set; } = true;
 
-        public Stylist Stylist { get; set; }
+        public Worker Worker { get; set; }
         public ICollection<FinancialTransaction> Transactions { get; set; } = new List<FinancialTransaction>();
         public ICollection<SettlementRequest> SettlementRequests { get; set; } = new List<SettlementRequest>();
     }
@@ -53,7 +53,7 @@ namespace NobatPlusDATA.Domain
     public class FinancialAccountReport
     {
         public long AccountId { get; set; }
-        public long StylistId { get; set; }
+        public long WorkerId { get; set; }
         public string AccountType { get; set; } = "";
         public decimal Balance { get; set; }
         public decimal PendingSettlementAmount { get; set; }
@@ -106,9 +106,9 @@ namespace NobatPlusDATA.Domain
     public class AdminSettlementRequestReport : SettlementRequestReport
     {
         public long FinancialAccountId { get; set; }
-        public long StylistId { get; set; }
+        public long WorkerId { get; set; }
         public string AccountType { get; set; } = "";
-        public string StylistName { get; set; } = "";
+        public string WorkerName { get; set; } = "";
         public string PersonFullName { get; set; } = "";
         public string Iban { get; set; } = "";
         public string BankAccountOwnerName { get; set; } = "";

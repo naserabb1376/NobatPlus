@@ -16,10 +16,10 @@ namespace NobatPlusDATA.Domain
      //   public long Price { get; set; }
 
         public ICollection<BookingService> BookingServices { get; set; }
-        public ICollection<StylistService> StylistServices { get; set; }
+        public ICollection<WorkerService> WorkerServices { get; set; }
         public ICollection<ServiceDiscount> ServiceDiscounts { get; set; }
         public ICollection<PaymentDetail> PaymentDetails { get; set; }
-        public ICollection<StylistScheduleBlock> ScheduleBlocks { get; set; }
+        public ICollection<WorkerScheduleBlock> ScheduleBlocks { get; set; }
 
     }
     public class ServiceManagementDTO : BaseEntity
@@ -27,6 +27,6 @@ namespace NobatPlusDATA.Domain
         public long ServiceParentID { get; set; }
         public string ServiceName { get; set; }
         public char ServiceGender { get; set; }
-        public int StylistCount { get; set; }
+        public int WorkerCount { get; set; }
     }
 }

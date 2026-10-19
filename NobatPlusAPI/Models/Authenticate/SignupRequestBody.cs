@@ -1,6 +1,6 @@
 ﻿using Domain;
 using NobatPlusAPI.Models.Address;
-using NobatPlusAPI.Models.Stylist;
+using NobatPlusAPI.Models.Worker;
 using NobatPlusAPI.Tools;
 using System.ComponentModel.DataAnnotations;
 
@@ -61,7 +61,7 @@ namespace NobatPlusAPI.Models.Authenticate
 
         [Display(Name = "انجام لاگین")]
         public bool WithLogin { get; set; }
-        public SignupStylistRequestBody? stylist { get; set; }
+        public SignupWorkerRequestBody? worker { get; set; }
         public AddEditAddressRequestBody? Address { get; set; }
 
     }

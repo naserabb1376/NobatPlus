@@ -10,7 +10,7 @@ namespace NobatPlusDATA.Domain
 {
     public class Booking : BaseEntity
     {
-        public long StylistID { get; set; }
+        public long WorkerID { get; set; }
         public long CustomerID { get; set; }
         public DateTime BookingDate { get; set; }
         public string Status { get; set; }
@@ -20,18 +20,18 @@ namespace NobatPlusDATA.Domain
         public int? RestTimeMinutesSnapshot { get; set; }
         public long? ScheduleBlockID { get; set; }
 
-        public Stylist Stylist { get; set; }
+        public Worker Worker { get; set; }
         public Customer Customer { get; set; }
         public ICollection<PaymentBooking> PaymentBookings { get; set; }
         public ICollection<Review> Reviews { get; set; }
         public ICollection<RateHistory> RateHistories { get; set; }
         public ICollection<BookingService> BookingServices { get; set; }
-        public StylistScheduleBlock? ScheduleBlock { get; set; }
+        public WorkerScheduleBlock? ScheduleBlock { get; set; }
     }
 
     public class BookingDTO : BaseEntity
     {
-        public long StylistID { get; set; }
+        public long WorkerID { get; set; }
         public long CustomerID { get; set; }
         public DateTime BookingStartDate { get; set; }
         public DateTime BookingEndDate { get; set; }
@@ -42,8 +42,8 @@ namespace NobatPlusDATA.Domain
         public bool IsCancelled { get; set; }
         public string CancelReason { get; set; }
 
-        public Stylist Stylist { get; set; }
-        public Address? StylistAddress { get; set; }
+        public Worker Worker { get; set; }
+        public Address? WorkerAddress { get; set; }
         public Customer Customer { get; set; }
         public List<BookingServiceSelectionDTO>? Services { get; set; }
         public long? ScheduleBlockID { get; set; }
@@ -55,7 +55,7 @@ namespace NobatPlusDATA.Domain
         public string? ServiceName { get; set; }
         public List<long>? OptionValueIDs { get; set; }
         public List<BookingServiceOptionValueDTO>? OptionValues { get; set; }
-        public long? StylistServicePriceVariantID { get; set; }
+        public long? WorkerServicePriceVariantID { get; set; }
         public decimal? UnitPriceSnapshot { get; set; }
         public int? DiscountPercentSnapshot { get; set; }
         public decimal? PriceAfterDiscountSnapshot { get; set; }
@@ -73,7 +73,7 @@ namespace NobatPlusDATA.Domain
 
     public class PublicBookingSlotDTO
     {
-        public long StylistID { get; set; }
+        public long WorkerID { get; set; }
         public long? ScheduleBlockID { get; set; }
         public DateTime BookingStartDate { get; set; }
         public DateTime BookingEndDate { get; set; }
@@ -87,7 +87,7 @@ namespace NobatPlusDATA.Domain
         public int DiscountPercent { get; set; }
         public decimal PriceAfterDiscount { get; set; }
         public int DepositPercent { get; set; }
-        public long? StylistServicePriceVariantID { get; set; }
+        public long? WorkerServicePriceVariantID { get; set; }
         public long? BookingTagID { get; set; }
         public string BookingTagTitle { get; set; } = "";
         public string BookingTagColor { get; set; } = "";

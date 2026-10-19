@@ -33,17 +33,17 @@ namespace NobatPlusAPI.Controllers
         IReviewRep _ReviewRep;
         IBookingRep _BookingRep;
         ICustomerRep _CustomerRep;
-        IStylistRep _StylistRep;
+        IWorkerRep _WorkerRep;
         ILogRep _logRep;
         private readonly IMapper _mapper;
 
 
-        public ReviewController(IReviewRep ReviewRep,IBookingRep bookingRep,ICustomerRep customerRep,IStylistRep stylistRep,ILogRep logRep, IMapper mapper)
+        public ReviewController(IReviewRep ReviewRep,IBookingRep bookingRep,ICustomerRep customerRep,IWorkerRep workerRep,ILogRep logRep, IMapper mapper)
         {
            _ReviewRep = ReviewRep;
             _BookingRep = bookingRep;
             _CustomerRep = customerRep;
-            _StylistRep = stylistRep;
+            _WorkerRep = workerRep;
            _logRep = logRep;
             _mapper = mapper;
         }
@@ -60,7 +60,7 @@ namespace NobatPlusAPI.Controllers
             long roleId = User.GetCurrentRoleId();
             
            
-            var result = await _ReviewRep.GetAllReviewsAsync(roleId,requestBody.BookingId,requestBody.CustomerId,requestBody.StylistId,requestBody.PageIndex,requestBody.PageSize,requestBody.SearchText,requestBody.SortQuery);
+            var result = await _ReviewRep.GetAllReviewsAsync(roleId,requestBody.BookingId,requestBody.CustomerId,requestBody.WorkerId,requestBody.PageIndex,requestBody.PageSize,requestBody.SearchText,requestBody.SortQuery);
             if (result.Status)
             {
                 var resultVM = _mapper.Map<ListResultObject<ReviewVM>>(result);
@@ -140,7 +140,7 @@ namespace NobatPlusAPI.Controllers
                 BookingID = requestBody.BookingID == 0 ? null : requestBody.BookingID,
                 Comments = requestBody.Comments,
                 CustomerID = requestBody.CustomerID,
-                StylistID = requestBody.StylistID,
+                WorkerID = requestBody.WorkerID,
                 DislikeCount = requestBody.DislikeCount,
                 LikeCount = requestBody.LikeCount,
                 Rating = requestBody.Rating,
@@ -257,7 +257,7 @@ namespace NobatPlusAPI.Controllers
                 BookingID = requestBody.BookingID == 0 ? null : requestBody.BookingID,
                 Comments = requestBody.Comments,
                 CustomerID = requestBody.CustomerID,
-                StylistID = requestBody.StylistID,
+                WorkerID = requestBody.WorkerID,
                 DislikeCount = requestBody.DislikeCount,
                 LikeCount = requestBody.LikeCount,
                 Rating = requestBody.Rating,
@@ -328,12 +328,12 @@ namespace NobatPlusAPI.Controllers
             return result.Status ? result.ID : 0;
         }
 
-        private async Task<long> GetCurrentStylistIdAsync()
+        private async Task<long> GetCurrentWorkerIdAsync()
         {
             var profileId = User.GetCurrentProfileId();
             if (profileId > 0) return profileId;
 
-            var profiles = await _StylistRep.GetStylistProfilesByPersonIdAsync(User.GetCurrentUserId());
+            var profiles = await _WorkerRep.GetWorkerProfilesByPersonIdAsync(User.GetCurrentUserId());
             var profileType = User.GetCurrentRoleId() == (long)DbTools.BaseRole.WorkShop ? nameof(DbTools.BaseRole.WorkShop).ToLower() : nameof(DbTools.BaseRole.Worker).ToLower();
             return profiles.Results?.FirstOrDefault(x => x.ProfileType == profileType)?.ID ?? 0;
         }

@@ -9,13 +9,13 @@ namespace NobatPlusDATA.Domain
 {
     public class SocialNetwork : BaseEntity
     {
-        public long StylistID { get; set; }
+        public long WorkerID { get; set; }
         public string SocialNetworkName { get; set; }
         public string PhoneNumber { get; set; }
         public string AccountLink { get; set; }
         public string SocialNetworkIcon { get; set; }
 
-        public Stylist Stylist { get; set; }
+        public Worker Worker { get; set; }
     }
 
     public class SocialNetworkDTO

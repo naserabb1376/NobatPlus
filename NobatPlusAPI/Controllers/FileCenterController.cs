@@ -44,7 +44,7 @@ public class FileCenterController : ControllerBase
         "review",
         "servicediscount",
         "servicemanagement",
-        "stylistservice",
+        "workerservice",
         nameof(DbTools.BaseRole.Worker).ToLower(),
         "servicecategory",
         "other"
@@ -353,7 +353,7 @@ public class FileCenterController : ControllerBase
     private static string NormalizeEntityName(string entityName)
     {
         entityName = (entityName ?? "").Trim().ToLowerInvariant();
-        if (entityName == "stylists")
+        if (entityName == "workers")
             entityName = nameof(DbTools.BaseRole.Worker).ToLower();
 
         if (entityName.Length is < 2 or > 50)

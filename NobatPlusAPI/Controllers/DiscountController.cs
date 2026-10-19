@@ -51,7 +51,7 @@ namespace NobatPlusAPI.Controllers
             {
                 return BadRequest(requestBody);
             }
-            var result = await _DiscountRep.GetAllDiscountsAsync((DiscountType)requestBody.DiscountType, requestBody.AdminId, requestBody.StylistId, requestBody.CustomerId, requestBody.ServiceId, requestBody.PageIndex, requestBody.PageSize, requestBody.SearchText, requestBody.SortQuery);
+            var result = await _DiscountRep.GetAllDiscountsAsync((DiscountType)requestBody.DiscountType, requestBody.AdminId, requestBody.WorkerId, requestBody.CustomerId, requestBody.ServiceId, requestBody.PageIndex, requestBody.PageSize, requestBody.SearchText, requestBody.SortQuery);
             if (result.Status)
             {
                 var resultVM = _mapper.Map<ListResultObject<DiscountVM>>(result);
@@ -102,7 +102,7 @@ namespace NobatPlusAPI.Controllers
             }
             var now = DateTime.Now.ToShamsi();
             var discountAssignments = new List<DiscountAssignment>();
-            if (requestBody.AdminId.HasValue || requestBody.StylistId.HasValue)
+            if (requestBody.AdminId.HasValue || requestBody.WorkerId.HasValue)
             {
                 discountAssignments.Add(new DiscountAssignment
                 {
@@ -110,7 +110,7 @@ namespace NobatPlusAPI.Controllers
                     UpdateDate = now,
                     Description = requestBody.Description,
                     AdminId = requestBody.AdminId,
-                    StylistId = requestBody.StylistId,
+                    WorkerId = requestBody.WorkerId,
                 });
             }
 
@@ -121,7 +121,7 @@ namespace NobatPlusAPI.Controllers
                 Description = requestBody.Description,
 
               
-                StylistId = requestBody.StylistId ?? 0,
+                WorkerId = requestBody.WorkerId ?? 0,
 
                 CustomerId = cid,
 
@@ -134,7 +134,7 @@ namespace NobatPlusAPI.Controllers
                 Description = requestBody.Description,
 
                 AdminId = requestBody.AdminId,
-                StylistId = requestBody.StylistId,
+                WorkerId = requestBody.WorkerId,
 
                 ServiceManagementId = sid,
 
@@ -204,7 +204,7 @@ namespace NobatPlusAPI.Controllers
                 DiscountAmount = requestBody.DiscountAmount,
                 DiscountCode = requestBody.DiscountCode.GenerateDiscountCode(),
                 CodeRequired = requestBody.CodeRequired,
-                DiscountAssignments = requestBody.AdminId.HasValue || requestBody.StylistId.HasValue
+                DiscountAssignments = requestBody.AdminId.HasValue || requestBody.WorkerId.HasValue
                     ? new List<DiscountAssignment>
                     {
                         new DiscountAssignment
@@ -213,7 +213,7 @@ namespace NobatPlusAPI.Controllers
                             UpdateDate = DateTime.Now.ToShamsi(),
                             Description = requestBody.Description,
                             AdminId = requestBody.AdminId,
-                            StylistId = requestBody.StylistId,
+                            WorkerId = requestBody.WorkerId,
                         }
                     }
                     : new List<DiscountAssignment>(),
@@ -222,7 +222,7 @@ namespace NobatPlusAPI.Controllers
                     CreateDate = DateTime.Now.ToShamsi(),
                     UpdateDate = DateTime.Now.ToShamsi(),
                     Description = requestBody.Description,
-                    StylistId = requestBody.StylistId ?? 0,
+                    WorkerId = requestBody.WorkerId ?? 0,
                     CustomerId = cid,
                 }).ToList(),
                 ServiceDiscounts = requestBody.ServiceIds.Select(sid => new ServiceDiscount
@@ -231,7 +231,7 @@ namespace NobatPlusAPI.Controllers
                     UpdateDate = DateTime.Now.ToShamsi(),
                     Description = requestBody.Description,
                     AdminId = requestBody.AdminId,
-                    StylistId = requestBody.StylistId,
+                    WorkerId = requestBody.WorkerId,
                     ServiceManagementId = sid,
                 }).ToList(),
             };

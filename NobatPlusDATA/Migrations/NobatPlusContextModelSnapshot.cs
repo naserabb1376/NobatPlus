@@ -447,11 +447,11 @@ namespace NobatPlusDATA.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<long>("StylistID")
-                        .HasColumnType("bigint");
-
                     b.Property<DateTime?>("UpdateDate")
                         .HasColumnType("datetime2");
+
+                    b.Property<long>("WorkerID")
+                        .HasColumnType("bigint");
 
                     b.HasKey("ID");
 
@@ -460,7 +460,7 @@ namespace NobatPlusDATA.Migrations
 
                     b.HasIndex("CustomerID", "BookingDate", "IsCancelled");
 
-                    b.HasIndex("StylistID", "BookingDate", "IsCancelled");
+                    b.HasIndex("WorkerID", "BookingDate", "IsCancelled");
 
                     b.ToTable("Bookings");
                 });
@@ -527,17 +527,17 @@ namespace NobatPlusDATA.Migrations
                     b.Property<byte>("Status")
                         .HasColumnType("tinyint");
 
-                    b.Property<long>("StylistID")
-                        .HasColumnType("bigint");
-
-                    b.Property<long?>("StylistServiceFollowUpSettingID")
-                        .HasColumnType("bigint");
-
-                    b.Property<long?>("StylistServicePriceVariantID")
-                        .HasColumnType("bigint");
-
                     b.Property<DateTime?>("UpdateDate")
                         .HasColumnType("datetime2");
+
+                    b.Property<long>("WorkerID")
+                        .HasColumnType("bigint");
+
+                    b.Property<long?>("WorkerServiceFollowUpSettingID")
+                        .HasColumnType("bigint");
+
+                    b.Property<long?>("WorkerServicePriceVariantID")
+                        .HasColumnType("bigint");
 
                     b.HasKey("ID");
 
@@ -549,15 +549,15 @@ namespace NobatPlusDATA.Migrations
 
                     b.HasIndex("ServiceManagementID");
 
-                    b.HasIndex("StylistID");
+                    b.HasIndex("WorkerID");
 
-                    b.HasIndex("StylistServiceFollowUpSettingID");
+                    b.HasIndex("WorkerServiceFollowUpSettingID");
 
-                    b.HasIndex("StylistServicePriceVariantID");
+                    b.HasIndex("WorkerServicePriceVariantID");
 
                     b.HasIndex("Status", "ScheduledAt");
 
-                    b.HasIndex("BookingID", "ServiceManagementID", "StylistServicePriceVariantID", "MessageType", "ScheduledAt")
+                    b.HasIndex("BookingID", "ServiceManagementID", "WorkerServicePriceVariantID", "MessageType", "ScheduledAt")
                         .IsUnique()
                         .HasFilter("[ServiceManagementID] IS NOT NULL");
 
@@ -585,18 +585,18 @@ namespace NobatPlusDATA.Migrations
                         .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
-                    b.Property<long?>("StylistServicePriceVariantID")
-                        .HasColumnType("bigint");
-
                     b.Property<decimal?>("UnitPriceSnapshot")
                         .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
+
+                    b.Property<long?>("WorkerServicePriceVariantID")
+                        .HasColumnType("bigint");
 
                     b.HasKey("BookingID", "ServiceManagementID");
 
                     b.HasIndex("ServiceManagementID");
 
-                    b.HasIndex("StylistServicePriceVariantID");
+                    b.HasIndex("WorkerServicePriceVariantID");
 
                     b.ToTable("BookingServices");
                 });
@@ -643,9 +643,6 @@ namespace NobatPlusDATA.Migrations
                     b.Property<int>("SortOrder")
                         .HasColumnType("int");
 
-                    b.Property<long>("StylistID")
-                        .HasColumnType("bigint");
-
                     b.Property<string>("Title")
                         .IsRequired()
                         .HasColumnType("nvarchar(450)");
@@ -653,9 +650,12 @@ namespace NobatPlusDATA.Migrations
                     b.Property<DateTime?>("UpdateDate")
                         .HasColumnType("datetime2");
 
+                    b.Property<long>("WorkerID")
+                        .HasColumnType("bigint");
+
                     b.HasKey("ID");
 
-                    b.HasIndex("StylistID", "Title")
+                    b.HasIndex("WorkerID", "Title")
                         .IsUnique();
 
                     b.ToTable("BookingTags");
@@ -681,18 +681,18 @@ namespace NobatPlusDATA.Migrations
                     b.Property<bool>("IsActive")
                         .HasColumnType("bit");
 
-                    b.Property<long>("StylistID")
-                        .HasColumnType("bigint");
-
                     b.Property<TimeSpan>("Time")
                         .HasColumnType("time");
 
                     b.Property<DateTime?>("UpdateDate")
                         .HasColumnType("datetime2");
 
+                    b.Property<long>("WorkerID")
+                        .HasColumnType("bigint");
+
                     b.HasKey("ID");
 
-                    b.HasIndex("StylistID", "Date", "Time");
+                    b.HasIndex("WorkerID", "Date", "Time");
 
                     b.ToTable("CheckAvailabilities");
                 });
@@ -782,11 +782,11 @@ namespace NobatPlusDATA.Migrations
                     b.Property<bool>("IsActive")
                         .HasColumnType("bit");
 
-                    b.Property<long>("StylistId")
-                        .HasColumnType("bigint");
-
                     b.Property<DateTime?>("UpdateDate")
                         .HasColumnType("datetime2");
+
+                    b.Property<long>("WorkerId")
+                        .HasColumnType("bigint");
 
                     b.HasKey("ID");
 
@@ -794,7 +794,7 @@ namespace NobatPlusDATA.Migrations
 
                     b.HasIndex("DiscountId");
 
-                    b.HasIndex("StylistId");
+                    b.HasIndex("WorkerId");
 
                     b.ToTable("CustomerDiscounts");
                 });
@@ -863,11 +863,11 @@ namespace NobatPlusDATA.Migrations
                     b.Property<bool>("IsActive")
                         .HasColumnType("bit");
 
-                    b.Property<long?>("StylistId")
-                        .HasColumnType("bigint");
-
                     b.Property<DateTime?>("UpdateDate")
                         .HasColumnType("datetime2");
+
+                    b.Property<long?>("WorkerId")
+                        .HasColumnType("bigint");
 
                     b.HasKey("ID");
 
@@ -875,7 +875,7 @@ namespace NobatPlusDATA.Migrations
 
                     b.HasIndex("DiscountId");
 
-                    b.HasIndex("StylistId");
+                    b.HasIndex("WorkerId");
 
                     b.ToTable("DiscountAssignments");
                 });
@@ -984,15 +984,15 @@ namespace NobatPlusDATA.Migrations
                     b.Property<bool>("IsActive")
                         .HasColumnType("bit");
 
-                    b.Property<long>("StylistID")
-                        .HasColumnType("bigint");
-
                     b.Property<DateTime?>("UpdateDate")
                         .HasColumnType("datetime2");
 
+                    b.Property<long>("WorkerID")
+                        .HasColumnType("bigint");
+
                     b.HasKey("ID");
 
-                    b.HasIndex("StylistID")
+                    b.HasIndex("WorkerID")
                         .IsUnique();
 
                     b.ToTable("FinancialAccounts");
@@ -1290,10 +1290,6 @@ namespace NobatPlusDATA.Migrations
                         .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
-                    b.Property<decimal>("StylistAmount")
-                        .HasPrecision(18, 2)
-                        .HasColumnType("decimal(18,2)");
-
                     b.Property<decimal>("TotalServiceAmount")
                         .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
@@ -1302,6 +1298,10 @@ namespace NobatPlusDATA.Migrations
                         .HasColumnType("datetime2");
 
                     b.Property<decimal>("VatAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal>("WorkerAmount")
                         .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
@@ -1362,18 +1362,18 @@ namespace NobatPlusDATA.Migrations
                     b.Property<long>("ServiceManagementID")
                         .HasColumnType("bigint");
 
-                    b.Property<long>("StylistID")
+                    b.Property<DateTime?>("UpdateDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<long>("WorkerID")
                         .HasColumnType("bigint");
 
-                    b.Property<decimal>("StylistServiceAmount")
+                    b.Property<decimal>("WorkerServiceAmount")
                         .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
-                    b.Property<long?>("StylistServicePriceVariantID")
+                    b.Property<long?>("WorkerServicePriceVariantID")
                         .HasColumnType("bigint");
-
-                    b.Property<DateTime?>("UpdateDate")
-                        .HasColumnType("datetime2");
 
                     b.HasKey("ID");
 
@@ -1383,9 +1383,9 @@ namespace NobatPlusDATA.Migrations
 
                     b.HasIndex("ServiceManagementID");
 
-                    b.HasIndex("StylistServicePriceVariantID");
+                    b.HasIndex("WorkerServicePriceVariantID");
 
-                    b.HasIndex("StylistID", "ServiceManagementID");
+                    b.HasIndex("WorkerID", "ServiceManagementID");
 
                     b.ToTable("PaymentDetails");
                 });
@@ -1560,11 +1560,11 @@ namespace NobatPlusDATA.Migrations
                     b.Property<float>("RateScore")
                         .HasColumnType("real");
 
-                    b.Property<long>("StylistID")
-                        .HasColumnType("bigint");
-
                     b.Property<DateTime?>("UpdateDate")
                         .HasColumnType("datetime2");
+
+                    b.Property<long>("WorkerID")
+                        .HasColumnType("bigint");
 
                     b.HasKey("ID");
 
@@ -1574,7 +1574,7 @@ namespace NobatPlusDATA.Migrations
 
                     b.HasIndex("RateQuestionID");
 
-                    b.HasIndex("StylistID");
+                    b.HasIndex("WorkerID");
 
                     b.ToTable("RateHistories");
                 });
@@ -1690,11 +1690,11 @@ namespace NobatPlusDATA.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<long>("StylistID")
-                        .HasColumnType("bigint");
-
                     b.Property<DateTime?>("UpdateDate")
                         .HasColumnType("datetime2");
+
+                    b.Property<long>("WorkerID")
+                        .HasColumnType("bigint");
 
                     b.HasKey("ID");
 
@@ -1702,7 +1702,7 @@ namespace NobatPlusDATA.Migrations
 
                     b.HasIndex("CustomerID");
 
-                    b.HasIndex("StylistID");
+                    b.HasIndex("WorkerID");
 
                     b.ToTable("Reviews");
                 });
@@ -1809,11 +1809,11 @@ namespace NobatPlusDATA.Migrations
                     b.Property<long>("ServiceManagementId")
                         .HasColumnType("bigint");
 
-                    b.Property<long?>("StylistId")
-                        .HasColumnType("bigint");
-
                     b.Property<DateTime?>("UpdateDate")
                         .HasColumnType("datetime2");
+
+                    b.Property<long?>("WorkerId")
+                        .HasColumnType("bigint");
 
                     b.HasKey("ID");
 
@@ -1823,7 +1823,7 @@ namespace NobatPlusDATA.Migrations
 
                     b.HasIndex("ServiceManagementId");
 
-                    b.HasIndex("StylistId");
+                    b.HasIndex("WorkerId");
 
                     b.ToTable("ServiceDiscounts");
                 });
@@ -2077,398 +2077,17 @@ namespace NobatPlusDATA.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<long>("StylistID")
-                        .HasColumnType("bigint");
-
                     b.Property<DateTime?>("UpdateDate")
                         .HasColumnType("datetime2");
 
+                    b.Property<long>("WorkerID")
+                        .HasColumnType("bigint");
+
                     b.HasKey("ID");
 
-                    b.HasIndex("StylistID");
+                    b.HasIndex("WorkerID");
 
                     b.ToTable("SocialNetworks");
-                });
-
-            modelBuilder.Entity("NobatPlusDATA.Domain.Stylist", b =>
-                {
-                    b.Property<long>("ID")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("ID"));
-
-                    b.Property<string>("AccountStatus")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("BookingCreationMode")
-                        .IsRequired()
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("nvarchar(max)")
-                        .HasDefaultValue("automatic");
-
-                    b.Property<DateTime?>("CreateDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("Description")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("GenderAccepted")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<bool>("IsActive")
-                        .HasColumnType("bit");
-
-                    b.Property<bool>("IsWorkShop")
-                        .HasColumnType("bit");
-
-                    b.Property<long>("JobTypeID")
-                        .HasColumnType("bigint");
-
-                    b.Property<string>("PayMethod")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<long>("PersonID")
-                        .HasColumnType("bigint");
-
-                    b.Property<TimeSpan>("RestTime")
-                        .HasColumnType("time");
-
-                    b.Property<string>("SlotDisplayMode")
-                        .IsRequired()
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("nvarchar(max)")
-                        .HasDefaultValue("all");
-
-                    b.Property<int>("SlotIntervalMinutes")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasDefaultValue(30);
-
-                    b.Property<string>("Specialty")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("StylistBio")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("StylistName")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<long>("StylistParentID")
-                        .HasColumnType("bigint");
-
-                    b.Property<DateTime?>("UpdateDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<long>("WorkShopDepositAmount")
-                        .HasColumnType("bigint");
-
-                    b.Property<string>("WorkShopInteractMode")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<long>("WorkShopRentAmount")
-                        .HasColumnType("bigint");
-
-                    b.Property<int>("YearsOfExperience")
-                        .HasColumnType("int");
-
-                    b.HasKey("ID");
-
-                    b.HasIndex("JobTypeID");
-
-                    b.HasIndex("PersonID", "IsWorkShop")
-                        .IsUnique();
-
-                    b.ToTable("Stylists");
-                });
-
-            modelBuilder.Entity("NobatPlusDATA.Domain.StylistPacific", b =>
-                {
-                    b.Property<long>("ID")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("ID"));
-
-                    b.Property<DateTime?>("CreateDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("Description")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<bool>("IsActive")
-                        .HasColumnType("bit");
-
-                    b.Property<DateTime>("PacificEndDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<DateTime>("PacificStartDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<long>("StylistID")
-                        .HasColumnType("bigint");
-
-                    b.Property<DateTime?>("UpdateDate")
-                        .HasColumnType("datetime2");
-
-                    b.HasKey("ID");
-
-                    b.HasIndex("StylistID");
-
-                    b.ToTable("StylistPacifics");
-                });
-
-            modelBuilder.Entity("NobatPlusDATA.Domain.StylistScheduleBlock", b =>
-                {
-                    b.Property<long>("ID")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("ID"));
-
-                    b.Property<long?>("BookingTagID")
-                        .HasColumnType("bigint");
-
-                    b.Property<DateTime?>("CreateDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int?>("DepositPercentOverride")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Description")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime>("EndDateTime")
-                        .HasColumnType("datetime2");
-
-                    b.Property<bool>("IsActive")
-                        .HasColumnType("bit");
-
-                    b.Property<bool>("IsBookable")
-                        .HasColumnType("bit");
-
-                    b.Property<decimal?>("PriceOverride")
-                        .HasPrecision(18, 2)
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<byte[]>("RowVersion")
-                        .IsConcurrencyToken()
-                        .IsRequired()
-                        .ValueGeneratedOnAddOrUpdate()
-                        .HasColumnType("rowversion");
-
-                    b.Property<long?>("ServiceManagementID")
-                        .HasColumnType("bigint");
-
-                    b.Property<DateTime>("StartDateTime")
-                        .HasColumnType("datetime2");
-
-                    b.Property<long>("StylistID")
-                        .HasColumnType("bigint");
-
-                    b.Property<long?>("StylistServicePriceVariantID")
-                        .HasColumnType("bigint");
-
-                    b.Property<string>("Title")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime?>("UpdateDate")
-                        .HasColumnType("datetime2");
-
-                    b.HasKey("ID");
-
-                    b.HasIndex("BookingTagID");
-
-                    b.HasIndex("ServiceManagementID");
-
-                    b.HasIndex("StylistServicePriceVariantID");
-
-                    b.HasIndex("StylistID", "StartDateTime", "EndDateTime");
-
-                    b.ToTable("StylistScheduleBlocks");
-                });
-
-            modelBuilder.Entity("NobatPlusDATA.Domain.StylistService", b =>
-                {
-                    b.Property<long>("StylistID")
-                        .HasColumnType("bigint");
-
-                    b.Property<long>("ServiceManagementID")
-                        .HasColumnType("bigint");
-
-                    b.Property<int>("DepositPercent")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Description")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<bool>("HasDynamicPricing")
-                        .HasColumnType("bit");
-
-                    b.Property<TimeSpan>("ServiceDuration")
-                        .HasColumnType("time");
-
-                    b.Property<decimal>("ServicePrice")
-                        .HasPrecision(18, 2)
-                        .HasColumnType("decimal(18,2)");
-
-                    b.HasKey("StylistID", "ServiceManagementID");
-
-                    b.HasIndex("ServiceManagementID");
-
-                    b.ToTable("StylistServices");
-                });
-
-            modelBuilder.Entity("NobatPlusDATA.Domain.StylistServiceFollowUpSetting", b =>
-                {
-                    b.Property<long>("ID")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("ID"));
-
-                    b.Property<int?>("AfterCareDelayMinutes")
-                        .HasColumnType("int");
-
-                    b.Property<bool>("AfterCareEnabled")
-                        .HasColumnType("bit");
-
-                    b.Property<string>("AfterCareInstructions")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("AfterCareMessageSettingKey")
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
-
-                    b.Property<DateTime?>("CreateDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("Description")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<bool>("IsActive")
-                        .HasColumnType("bit");
-
-                    b.Property<int?>("RepairAfterDays")
-                        .HasColumnType("int");
-
-                    b.Property<bool>("RepairEnabled")
-                        .HasColumnType("bit");
-
-                    b.Property<int?>("RepairReminderBeforeDays")
-                        .HasColumnType("int");
-
-                    b.Property<bool>("RepairReminderEnabled")
-                        .HasColumnType("bit");
-
-                    b.Property<string>("RepairReminderMessageSettingKey")
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
-
-                    b.Property<long>("ServiceManagementID")
-                        .HasColumnType("bigint");
-
-                    b.Property<long>("StylistID")
-                        .HasColumnType("bigint");
-
-                    b.Property<long?>("StylistServicePriceVariantID")
-                        .HasColumnType("bigint");
-
-                    b.Property<DateTime?>("UpdateDate")
-                        .HasColumnType("datetime2");
-
-                    b.HasKey("ID");
-
-                    b.HasIndex("ServiceManagementID");
-
-                    b.HasIndex("StylistServicePriceVariantID");
-
-                    b.HasIndex("StylistID", "ServiceManagementID");
-
-                    b.HasIndex("StylistID", "ServiceManagementID", "StylistServicePriceVariantID")
-                        .IsUnique()
-                        .HasFilter("[StylistServicePriceVariantID] IS NOT NULL");
-
-                    b.ToTable("StylistServiceFollowUpSettings");
-                });
-
-            modelBuilder.Entity("NobatPlusDATA.Domain.StylistServicePriceVariant", b =>
-                {
-                    b.Property<long>("ID")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("ID"));
-
-                    b.Property<long?>("BookingTagID")
-                        .HasColumnType("bigint");
-
-                    b.Property<DateTime?>("CreateDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int>("DepositPercent")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Description")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<TimeSpan>("Duration")
-                        .HasColumnType("time");
-
-                    b.Property<bool>("IsActive")
-                        .HasColumnType("bit");
-
-                    b.Property<string>("OptionValueCombinationKey")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<decimal>("Price")
-                        .HasPrecision(18, 2)
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<long>("ServiceManagementID")
-                        .HasColumnType("bigint");
-
-                    b.Property<long>("StylistID")
-                        .HasColumnType("bigint");
-
-                    b.Property<DateTime?>("UpdateDate")
-                        .HasColumnType("datetime2");
-
-                    b.HasKey("ID");
-
-                    b.HasIndex("BookingTagID");
-
-                    b.HasIndex("StylistID", "ServiceManagementID", "OptionValueCombinationKey")
-                        .IsUnique()
-                        .HasFilter("[BookingTagID] IS NULL");
-
-                    b.HasIndex("StylistID", "ServiceManagementID", "OptionValueCombinationKey", "BookingTagID")
-                        .IsUnique()
-                        .HasFilter("[BookingTagID] IS NOT NULL");
-
-                    b.ToTable("StylistServicePriceVariants");
-                });
-
-            modelBuilder.Entity("NobatPlusDATA.Domain.StylistServicePriceVariantOptionValue", b =>
-                {
-                    b.Property<long>("StylistServicePriceVariantID")
-                        .HasColumnType("bigint");
-
-                    b.Property<long>("ServiceOptionValueID")
-                        .HasColumnType("bigint");
-
-                    b.HasKey("StylistServicePriceVariantID", "ServiceOptionValueID");
-
-                    b.HasIndex("ServiceOptionValueID");
-
-                    b.ToTable("StylistServicePriceVariantOptionValues");
                 });
 
             modelBuilder.Entity("NobatPlusDATA.Domain.SupportTicket", b =>
@@ -2687,9 +2306,6 @@ namespace NobatPlusDATA.Migrations
                     b.Property<bool>("IsActive")
                         .HasColumnType("bit");
 
-                    b.Property<long>("StylistID")
-                        .HasColumnType("bigint");
-
                     b.Property<DateTime?>("UpdateDate")
                         .HasColumnType("datetime2");
 
@@ -2699,11 +2315,395 @@ namespace NobatPlusDATA.Migrations
                     b.Property<TimeSpan>("WorkStartTime")
                         .HasColumnType("time");
 
+                    b.Property<long>("WorkerID")
+                        .HasColumnType("bigint");
+
                     b.HasKey("ID");
 
-                    b.HasIndex("StylistID");
+                    b.HasIndex("WorkerID");
 
                     b.ToTable("WorkTimes");
+                });
+
+            modelBuilder.Entity("NobatPlusDATA.Domain.Worker", b =>
+                {
+                    b.Property<long>("ID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("ID"));
+
+                    b.Property<string>("AccountStatus")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("BookingCreationMode")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("nvarchar(max)")
+                        .HasDefaultValue("automatic");
+
+                    b.Property<DateTime?>("CreateDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("GenderAccepted")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsWorkShop")
+                        .HasColumnType("bit");
+
+                    b.Property<long>("JobTypeID")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("PayMethod")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<long>("PersonID")
+                        .HasColumnType("bigint");
+
+                    b.Property<TimeSpan>("RestTime")
+                        .HasColumnType("time");
+
+                    b.Property<string>("SlotDisplayMode")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("nvarchar(max)")
+                        .HasDefaultValue("all");
+
+                    b.Property<int>("SlotIntervalMinutes")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(30);
+
+                    b.Property<string>("Specialty")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("UpdateDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<long>("WorkShopDepositAmount")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("WorkShopInteractMode")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<long>("WorkShopRentAmount")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("WorkerBio")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("WorkerName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<long>("WorkerParentID")
+                        .HasColumnType("bigint");
+
+                    b.Property<int>("YearsOfExperience")
+                        .HasColumnType("int");
+
+                    b.HasKey("ID");
+
+                    b.HasIndex("JobTypeID");
+
+                    b.HasIndex("PersonID", "IsWorkShop")
+                        .IsUnique();
+
+                    b.ToTable("Workers");
+                });
+
+            modelBuilder.Entity("NobatPlusDATA.Domain.WorkerPacific", b =>
+                {
+                    b.Property<long>("ID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("ID"));
+
+                    b.Property<DateTime?>("CreateDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTime>("PacificEndDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("PacificStartDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("UpdateDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<long>("WorkerID")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("ID");
+
+                    b.HasIndex("WorkerID");
+
+                    b.ToTable("WorkerPacifics");
+                });
+
+            modelBuilder.Entity("NobatPlusDATA.Domain.WorkerScheduleBlock", b =>
+                {
+                    b.Property<long>("ID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("ID"));
+
+                    b.Property<long?>("BookingTagID")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTime?>("CreateDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int?>("DepositPercentOverride")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("EndDateTime")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsBookable")
+                        .HasColumnType("bit");
+
+                    b.Property<decimal?>("PriceOverride")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .IsRequired()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
+
+                    b.Property<long?>("ServiceManagementID")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTime>("StartDateTime")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("UpdateDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<long>("WorkerID")
+                        .HasColumnType("bigint");
+
+                    b.Property<long?>("WorkerServicePriceVariantID")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("ID");
+
+                    b.HasIndex("BookingTagID");
+
+                    b.HasIndex("ServiceManagementID");
+
+                    b.HasIndex("WorkerServicePriceVariantID");
+
+                    b.HasIndex("WorkerID", "StartDateTime", "EndDateTime");
+
+                    b.ToTable("WorkerScheduleBlocks");
+                });
+
+            modelBuilder.Entity("NobatPlusDATA.Domain.WorkerService", b =>
+                {
+                    b.Property<long>("WorkerID")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("ServiceManagementID")
+                        .HasColumnType("bigint");
+
+                    b.Property<int>("DepositPercent")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("HasDynamicPricing")
+                        .HasColumnType("bit");
+
+                    b.Property<TimeSpan>("ServiceDuration")
+                        .HasColumnType("time");
+
+                    b.Property<decimal>("ServicePrice")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.HasKey("WorkerID", "ServiceManagementID");
+
+                    b.HasIndex("ServiceManagementID");
+
+                    b.ToTable("WorkerServices");
+                });
+
+            modelBuilder.Entity("NobatPlusDATA.Domain.WorkerServiceFollowUpSetting", b =>
+                {
+                    b.Property<long>("ID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("ID"));
+
+                    b.Property<int?>("AfterCareDelayMinutes")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("AfterCareEnabled")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("AfterCareInstructions")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("AfterCareMessageSettingKey")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<DateTime?>("CreateDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<int?>("RepairAfterDays")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("RepairEnabled")
+                        .HasColumnType("bit");
+
+                    b.Property<int?>("RepairReminderBeforeDays")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("RepairReminderEnabled")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("RepairReminderMessageSettingKey")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<long>("ServiceManagementID")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTime?>("UpdateDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<long>("WorkerID")
+                        .HasColumnType("bigint");
+
+                    b.Property<long?>("WorkerServicePriceVariantID")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("ID");
+
+                    b.HasIndex("ServiceManagementID");
+
+                    b.HasIndex("WorkerServicePriceVariantID");
+
+                    b.HasIndex("WorkerID", "ServiceManagementID");
+
+                    b.HasIndex("WorkerID", "ServiceManagementID", "WorkerServicePriceVariantID")
+                        .IsUnique()
+                        .HasFilter("[WorkerServicePriceVariantID] IS NOT NULL");
+
+                    b.ToTable("WorkerServiceFollowUpSettings");
+                });
+
+            modelBuilder.Entity("NobatPlusDATA.Domain.WorkerServicePriceVariant", b =>
+                {
+                    b.Property<long>("ID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("ID"));
+
+                    b.Property<long?>("BookingTagID")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTime?>("CreateDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("DepositPercent")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<TimeSpan>("Duration")
+                        .HasColumnType("time");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("OptionValueCombinationKey")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<decimal>("Price")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<long>("ServiceManagementID")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTime?>("UpdateDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<long>("WorkerID")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("ID");
+
+                    b.HasIndex("BookingTagID");
+
+                    b.HasIndex("WorkerID", "ServiceManagementID", "OptionValueCombinationKey")
+                        .IsUnique()
+                        .HasFilter("[BookingTagID] IS NULL");
+
+                    b.HasIndex("WorkerID", "ServiceManagementID", "OptionValueCombinationKey", "BookingTagID")
+                        .IsUnique()
+                        .HasFilter("[BookingTagID] IS NOT NULL");
+
+                    b.ToTable("WorkerServicePriceVariants");
+                });
+
+            modelBuilder.Entity("NobatPlusDATA.Domain.WorkerServicePriceVariantOptionValue", b =>
+                {
+                    b.Property<long>("WorkerServicePriceVariantID")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("ServiceOptionValueID")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("WorkerServicePriceVariantID", "ServiceOptionValueID");
+
+                    b.HasIndex("ServiceOptionValueID");
+
+                    b.ToTable("WorkerServicePriceVariantOptionValues");
                 });
 
             modelBuilder.Entity("NobatPlusDATA.Views.V_Customer", b =>
@@ -2856,14 +2856,14 @@ namespace NobatPlusDATA.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("NobatPlusDATA.Domain.StylistScheduleBlock", "ScheduleBlock")
+                    b.HasOne("NobatPlusDATA.Domain.WorkerScheduleBlock", "ScheduleBlock")
                         .WithMany("Bookings")
                         .HasForeignKey("ScheduleBlockID")
                         .OnDelete(DeleteBehavior.NoAction);
 
-                    b.HasOne("NobatPlusDATA.Domain.Stylist", "Stylist")
+                    b.HasOne("NobatPlusDATA.Domain.Worker", "Worker")
                         .WithMany("Bookings")
-                        .HasForeignKey("StylistID")
+                        .HasForeignKey("WorkerID")
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
@@ -2871,7 +2871,7 @@ namespace NobatPlusDATA.Migrations
 
                     b.Navigation("ScheduleBlock");
 
-                    b.Navigation("Stylist");
+                    b.Navigation("Worker");
                 });
 
             modelBuilder.Entity("NobatPlusDATA.Domain.BookingScheduledMessage", b =>
@@ -2903,20 +2903,20 @@ namespace NobatPlusDATA.Migrations
                         .HasForeignKey("ServiceManagementID")
                         .OnDelete(DeleteBehavior.NoAction);
 
-                    b.HasOne("NobatPlusDATA.Domain.Stylist", "Stylist")
+                    b.HasOne("NobatPlusDATA.Domain.Worker", "Worker")
                         .WithMany()
-                        .HasForeignKey("StylistID")
+                        .HasForeignKey("WorkerID")
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
-                    b.HasOne("NobatPlusDATA.Domain.StylistServiceFollowUpSetting", "StylistServiceFollowUpSetting")
+                    b.HasOne("NobatPlusDATA.Domain.WorkerServiceFollowUpSetting", "WorkerServiceFollowUpSetting")
                         .WithMany()
-                        .HasForeignKey("StylistServiceFollowUpSettingID")
+                        .HasForeignKey("WorkerServiceFollowUpSettingID")
                         .OnDelete(DeleteBehavior.NoAction);
 
-                    b.HasOne("NobatPlusDATA.Domain.StylistServicePriceVariant", "StylistServicePriceVariant")
+                    b.HasOne("NobatPlusDATA.Domain.WorkerServicePriceVariant", "WorkerServicePriceVariant")
                         .WithMany()
-                        .HasForeignKey("StylistServicePriceVariantID")
+                        .HasForeignKey("WorkerServicePriceVariantID")
                         .OnDelete(DeleteBehavior.NoAction);
 
                     b.Navigation("Booking");
@@ -2929,11 +2929,11 @@ namespace NobatPlusDATA.Migrations
 
                     b.Navigation("ServiceManagement");
 
-                    b.Navigation("Stylist");
+                    b.Navigation("Worker");
 
-                    b.Navigation("StylistServiceFollowUpSetting");
+                    b.Navigation("WorkerServiceFollowUpSetting");
 
-                    b.Navigation("StylistServicePriceVariant");
+                    b.Navigation("WorkerServicePriceVariant");
                 });
 
             modelBuilder.Entity("NobatPlusDATA.Domain.BookingService", b =>
@@ -2950,16 +2950,16 @@ namespace NobatPlusDATA.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("NobatPlusDATA.Domain.StylistServicePriceVariant", "StylistServicePriceVariant")
+                    b.HasOne("NobatPlusDATA.Domain.WorkerServicePriceVariant", "WorkerServicePriceVariant")
                         .WithMany()
-                        .HasForeignKey("StylistServicePriceVariantID")
+                        .HasForeignKey("WorkerServicePriceVariantID")
                         .OnDelete(DeleteBehavior.NoAction);
 
                     b.Navigation("Booking");
 
                     b.Navigation("ServiceManagement");
 
-                    b.Navigation("StylistServicePriceVariant");
+                    b.Navigation("WorkerServicePriceVariant");
                 });
 
             modelBuilder.Entity("NobatPlusDATA.Domain.BookingServiceOptionValue", b =>
@@ -2983,24 +2983,24 @@ namespace NobatPlusDATA.Migrations
 
             modelBuilder.Entity("NobatPlusDATA.Domain.BookingTag", b =>
                 {
-                    b.HasOne("NobatPlusDATA.Domain.Stylist", "Stylist")
+                    b.HasOne("NobatPlusDATA.Domain.Worker", "Worker")
                         .WithMany("BookingTags")
-                        .HasForeignKey("StylistID")
+                        .HasForeignKey("WorkerID")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("Stylist");
+                    b.Navigation("Worker");
                 });
 
             modelBuilder.Entity("NobatPlusDATA.Domain.CheckAvailability", b =>
                 {
-                    b.HasOne("NobatPlusDATA.Domain.Stylist", "Stylist")
+                    b.HasOne("NobatPlusDATA.Domain.Worker", "Worker")
                         .WithMany()
-                        .HasForeignKey("StylistID")
+                        .HasForeignKey("WorkerID")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("Stylist");
+                    b.Navigation("Worker");
                 });
 
             modelBuilder.Entity("NobatPlusDATA.Domain.Customer", b =>
@@ -3028,9 +3028,9 @@ namespace NobatPlusDATA.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("NobatPlusDATA.Domain.Stylist", "Stylist")
+                    b.HasOne("NobatPlusDATA.Domain.Worker", "Worker")
                         .WithMany("CustomerDiscounts")
-                        .HasForeignKey("StylistId")
+                        .HasForeignKey("WorkerId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
@@ -3038,7 +3038,7 @@ namespace NobatPlusDATA.Migrations
 
                     b.Navigation("Discount");
 
-                    b.Navigation("Stylist");
+                    b.Navigation("Worker");
                 });
 
             modelBuilder.Entity("NobatPlusDATA.Domain.DiscountAssignment", b =>
@@ -3054,16 +3054,16 @@ namespace NobatPlusDATA.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("NobatPlusDATA.Domain.Stylist", "Stylist")
+                    b.HasOne("NobatPlusDATA.Domain.Worker", "Worker")
                         .WithMany("DiscountAssignments")
-                        .HasForeignKey("StylistId")
+                        .HasForeignKey("WorkerId")
                         .OnDelete(DeleteBehavior.Restrict);
 
                     b.Navigation("Admin");
 
                     b.Navigation("Discount");
 
-                    b.Navigation("Stylist");
+                    b.Navigation("Worker");
                 });
 
             modelBuilder.Entity("NobatPlusDATA.Domain.FileUpload", b =>
@@ -3078,13 +3078,13 @@ namespace NobatPlusDATA.Migrations
 
             modelBuilder.Entity("NobatPlusDATA.Domain.FinancialAccount", b =>
                 {
-                    b.HasOne("NobatPlusDATA.Domain.Stylist", "Stylist")
+                    b.HasOne("NobatPlusDATA.Domain.Worker", "Worker")
                         .WithOne("FinancialAccount")
-                        .HasForeignKey("NobatPlusDATA.Domain.FinancialAccount", "StylistID")
+                        .HasForeignKey("NobatPlusDATA.Domain.FinancialAccount", "WorkerID")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("Stylist");
+                    b.Navigation("Worker");
                 });
 
             modelBuilder.Entity("NobatPlusDATA.Domain.FinancialTransaction", b =>
@@ -3191,20 +3191,20 @@ namespace NobatPlusDATA.Migrations
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
-                    b.HasOne("NobatPlusDATA.Domain.Stylist", "Stylist")
+                    b.HasOne("NobatPlusDATA.Domain.Worker", "Worker")
                         .WithMany("PaymentDetails")
-                        .HasForeignKey("StylistID")
+                        .HasForeignKey("WorkerID")
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
-                    b.HasOne("NobatPlusDATA.Domain.StylistServicePriceVariant", "StylistServicePriceVariant")
+                    b.HasOne("NobatPlusDATA.Domain.WorkerServicePriceVariant", "WorkerServicePriceVariant")
                         .WithMany()
-                        .HasForeignKey("StylistServicePriceVariantID")
+                        .HasForeignKey("WorkerServicePriceVariantID")
                         .OnDelete(DeleteBehavior.NoAction);
 
-                    b.HasOne("NobatPlusDATA.Domain.StylistService", "StylistService")
+                    b.HasOne("NobatPlusDATA.Domain.WorkerService", "WorkerService")
                         .WithMany()
-                        .HasForeignKey("StylistID", "ServiceManagementID")
+                        .HasForeignKey("WorkerID", "ServiceManagementID")
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
@@ -3214,11 +3214,11 @@ namespace NobatPlusDATA.Migrations
 
                     b.Navigation("ServiceManagement");
 
-                    b.Navigation("Stylist");
+                    b.Navigation("Worker");
 
-                    b.Navigation("StylistService");
+                    b.Navigation("WorkerService");
 
-                    b.Navigation("StylistServicePriceVariant");
+                    b.Navigation("WorkerServicePriceVariant");
                 });
 
             modelBuilder.Entity("NobatPlusDATA.Domain.PaymentDetailOptionValue", b =>
@@ -3288,9 +3288,9 @@ namespace NobatPlusDATA.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("NobatPlusDATA.Domain.Stylist", "Stylist")
+                    b.HasOne("NobatPlusDATA.Domain.Worker", "Worker")
                         .WithMany("RateHistories")
-                        .HasForeignKey("StylistID")
+                        .HasForeignKey("WorkerID")
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
@@ -3300,7 +3300,7 @@ namespace NobatPlusDATA.Migrations
 
                     b.Navigation("RateQuestion");
 
-                    b.Navigation("Stylist");
+                    b.Navigation("Worker");
                 });
 
             modelBuilder.Entity("NobatPlusDATA.Domain.Register", b =>
@@ -3326,9 +3326,9 @@ namespace NobatPlusDATA.Migrations
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
-                    b.HasOne("NobatPlusDATA.Domain.Stylist", "Stylist")
+                    b.HasOne("NobatPlusDATA.Domain.Worker", "Worker")
                         .WithMany("Reviews")
-                        .HasForeignKey("StylistID")
+                        .HasForeignKey("WorkerID")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -3336,7 +3336,7 @@ namespace NobatPlusDATA.Migrations
 
                     b.Navigation("Customer");
 
-                    b.Navigation("Stylist");
+                    b.Navigation("Worker");
                 });
 
             modelBuilder.Entity("NobatPlusDATA.Domain.SMSMessage", b =>
@@ -3369,9 +3369,9 @@ namespace NobatPlusDATA.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("NobatPlusDATA.Domain.Stylist", "Stylist")
+                    b.HasOne("NobatPlusDATA.Domain.Worker", "Worker")
                         .WithMany("ServiceDiscounts")
-                        .HasForeignKey("StylistId")
+                        .HasForeignKey("WorkerId")
                         .OnDelete(DeleteBehavior.Restrict);
 
                     b.Navigation("Admin");
@@ -3380,7 +3380,7 @@ namespace NobatPlusDATA.Migrations
 
                     b.Navigation("ServiceManagement");
 
-                    b.Navigation("Stylist");
+                    b.Navigation("Worker");
                 });
 
             modelBuilder.Entity("NobatPlusDATA.Domain.ServiceOption", b =>
@@ -3427,165 +3427,13 @@ namespace NobatPlusDATA.Migrations
 
             modelBuilder.Entity("NobatPlusDATA.Domain.SocialNetwork", b =>
                 {
-                    b.HasOne("NobatPlusDATA.Domain.Stylist", "Stylist")
+                    b.HasOne("NobatPlusDATA.Domain.Worker", "Worker")
                         .WithMany("SocialNetworks")
-                        .HasForeignKey("StylistID")
+                        .HasForeignKey("WorkerID")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("Stylist");
-                });
-
-            modelBuilder.Entity("NobatPlusDATA.Domain.Stylist", b =>
-                {
-                    b.HasOne("NobatPlusDATA.Domain.JobType", "JobType")
-                        .WithMany("Stylists")
-                        .HasForeignKey("JobTypeID")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("NobatPlusDATA.Domain.Person", "Person")
-                        .WithMany("StylistProfiles")
-                        .HasForeignKey("PersonID")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("JobType");
-
-                    b.Navigation("Person");
-                });
-
-            modelBuilder.Entity("NobatPlusDATA.Domain.StylistPacific", b =>
-                {
-                    b.HasOne("NobatPlusDATA.Domain.Stylist", "Stylist")
-                        .WithMany("StylistPacifics")
-                        .HasForeignKey("StylistID")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Stylist");
-                });
-
-            modelBuilder.Entity("NobatPlusDATA.Domain.StylistScheduleBlock", b =>
-                {
-                    b.HasOne("NobatPlusDATA.Domain.BookingTag", "BookingTag")
-                        .WithMany("ScheduleBlocks")
-                        .HasForeignKey("BookingTagID")
-                        .OnDelete(DeleteBehavior.NoAction);
-
-                    b.HasOne("NobatPlusDATA.Domain.ServiceManagement", "ServiceManagement")
-                        .WithMany("ScheduleBlocks")
-                        .HasForeignKey("ServiceManagementID")
-                        .OnDelete(DeleteBehavior.NoAction);
-
-                    b.HasOne("NobatPlusDATA.Domain.Stylist", "Stylist")
-                        .WithMany("ScheduleBlocks")
-                        .HasForeignKey("StylistID")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("NobatPlusDATA.Domain.StylistServicePriceVariant", "StylistServicePriceVariant")
-                        .WithMany()
-                        .HasForeignKey("StylistServicePriceVariantID")
-                        .OnDelete(DeleteBehavior.NoAction);
-
-                    b.Navigation("BookingTag");
-
-                    b.Navigation("ServiceManagement");
-
-                    b.Navigation("Stylist");
-
-                    b.Navigation("StylistServicePriceVariant");
-                });
-
-            modelBuilder.Entity("NobatPlusDATA.Domain.StylistService", b =>
-                {
-                    b.HasOne("NobatPlusDATA.Domain.ServiceManagement", "ServiceManagement")
-                        .WithMany("StylistServices")
-                        .HasForeignKey("ServiceManagementID")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("NobatPlusDATA.Domain.Stylist", "Stylist")
-                        .WithMany("StylistServices")
-                        .HasForeignKey("StylistID")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired();
-
-                    b.Navigation("ServiceManagement");
-
-                    b.Navigation("Stylist");
-                });
-
-            modelBuilder.Entity("NobatPlusDATA.Domain.StylistServiceFollowUpSetting", b =>
-                {
-                    b.HasOne("NobatPlusDATA.Domain.ServiceManagement", "ServiceManagement")
-                        .WithMany()
-                        .HasForeignKey("ServiceManagementID")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired();
-
-                    b.HasOne("NobatPlusDATA.Domain.Stylist", "Stylist")
-                        .WithMany()
-                        .HasForeignKey("StylistID")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired();
-
-                    b.HasOne("NobatPlusDATA.Domain.StylistServicePriceVariant", "StylistServicePriceVariant")
-                        .WithMany()
-                        .HasForeignKey("StylistServicePriceVariantID")
-                        .OnDelete(DeleteBehavior.NoAction);
-
-                    b.HasOne("NobatPlusDATA.Domain.StylistService", "StylistService")
-                        .WithMany()
-                        .HasForeignKey("StylistID", "ServiceManagementID")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("ServiceManagement");
-
-                    b.Navigation("Stylist");
-
-                    b.Navigation("StylistService");
-
-                    b.Navigation("StylistServicePriceVariant");
-                });
-
-            modelBuilder.Entity("NobatPlusDATA.Domain.StylistServicePriceVariant", b =>
-                {
-                    b.HasOne("NobatPlusDATA.Domain.BookingTag", "BookingTag")
-                        .WithMany("PriceVariants")
-                        .HasForeignKey("BookingTagID")
-                        .OnDelete(DeleteBehavior.SetNull);
-
-                    b.HasOne("NobatPlusDATA.Domain.StylistService", "StylistService")
-                        .WithMany("PriceVariants")
-                        .HasForeignKey("StylistID", "ServiceManagementID")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("BookingTag");
-
-                    b.Navigation("StylistService");
-                });
-
-            modelBuilder.Entity("NobatPlusDATA.Domain.StylistServicePriceVariantOptionValue", b =>
-                {
-                    b.HasOne("NobatPlusDATA.Domain.ServiceOptionValue", "ServiceOptionValue")
-                        .WithMany()
-                        .HasForeignKey("ServiceOptionValueID")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired();
-
-                    b.HasOne("NobatPlusDATA.Domain.StylistServicePriceVariant", "StylistServicePriceVariant")
-                        .WithMany("OptionValues")
-                        .HasForeignKey("StylistServicePriceVariantID")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("ServiceOptionValue");
-
-                    b.Navigation("StylistServicePriceVariant");
+                    b.Navigation("Worker");
                 });
 
             modelBuilder.Entity("NobatPlusDATA.Domain.SupportTicket", b =>
@@ -3663,13 +3511,165 @@ namespace NobatPlusDATA.Migrations
 
             modelBuilder.Entity("NobatPlusDATA.Domain.WorkTime", b =>
                 {
-                    b.HasOne("NobatPlusDATA.Domain.Stylist", "Stylist")
+                    b.HasOne("NobatPlusDATA.Domain.Worker", "Worker")
                         .WithMany("WorkTimes")
-                        .HasForeignKey("StylistID")
+                        .HasForeignKey("WorkerID")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("Stylist");
+                    b.Navigation("Worker");
+                });
+
+            modelBuilder.Entity("NobatPlusDATA.Domain.Worker", b =>
+                {
+                    b.HasOne("NobatPlusDATA.Domain.JobType", "JobType")
+                        .WithMany("Workers")
+                        .HasForeignKey("JobTypeID")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("NobatPlusDATA.Domain.Person", "Person")
+                        .WithMany("WorkerProfiles")
+                        .HasForeignKey("PersonID")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("JobType");
+
+                    b.Navigation("Person");
+                });
+
+            modelBuilder.Entity("NobatPlusDATA.Domain.WorkerPacific", b =>
+                {
+                    b.HasOne("NobatPlusDATA.Domain.Worker", "Worker")
+                        .WithMany("WorkerPacifics")
+                        .HasForeignKey("WorkerID")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Worker");
+                });
+
+            modelBuilder.Entity("NobatPlusDATA.Domain.WorkerScheduleBlock", b =>
+                {
+                    b.HasOne("NobatPlusDATA.Domain.BookingTag", "BookingTag")
+                        .WithMany("ScheduleBlocks")
+                        .HasForeignKey("BookingTagID")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.HasOne("NobatPlusDATA.Domain.ServiceManagement", "ServiceManagement")
+                        .WithMany("ScheduleBlocks")
+                        .HasForeignKey("ServiceManagementID")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.HasOne("NobatPlusDATA.Domain.Worker", "Worker")
+                        .WithMany("ScheduleBlocks")
+                        .HasForeignKey("WorkerID")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("NobatPlusDATA.Domain.WorkerServicePriceVariant", "WorkerServicePriceVariant")
+                        .WithMany()
+                        .HasForeignKey("WorkerServicePriceVariantID")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.Navigation("BookingTag");
+
+                    b.Navigation("ServiceManagement");
+
+                    b.Navigation("Worker");
+
+                    b.Navigation("WorkerServicePriceVariant");
+                });
+
+            modelBuilder.Entity("NobatPlusDATA.Domain.WorkerService", b =>
+                {
+                    b.HasOne("NobatPlusDATA.Domain.ServiceManagement", "ServiceManagement")
+                        .WithMany("WorkerServices")
+                        .HasForeignKey("ServiceManagementID")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("NobatPlusDATA.Domain.Worker", "Worker")
+                        .WithMany("WorkerServices")
+                        .HasForeignKey("WorkerID")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.Navigation("ServiceManagement");
+
+                    b.Navigation("Worker");
+                });
+
+            modelBuilder.Entity("NobatPlusDATA.Domain.WorkerServiceFollowUpSetting", b =>
+                {
+                    b.HasOne("NobatPlusDATA.Domain.ServiceManagement", "ServiceManagement")
+                        .WithMany()
+                        .HasForeignKey("ServiceManagementID")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.HasOne("NobatPlusDATA.Domain.Worker", "Worker")
+                        .WithMany()
+                        .HasForeignKey("WorkerID")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.HasOne("NobatPlusDATA.Domain.WorkerServicePriceVariant", "WorkerServicePriceVariant")
+                        .WithMany()
+                        .HasForeignKey("WorkerServicePriceVariantID")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.HasOne("NobatPlusDATA.Domain.WorkerService", "WorkerService")
+                        .WithMany()
+                        .HasForeignKey("WorkerID", "ServiceManagementID")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("ServiceManagement");
+
+                    b.Navigation("Worker");
+
+                    b.Navigation("WorkerService");
+
+                    b.Navigation("WorkerServicePriceVariant");
+                });
+
+            modelBuilder.Entity("NobatPlusDATA.Domain.WorkerServicePriceVariant", b =>
+                {
+                    b.HasOne("NobatPlusDATA.Domain.BookingTag", "BookingTag")
+                        .WithMany("PriceVariants")
+                        .HasForeignKey("BookingTagID")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("NobatPlusDATA.Domain.WorkerService", "WorkerService")
+                        .WithMany("PriceVariants")
+                        .HasForeignKey("WorkerID", "ServiceManagementID")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("BookingTag");
+
+                    b.Navigation("WorkerService");
+                });
+
+            modelBuilder.Entity("NobatPlusDATA.Domain.WorkerServicePriceVariantOptionValue", b =>
+                {
+                    b.HasOne("NobatPlusDATA.Domain.ServiceOptionValue", "ServiceOptionValue")
+                        .WithMany()
+                        .HasForeignKey("ServiceOptionValueID")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.HasOne("NobatPlusDATA.Domain.WorkerServicePriceVariant", "WorkerServicePriceVariant")
+                        .WithMany("OptionValues")
+                        .HasForeignKey("WorkerServicePriceVariantID")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("ServiceOptionValue");
+
+                    b.Navigation("WorkerServicePriceVariant");
                 });
 
             modelBuilder.Entity("MTPermissionCenter.EFCore.Entities.MTPermissionCenter_Permission", b =>
@@ -3746,7 +3746,7 @@ namespace NobatPlusDATA.Migrations
 
             modelBuilder.Entity("NobatPlusDATA.Domain.JobType", b =>
                 {
-                    b.Navigation("Stylists");
+                    b.Navigation("Workers");
                 });
 
             modelBuilder.Entity("NobatPlusDATA.Domain.Payment", b =>
@@ -3767,7 +3767,7 @@ namespace NobatPlusDATA.Migrations
 
                     b.Navigation("SMSMessages");
 
-                    b.Navigation("StylistProfiles");
+                    b.Navigation("WorkerProfiles");
                 });
 
             modelBuilder.Entity("NobatPlusDATA.Domain.Role", b =>
@@ -3785,7 +3785,7 @@ namespace NobatPlusDATA.Migrations
 
                     b.Navigation("ServiceDiscounts");
 
-                    b.Navigation("StylistServices");
+                    b.Navigation("WorkerServices");
                 });
 
             modelBuilder.Entity("NobatPlusDATA.Domain.ServiceOption", b =>
@@ -3803,7 +3803,17 @@ namespace NobatPlusDATA.Migrations
                     b.Navigation("Transactions");
                 });
 
-            modelBuilder.Entity("NobatPlusDATA.Domain.Stylist", b =>
+            modelBuilder.Entity("NobatPlusDATA.Domain.SupportTicket", b =>
+                {
+                    b.Navigation("Messages");
+                });
+
+            modelBuilder.Entity("NobatPlusDATA.Domain.Wallet", b =>
+                {
+                    b.Navigation("Transactions");
+                });
+
+            modelBuilder.Entity("NobatPlusDATA.Domain.Worker", b =>
                 {
                     b.Navigation("BookingTags");
 
@@ -3828,36 +3838,26 @@ namespace NobatPlusDATA.Migrations
 
                     b.Navigation("SocialNetworks");
 
-                    b.Navigation("StylistPacifics");
-
-                    b.Navigation("StylistServices");
-
                     b.Navigation("WorkTimes");
+
+                    b.Navigation("WorkerPacifics");
+
+                    b.Navigation("WorkerServices");
                 });
 
-            modelBuilder.Entity("NobatPlusDATA.Domain.StylistScheduleBlock", b =>
+            modelBuilder.Entity("NobatPlusDATA.Domain.WorkerScheduleBlock", b =>
                 {
                     b.Navigation("Bookings");
                 });
 
-            modelBuilder.Entity("NobatPlusDATA.Domain.StylistService", b =>
+            modelBuilder.Entity("NobatPlusDATA.Domain.WorkerService", b =>
                 {
                     b.Navigation("PriceVariants");
                 });
 
-            modelBuilder.Entity("NobatPlusDATA.Domain.StylistServicePriceVariant", b =>
+            modelBuilder.Entity("NobatPlusDATA.Domain.WorkerServicePriceVariant", b =>
                 {
                     b.Navigation("OptionValues");
-                });
-
-            modelBuilder.Entity("NobatPlusDATA.Domain.SupportTicket", b =>
-                {
-                    b.Navigation("Messages");
-                });
-
-            modelBuilder.Entity("NobatPlusDATA.Domain.Wallet", b =>
-                {
-                    b.Navigation("Transactions");
                 });
 #pragma warning restore 612, 618
         }

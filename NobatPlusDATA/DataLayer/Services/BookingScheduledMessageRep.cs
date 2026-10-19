@@ -23,8 +23,8 @@ namespace NobatPlusDATA.DataLayer.Services
                 var exists = await _context.BookingScheduledMessages.AsNoTracking().AnyAsync(x =>
                     x.BookingID == message.BookingID &&
                     x.ServiceManagementID == message.ServiceManagementID &&
-                    x.StylistServiceFollowUpSettingID == message.StylistServiceFollowUpSettingID &&
-                    x.StylistServicePriceVariantID == message.StylistServicePriceVariantID &&
+                    x.WorkerServiceFollowUpSettingID == message.WorkerServiceFollowUpSettingID &&
+                    x.WorkerServicePriceVariantID == message.WorkerServicePriceVariantID &&
                     x.MessageType == message.MessageType &&
                     x.ScheduledAt == message.ScheduledAt &&
                     x.MessageText == message.MessageText);
@@ -110,7 +110,7 @@ namespace NobatPlusDATA.DataLayer.Services
             return result;
         }
 
-        public async Task<ListResultObject<BookingScheduledMessage>> GetAllBookingScheduledMessagesAsync(long bookingId = 0, long customerId = 0, long stylistId = 0, long serviceManagementId = 0, int messageType = 0, int status = -1, int isActive = -1, int pageIndex = 1, int pageSize = 20, string searchText = "", string sortQuery = "")
+        public async Task<ListResultObject<BookingScheduledMessage>> GetAllBookingScheduledMessagesAsync(long bookingId = 0, long customerId = 0, long workerId = 0, long serviceManagementId = 0, int messageType = 0, int status = -1, int isActive = -1, int pageIndex = 1, int pageSize = 20, string searchText = "", string sortQuery = "")
         {
             var results = new ListResultObject<BookingScheduledMessage>();
             try
@@ -119,10 +119,10 @@ namespace NobatPlusDATA.DataLayer.Services
                     .AsNoTracking()
                     .Include(x => x.Booking)
                     .Include(x => x.Customer).ThenInclude(x => x.Person)
-                    .Include(x => x.Stylist).ThenInclude(x => x.Person)
+                    .Include(x => x.Worker).ThenInclude(x => x.Person)
                     .Include(x => x.ServiceManagement)
-                    .Include(x => x.StylistServiceFollowUpSetting)
-                    .Include(x => x.StylistServicePriceVariant)
+                    .Include(x => x.WorkerServiceFollowUpSetting)
+                    .Include(x => x.WorkerServicePriceVariant)
                     .AsQueryable();
 
                 if (bookingId > 0)
@@ -131,8 +131,8 @@ namespace NobatPlusDATA.DataLayer.Services
                 if (customerId > 0)
                     query = query.Where(x => x.CustomerID == customerId);
 
-                if (stylistId > 0)
-                    query = query.Where(x => x.StylistID == stylistId);
+                if (workerId > 0)
+                    query = query.Where(x => x.WorkerID == workerId);
 
                 if (serviceManagementId > 0)
                     query = query.Where(x => x.ServiceManagementID == serviceManagementId);
@@ -180,10 +180,10 @@ namespace NobatPlusDATA.DataLayer.Services
                     .AsNoTracking()
                     .Include(x => x.Booking)
                     .Include(x => x.Customer).ThenInclude(x => x.Person)
-                    .Include(x => x.Stylist).ThenInclude(x => x.Person)
+                    .Include(x => x.Worker).ThenInclude(x => x.Person)
                     .Include(x => x.ServiceManagement)
-                    .Include(x => x.StylistServiceFollowUpSetting)
-                    .Include(x => x.StylistServicePriceVariant)
+                    .Include(x => x.WorkerServiceFollowUpSetting)
+                    .Include(x => x.WorkerServicePriceVariant)
                     .SingleOrDefaultAsync(x => x.ID == messageId);
             }
             catch (Exception ex)

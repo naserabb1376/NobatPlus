@@ -16,7 +16,7 @@ namespace NobatPlusAPI.Models.ServiceDiscount
 
         [Display(Name = "کد خدمات دهنده")]
         [Required(ErrorMessage = "لطفا {0} را وارد کنید")]
-        public long StylistID { get; set; }
+        public long WorkerID { get; set; }
 
         [Display(Name = "کد مدیر")]
         [Required(ErrorMessage = "لطفا {0} را وارد کنید")]

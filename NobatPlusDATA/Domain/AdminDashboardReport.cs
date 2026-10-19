@@ -6,8 +6,8 @@ namespace NobatPlusDATA.Domain
         public List<ChartPointDto> BookingTrend { get; set; } = new();
         public List<ChartPointDto> RevenueTrend { get; set; } = new();
         public List<NameValueDto> BookingStatusBreakdown { get; set; } = new();
-        public List<SalonPerformanceDto> SalonPerformance { get; set; } = new();
-        public List<StylistPerformanceDto> StylistPerformance { get; set; } = new();
+        public List<WorkshopPerformanceDto> WorkshopPerformance { get; set; } = new();
+        public List<WorkerPerformanceDto> WorkerPerformance { get; set; } = new();
         public List<ServicePerformanceDto> ServicePerformance { get; set; } = new();
         public List<CustomerPerformanceDto> CustomerPerformance { get; set; } = new();
         public List<CityPerformanceDto> CityPerformance { get; set; } = new();
@@ -20,9 +20,9 @@ namespace NobatPlusDATA.Domain
         public int ActiveUsersCount { get; set; }
         public int InactiveUsersCount { get; set; }
         public int CustomersCount { get; set; }
-        public int SalonsCount { get; set; }
-        public int StylistsCount { get; set; }
-        public int PendingStylistsCount { get; set; }
+        public int WorkshopsCount { get; set; }
+        public int WorkersCount { get; set; }
+        public int PendingWorkersCount { get; set; }
         public int TotalBookingsCount { get; set; }
         public int TodayBookingsCount { get; set; }
         public int CompletedBookingsCount { get; set; }
@@ -30,7 +30,7 @@ namespace NobatPlusDATA.Domain
         public decimal TotalRevenue { get; set; }
         public decimal PaidAmount { get; set; }
         public decimal RemainAmount { get; set; }
-        public decimal StylistAmount { get; set; }
+        public decimal WorkerAmount { get; set; }
         public decimal PlatformAmount { get; set; }
         public decimal VatAmount { get; set; }
         public decimal DiscountAmount { get; set; }
@@ -47,11 +47,11 @@ namespace NobatPlusDATA.Domain
         public double CancellationPercent { get; set; }
     }
 
-    public class SalonPerformanceDto
+    public class WorkshopPerformanceDto
     {
-        public long SalonId { get; set; }
-        public string SalonName { get; set; } = "";
-        public int StylistsCount { get; set; }
+        public long WorkshopId { get; set; }
+        public string WorkshopName { get; set; } = "";
+        public int WorkersCount { get; set; }
         public int BookingCount { get; set; }
         public int CustomerCount { get; set; }
         public decimal Revenue { get; set; }

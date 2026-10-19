@@ -12,7 +12,7 @@ namespace NobatPlusDATA.Domain
     {
         public long? BookingID { get; set; }
         public long CustomerID { get; set; }
-        public long StylistID { get; set; }
+        public long WorkerID { get; set; }
         public int Rating { get; set; }
         public string Comments { get; set; }
         public string Status { get; set; }
@@ -30,14 +30,14 @@ namespace NobatPlusDATA.Domain
 
         public Booking? Booking { get; set; }
         public Customer Customer { get; set; }
-        public Stylist Stylist { get; set; }
+        public Worker Worker { get; set; }
     }
 
     public class ReviewDto : BaseEntity
     {
         public long? BookingID { get; set; }
         public long CustomerID { get; set; }
-        public long StylistID { get; set; }
+        public long WorkerID { get; set; }
         public int Rating { get; set; }
         public string Comments { get; set; }
         public string Status { get; set; }
@@ -55,8 +55,8 @@ namespace NobatPlusDATA.Domain
 
         public float AverageRateScore { get; set; }
 
-        public string StylistName { get; set; }
-        public string SalonName { get; set; }
+        public string WorkerName { get; set; }
+        public string WorkshopName { get; set; }
         public string CustomerName { get; set; }
     }
 }

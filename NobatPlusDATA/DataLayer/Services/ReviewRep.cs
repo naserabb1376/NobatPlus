@@ -38,7 +38,7 @@ namespace NobatPlusDATA.DataLayer.Services
                     Description = Review.Result.Description,
                     ID = Review.Result.ID,
 
-                    StylistID = Review.Result.StylistID,
+                    WorkerID = Review.Result.WorkerID,
                     CustomerID = Review.Result.CustomerID,
                     BookingID = Review.Result.BookingID,
 
@@ -123,7 +123,7 @@ namespace NobatPlusDATA.DataLayer.Services
      long RoleId,
      long BookingId = 0,
      long CustomerId = 0,
-     long StylistId = 0,
+     long WorkerId = 0,
      int pageIndex = 1,
      int pageSize = 20,
      string searchText = "",
@@ -137,7 +137,7 @@ namespace NobatPlusDATA.DataLayer.Services
                 IQueryable<Review> query = _context.Reviews
                     .AsNoTracking()
                     .Include(x => x.Booking)
-                        .ThenInclude(x => x.Stylist)
+                        .ThenInclude(x => x.Worker)
                         .ThenInclude(x => x.Person)
                     .Include(x => x.Customer)
                         .ThenInclude(x => x.Person);
@@ -162,9 +162,9 @@ namespace NobatPlusDATA.DataLayer.Services
                     query = query.Where(x => x.BookingID == BookingId);
                 }
 
-                if (StylistId > 0)
+                if (WorkerId > 0)
                 {
-                    query = query.Where(x => x.StylistID == StylistId);
+                    query = query.Where(x => x.WorkerID == WorkerId);
                 }
                 else if (CustomerId > 0)
                 {
@@ -251,8 +251,8 @@ namespace NobatPlusDATA.DataLayer.Services
                         .Distinct()
                         .ToList();
 
-                    var stylistIds = reviews
-                        .Select(x => x.StylistID)
+                    var workerIds = reviews
+                        .Select(x => x.WorkerID)
                         .Distinct()
                         .ToList();
 
@@ -262,18 +262,18 @@ namespace NobatPlusDATA.DataLayer.Services
                         .Where(x =>
                             bookingIds.Contains(x.BookingID) &&
                             customerIds.Contains(x.CustomerID) &&
-                            stylistIds.Contains(x.StylistID))
+                            workerIds.Contains(x.WorkerID))
                         .GroupBy(x => new
                         {
                             x.BookingID,
                             x.CustomerID,
-                            x.StylistID
+                            x.WorkerID
                         })
                         .Select(g => new
                         {
                             g.Key.BookingID,
                             g.Key.CustomerID,
-                            g.Key.StylistID,
+                            g.Key.WorkerID,
 
                             AverageRateScore = g.Average(x => x.RateScore)
                         })
@@ -286,7 +286,7 @@ namespace NobatPlusDATA.DataLayer.Services
                             x => (
                                 x.BookingID,
                                 x.CustomerID,
-                                x.StylistID
+                                x.WorkerID
                             ),
                             x => x.AverageRateScore
                         );
@@ -302,7 +302,7 @@ namespace NobatPlusDATA.DataLayer.Services
                             var key = (
                                 review.BookingID.Value,
                                 review.CustomerID,
-                                review.StylistID
+                                review.WorkerID
                             );
 
                             rateAverageDictionary.TryGetValue(
@@ -315,7 +315,7 @@ namespace NobatPlusDATA.DataLayer.Services
 
                                 BookingID = review.BookingID,
                                 CustomerID = review.CustomerID,
-                                StylistID = review.StylistID,
+                                WorkerID = review.WorkerID,
 
                                 Rating = review.Rating,
                                 Comments = review.Comments,
@@ -335,9 +335,9 @@ namespace NobatPlusDATA.DataLayer.Services
                                 UpdateDate = review.UpdateDate,
                                 Description = review.Description,
 
-                                StylistName = review.Booking.Stylist.Person.FirstName + " " + review.Booking.Stylist.Person.LastName,
+                                WorkerName = review.Booking.Worker.Person.FirstName + " " + review.Booking.Worker.Person.LastName,
                                 CustomerName = (!review.IsPrivate) ? review.Customer.Person.FirstName + " " + review.Customer.Person.LastName : "ناشناس",
-                                SalonName = review.Booking.Stylist.StylistName,
+                                WorkshopName = review.Booking.Worker.WorkerName,
                             };
                         })
                         .ToList();
@@ -374,7 +374,7 @@ namespace NobatPlusDATA.DataLayer.Services
                 var review = await _context.Reviews
                     .AsNoTracking()
                     .Include(x => x.Booking)
-                        .ThenInclude(x => x.Stylist)
+                        .ThenInclude(x => x.Worker)
                         .ThenInclude(x => x.Person)
                     .Include(x => x.Customer)
                         .ThenInclude(x => x.Person)
@@ -413,7 +413,7 @@ namespace NobatPlusDATA.DataLayer.Services
                         .Where(x =>
                             x.BookingID == review.BookingID &&
                             x.CustomerID == review.CustomerID &&
-                            x.StylistID == review.StylistID)
+                            x.WorkerID == review.WorkerID)
                         .Select(x => (float?)x.RateScore)
                         .AverageAsync() ?? 0;
 
@@ -428,7 +428,7 @@ namespace NobatPlusDATA.DataLayer.Services
 
                     BookingID = review.BookingID,
                     CustomerID = review.CustomerID,
-                    StylistID = review.StylistID,
+                    WorkerID = review.WorkerID,
 
                     Rating = review.Rating,
                     Comments = review.Comments,
@@ -448,9 +448,9 @@ namespace NobatPlusDATA.DataLayer.Services
                     UpdateDate = review.UpdateDate,
                     Description = review.Description,
 
-                    StylistName = review.Booking.Stylist.Person.FirstName + " " + review.Booking.Stylist.Person.LastName,
+                    WorkerName = review.Booking.Worker.Person.FirstName + " " + review.Booking.Worker.Person.LastName,
                     CustomerName = (!review.IsPrivate) ? review.Customer.Person.FirstName + " " + review.Customer.Person.LastName : "ناشناس",
-                    SalonName = review.Booking.Stylist.StylistName,
+                    WorkshopName = review.Booking.Worker.WorkerName,
                 };
             }
             catch (Exception ex)
@@ -496,7 +496,7 @@ namespace NobatPlusDATA.DataLayer.Services
                     Description = Review.Result.Description,
                     ID = Review.Result.ID,
 
-                    StylistID = Review.Result.StylistID,
+                    WorkerID = Review.Result.WorkerID,
                     CustomerID = Review.Result.CustomerID,
                     BookingID = Review.Result.BookingID,
 

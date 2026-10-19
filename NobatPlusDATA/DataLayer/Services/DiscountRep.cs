@@ -143,7 +143,7 @@ namespace NobatPlusDATA.DataLayer.Services
             return result;
         }
 
-        public async Task<ListResultObject<Discount>> GetAllDiscountsAsync(DiscountType discountType = DiscountType.All, long AdminId = 0, long StylistId = 0, long CustomerId = 0, long ServiceManagementId = 0, int pageIndex = 1, int pageSize = 20, string searchText = "",string sortQuery ="")
+        public async Task<ListResultObject<Discount>> GetAllDiscountsAsync(DiscountType discountType = DiscountType.All, long AdminId = 0, long WorkerId = 0, long CustomerId = 0, long ServiceManagementId = 0, int pageIndex = 1, int pageSize = 20, string searchText = "",string sortQuery ="")
         {
             ListResultObject<Discount> results = new ListResultObject<Discount>();
             try
@@ -199,10 +199,10 @@ namespace NobatPlusDATA.DataLayer.Services
                                 (x.UpdateDate.HasValue && x.UpdateDate.Value.ToString().Contains(searchText))
                             );
                         break;
-                    case DiscountType.Stylist:
+                    case DiscountType.Worker:
                         query = _context.DiscountAssignments
                             .AsNoTracking()
-                            .Where(bs => bs.StylistId == StylistId)
+                            .Where(bs => bs.WorkerId == WorkerId)
                             .Select(bs => bs.Discount)
                             .Where(x =>
                                 (!string.IsNullOrEmpty(x.DiscountCode) && x.DiscountCode.Contains(searchText)) ||
@@ -214,10 +214,10 @@ namespace NobatPlusDATA.DataLayer.Services
                                 (x.UpdateDate.HasValue && x.UpdateDate.Value.ToString().Contains(searchText))
                             );
                         break;
-                    case DiscountType.StylistCustomer:
+                    case DiscountType.WorkerCustomer:
                         query = _context.CustomerDiscounts
                             .AsNoTracking()
-                            .Where(bs => bs.StylistId == StylistId && bs.CustomerId == CustomerId)
+                            .Where(bs => bs.WorkerId == WorkerId && bs.CustomerId == CustomerId)
                             .Select(bs => bs.Discount)
                             .Where(x =>
                                 (!string.IsNullOrEmpty(x.DiscountCode) && x.DiscountCode.Contains(searchText)) ||
@@ -259,10 +259,10 @@ namespace NobatPlusDATA.DataLayer.Services
                                 (x.UpdateDate.HasValue && x.UpdateDate.Value.ToString().Contains(searchText))
                             );
                         break;
-                    case DiscountType.StylistService:
+                    case DiscountType.WorkerService:
                         query = _context.ServiceDiscounts
                             .AsNoTracking()
-                            .Where(bs => bs.StylistId == StylistId && bs.ServiceManagementId == ServiceManagementId)
+                            .Where(bs => bs.WorkerId == WorkerId && bs.ServiceManagementId == ServiceManagementId)
                             .Select(bs => bs.Discount)
                             .Where(x =>
                                 (!string.IsNullOrEmpty(x.DiscountCode) && x.DiscountCode.Contains(searchText)) ||

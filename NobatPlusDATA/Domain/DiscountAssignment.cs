@@ -11,10 +11,10 @@ namespace NobatPlusDATA.Domain
     {
         public long DiscountId { get; set; }
         public long? AdminId { get; set; }
-        public long? StylistId { get; set; }
+        public long? WorkerId { get; set; }
 
         public Discount Discount { get; set; }
         public Admin Admin { get; set; }
-        public Stylist Stylist { get; set; }
+        public Worker Worker { get; set; }
     }
 }

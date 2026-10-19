@@ -10,7 +10,7 @@ namespace NobatPlusDATA.DataLayer.Repositories
 {
     public interface IServiceManagementRep
     {
-        public Task<ListResultObject<ServiceManagementDTO>> GetAllServiceManagementsAsync(long parentId = 0, long bookingId = 0, long stylistId = 0, long discountId = 0, char serviceGender=' ', int pageIndex = 1, int pageSize = 20, string searchText = "",string sortQuery ="");
+        public Task<ListResultObject<ServiceManagementDTO>> GetAllServiceManagementsAsync(long parentId = 0, long bookingId = 0, long workerId = 0, long discountId = 0, char serviceGender=' ', int pageIndex = 1, int pageSize = 20, string searchText = "",string sortQuery ="");
         public Task<RowResultObject<ServiceManagementDTO>> GetServiceManagementByIdAsync(long ServiceManagementId);
         public Task<BitResultObject> AddServiceManagementAsync(ServiceManagement ServiceManagement);
         public Task<BitResultObject> EditServiceManagementAsync(ServiceManagement ServiceManagement);

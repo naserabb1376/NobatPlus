@@ -50,7 +50,7 @@ namespace NobatPlusAPI.Controllers
             {
                 return BadRequest(requestBody);
             }
-            var result = await _RateHistoryRep.GetAllRateHistoriesAsync(requestBody.CustomerId,requestBody.StylistId,requestBody.BookingId,requestBody.RateQuestionId,requestBody.PageIndex,requestBody.PageSize,requestBody.SearchText,requestBody.SortQuery);
+            var result = await _RateHistoryRep.GetAllRateHistoriesAsync(requestBody.CustomerId,requestBody.WorkerId,requestBody.BookingId,requestBody.RateQuestionId,requestBody.PageIndex,requestBody.PageSize,requestBody.SearchText,requestBody.SortQuery);
             if (result.Status)
             {
                 var resultVM = _mapper.Map<ListResultObject<RateHistoryVM>>(result);
@@ -121,7 +121,7 @@ namespace NobatPlusAPI.Controllers
                 UpdateDate = DateTime.Now.ToShamsi(),
                 RateDate = string.IsNullOrEmpty(requestBody.RateDate) ? DateTime.Now.ToShamsi() : requestBody.RateDate.StringToDate(),
                 RateQuestionID = requestBody.RateQuestionID,
-                StylistID = requestBody.StylistID,
+                WorkerID = requestBody.WorkerID,
                 CustomerID = requestBody.CustomerID,
                 BookingID = requestBody.BookingID,
                 RateScore = requestBody.RateScore,
@@ -187,7 +187,7 @@ namespace NobatPlusAPI.Controllers
                 ID = requestBody.ID,
                 RateDate = string.IsNullOrEmpty(requestBody.RateDate) ? DateTime.Now.ToShamsi() : requestBody.RateDate.StringToDate(),
                 RateQuestionID = requestBody.RateQuestionID,
-                StylistID = requestBody.StylistID,
+                WorkerID = requestBody.WorkerID,
                 CustomerID = requestBody.CustomerID,
                 BookingID = requestBody.BookingID,
                 RateScore = requestBody.RateScore,

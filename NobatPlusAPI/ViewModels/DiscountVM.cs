@@ -17,7 +17,7 @@ namespace NobatPlusDATA.ViewModels
         public int AssignmentCount { get; set; }
         public int CustomerCount { get; set; }
         public int ServiceCount { get; set; }
-        public List<long> StylistIds { get; set; } = new();
+        public List<long> WorkerIds { get; set; } = new();
         public List<long> CustomerIds { get; set; } = new();
         public List<long> ServiceIds { get; set; } = new();
 

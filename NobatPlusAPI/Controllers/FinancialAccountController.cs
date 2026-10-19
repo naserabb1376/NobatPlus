@@ -17,27 +17,27 @@ namespace NobatPlusAPI.Controllers
     public class FinancialAccountController : ControllerBase
     {
         private readonly IFinancialAccountRep _financialAccountRep;
-        private readonly IStylistRep _stylistRep;
+        private readonly IWorkerRep _workerRep;
         private readonly ILogRep _logRep;
 
-        public FinancialAccountController(IFinancialAccountRep financialAccountRep, IStylistRep stylistRep, ILogRep logRep)
+        public FinancialAccountController(IFinancialAccountRep financialAccountRep, IWorkerRep workerRep, ILogRep logRep)
         {
             _financialAccountRep = financialAccountRep;
-            _stylistRep = stylistRep;
+            _workerRep = workerRep;
             _logRep = logRep;
         }
 
         [HttpPost("GetMyFinancialAccount_Base")]
         public async Task<ActionResult<RowResultObject<FinancialAccountReport>>> GetMyFinancialAccount_Base(GetFinancialAccountRequestBody requestBody)
         {
-            var stylist = await GetCurrentStylistAsync();
-            if (!stylist.Status)
+            var worker = await GetCurrentWorkerAsync();
+            if (!worker.Status)
             {
-                return BadRequest(new RowResultObject<FinancialAccountReport> { Status = false, ErrorMessage = "آرایشگر/سالن یافت نشد" });
+                return BadRequest(new RowResultObject<FinancialAccountReport> { Status = false, ErrorMessage = "خدمات دهنده/محل خدمت یافت نشد" });
             }
 
             var result = await _financialAccountRep.GetFinancialAccountAsync(
-                stylist.ID,
+                worker.ID,
                 requestBody.PageIndex,
                 requestBody.PageSize,
                 requestBody.FromDate?.ToShamsi(),
@@ -46,8 +46,8 @@ namespace NobatPlusAPI.Controllers
             return result.Status ? Ok(result) : BadRequest(result);
         }
 
-        [HttpPost("GetStylistFinancialAccount_Base")]
-        public async Task<ActionResult<RowResultObject<FinancialAccountReport>>> GetStylistFinancialAccount_Base(GetStylistFinancialAccountRequestBody requestBody)
+        [HttpPost("GetWorkerFinancialAccount_Base")]
+        public async Task<ActionResult<RowResultObject<FinancialAccountReport>>> GetWorkerFinancialAccount_Base(GetWorkerFinancialAccountRequestBody requestBody)
         {
             if (User.GetCurrentRoleId() != 4)
             {
@@ -60,7 +60,7 @@ namespace NobatPlusAPI.Controllers
             }
 
             var result = await _financialAccountRep.GetFinancialAccountAsync(
-                requestBody.StylistId,
+                requestBody.WorkerId,
                 requestBody.PageIndex,
                 requestBody.PageSize,
                 requestBody.FromDate?.ToShamsi(),
@@ -73,14 +73,14 @@ namespace NobatPlusAPI.Controllers
         [HttpPost("UpdateBankInfo_Base")]
         public async Task<ActionResult<BitResultObject>> UpdateBankInfo_Base(UpdateFinancialBankInfoRequestBody requestBody)
         {
-            var stylist = await GetCurrentStylistAsync();
-            if (!stylist.Status)
+            var worker = await GetCurrentWorkerAsync();
+            if (!worker.Status)
             {
-                return BadRequest(new BitResultObject { Status = false, ErrorMessage = "آرایشگر/سالن یافت نشد" });
+                return BadRequest(new BitResultObject { Status = false, ErrorMessage = "خدمات دهنده/محل خدمت یافت نشد" });
             }
 
             var result = await _financialAccountRep.UpdateBankInfoAsync(
-                stylist.ID,
+                worker.ID,
                 requestBody.Iban ?? "",
                 requestBody.BankAccountOwnerName ?? "");
 
@@ -101,7 +101,7 @@ namespace NobatPlusAPI.Controllers
             }
 
             var result = await _financialAccountRep.UpdateBankInfoAsync(
-                requestBody.StylistId,
+                requestBody.WorkerId,
                 requestBody.Iban ?? "",
                 requestBody.BankAccountOwnerName ?? "");
 
@@ -116,14 +116,14 @@ namespace NobatPlusAPI.Controllers
                 return BadRequest(requestBody);
             }
 
-            var stylist = await GetCurrentStylistAsync();
-            if (!stylist.Status)
+            var worker = await GetCurrentWorkerAsync();
+            if (!worker.Status)
             {
-                return BadRequest(new BitResultObject { Status = false, ErrorMessage = "آرایشگر/سالن یافت نشد" });
+                return BadRequest(new BitResultObject { Status = false, ErrorMessage = "خدمات دهنده/محل خدمت یافت نشد" });
             }
 
             var result = await _financialAccountRep.RequestSettlementAsync(
-                stylist.ID,
+                worker.ID,
                 requestBody.Amount,
                 requestBody.Description ?? "درخواست تسویه");
 
@@ -144,7 +144,7 @@ namespace NobatPlusAPI.Controllers
             }
 
             var result = await _financialAccountRep.RequestSettlementAsync(
-                requestBody.StylistId,
+                requestBody.WorkerId,
                 requestBody.Amount,
                 requestBody.Description ?? "درخواست تسویه ادمین");
 
@@ -206,12 +206,12 @@ namespace NobatPlusAPI.Controllers
             return result.Status ? Ok(result) : BadRequest(result);
         }
 
-        private async Task<BitResultObject> GetCurrentStylistAsync()
+        private async Task<BitResultObject> GetCurrentWorkerAsync()
         {
             var profileId = User.GetCurrentProfileId();
             if (profileId <= 0)
             {
-                var profiles = await _stylistRep.GetStylistProfilesByPersonIdAsync(User.GetCurrentUserId());
+                var profiles = await _workerRep.GetWorkerProfilesByPersonIdAsync(User.GetCurrentUserId());
                 var profileType = User.GetCurrentRoleId() == (long)DbTools.BaseRole.WorkShop ? nameof(DbTools.BaseRole.WorkShop).ToLower() : nameof(DbTools.BaseRole.Worker).ToLower();
                 profileId = profiles.Results?.FirstOrDefault(x => x.ProfileType == profileType)?.ID ?? 0;
             }

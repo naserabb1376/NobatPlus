@@ -109,7 +109,7 @@ namespace NobatPlusDATA.DataLayer.Services
         {
             var rows = await _context.SettlementRequests
                 .AsNoTracking()
-                .Include(x => x.FinancialAccount).ThenInclude(x => x.Stylist).ThenInclude(x => x.Person)
+                .Include(x => x.FinancialAccount).ThenInclude(x => x.Worker).ThenInclude(x => x.Person)
                 .Where(x => x.Status == "pending")
                 .OrderBy(x => x.RequestDate)
                 .Take(take)
@@ -118,7 +118,7 @@ namespace NobatPlusDATA.DataLayer.Services
             return rows.Select(x =>
             {
                 var age = AgeDays(now, x.RequestDate);
-                var stylistName = x.FinancialAccount?.Stylist?.StylistName ?? GetPersonName(x.FinancialAccount?.Stylist?.Person);
+                var workerName = x.FinancialAccount?.Worker?.WorkerName ?? GetPersonName(x.FinancialAccount?.Worker?.Person);
                 return new AdminActionItemVM
                 {
                     Type = "settlements",
@@ -128,7 +128,7 @@ namespace NobatPlusDATA.DataLayer.Services
                         ? "درخواست تسویه بدون شبا ثبت شده و نیازمند بررسی دستی است."
                         : "درخواست تسویه هنوز پرداخت یا رد نشده است.",
                     EntityID = x.ID,
-                    EntityName = stylistName,
+                    EntityName = workerName,
                     CreatedAt = x.RequestDate,
                     AgeDays = age,
                     Amount = x.Amount,
@@ -143,7 +143,7 @@ namespace NobatPlusDATA.DataLayer.Services
             var rows = await _context.Bookings
                 .AsNoTracking()
                 .Include(x => x.Customer).ThenInclude(x => x.Person)
-                .Include(x => x.Stylist).ThenInclude(x => x.Person)
+                .Include(x => x.Worker).ThenInclude(x => x.Person)
                 .Where(x => !x.IsCancelled && x.Status == "5")
                 .OrderBy(x => x.BookingDate)
                 .Take(take)
@@ -157,7 +157,7 @@ namespace NobatPlusDATA.DataLayer.Services
                     Type = "bookings",
                     Severity = age >= 2 ? "danger" : "warning",
                     Title = "نوبت نیازمند تعیین تکلیف",
-                    Description = $"نوبت {GetPersonName(x.Customer?.Person)} با {GetPersonName(x.Stylist?.Person)} باید جابه‌جا یا تعیین وضعیت شود.",
+                    Description = $"نوبت {GetPersonName(x.Customer?.Person)} با {GetPersonName(x.Worker?.Person)} باید جابه‌جا یا تعیین وضعیت شود.",
                     EntityID = x.ID,
                     EntityName = GetPersonName(x.Customer?.Person),
                     CreatedAt = x.BookingDate,
@@ -234,47 +234,47 @@ namespace NobatPlusDATA.DataLayer.Services
         {
             var items = new List<AdminActionItemVM>();
 
-            var stylistsWithoutService = await _context.Stylists
+            var workersWithoutService = await _context.Workers
                 .AsNoTracking()
                 .Include(x => x.Person)
-                .Where(x => !x.IsWorkShop && !x.StylistServices.Any())
+                .Where(x => !x.IsWorkShop && !x.WorkerServices.Any())
                 .OrderBy(x => x.CreateDate)
                 .Take(take)
                 .ToListAsync();
 
-            items.AddRange(stylistsWithoutService.Select(x => new AdminActionItemVM
+            items.AddRange(workersWithoutService.Select(x => new AdminActionItemVM
             {
                 Type = "providers",
                 Severity = x.AccountStatus == "2" ? "danger" : "warning",
-                Title = "آرایشگر بدون خدمت",
-                Description = "این آرایشگر هیچ خدمت قابل رزروی ندارد.",
+                Title = "خدمات دهنده بدون خدمت",
+                Description = "این خدمات دهنده هیچ خدمت قابل رزروی ندارد.",
                 EntityID = x.ID,
-                EntityName = x.StylistName,
+                EntityName = x.WorkerName,
                 CreatedAt = x.CreateDate,
                 AgeDays = AgeDays(now, x.CreateDate),
-                ActionPath = "/admin/stylists",
-                ActionLabel = "بررسی آرایشگر"
+                ActionPath = "/admin/workers",
+                ActionLabel = "بررسی خدمات دهنده"
             }));
 
-            var salonsWithoutStylists = await _context.Stylists
+            var workshopsWithoutWorkers = await _context.Workers
                 .AsNoTracking()
-                .Where(x => x.IsWorkShop && !_context.Stylists.Any(s => s.StylistParentID == x.ID))
+                .Where(x => x.IsWorkShop && !_context.Workers.Any(s => s.WorkerParentID == x.ID))
                 .OrderBy(x => x.CreateDate)
                 .Take(take)
                 .ToListAsync();
 
-            items.AddRange(salonsWithoutStylists.Select(x => new AdminActionItemVM
+            items.AddRange(workshopsWithoutWorkers.Select(x => new AdminActionItemVM
             {
                 Type = "providers",
                 Severity = "warning",
-                Title = "سالن بدون آرایشگر",
-                Description = "این سالن هنوز آرایشگر زیرمجموعه ندارد.",
+                Title = "محل خدمت بدون خدمات دهنده",
+                Description = "این محل خدمت هنوز خدمات دهنده زیرمجموعه ندارد.",
                 EntityID = x.ID,
-                EntityName = x.StylistName,
+                EntityName = x.WorkerName,
                 CreatedAt = x.CreateDate,
                 AgeDays = AgeDays(now, x.CreateDate),
-                ActionPath = "/admin/salons",
-                ActionLabel = "بررسی سالن"
+                ActionPath = "/admin/workshops",
+                ActionLabel = "بررسی محل خدمت"
             }));
 
             return items.Take(take).ToList();
@@ -286,7 +286,7 @@ namespace NobatPlusDATA.DataLayer.Services
                 .AsNoTracking()
                 .Where(x =>
                     !_context.ServiceManagements.Any(child => child.ServiceParentID == x.ID) &&
-                    !x.StylistServices.Any())
+                    !x.WorkerServices.Any())
                 .OrderBy(x => x.CreateDate)
                 .Take(take)
                 .ToListAsync();
@@ -296,7 +296,7 @@ namespace NobatPlusDATA.DataLayer.Services
                 Type = "services",
                 Severity = "info",
                 Title = "خدمت بدون ارائه‌دهنده",
-                Description = "این خدمت نهایی هیچ آرایشگر/سالنی ندارد و قابل رزرو نیست.",
+                Description = "این خدمت نهایی هیچ خدمات دهنده/محل خدمتی ندارد و قابل رزرو نیست.",
                 EntityID = x.ID,
                 EntityName = x.ServiceName,
                 CreatedAt = x.CreateDate,

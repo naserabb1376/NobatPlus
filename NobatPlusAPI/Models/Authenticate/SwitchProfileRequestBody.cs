@@ -5,7 +5,7 @@ namespace NobatPlusAPI.Models.Authenticate
     public class SwitchProfileRequestBody
     {
         [Required]
-        [RegularExpression("(?i)^(stylist|salon)$", ErrorMessage = "نوع پروفایل باید stylist یا salon باشد")]
+        [RegularExpression("(?i)^(worker|workshop)$", ErrorMessage = "نوع پروفایل باید worker یا workshop باشد")]
         public string ProfileType { get; set; } = "";
 
         [Range(1, long.MaxValue)]

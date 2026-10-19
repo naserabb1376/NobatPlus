@@ -142,7 +142,7 @@ namespace NobatPlusDATA.DataLayer.Services
             return result;
         }
 
-        public async Task<ListResultObject<CustomerDiscount>> GetAllCustomerDiscountsAsync(long DiscountId, long CustomerId, long StylistId, int pageIndex = 1, int pageSize = 20, string searchText = "",string sortQuery ="")
+        public async Task<ListResultObject<CustomerDiscount>> GetAllCustomerDiscountsAsync(long DiscountId, long CustomerId, long WorkerId, int pageIndex = 1, int pageSize = 20, string searchText = "",string sortQuery ="")
         {
             ListResultObject<CustomerDiscount> results = new ListResultObject<CustomerDiscount>();
             try
@@ -151,9 +151,9 @@ namespace NobatPlusDATA.DataLayer.Services
                 .AsNoTracking()
                 .Include(x => x.Discount)
                 .Include(x => x.Customer).ThenInclude(x => x.Person)
-                .Include(x => x.Stylist).ThenInclude(x => x.Person)
+                .Include(x => x.Worker).ThenInclude(x => x.Person)
                 .Where(x =>
-                    (x.DiscountId == DiscountId && x.CustomerId == CustomerId && x.StylistId == StylistId) &&
+                    (x.DiscountId == DiscountId && x.CustomerId == CustomerId && x.WorkerId == WorkerId) &&
                     (
                         (!string.IsNullOrEmpty(x.Discount.DiscountCode.ToString()) && x.Discount.DiscountCode.ToString().Contains(searchText)) ||
                         (!string.IsNullOrEmpty(x.Discount.DiscountAmount.ToString()) && x.Discount.DiscountAmount.ToString().Contains(searchText)) ||
@@ -163,9 +163,9 @@ namespace NobatPlusDATA.DataLayer.Services
                         (!string.IsNullOrEmpty(x.Discount.EndDate.ToString()) && x.Discount.EndDate.ToString().Contains(searchText)) ||
                         (!string.IsNullOrEmpty(x.Customer.Person.FirstName.ToString()) && x.Customer.Person.FirstName.ToString().Contains(searchText)) ||
                         (!string.IsNullOrEmpty(x.Customer.Person.LastName.ToString()) && x.Customer.Person.LastName.ToString().Contains(searchText)) ||
-                        (!string.IsNullOrEmpty(x.Stylist.Person.FirstName.ToString()) && x.Stylist.Person.FirstName.ToString().Contains(searchText)) ||
-                        (!string.IsNullOrEmpty(x.Stylist.Person.LastName.ToString()) && x.Stylist.Person.LastName.ToString().Contains(searchText)) ||
-                        (!string.IsNullOrEmpty(x.Stylist.Specialty.ToString()) && x.Stylist.Specialty.ToString().Contains(searchText)) ||
+                        (!string.IsNullOrEmpty(x.Worker.Person.FirstName.ToString()) && x.Worker.Person.FirstName.ToString().Contains(searchText)) ||
+                        (!string.IsNullOrEmpty(x.Worker.Person.LastName.ToString()) && x.Worker.Person.LastName.ToString().Contains(searchText)) ||
+                        (!string.IsNullOrEmpty(x.Worker.Specialty.ToString()) && x.Worker.Specialty.ToString().Contains(searchText)) ||
                         (x.CreateDate.HasValue && x.CreateDate.Value.ToString().Contains(searchText)) ||
                         (x.UpdateDate.HasValue && x.UpdateDate.Value.ToString().Contains(searchText))
                     )
@@ -193,7 +193,7 @@ namespace NobatPlusDATA.DataLayer.Services
                 .AsNoTracking()
                                 .Include(x => x.Discount)
                 .Include(x => x.Customer).ThenInclude(x => x.Person)
-                .Include(x => x.Stylist).ThenInclude(x => x.Person)
+                .Include(x => x.Worker).ThenInclude(x => x.Person)
                 .SingleOrDefaultAsync(x => x.ID == CustomerDiscountId);
             }
             catch (Exception ex)

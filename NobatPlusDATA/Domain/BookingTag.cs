@@ -4,13 +4,13 @@ namespace NobatPlusDATA.Domain
 {
     public class BookingTag : BaseEntity
     {
-        public long StylistID { get; set; }
+        public long WorkerID { get; set; }
         public string Title { get; set; } = "";
         public string Color { get; set; } = "";
         public int SortOrder { get; set; }
 
-        public Stylist Stylist { get; set; }
-        public ICollection<StylistServicePriceVariant> PriceVariants { get; set; } = new List<StylistServicePriceVariant>();
-        public ICollection<StylistScheduleBlock> ScheduleBlocks { get; set; } = new List<StylistScheduleBlock>();
+        public Worker Worker { get; set; }
+        public ICollection<WorkerServicePriceVariant> PriceVariants { get; set; } = new List<WorkerServicePriceVariant>();
+        public ICollection<WorkerScheduleBlock> ScheduleBlocks { get; set; } = new List<WorkerScheduleBlock>();
     }
 }

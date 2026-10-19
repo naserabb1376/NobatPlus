@@ -48,7 +48,7 @@ namespace NobatPlusAPI.Controllers
             {
                 return BadRequest(requestBody);
             }
-            var result = await _DiscountAssignmentRep.GetAllDiscountAssignmentsAsync(requestBody.DiscountId,requestBody.AdminId,requestBody.StylistId,requestBody.PageIndex,requestBody.PageSize,requestBody.SearchText,requestBody.SortQuery);
+            var result = await _DiscountAssignmentRep.GetAllDiscountAssignmentsAsync(requestBody.DiscountId,requestBody.AdminId,requestBody.WorkerId,requestBody.PageIndex,requestBody.PageSize,requestBody.SearchText,requestBody.SortQuery);
             if (result.Status)
             {
                 var resultVM = _mapper.Map<ListResultObject<DiscountAssignmentVM>>(result);
@@ -100,7 +100,7 @@ namespace NobatPlusAPI.Controllers
             {
                 CreateDate = DateTime.Now.ToShamsi(),
                 Description = requestBody.Description,
-                StylistId = requestBody.StylistId,
+                WorkerId = requestBody.WorkerId,
                 AdminId = requestBody.AdminId,
                 DiscountId = requestBody.DiscountId,
                 UpdateDate = DateTime.Now.ToShamsi(),
@@ -150,7 +150,7 @@ namespace NobatPlusAPI.Controllers
                     UpdateDate = DateTime.Now.ToShamsi(),
                     ID = requestBody.ID,
                     Description = requestBody.Description,
-                    StylistId = requestBody.StylistId,
+                    WorkerId = requestBody.WorkerId,
                     AdminId = requestBody.AdminId,
                     DiscountId = requestBody.DiscountId,
                 });

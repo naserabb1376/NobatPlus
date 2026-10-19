@@ -19,6 +19,6 @@ namespace NobatPlusDATA.Domain
         [ForeignKey("RoleId")]
         public Role Role { get; set; }
 
-        public ICollection<Stylist> Stylists { get; set; }
+        public ICollection<Worker> Workers { get; set; }
     }
 }

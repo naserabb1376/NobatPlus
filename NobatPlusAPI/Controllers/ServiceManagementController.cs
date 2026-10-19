@@ -51,7 +51,7 @@ namespace NobatPlusAPI.Controllers
                 return BadRequest(requestBody);
             }
             
-                result = await _ServiceManagementRep.GetAllServiceManagementsAsync(requestBody.ParentID,requestBody.BookingID,requestBody.StylistID,requestBody.BookingID,requestBody.ServiceGender ?? ' ', requestBody.PageIndex,requestBody.PageSize,requestBody.SearchText,requestBody.SortQuery);
+                result = await _ServiceManagementRep.GetAllServiceManagementsAsync(requestBody.ParentID,requestBody.BookingID,requestBody.WorkerID,requestBody.BookingID,requestBody.ServiceGender ?? ' ', requestBody.PageIndex,requestBody.PageSize,requestBody.SearchText,requestBody.SortQuery);
             
             if (result.Status)
             {

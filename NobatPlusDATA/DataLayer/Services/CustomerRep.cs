@@ -94,7 +94,7 @@ namespace NobatPlusDATA.DataLayer.Services
         }
 
         public async Task<ListResultObject<CustomerDTO>> GetAllCustomersAsync(
-       long stylistId = 0,
+       long workerId = 0,
        long cityId = 0,
        long discountId = 0,
        int pageIndex = 1,
@@ -102,12 +102,12 @@ namespace NobatPlusDATA.DataLayer.Services
        string searchText = "",
        string sortQuery = "")
         {
-            var stylistIds = stylistId > 0 ? new List<long> { stylistId } : new List<long>();
-            return await GetAllCustomersByStylistIdsAsync(stylistIds, cityId, discountId, pageIndex, pageSize, searchText, sortQuery);
+            var workerIds = workerId > 0 ? new List<long> { workerId } : new List<long>();
+            return await GetAllCustomersByWorkerIdsAsync(workerIds, cityId, discountId, pageIndex, pageSize, searchText, sortQuery);
         }
 
-        public async Task<ListResultObject<CustomerDTO>> GetAllCustomersByStylistIdsAsync(
-       List<long> stylistIds,
+        public async Task<ListResultObject<CustomerDTO>> GetAllCustomersByWorkerIdsAsync(
+       List<long> workerIds,
        long cityId = 0,
        long discountId = 0,
        int pageIndex = 1,
@@ -119,7 +119,7 @@ namespace NobatPlusDATA.DataLayer.Services
 
             try
             {
-                var stylistIdList = (stylistIds ?? new List<long>())
+                var workerIdList = (workerIds ?? new List<long>())
                     .Where(id => id > 0)
                     .Distinct()
                     .ToList();
@@ -151,11 +151,11 @@ namespace NobatPlusDATA.DataLayer.Services
                         .AsQueryable();
                 }
 
-                if (stylistIdList.Count > 0)
+                if (workerIdList.Count > 0)
                 {
                     query = query.Where(c =>
                         c.Bookings.Any(b =>
-                            stylistIdList.Contains(b.StylistID) && !b.IsCancelled
+                            workerIdList.Contains(b.WorkerID) && !b.IsCancelled
                         )
                     );
                 }
@@ -192,13 +192,13 @@ namespace NobatPlusDATA.DataLayer.Services
                     UpdateDate = x.UpdateDate,
                     PersonID = x.PersonID,
                     Description = x.Description,
-                    BookingCount = stylistIdList.Count > 0
-                        ? x.Bookings.Count(b => stylistIdList.Contains(b.StylistID))
+                    BookingCount = workerIdList.Count > 0
+                        ? x.Bookings.Count(b => workerIdList.Contains(b.WorkerID))
                         : x.Bookings.Count(),
 
-                    LastBookingDate = stylistIdList.Count > 0
+                    LastBookingDate = workerIdList.Count > 0
                         ? x.Bookings
-                            .Where(b => stylistIdList.Contains(b.StylistID))
+                            .Where(b => workerIdList.Contains(b.WorkerID))
                             .OrderByDescending(b => b.BookingDate)
                             .Select(b => (DateTime?)b.BookingDate)
                             .FirstOrDefault()

@@ -6,7 +6,7 @@ namespace NobatPlusAPI.Models.BookingScheduledMessage
     {
         public long BookingID { get; set; } = 0;
         public long CustomerID { get; set; } = 0;
-        public long StylistID { get; set; } = 0;
+        public long WorkerID { get; set; } = 0;
         public long ServiceManagementID { get; set; } = 0;
         public int MessageType { get; set; } = 0;
         public int Status { get; set; } = -1;
@@ -17,11 +17,11 @@ namespace NobatPlusAPI.Models.BookingScheduledMessage
     {
         public long ID { get; set; } = 0;
         public long BookingID { get; set; }
-        public long StylistID { get; set; }
+        public long WorkerID { get; set; }
         public long CustomerID { get; set; }
         public long? ServiceManagementID { get; set; }
-        public long? StylistServiceFollowUpSettingID { get; set; }
-        public long? StylistServicePriceVariantID { get; set; }
+        public long? WorkerServiceFollowUpSettingID { get; set; }
+        public long? WorkerServicePriceVariantID { get; set; }
         public byte MessageType { get; set; }
         public string MessageText { get; set; } = "";
         public DateTime ScheduledAt { get; set; }

@@ -1,0 +1,58 @@
+﻿
+using Domains;
+using NobatPlusDATA.Domain;
+using System.ComponentModel.DataAnnotations;
+
+namespace NobatPlusDATA.ViewModels
+{
+    public class WorkerVM : BaseEntity
+    {
+        public long WorkerParentID { get; set; }
+        public long PersonID { get; set; }
+        public string PersonFirstName { get; set; }
+        public string PersonLastName { get; set; }
+        public string PersonNationalCode { get; set; }
+        public string PersonPhoneNumber { get; set; }
+        public string? Specialty { get; set; }
+        public string WorkerName { get; set; }
+        public string? WorkerBio { get; set; }
+        public string GenderAccepted { get; set; }
+        public string WorkShopInteractMode { get; set; }
+        public bool IsWorkShop { get; set; }
+        public string AccountStatus { get; set; }
+        public string PayMethod { get; set; }
+        public long WorkShopRentAmount { get; set; }
+        public long WorkShopDepositAmount { get; set; }
+        public int YearsOfExperience { get; set; }
+        public long JobTypeID { get; set; }
+        public TimeSpan RestTime { get; set; }
+        public int SlotIntervalMinutes { get; set; }
+        public string BookingCreationMode { get; set; }
+        public string SlotDisplayMode { get; set; }
+        public string JobTypeTitle { get; set; }
+        public float AvgScoreForWorker { get; set; }
+        public int TodayBookingsCount { get; set; }
+        public int TotalBookingsCount { get; set; }
+        public int WorkshopWorkerCount { get; set; }
+        public int SuccededBokingCount { get; set; }
+        public int TotalCustomersCount { get; set; }
+        public bool IsOnLeaveNow { get; set; }
+        public int Gender { get; set; }
+        public string? Email { get; set; }
+        public DateTime DateOfBirth { get; set; }
+        public long? AddressID { get; set; }
+        public long? CityID { get; set; }
+        public string AddressStreet { get; set; }
+        public string AddressPostalCode { get; set; }
+        public string? AddressLocationHorizentalPoint { get; set; }
+        public string? AddressLocationVerticalPoint { get; set; }
+        public string? WorkerImagePath { get; set; }
+        public double RecommendPercent { get; set; }
+        public bool PersonIsActive { get; set; }
+        public List<string> ServiceNames { get; set; }
+        public List<WorkTimeDTO> WorkTimes { get; set; }
+        public List<SocialNetworkDTO> SocialNetworks { get; set; }
+
+
+    }
+}

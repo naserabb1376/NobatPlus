@@ -5,11 +5,11 @@ namespace NobatPlusDATA.Domain
     public class BookingScheduledMessage : BaseEntity
     {
         public long BookingID { get; set; }
-        public long StylistID { get; set; }
+        public long WorkerID { get; set; }
         public long CustomerID { get; set; }
         public long? ServiceManagementID { get; set; }
-        public long? StylistServiceFollowUpSettingID { get; set; }
-        public long? StylistServicePriceVariantID { get; set; }
+        public long? WorkerServiceFollowUpSettingID { get; set; }
+        public long? WorkerServicePriceVariantID { get; set; }
         public byte MessageType { get; set; }
         public string MessageText { get; set; } = "";
         public DateTime ScheduledAt { get; set; }
@@ -23,11 +23,11 @@ namespace NobatPlusDATA.Domain
         public long? NotificationID { get; set; }
 
         public Booking Booking { get; set; }
-        public Stylist Stylist { get; set; }
+        public Worker Worker { get; set; }
         public Customer Customer { get; set; }
         public ServiceManagement? ServiceManagement { get; set; }
-        public StylistServiceFollowUpSetting? StylistServiceFollowUpSetting { get; set; }
-        public StylistServicePriceVariant? StylistServicePriceVariant { get; set; }
+        public WorkerServiceFollowUpSetting? WorkerServiceFollowUpSetting { get; set; }
+        public WorkerServicePriceVariant? WorkerServicePriceVariant { get; set; }
         public SMSMessage? SMSMessage { get; set; }
         public Notification? Notification { get; set; }
     }

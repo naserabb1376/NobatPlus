@@ -12,10 +12,10 @@ namespace NobatPlusDATA.Domain
     {
         public long PaymentID { get; set; }
         public long BookingID { get; set; }
-        public long StylistID { get; set; }
+        public long WorkerID { get; set; }
         public long ServiceManagementID { get; set; }
-        public long? StylistServicePriceVariantID { get; set; }
-        public decimal StylistServiceAmount { get; set; }
+        public long? WorkerServicePriceVariantID { get; set; }
+        public decimal WorkerServiceAmount { get; set; }
         public int DiscountPercent { get; set; }
         public decimal DiscountAmount { get; set; }
         public string AppliedOptionSummary { get; set; }
@@ -27,14 +27,14 @@ namespace NobatPlusDATA.Domain
         [ForeignKey("BookingID")]
         public Booking Booking { get; set; }
 
-        [ForeignKey("StylistID")]
-        public Stylist Stylist { get; set; }
+        [ForeignKey("WorkerID")]
+        public Worker Worker { get; set; }
 
         [ForeignKey("ServiceManagementID")]
         public ServiceManagement ServiceManagement { get; set; }
 
-        public StylistService StylistService { get; set; }
-        public StylistServicePriceVariant StylistServicePriceVariant { get; set; }
+        public WorkerService WorkerService { get; set; }
+        public WorkerServicePriceVariant WorkerServicePriceVariant { get; set; }
         public ICollection<PaymentDetailOptionValue> OptionValues { get; set; }
 
     }

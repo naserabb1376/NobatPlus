@@ -33,17 +33,17 @@ namespace NobatPlusAPI.Controllers
         IPaymentDetailRep _PaymentDetailRep;
         IPaymentRep _PaymentRep;
         ICustomerRep _CustomerRep;
-        IStylistRep _StylistRep;
+        IWorkerRep _WorkerRep;
         ILogRep _logRep;
         private readonly IMapper _mapper;
 
 
-        public PaymentDetailController(IPaymentDetailRep PaymentDetailRep,IPaymentRep paymentRep,ICustomerRep customerRep,IStylistRep stylistRep,ILogRep logRep, IMapper mapper)
+        public PaymentDetailController(IPaymentDetailRep PaymentDetailRep,IPaymentRep paymentRep,ICustomerRep customerRep,IWorkerRep workerRep,ILogRep logRep, IMapper mapper)
         {
            _PaymentDetailRep = PaymentDetailRep;
            _PaymentRep = paymentRep;
            _CustomerRep = customerRep;
-           _StylistRep = stylistRep;
+           _WorkerRep = workerRep;
            _logRep = logRep;
             _mapper = mapper;
         }
@@ -59,7 +59,7 @@ namespace NobatPlusAPI.Controllers
             {
                 return Forbid();
             }
-            var result = await _PaymentDetailRep.GetAllPaymentDetailsAsync(requestBody.StylistId,requestBody.ServiceId,requestBody.PaymentId,requestBody.PageIndex,requestBody.PageSize,requestBody.SearchText,requestBody.SortQuery);
+            var result = await _PaymentDetailRep.GetAllPaymentDetailsAsync(requestBody.WorkerId,requestBody.ServiceId,requestBody.PaymentId,requestBody.PageIndex,requestBody.PageSize,requestBody.SearchText,requestBody.SortQuery);
             if (result.Status)
             {
                 var resultVM = _mapper.Map<ListResultObject<PaymentDetailVM>>(result);
@@ -117,11 +117,11 @@ namespace NobatPlusAPI.Controllers
                 CreateDate = DateTime.Now.ToShamsi(),
                 UpdateDate = DateTime.Now.ToShamsi(),
                 PaymentID = requestBody.PaymentID,
-                StylistID = requestBody.StylistID,
+                WorkerID = requestBody.WorkerID,
                 ServiceManagementID = requestBody.ServiceManagemntID,
                 DiscountPercent = requestBody.DiscountPercent,
                 DiscountAmount = requestBody.DiscountAmount,
-                StylistServiceAmount = requestBody.StylistServiceAmount,
+                WorkerServiceAmount = requestBody.WorkerServiceAmount,
                 Description = requestBody.Description,
             };
             var result = await _PaymentDetailRep.AddPaymentDetailAsync(PaymentDetail);
@@ -169,11 +169,11 @@ namespace NobatPlusAPI.Controllers
                 UpdateDate = DateTime.Now.ToShamsi(),
                 ID = requestBody.ID,
                 PaymentID = requestBody.PaymentID,
-                StylistID = requestBody.StylistID,
+                WorkerID = requestBody.WorkerID,
                 ServiceManagementID = requestBody.ServiceManagemntID,
                 DiscountPercent = requestBody.DiscountPercent,
                 DiscountAmount = requestBody.DiscountAmount,
-                StylistServiceAmount = requestBody.StylistServiceAmount,
+                WorkerServiceAmount = requestBody.WorkerServiceAmount,
                 Description = requestBody.Description,
             };
             result = await _PaymentDetailRep.EditPaymentDetailAsync(PaymentDetail);
@@ -249,25 +249,25 @@ namespace NobatPlusAPI.Controllers
 
             if (roleId == 2)
             {
-                var stylistId = User.GetCurrentProfileId();
-                if (stylistId <= 0) stylistId = User.GetCurrentStylistId();
-                if (stylistId <= 0) return false;
-                requestBody.StylistId = stylistId;
+                var workerId = User.GetCurrentProfileId();
+                if (workerId <= 0) workerId = User.GetCurrentWorkerId();
+                if (workerId <= 0) return false;
+                requestBody.WorkerId = workerId;
                 return true;
             }
 
             if (roleId == 3)
             {
-                var salonId = User.GetCurrentProfileId();
-                if (salonId <= 0) salonId = User.GetCurrentSalonId();
-                if (salonId <= 0) return false;
-                if (requestBody.StylistId <= 0)
+                var workshopId = User.GetCurrentProfileId();
+                if (workshopId <= 0) workshopId = User.GetCurrentWorkshopId();
+                if (workshopId <= 0) return false;
+                if (requestBody.WorkerId <= 0)
                 {
-                    requestBody.StylistId = salonId;
+                    requestBody.WorkerId = workshopId;
                     return true;
                 }
-                var stylist = await _StylistRep.GetStylistByIdAsync(requestBody.StylistId);
-                return stylist.Status && stylist.Result != null && stylist.Result.StylistParentID == salonId;
+                var worker = await _WorkerRep.GetWorkerByIdAsync(requestBody.WorkerId);
+                return worker.Status && worker.Result != null && worker.Result.WorkerParentID == workshopId;
             }
 
             return false;
@@ -293,19 +293,19 @@ namespace NobatPlusAPI.Controllers
 
             if (roleId == 2)
             {
-                var stylistId = User.GetCurrentProfileId();
-                if (stylistId <= 0) stylistId = User.GetCurrentStylistId();
-                return stylistId > 0 && detail.StylistID == stylistId;
+                var workerId = User.GetCurrentProfileId();
+                if (workerId <= 0) workerId = User.GetCurrentWorkerId();
+                return workerId > 0 && detail.WorkerID == workerId;
             }
 
             if (roleId == 3)
             {
-                var salonId = User.GetCurrentProfileId();
-                if (salonId <= 0) salonId = User.GetCurrentSalonId();
-                if (salonId <= 0) return false;
-                if (detail.StylistID == salonId) return true;
-                var stylist = await _StylistRep.GetStylistByIdAsync(detail.StylistID);
-                return stylist.Status && stylist.Result != null && stylist.Result.StylistParentID == salonId;
+                var workshopId = User.GetCurrentProfileId();
+                if (workshopId <= 0) workshopId = User.GetCurrentWorkshopId();
+                if (workshopId <= 0) return false;
+                if (detail.WorkerID == workshopId) return true;
+                var worker = await _WorkerRep.GetWorkerByIdAsync(detail.WorkerID);
+                return worker.Status && worker.Result != null && worker.Result.WorkerParentID == workshopId;
             }
 
             return false;

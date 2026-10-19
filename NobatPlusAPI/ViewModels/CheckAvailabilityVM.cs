@@ -7,9 +7,9 @@ namespace NobatPlusDATA.ViewModels
 {
     public class CheckAvailabilityVM :BaseEntity
     {
-        public long StylistID { get; set; }
-        public string StylistName { get; set; }
-        public string SalonName { get; set; }
+        public long WorkerID { get; set; }
+        public string WorkerName { get; set; }
+        public string WorkshopName { get; set; }
         public DateTime Date { get; set; }
         public TimeSpan Time { get; set; }
     }

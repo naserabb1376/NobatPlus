@@ -131,7 +131,7 @@ namespace NobatPlusDATA.DataLayer.Services
             {
                 result.Status = await _context.ServiceDiscounts
                 .AsNoTracking()
-                .Include(x=> x.Discount).Include(x=> x.Admin).Include(x=> x.Stylist)
+                .Include(x=> x.Discount).Include(x=> x.Admin).Include(x=> x.Worker)
                 .AnyAsync(x => x.ID == ServiceDiscountId);
                 result.ID = ServiceDiscountId;
             }
@@ -144,7 +144,7 @@ namespace NobatPlusDATA.DataLayer.Services
             
         }
 
-        public async Task<ListResultObject<ServiceDiscount>> GetAllServiceDiscountsAsync(long DiscountId, long ServiceManagementId, long AdminId = 0, long StylistId = 0, int pageIndex = 1, int pageSize = 20, string searchText = "",string sortQuery ="")
+        public async Task<ListResultObject<ServiceDiscount>> GetAllServiceDiscountsAsync(long DiscountId, long ServiceManagementId, long AdminId = 0, long WorkerId = 0, int pageIndex = 1, int pageSize = 20, string searchText = "",string sortQuery ="")
         {
             ListResultObject<ServiceDiscount> results = new ListResultObject<ServiceDiscount>();
             try
@@ -153,16 +153,16 @@ namespace NobatPlusDATA.DataLayer.Services
              .AsNoTracking()
              .Include(x => x.Discount)
              .Include(x => x.Admin).ThenInclude(x => x.Person)
-             .Include(x => x.Stylist).ThenInclude(x => x.Person)
+             .Include(x => x.Worker).ThenInclude(x => x.Person)
              .Include(x => x.ServiceManagement);
 
                 if (AdminId > 0)
                 {
                     query = query.Where(x => x.DiscountId == DiscountId && x.ServiceManagementId == ServiceManagementId && x.AdminId == AdminId);
                 }
-                else if (StylistId > 0)
+                else if (WorkerId > 0)
                 {
-                    query = query.Where(x => x.DiscountId == DiscountId && x.ServiceManagementId == ServiceManagementId && x.StylistId == StylistId);
+                    query = query.Where(x => x.DiscountId == DiscountId && x.ServiceManagementId == ServiceManagementId && x.WorkerId == WorkerId);
                 }
                 else
                 {
@@ -179,9 +179,9 @@ namespace NobatPlusDATA.DataLayer.Services
                     (!string.IsNullOrEmpty(x.Admin.Person.FirstName) && x.Admin.Person.FirstName.Contains(searchText)) ||
                     (!string.IsNullOrEmpty(x.Admin.Person.LastName) && x.Admin.Person.LastName.Contains(searchText)) ||
                     (!string.IsNullOrEmpty(x.Admin.Role) && x.Admin.Role.Contains(searchText)) ||
-                    (!string.IsNullOrEmpty(x.Stylist.Person.FirstName) && x.Stylist.Person.FirstName.Contains(searchText)) ||
-                    (!string.IsNullOrEmpty(x.Stylist.Person.LastName) && x.Stylist.Person.LastName.Contains(searchText)) ||
-                    (!string.IsNullOrEmpty(x.Stylist.Specialty) && x.Stylist.Specialty.Contains(searchText)) ||
+                    (!string.IsNullOrEmpty(x.Worker.Person.FirstName) && x.Worker.Person.FirstName.Contains(searchText)) ||
+                    (!string.IsNullOrEmpty(x.Worker.Person.LastName) && x.Worker.Person.LastName.Contains(searchText)) ||
+                    (!string.IsNullOrEmpty(x.Worker.Specialty) && x.Worker.Specialty.Contains(searchText)) ||
                     (!string.IsNullOrEmpty(x.ServiceManagement.ServiceName) && x.ServiceManagement.ServiceName.Contains(searchText)) ||
                     //(!string.IsNullOrEmpty(x.ServiceManagement.Price.ToString()) && x.ServiceManagement.Price.ToString().Contains(searchText)) ||
                     (x.CreateDate.HasValue && x.CreateDate.Value.ToString().Contains(searchText)) ||

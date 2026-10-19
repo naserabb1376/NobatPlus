@@ -27,11 +27,11 @@ namespace NobatPlusDATA.Tools
             All = 0,
             Admin = 1,
             Customer = 2,
-            Stylist = 3,
-            StylistCustomer = 4,
+            Worker = 3,
+            WorkerCustomer = 4,
             Service = 5,
             AdminService = 6,
-            StylistService = 7,
+            WorkerService = 7,
         }
 
         public sealed class BookingDurationRow

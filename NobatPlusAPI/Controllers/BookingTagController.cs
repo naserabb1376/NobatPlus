@@ -16,18 +16,18 @@ namespace NobatPlusAPI.Controllers
     public class BookingTagController : ControllerBase
     {
         private readonly IBookingTagRep _rep;
-        private readonly IStylistRep _stylistRep;
+        private readonly IWorkerRep _workerRep;
         private readonly IMapper _mapper;
 
-        public BookingTagController(IBookingTagRep rep, IStylistRep stylistRep, IMapper mapper)
-        { _rep = rep; _stylistRep = stylistRep; _mapper = mapper; }
+        public BookingTagController(IBookingTagRep rep, IWorkerRep workerRep, IMapper mapper)
+        { _rep = rep; _workerRep = workerRep; _mapper = mapper; }
 
         [HttpPost("GetAllBookingTags_Base")]
         public async Task<ActionResult<ListResultObject<BookingTagVM>>> GetAllBookingTags_Base(GetBookingTagListRequestBody request)
         {
             if (!ModelState.IsValid) return BadRequest(request);
-            if (!await CanManageStylistAsync(request.StylistID)) return Forbid();
-            var result = await _rep.GetAllBookingTagsAsync(request.StylistID, request.IsActive, request.PageIndex, request.PageSize, request.SearchText, request.SortQuery);
+            if (!await CanManageWorkerAsync(request.WorkerID)) return Forbid();
+            var result = await _rep.GetAllBookingTagsAsync(request.WorkerID, request.IsActive, request.PageIndex, request.PageSize, request.SearchText, request.SortQuery);
             return result.Status ? Ok(_mapper.Map<ListResultObject<BookingTagVM>>(result)) : BadRequest(result);
         }
 
@@ -36,7 +36,7 @@ namespace NobatPlusAPI.Controllers
         {
             var result = await _rep.GetBookingTagByIdAsync(request.ID);
             if (!result.Status || result.Result == null) return BadRequest(result);
-            if (!await CanManageStylistAsync(result.Result.StylistID)) return Forbid();
+            if (!await CanManageWorkerAsync(result.Result.WorkerID)) return Forbid();
             return Ok(_mapper.Map<RowResultObject<BookingTagVM>>(result));
         }
 
@@ -44,7 +44,7 @@ namespace NobatPlusAPI.Controllers
         public async Task<ActionResult<BitResultObject>> AddBookingTag_Base(AddEditBookingTagRequestBody request)
         {
             if (!ModelState.IsValid) return BadRequest(request);
-            if (!await CanManageStylistAsync(request.StylistID)) return Forbid();
+            if (!await CanManageWorkerAsync(request.WorkerID)) return Forbid();
             var result = await _rep.AddBookingTagAsync(Build(request, DateTime.Now.ToShamsi()));
             return result.Status ? Ok(result) : BadRequest(result);
         }
@@ -55,7 +55,7 @@ namespace NobatPlusAPI.Controllers
             if (!ModelState.IsValid) return BadRequest(request);
             var old = await _rep.GetBookingTagByIdAsync(request.ID);
             if (!old.Status || old.Result == null) return BadRequest(old);
-            if (!await CanManageStylistAsync(old.Result.StylistID) || old.Result.StylistID != request.StylistID) return Forbid();
+            if (!await CanManageWorkerAsync(old.Result.WorkerID) || old.Result.WorkerID != request.WorkerID) return Forbid();
             var result = await _rep.EditBookingTagAsync(Build(request, old.Result.CreateDate));
             return result.Status ? Ok(result) : BadRequest(result);
         }
@@ -65,23 +65,23 @@ namespace NobatPlusAPI.Controllers
         {
             var old = await _rep.GetBookingTagByIdAsync(request.ID);
             if (!old.Status || old.Result == null) return BadRequest(old);
-            if (!await CanManageStylistAsync(old.Result.StylistID)) return Forbid();
+            if (!await CanManageWorkerAsync(old.Result.WorkerID)) return Forbid();
             var result = await _rep.RemoveBookingTagAsync(request.ID);
             return result.Status ? Ok(result) : BadRequest(result);
         }
 
         private static BookingTag Build(AddEditBookingTagRequestBody x, DateTime? createDate) => new()
-        { ID = x.ID, StylistID = x.StylistID, Title = x.Title, Color = x.Color, SortOrder = x.SortOrder, IsActive = x.IsActive, Description = x.Description, CreateDate = createDate, UpdateDate = DateTime.Now.ToShamsi() };
+        { ID = x.ID, WorkerID = x.WorkerID, Title = x.Title, Color = x.Color, SortOrder = x.SortOrder, IsActive = x.IsActive, Description = x.Description, CreateDate = createDate, UpdateDate = DateTime.Now.ToShamsi() };
 
-        private async Task<bool> CanManageStylistAsync(long stylistId)
+        private async Task<bool> CanManageWorkerAsync(long workerId)
         {
             if (User.GetCurrentRoleId() == (long)DbTools.BaseRole.Admin) return true;
-            var current = User.GetCurrentProfileId() > 0 ? User.GetCurrentProfileId() : User.GetCurrentStylistId();
+            var current = User.GetCurrentProfileId() > 0 ? User.GetCurrentProfileId() : User.GetCurrentWorkerId();
             if (current <= 0) return false;
-            if (stylistId == current) return true;
+            if (workerId == current) return true;
             if (User.GetCurrentRoleId() != (long)DbTools.BaseRole.WorkShop) return false;
-            var target = await _stylistRep.GetStylistByIdAsync(stylistId);
-            return target.Status && target.Result?.StylistParentID == current;
+            var target = await _workerRep.GetWorkerByIdAsync(workerId);
+            return target.Status && target.Result?.WorkerParentID == current;
         }
     }
 }

@@ -9,10 +9,10 @@ namespace NobatPlusDATA.Domain
 {
     public class CheckAvailability : BaseEntity
     {
-        public long StylistID { get; set; }
+        public long WorkerID { get; set; }
         public DateTime Date { get; set; }
         public TimeSpan Time { get; set; }
 
-        public Stylist Stylist { get; set; }
+        public Worker Worker { get; set; }
     }
 }

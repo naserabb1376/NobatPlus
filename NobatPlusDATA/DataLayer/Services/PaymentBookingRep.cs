@@ -122,7 +122,7 @@ namespace NobatPlusDATA.DataLayer.Services
                 var query = _context.PaymentBookings
                     .Include(x => x.Payment)
                     .Include(x => x.Booking).ThenInclude(x => x.Customer).ThenInclude(x => x.Person)
-                    .Include(x => x.Booking).ThenInclude(x => x.Stylist).ThenInclude(x => x.Person)
+                    .Include(x => x.Booking).ThenInclude(x => x.Worker).ThenInclude(x => x.Person)
                     .AsNoTracking();
 
                 if (paymentId > 0) query = query.Where(x => x.PaymentID == paymentId);
@@ -136,8 +136,8 @@ namespace NobatPlusDATA.DataLayer.Services
                         x.Booking.Status.Contains(searchText) ||
                         x.Booking.Customer.Person.FirstName.Contains(searchText) ||
                         x.Booking.Customer.Person.LastName.Contains(searchText) ||
-                        x.Booking.Stylist.Person.FirstName.Contains(searchText) ||
-                        x.Booking.Stylist.Person.LastName.Contains(searchText));
+                        x.Booking.Worker.Person.FirstName.Contains(searchText) ||
+                        x.Booking.Worker.Person.LastName.Contains(searchText));
                 }
 
                 results.TotalCount = query.Count();
@@ -160,7 +160,7 @@ namespace NobatPlusDATA.DataLayer.Services
                 result.Result = await _context.PaymentBookings
                     .Include(x => x.Payment)
                     .Include(x => x.Booking).ThenInclude(x => x.Customer).ThenInclude(x => x.Person)
-                    .Include(x => x.Booking).ThenInclude(x => x.Stylist).ThenInclude(x => x.Person)
+                    .Include(x => x.Booking).ThenInclude(x => x.Worker).ThenInclude(x => x.Person)
                     .AsNoTracking()
                     .SingleOrDefaultAsync(x => x.PaymentID == paymentId && x.BookingID == bookingId);
             }

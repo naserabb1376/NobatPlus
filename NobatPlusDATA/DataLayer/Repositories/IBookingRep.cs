@@ -11,22 +11,22 @@ namespace NobatPlusDATA.DataLayer.Repositories
 {
     public interface IBookingRep
     {
-        public Task<ListResultObject<BookingDTO>> GetAllBookingsAsync(long ServiceManagementId = 0, long customerId = 0,long stylistId = 0, int cancelState = 0,DateTime? fromDate = null,DateTime? toDate = null, int pageIndex = 1, int pageSize = 20, string searchText = "",string sortQuery ="", string status = "");
+        public Task<ListResultObject<BookingDTO>> GetAllBookingsAsync(long ServiceManagementId = 0, long customerId = 0,long workerId = 0, int cancelState = 0,DateTime? fromDate = null,DateTime? toDate = null, int pageIndex = 1, int pageSize = 20, string searchText = "",string sortQuery ="", string status = "");
         public Task<RowResultObject<BookingDTO>> GetBookingByIdAsync(long BookingId);
         public Task<BitResultObject> AddBookingAsync(Booking Booking);
         public Task<BitResultObject> EditBookingAsync(Booking Booking);
         public Task<BitResultObject> RemoveBookingAsync(Booking Booking);
         public Task<BitResultObject> RemoveBookingAsync(long BookingId);
         public Task<BitResultObject> ExistBookingAsync(long BookingId);
-        public Task<ListResultObject<PublicBookingSlotDTO>> GetAvailableBookingSlotsAsync(long stylistId, long customerId, DateTime fromDate, DateTime toDate, List<BookingServiceSelectionDTO> services);
+        public Task<ListResultObject<PublicBookingSlotDTO>> GetAvailableBookingSlotsAsync(long workerId, long customerId, DateTime fromDate, DateTime toDate, List<BookingServiceSelectionDTO> services);
         public Task<ListResultObject<BookingDTO>> MarkBookingsForRescheduleByLeaveAsync(
-            long stylistId,
+            long workerId,
             DateTime start,
             DateTime end,
             string reason);
 
         public Task<ListResultObject<BookingDTO>> RestoreBookingsAfterLeaveDeleteAsync(
-            long stylistId,
+            long workerId,
             DateTime start,
             DateTime end);
     }

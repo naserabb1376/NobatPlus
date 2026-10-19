@@ -16,6 +16,6 @@ namespace NobatPlusAPI.Models.Review
 
         [Display(Name = "کد خدمات دهنده")]
         //[Required(ErrorMessage = "لطفا {0} را وارد کنید")]
-        public long StylistId { get; set; } = 0;
+        public long WorkerId { get; set; } = 0;
     }
 }

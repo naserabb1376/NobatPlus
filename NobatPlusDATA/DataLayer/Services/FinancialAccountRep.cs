@@ -15,12 +15,12 @@ namespace NobatPlusDATA.DataLayer.Services
             _context = context;
         }
 
-        public async Task<RowResultObject<FinancialAccountReport>> GetFinancialAccountAsync(long stylistId, int pageIndex = 1, int pageSize = 20, DateTime? fromDate = null, DateTime? toDate = null, string transactionType = "")
+        public async Task<RowResultObject<FinancialAccountReport>> GetFinancialAccountAsync(long workerId, int pageIndex = 1, int pageSize = 20, DateTime? fromDate = null, DateTime? toDate = null, string transactionType = "")
         {
             var result = new RowResultObject<FinancialAccountReport>();
             try
             {
-                var account = await GetOrCreateAccountAsync(stylistId);
+                var account = await GetOrCreateAccountAsync(workerId);
                 await SyncEarningsAsync(account);
 
                 var pendingSettlementAmount = await _context.SettlementRequests
@@ -108,7 +108,7 @@ namespace NobatPlusDATA.DataLayer.Services
                 result.Result = new FinancialAccountReport
                 {
                     AccountId = account.ID,
-                    StylistId = account.StylistID,
+                    WorkerId = account.WorkerID,
                     AccountType = account.AccountType,
                     Balance = account.Balance,
                     PendingSettlementAmount = pendingSettlementAmount,
@@ -138,12 +138,12 @@ namespace NobatPlusDATA.DataLayer.Services
             return result;
         }
 
-        public async Task<BitResultObject> UpdateBankInfoAsync(long stylistId, string iban, string ownerName)
+        public async Task<BitResultObject> UpdateBankInfoAsync(long workerId, string iban, string ownerName)
         {
             var result = new BitResultObject();
             try
             {
-                var account = await GetOrCreateAccountAsync(stylistId);
+                var account = await GetOrCreateAccountAsync(workerId);
                 account.Iban = iban ?? "";
                 account.BankAccountOwnerName = ownerName ?? "";
                 account.UpdateDate = DateTime.Now.ToShamsi();
@@ -160,7 +160,7 @@ namespace NobatPlusDATA.DataLayer.Services
             return result;
         }
 
-        public async Task<BitResultObject> RequestSettlementAsync(long stylistId, decimal amount, string description = "")
+        public async Task<BitResultObject> RequestSettlementAsync(long workerId, decimal amount, string description = "")
         {
             var result = new BitResultObject();
             try
@@ -172,7 +172,7 @@ namespace NobatPlusDATA.DataLayer.Services
                     return result;
                 }
 
-                var accountReport = await GetFinancialAccountAsync(stylistId);
+                var accountReport = await GetFinancialAccountAsync(workerId);
                 if (!accountReport.Status || accountReport.Result == null)
                 {
                     result.Status = false;
@@ -238,7 +238,7 @@ namespace NobatPlusDATA.DataLayer.Services
             try
             {
                 var query = _context.SettlementRequests
-                    .Include(x => x.FinancialAccount).ThenInclude(x => x.Stylist).ThenInclude(x => x.Person)
+                    .Include(x => x.FinancialAccount).ThenInclude(x => x.Worker).ThenInclude(x => x.Person)
                     .AsNoTracking()
                     .AsQueryable();
 
@@ -266,10 +266,10 @@ namespace NobatPlusDATA.DataLayer.Services
                 if (!string.IsNullOrWhiteSpace(searchText))
                 {
                     query = query.Where(x =>
-                        x.FinancialAccount.Stylist.StylistName.Contains(searchText) ||
-                        x.FinancialAccount.Stylist.Person.FirstName.Contains(searchText) ||
-                        x.FinancialAccount.Stylist.Person.LastName.Contains(searchText) ||
-                        x.FinancialAccount.Stylist.Person.PhoneNumber.Contains(searchText) ||
+                        x.FinancialAccount.Worker.WorkerName.Contains(searchText) ||
+                        x.FinancialAccount.Worker.Person.FirstName.Contains(searchText) ||
+                        x.FinancialAccount.Worker.Person.LastName.Contains(searchText) ||
+                        x.FinancialAccount.Worker.Person.PhoneNumber.Contains(searchText) ||
                         x.Iban.Contains(searchText) ||
                         x.BankAccountOwnerName.Contains(searchText) ||
                         x.TrackingCode.Contains(searchText) ||
@@ -289,10 +289,10 @@ namespace NobatPlusDATA.DataLayer.Services
                     {
                         Id = x.ID,
                         FinancialAccountId = x.FinancialAccountID,
-                        StylistId = x.FinancialAccount.StylistID,
+                        WorkerId = x.FinancialAccount.WorkerID,
                         AccountType = x.FinancialAccount.AccountType,
-                        StylistName = x.FinancialAccount.Stylist.StylistName,
-                        PersonFullName = x.FinancialAccount.Stylist.Person.FirstName + " " + x.FinancialAccount.Stylist.Person.LastName,
+                        WorkerName = x.FinancialAccount.Worker.WorkerName,
+                        PersonFullName = x.FinancialAccount.Worker.Person.FirstName + " " + x.FinancialAccount.Worker.Person.LastName,
                         Amount = x.Amount,
                         Status = x.Status,
                         RequestDate = x.RequestDate,
@@ -406,19 +406,19 @@ namespace NobatPlusDATA.DataLayer.Services
             return result;
         }
 
-        private async Task<FinancialAccount> GetOrCreateAccountAsync(long stylistId)
+        private async Task<FinancialAccount> GetOrCreateAccountAsync(long workerId)
         {
-            var account = await _context.FinancialAccounts.FirstOrDefaultAsync(x => x.StylistID == stylistId);
+            var account = await _context.FinancialAccounts.FirstOrDefaultAsync(x => x.WorkerID == workerId);
             if (account != null)
             {
                 return account;
             }
 
-            var stylist = await _context.Stylists.AsNoTracking().FirstOrDefaultAsync(x => x.ID == stylistId);
+            var worker = await _context.Workers.AsNoTracking().FirstOrDefaultAsync(x => x.ID == workerId);
             account = new FinancialAccount
             {
-                StylistID = stylistId,
-                AccountType = stylist?.IsWorkShop == true ? "salon" : "stylist",
+                WorkerID = workerId,
+                AccountType = worker?.IsWorkShop == true ? "workshop" : "worker",
                 Balance = 0,
                 Iban = "",
                 BankAccountOwnerName = "",
@@ -434,34 +434,34 @@ namespace NobatPlusDATA.DataLayer.Services
 
         private async Task SyncEarningsAsync(FinancialAccount account)
         {
-            var accountStylist = await _context.Stylists.AsNoTracking().FirstOrDefaultAsync(x => x.ID == account.StylistID);
-            if (accountStylist == null)
+            var accountWorker = await _context.Workers.AsNoTracking().FirstOrDefaultAsync(x => x.ID == account.WorkerID);
+            if (accountWorker == null)
             {
                 return;
             }
 
-            var stylistIds = account.AccountType == "salon"
-                ? await _context.Stylists
+            var workerIds = account.AccountType == "workshop"
+                ? await _context.Workers
                     .AsNoTracking()
-                    .Where(x => x.ID == account.StylistID || x.StylistParentID == account.StylistID)
+                    .Where(x => x.ID == account.WorkerID || x.WorkerParentID == account.WorkerID)
                     .Select(x => x.ID)
                     .ToListAsync()
-                : new List<long> { account.StylistID };
+                : new List<long> { account.WorkerID };
 
             var paidPayments = await _context.Payments
                 .Include(x => x.PaymentBookings).ThenInclude(x => x.Booking)
                 .AsNoTracking()
                 .Where(x => x.PaymentFinished || x.PayedAmount > 0)
                 .Where(x => x.PaymentBookings.Any(pb =>
-                    stylistIds.Contains(pb.Booking.StylistID) && !pb.Booking.IsCancelled))
+                    workerIds.Contains(pb.Booking.WorkerID) && !pb.Booking.IsCancelled))
                 .Select(x => new
                 {
                     x.ID,
                     BookingID = x.PaymentBookings
-                        .Where(pb => stylistIds.Contains(pb.Booking.StylistID))
+                        .Where(pb => workerIds.Contains(pb.Booking.WorkerID))
                         .Select(pb => pb.BookingID)
                         .FirstOrDefault(),
-                    x.StylistAmount,
+                    x.WorkerAmount,
                     x.PayedAmount,
                     x.PaymentDate
                 })
@@ -482,7 +482,7 @@ namespace NobatPlusDATA.DataLayer.Services
                     FinancialAccountID = account.ID,
                     BookingID = x.BookingID,
                     PaymentID = x.ID,
-                    Amount = x.StylistAmount,
+                    Amount = x.WorkerAmount,
                     TransactionType = "earning",
                     Status = "success",
                     TransactionDate = x.PaymentDate == default ? now : x.PaymentDate,

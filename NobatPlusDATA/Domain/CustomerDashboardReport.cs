@@ -7,7 +7,7 @@ namespace NobatPlusDATA.Domain
         public List<CustomerAppointmentDto> UpcomingAppointments { get; set; } = new();
         public List<CustomerPaymentDto> RecentPayments { get; set; } = new();
         public List<CustomerServiceHistoryDto> RecentServices { get; set; } = new();
-        public List<CustomerStylistHistoryDto> RecentStylists { get; set; } = new();
+        public List<CustomerWorkerHistoryDto> RecentWorkers { get; set; } = new();
         public List<CustomerPendingReviewDto> PendingReviews { get; set; } = new();
         public List<ChartPointDto> BookingTrend { get; set; } = new();
     }
@@ -33,7 +33,7 @@ namespace NobatPlusDATA.Domain
         public DateTime BookingDate { get; set; }
         public string Time { get; set; } = "";
         public string Services { get; set; } = "";
-        public string StylistName { get; set; } = "";
+        public string WorkerName { get; set; } = "";
         public decimal Amount { get; set; }
         public decimal PaidAmount { get; set; }
         public decimal RemainAmount { get; set; }
@@ -48,7 +48,7 @@ namespace NobatPlusDATA.Domain
         public string Date { get; set; } = "";
         public DateTime PaymentDate { get; set; }
         public string Services { get; set; } = "";
-        public string StylistName { get; set; } = "";
+        public string WorkerName { get; set; } = "";
         public decimal Amount { get; set; }
         public decimal PaidAmount { get; set; }
         public decimal RemainAmount { get; set; }
@@ -65,10 +65,10 @@ namespace NobatPlusDATA.Domain
         public decimal PaidAmount { get; set; }
     }
 
-    public class CustomerStylistHistoryDto
+    public class CustomerWorkerHistoryDto
     {
-        public long StylistId { get; set; }
-        public string StylistName { get; set; } = "";
+        public long WorkerId { get; set; }
+        public string WorkerName { get; set; } = "";
         public int BookingCount { get; set; }
         public DateTime? LastBookingDate { get; set; }
         public string LastBookingDateText { get; set; } = "";
@@ -79,9 +79,9 @@ namespace NobatPlusDATA.Domain
     {
         public long BookingId { get; set; }
         public long CustomerID { get; set; }
-        public long StylistID { get; set; }
+        public long WorkerID { get; set; }
         public string Date { get; set; } = "";
         public string Services { get; set; } = "";
-        public string StylistName { get; set; } = "";
+        public string WorkerName { get; set; } = "";
     }
 }

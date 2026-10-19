@@ -79,7 +79,7 @@ namespace NobatPlusDATA.DataLayer.Services
             
         }
 
-        public async Task<ListResultObject<ServiceManagementDTO>> GetAllServiceManagementsAsync(long parentId = 0,long bookingId = 0,long stylistId = 0,long discountId = 0,char serviceGender = ' ',int pageIndex = 1,int pageSize = 20,string searchText = "",string sortQuery = "")
+        public async Task<ListResultObject<ServiceManagementDTO>> GetAllServiceManagementsAsync(long parentId = 0,long bookingId = 0,long workerId = 0,long discountId = 0,char serviceGender = ' ',int pageIndex = 1,int pageSize = 20,string searchText = "",string sortQuery = "")
         {
             var results = new ListResultObject<ServiceManagementDTO>();
 
@@ -94,10 +94,10 @@ namespace NobatPlusDATA.DataLayer.Services
                         .Where(bs => bs.BookingID == bookingId)
                         .Select(bs => bs.ServiceManagement);
                 }
-                else if (stylistId > 0)
+                else if (workerId > 0)
                 {
-                    query = _context.StylistServices
-                        .Where(ss => ss.StylistID == stylistId)
+                    query = _context.WorkerServices
+                        .Where(ss => ss.WorkerID == workerId)
                         .Select(ss => ss.ServiceManagement);
                 }
                 else if (discountId > 0)
@@ -116,7 +116,7 @@ namespace NobatPlusDATA.DataLayer.Services
                     }
                 }
 
-                query = query.Include(x => x.StylistServices);
+                query = query.Include(x => x.WorkerServices);
 
                 // 🔍 فیلتر سرچ
                 if (!string.IsNullOrEmpty(searchText))
@@ -151,7 +151,7 @@ namespace NobatPlusDATA.DataLayer.Services
                          ServiceGender = r.ServiceGender,
                          ServiceName = r.ServiceName,
                          ServiceParentID = r.ServiceParentID,
-                         StylistCount = r.StylistServices.Count,
+                         WorkerCount = r.WorkerServices.Count,
                      })
                     .SortBy(sortQuery)
                     .ToPaging(pageIndex, pageSize)
@@ -173,7 +173,7 @@ namespace NobatPlusDATA.DataLayer.Services
             try
             {
                 result.Result = await _context.ServiceManagements
-                    .Include(x=> x.StylistServices)
+                    .Include(x=> x.WorkerServices)
                 .Where(x => x.ID == ServiceManagementId)
                  .Select(r => new ServiceManagementDTO
                  {
@@ -184,7 +184,7 @@ namespace NobatPlusDATA.DataLayer.Services
                      ServiceGender = r.ServiceGender,
                      ServiceName = r.ServiceName,
                      ServiceParentID = r.ServiceParentID,
-                     StylistCount = r.StylistServices.Count,
+                     WorkerCount = r.WorkerServices.Count,
                  }).AsNoTracking().SingleOrDefaultAsync();
             }
             catch (Exception ex)

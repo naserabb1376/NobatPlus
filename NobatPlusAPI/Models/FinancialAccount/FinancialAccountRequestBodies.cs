@@ -11,10 +11,10 @@ namespace NobatPlusAPI.Models.FinancialAccount
         public string? TransactionType { get; set; }
     }
 
-    public class GetStylistFinancialAccountRequestBody : GetFinancialAccountRequestBody
+    public class GetWorkerFinancialAccountRequestBody : GetFinancialAccountRequestBody
     {
-        [Range(1, long.MaxValue, ErrorMessage = "شناسه آرایشگر معتبر نیست")]
-        public long StylistId { get; set; }
+        [Range(1, long.MaxValue, ErrorMessage = "شناسه خدمات دهنده معتبر نیست")]
+        public long WorkerId { get; set; }
     }
 
     public class UpdateFinancialBankInfoRequestBody
@@ -25,8 +25,8 @@ namespace NobatPlusAPI.Models.FinancialAccount
 
     public class AdminUpdateFinancialBankInfoRequestBody : UpdateFinancialBankInfoRequestBody
     {
-        [Range(1, long.MaxValue, ErrorMessage = "شناسه آرایشگر معتبر نیست")]
-        public long StylistId { get; set; }
+        [Range(1, long.MaxValue, ErrorMessage = "شناسه خدمات دهنده معتبر نیست")]
+        public long WorkerId { get; set; }
     }
 
     public class RequestSettlementRequestBody
@@ -38,8 +38,8 @@ namespace NobatPlusAPI.Models.FinancialAccount
 
     public class AdminRequestSettlementRequestBody : RequestSettlementRequestBody
     {
-        [Range(1, long.MaxValue, ErrorMessage = "شناسه آرایشگر معتبر نیست")]
-        public long StylistId { get; set; }
+        [Range(1, long.MaxValue, ErrorMessage = "شناسه خدمات دهنده معتبر نیست")]
+        public long WorkerId { get; set; }
     }
 
     public class GetSettlementRequestsRequestBody

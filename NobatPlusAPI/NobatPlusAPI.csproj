@@ -100,10 +100,10 @@
     <Folder Include="FileCenter\ServiceDiscount\Images\Public\" />
     <Folder Include="FileCenter\ServiceManagement\Files\Public\" />
     <Folder Include="FileCenter\ServiceManagement\Images\Public\" />
-    <Folder Include="FileCenter\StylistService\Files\Public\" />
-    <Folder Include="FileCenter\StylistService\Images\Public\" />
-    <Folder Include="FileCenter\Stylist\Files\Public\" />
-    <Folder Include="FileCenter\Stylist\Images\Public\" />
+    <Folder Include="FileCenter\WorkerService\Files\Public\" />
+    <Folder Include="FileCenter\WorkerService\Images\Public\" />
+    <Folder Include="FileCenter\Worker\Files\Public\" />
+    <Folder Include="FileCenter\Worker\Images\Public\" />
     <Folder Include="wwwroot\js\" />
   </ItemGroup>
 

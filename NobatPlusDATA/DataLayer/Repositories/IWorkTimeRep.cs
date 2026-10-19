@@ -11,7 +11,7 @@ namespace NobatPlusDATA.DataLayer.Repositories
 {
     public interface IWorkTimeRep
     {
-        public Task<ListResultObject<WorkTime>> GetAllWorkTimesAsync(long stylistId=0,int pageIndex = 1, int pageSize = 20, string searchText = "",string sortQuery ="");
+        public Task<ListResultObject<WorkTime>> GetAllWorkTimesAsync(long workerId=0,int pageIndex = 1, int pageSize = 20, string searchText = "",string sortQuery ="");
         public Task<RowResultObject<WorkTime>> GetWorkTimeByIdAsync(long WorkTimeId);
         public Task<BitResultObject> AddWorkTimeAsync(WorkTime WorkTime);
         public Task<BitResultObject> EditWorkTimeAsync(WorkTime WorkTime);
