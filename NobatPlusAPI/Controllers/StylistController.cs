@@ -21,7 +21,7 @@ using System.Text;
 
 namespace NobatPlusAPI.Controllers
 {
-    [Route("Stylist")]
+    [Route("stylist")]
     [ApiController]
     [Authorize]
     [Produces("application/json")]
@@ -119,7 +119,6 @@ namespace NobatPlusAPI.Controllers
                 WorkShopDepositAmount = requestBody.WorkShopDepositAmount,
                 WorkShopRentAmount = requestBody.WorkShopRentAmount,
                 IsWorkShop = requestBody.IsWorkshop,
-                IsStylistOnly = requestBody.IsStylistOnly,
                 RestTime = requestBody.RestTime,
                 SlotIntervalMinutes = requestBody.SlotIntervalMinutes,
                 BookingCreationMode = requestBody.BookingCreationMode ?? "automatic",
@@ -186,7 +185,6 @@ namespace NobatPlusAPI.Controllers
                 WorkShopDepositAmount = requestBody.WorkShopDepositAmount,
                 WorkShopRentAmount = requestBody.WorkShopRentAmount,
                 IsWorkShop = requestBody.IsWorkshop,
-                IsStylistOnly = requestBody.IsStylistOnly,
                 RestTime = requestBody.RestTime,
                 SlotIntervalMinutes = requestBody.SlotIntervalMinutes,
                 BookingCreationMode = requestBody.BookingCreationMode ?? theRow.Result.BookingCreationMode,

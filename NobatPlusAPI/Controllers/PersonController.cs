@@ -587,14 +587,14 @@ namespace NobatPlusAPI.Controllers
             if (personId == currentPersonId)
                 return true;
 
-            if (roleId != (long)DbTools.BaseRole.Salon)
+            if (roleId != (long)DbTools.BaseRole.WorkShop)
                 return false;
 
             var currentSalonId = User.GetCurrentProfileId();
             if (currentSalonId <= 0) currentSalonId = User.GetCurrentSalonId();
             var targetProfiles = await _stylistRep.GetStylistProfilesByPersonIdAsync(personId);
             var targetStylistId = targetProfiles.Results?
-                .FirstOrDefault(x => x.ProfileType == "stylist")?.ID ?? 0;
+                .FirstOrDefault(x => x.ProfileType == nameof(DbTools.BaseRole.Worker).ToLower())?.ID ?? 0;
             if (currentSalonId <= 0 || targetStylistId <= 0)
                 return false;
 

@@ -601,7 +601,6 @@ namespace NobatPlusAPI.Controllers
                                     BookingCreationMode = signupRequestBody.stylist.BookingCreationMode ?? "automatic",
                                     SlotDisplayMode = signupRequestBody.stylist.SlotDisplayMode ?? "all",
                                     IsActive = false,
-                                    IsStylistOnly= signupRequestBody.stylist.IsStylistOnly,
 
                                 };
                                 result = await _stylistRep.AddStylistAsync(stylist);
@@ -1141,10 +1140,14 @@ namespace NobatPlusAPI.Controllers
                 Name = x.Name,
                 ParentId = x.StylistParentID,
                 IsActive = x.IsActive,
-                AccountStatus = x.AccountStatus
+                JobTypeId = x.JobTypeId,
+                JobTitle = x.JobTitle,
+                AccountStatus = x.AccountStatus,
             }).ToList();
-            result.StylistId = profiles.FirstOrDefault(x => x.ProfileType == "stylist")?.ID ?? 0;
-            result.SalonId = profiles.FirstOrDefault(x => x.ProfileType == "salon")?.ID ?? 0;
+            result.StylistId = profiles.FirstOrDefault(x =>
+                string.Equals(x.ProfileType, nameof(DbTools.BaseRole.Worker).ToLower(), StringComparison.OrdinalIgnoreCase))?.ID ?? 0;
+            result.SalonId = profiles.FirstOrDefault(x =>
+                string.Equals(x.ProfileType, nameof(DbTools.BaseRole.WorkShop).ToLower(), StringComparison.OrdinalIgnoreCase))?.ID ?? 0;
 
             var normalizedType = requestedProfileType?.Trim().ToLowerInvariant() ?? "";
             var hasRequestedProfile = requestedProfileId > 0 || !string.IsNullOrWhiteSpace(normalizedType);
@@ -1153,7 +1156,8 @@ namespace NobatPlusAPI.Controllers
             {
                 activeProfile = profiles.FirstOrDefault(x =>
                     (requestedProfileId <= 0 || x.ID == requestedProfileId) &&
-                    (string.IsNullOrWhiteSpace(normalizedType) || x.ProfileType == normalizedType));
+                    (string.IsNullOrWhiteSpace(normalizedType) ||
+                     string.Equals(x.ProfileType, normalizedType, StringComparison.OrdinalIgnoreCase)));
                 if (activeProfile == null)
                 {
                     result.Status = false;
@@ -1165,11 +1169,12 @@ namespace NobatPlusAPI.Controllers
             {
                 var defaultType = personRoleId switch
                 {
-                    (long)DbTools.BaseRole.Salon => "salon",
-                    (long)DbTools.BaseRole.Stylist => "stylist",
+                    (long)DbTools.BaseRole.WorkShop => nameof(DbTools.BaseRole.WorkShop).ToLower(),
+                    (long)DbTools.BaseRole.Worker => nameof(DbTools.BaseRole.WorkShop).ToLower(),
                     _ => ""
                 };
-                activeProfile = profiles.FirstOrDefault(x =>x.ProfileType == defaultType);
+                activeProfile = profiles.FirstOrDefault(x =>
+                    string.Equals(x.ProfileType, defaultType, StringComparison.OrdinalIgnoreCase));
             }
 
             if (activeProfile != null)
@@ -1183,9 +1188,10 @@ namespace NobatPlusAPI.Controllers
 
                 result.ActiveProfileId = activeProfile.ID;
                 result.ActiveProfileType = activeProfile.ProfileType;
-                result.RoleId = activeProfile.ProfileType == "salon"
-                    ? (long)DbTools.BaseRole.Salon
-                    : (long)DbTools.BaseRole.Stylist;
+                result.RoleId = string.Equals(activeProfile.ProfileType,
+                    nameof(DbTools.BaseRole.WorkShop), StringComparison.OrdinalIgnoreCase)
+                    ? (long)DbTools.BaseRole.WorkShop
+                    : (long)DbTools.BaseRole.Worker;
             }
 
             return result;

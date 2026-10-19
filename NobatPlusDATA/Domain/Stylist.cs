@@ -17,7 +17,6 @@ namespace NobatPlusDATA.Domain
         public string GenderAccepted { get; set; }
         public string WorkShopInteractMode { get; set; }
         public bool IsWorkShop { get; set; }
-        public bool IsStylistOnly { get; set; }
         public string AccountStatus { get; set; }
         public string PayMethod { get; set; }
         public long WorkShopRentAmount { get; set; }
@@ -92,8 +91,10 @@ namespace NobatPlusDATA.Domain
         public long ID { get; set; }
         public long PersonID { get; set; }
         public long StylistParentID { get; set; }
+        public long JobTypeId { get; set; }
         public string Name { get; set; } = "";
         public string ProfileType { get; set; } = "";
+        public string JobTitle { get; set; }
         public bool IsActive { get; set; }
         public string AccountStatus { get; set; } = "";
     }

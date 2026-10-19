@@ -27,6 +27,8 @@ namespace NobatPlusAPI.Models.Authenticate
         public string ProfileType { get; set; } = "";
         public string Name { get; set; } = "";
         public long ParentId { get; set; }
+        public long JobTypeId { get; set; }
+        public string JobTitle { get; set; }
         public bool IsActive { get; set; }
         public string AccountStatus { get; set; } = "";
     }

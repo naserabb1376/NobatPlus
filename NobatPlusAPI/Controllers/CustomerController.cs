@@ -77,7 +77,7 @@ namespace NobatPlusAPI.Controllers
 
         // اختصاصی برای انتخاب مشتری در فرم ثبت نوبت دستی: فقط مشتریانی که قبلاً از همین آرایشگر/سالن نوبت گرفته‌اند.
         [HttpPost("GetMyBookingCustomers_Base")]
-        [RequireRole((long)DbTools.BaseRole.Stylist, (long)DbTools.BaseRole.Salon, (long)DbTools.BaseRole.Admin)]
+        [RequireRole((long)DbTools.BaseRole.Worker, (long)DbTools.BaseRole.WorkShop, (long)DbTools.BaseRole.Admin)]
         public async Task<ActionResult<ListResultObject<CustomerVM>>> GetMyBookingCustomers_Base(GetMyBookingCustomersRequestBody requestBody)
         {
             if (!ModelState.IsValid)
@@ -87,7 +87,7 @@ namespace NobatPlusAPI.Controllers
 
             long stylistId = 0;
             var roleId = User.GetCurrentRoleId();
-            if (roleId == (long)DbTools.BaseRole.Stylist || roleId == (long)DbTools.BaseRole.Salon)
+            if (roleId == (long)DbTools.BaseRole.Worker || roleId == (long)DbTools.BaseRole.WorkShop)
             {
                 stylistId = await GetCurrentStylistIdAsync();
                 if (stylistId <= 0) return Forbid();
@@ -104,7 +104,7 @@ namespace NobatPlusAPI.Controllers
 
         // اختصاصی پنل سالن: مشتریان آرایشگر انتخاب‌شده یا همه آرایشگرهای زیرمجموعه سالن جاری.
         [HttpPost("GetSalonBookingCustomers_Base")]
-        [RequireRole((long)DbTools.BaseRole.Salon, (long)DbTools.BaseRole.Admin)]
+        [RequireRole((long)DbTools.BaseRole.WorkShop, (long)DbTools.BaseRole.Admin)]
         public async Task<ActionResult<ListResultObject<CustomerVM>>> GetSalonBookingCustomers_Base(GetCustomerListRequestBody requestBody)
         {
             if (!ModelState.IsValid)
@@ -115,7 +115,7 @@ namespace NobatPlusAPI.Controllers
             var stylistIds = new List<long>();
             var roleId = User.GetCurrentRoleId();
 
-            if (roleId == (long)DbTools.BaseRole.Salon)
+            if (roleId == (long)DbTools.BaseRole.WorkShop)
             {
                 var currentStylistId = await GetCurrentStylistIdAsync();
                 if (currentStylistId <= 0) return Forbid();
@@ -158,7 +158,7 @@ namespace NobatPlusAPI.Controllers
             if (profileId > 0) return profileId;
 
             var profiles = await _StylistRep.GetStylistProfilesByPersonIdAsync(User.GetCurrentUserId());
-            var profileType = User.GetCurrentRoleId() == (long)DbTools.BaseRole.Salon ? "salon" : "stylist";
+            var profileType = User.GetCurrentRoleId() == (long)DbTools.BaseRole.WorkShop ? nameof(DbTools.BaseRole.WorkShop).ToLower() : nameof(DbTools.BaseRole.Worker).ToLower();
             return profiles.Results?.FirstOrDefault(x => x.ProfileType == profileType)?.ID ?? 0;
         }
 
@@ -187,10 +187,10 @@ namespace NobatPlusAPI.Controllers
             if (currentStylistId <= 0)
                 return false;
 
-            if (roleId == (long)DbTools.BaseRole.Stylist)
+            if (roleId == (long)DbTools.BaseRole.Worker)
                 return stylistId == currentStylistId;
 
-            if (roleId == (long)DbTools.BaseRole.Salon)
+            if (roleId == (long)DbTools.BaseRole.WorkShop)
             {
                 if (stylistId == currentStylistId)
                     return true;

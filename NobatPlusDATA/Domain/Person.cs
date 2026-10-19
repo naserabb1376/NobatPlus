@@ -20,7 +20,7 @@ namespace NobatPlusDATA.Domain
         public string? IdentificationCode { get; set; }
 
         // [NotMapped]   // ⛔ در دیتابیس ساخته نمی‌شود
-        public long RoleId { get; set; } // 1.User 2.Stylist 3.Salon 4.Admin
+        public long RoleId { get; set; } // 1.User 2.Worker 3.WorkShop 4.Admin
 
        // [NotMapped]   // ⛔ در دیتابیس ساخته نمی‌شود
         [ForeignKey("RoleId")]

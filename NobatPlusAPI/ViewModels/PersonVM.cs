@@ -14,7 +14,8 @@ namespace NobatPlusDATA.ViewModels
         public string PhoneNumber { get; set; }
         public string? IdentificationCode { get; set; }
         public int Gender { get; set; }
-        public int RoleId { get; set; } // 1. User 2.Stylist 3. Salon
+        public long RoleId { get; set; } // 1.User 2.Worker 3.WorkShop 4.Admin
+        public string RoleName { get; set; } // 1.User 2.Worker 3.WorkShop 4.Admin
         public long? AddressID { get; set; }
         public string? NaCode { get; set; }
         public bool IsActive { get; set; }

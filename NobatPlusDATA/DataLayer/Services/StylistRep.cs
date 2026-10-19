@@ -125,7 +125,7 @@ namespace NobatPlusDATA.DataLayer.Services
             var result = new ListResultObject<StylistProfileDTO>();
             try
             {
-                result.Results = await _context.Stylists
+                result.Results = await _context.Stylists.Include(x=> x.JobType)
                     .AsNoTracking()
                     .Where(x => x.PersonID == personId)
                     .OrderByDescending(x => x.IsWorkShop)
@@ -136,9 +136,11 @@ namespace NobatPlusDATA.DataLayer.Services
                         PersonID = x.PersonID,
                         StylistParentID = x.StylistParentID,
                         Name = x.StylistName,
-                        ProfileType = x.IsWorkShop ? "salon" : "stylist",
+                        ProfileType = x.IsWorkShop ? nameof(DbTools.BaseRole.WorkShop).ToString(): nameof(DbTools.BaseRole.Worker),
                         IsActive = x.IsActive,
-                        AccountStatus = x.AccountStatus
+                        AccountStatus = x.AccountStatus,
+                        JobTypeId= x.JobTypeID,
+                        JobTitle = x.JobType.JobTitle
                     })
                     .ToListAsync();
                 result.TotalCount = result.Results.Count;
