@@ -1174,7 +1174,7 @@ namespace NobatPlusAPI.Controllers
 
             if (activeProfile != null)
             {
-                if (!activeProfile.IsActive)
+                if (activeProfile.AccountStatus != 1.ToString())
                 {
                     result.Status = false;
                     result.ErrorMessage = "پروفایل انتخاب‌شده غیرفعال است";
