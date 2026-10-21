@@ -330,31 +330,7 @@ namespace NobatPlusDATA.DataLayer.Services
                 results.TotalCount = await query.CountAsync();
                 results.PageCount = DbTools.GetPageCount(results.TotalCount, pageSize);
 
-                // مرتب‌سازی همچنان از ورودی کلاینت و تابع مشترک SortBy انجام می‌شود؛
-                // فقط قبل از دریافت جزئیات، روی یک Query سبک اجرا می‌شود.
-                var sortableWorkersQuery = query.Select(r => new
-                {
-                    r.ID,
-                    r.CreateDate,
-                    r.WorkerName,
-                    AvgScoreForWorker = r.RateHistories.Any()
-                        ? r.RateHistories.Average(rate => rate.RateScore)
-                        : 0
-                });
-
-                var pageWorkerIds = await sortableWorkersQuery
-                    .OrderByDescending(x => x.CreateDate)
-                    .SortBy(sortQuery)
-                    .ToPaging(pageIndex, pageSize)
-                    .Select(x => x.ID)
-                    .ToListAsync();
-
-                var workerOrder = pageWorkerIds
-                    .Select((id, index) => new { id, index })
-                    .ToDictionary(x => x.id, x => x.index);
-
                 results.Results = await query
-                    .Where(x => pageWorkerIds.Contains(x.ID))
                     .Select(r => new WorkerDTO
                     {
                         ID = r.ID,
@@ -478,11 +454,10 @@ namespace NobatPlusDATA.DataLayer.Services
                                 DateTime.Now >= p.PacificStartDate &&
                                 DateTime.Now <= p.PacificEndDate)
                     })
+                    .OrderByDescending(x => x.CreateDate)
+                    .SortBy(sortQuery)
+                    .ToPaging(pageIndex, pageSize)
                     .ToListAsync();
-
-                results.Results = results.Results
-                    .OrderBy(x => workerOrder[x.ID])
-                    .ToList();
 
                 // اینجا مقدار نوبت‌های موفق خودش + همه زیرمجموعه‌ها را پر می‌کنیم
                 await FillSuccededBookingCountsAsync(results.Results);
