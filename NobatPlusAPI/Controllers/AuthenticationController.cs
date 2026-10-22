@@ -1170,7 +1170,7 @@ namespace NobatPlusAPI.Controllers
                 var defaultType = personRoleId switch
                 {
                     (long)DbTools.BaseRole.WorkShop => nameof(DbTools.BaseRole.WorkShop).ToLower(),
-                    (long)DbTools.BaseRole.Worker => nameof(DbTools.BaseRole.WorkShop).ToLower(),
+                    (long)DbTools.BaseRole.Worker => nameof(DbTools.BaseRole.Worker).ToLower(),
                     _ => ""
                 };
                 activeProfile = profiles.FirstOrDefault(x =>
