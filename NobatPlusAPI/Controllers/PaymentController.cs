@@ -40,8 +40,9 @@ namespace NobatPlusAPI.Controllers
         ILogRep _logRep;
         private readonly IOnlinePayment _onlinePayment;
         private readonly IMapper _mapper;
+        private readonly IBillingRep _billingRep;
 
-        public PaymentController(IPaymentRep PaymentRep,IPaymentHistoryRep paymentHistoryRep,ICustomerRep customerRep,IWorkerServiceRep workerServiceRep,ILogRep logRep, IOnlinePayment onlinePayment, IMapper mapper)
+        public PaymentController(IPaymentRep PaymentRep,IPaymentHistoryRep paymentHistoryRep,ICustomerRep customerRep,IWorkerServiceRep workerServiceRep,ILogRep logRep, IOnlinePayment onlinePayment, IMapper mapper, IBillingRep billingRep)
         {
            _PaymentRep = PaymentRep;
             _PaymentHistoryRep = paymentHistoryRep;
@@ -50,15 +51,18 @@ namespace NobatPlusAPI.Controllers
            _logRep = logRep;
             _onlinePayment = onlinePayment;
             _mapper = mapper;
+            _billingRep = billingRep;
         }
 
         [HttpPost("GetAllPayments")]
+        [RequireRole(1, 2, 3, 4)]
         public async Task<ActionResult<ListResultObject<PaymentVM>>> GetAllPayments(GetPaymentListRequestBody requestBody)
         {
             return await GetAllPaymentsInternal(requestBody);
         }
 
         [HttpPost("GetAllPayments_Base")]
+        [RequireRole(1, 2, 3, 4)]
         public async Task<ActionResult<ListResultObject<PaymentVM>>> GetAllPayments_Base(GetPaymentListRequestBody requestBody)
         {
             return await GetAllPaymentsInternal(requestBody);
@@ -77,11 +81,7 @@ namespace NobatPlusAPI.Controllers
             if (roleId != 4)
             {
                 var dbcustomer = await _customerRep.ExistCustomerAsync(userId.ToString(), "personid");
-                if (!dbcustomer.Status)
-                {
-                    return Forbid();
-                }
-                customerId = dbcustomer.ID;
+                customerId = dbcustomer.Status ? dbcustomer.ID : 0;
             }
 
             var result = await _PaymentRep.GetAllPaymentsAsync(
@@ -95,7 +95,8 @@ namespace NobatPlusAPI.Controllers
                 requestBody.PaymentStatus ?? "",
                 requestBody.PaymentLevel,
                 requestBody.FromDate,
-                requestBody.ToDate);
+                requestBody.ToDate,
+                roleId == 4 ? 0 : userId);
             if (result.Status)
             {
                 var resultVM = _mapper.Map<ListResultObject<PaymentVM>>(result);
@@ -105,12 +106,14 @@ namespace NobatPlusAPI.Controllers
         }
 
         [HttpPost("GetPaymentById")]
+        [RequireRole(1, 2, 3, 4)]
         public async Task<ActionResult<RowResultObject<PaymentVM>>> GetPaymentById(GetRowRequestBody requestBody)
         {
             return await GetPaymentByIdInternal(requestBody);
         }
 
         [HttpPost("GetPaymentById_Base")]
+        [RequireRole(1, 2, 3, 4)]
         public async Task<ActionResult<RowResultObject<PaymentVM>>> GetPaymentById_Base(GetRowRequestBody requestBody)
         {
             return await GetPaymentByIdInternal(requestBody);
@@ -128,9 +131,7 @@ namespace NobatPlusAPI.Controllers
                 var resultVM = _mapper.Map<RowResultObject<PaymentVM>>(result);
                 if (User.GetCurrentRoleId() != 4)
                 {
-                    var userId = User.GetCurrentUserId();
-                    var dbcustomer = await _customerRep.ExistCustomerAsync(userId.ToString(), "personid");
-                    if (!dbcustomer.Status || resultVM.Result?.CustomerID != dbcustomer.ID)
+                    if (!await _billingRep.CanAccessPaymentAsync(requestBody.ID, User.GetCurrentUserId(), false))
                     {
                         return Forbid();
                     }
@@ -204,19 +205,20 @@ namespace NobatPlusAPI.Controllers
             {
                 CreateDate = DateTime.Now.ToShamsi(),
                 UpdateDate = DateTime.Now.ToShamsi(),
-                DepositAmount = calcPayment.Result.DepositAmount,
+                DepositAmount = calcPayment.Result.PayedAmount,
                 TotalServiceAmount = calcPayment.Result.TotalServiceAmount,
                 PlarformAmount = calcPayment.Result.PlatformAmount,
                 WorkerAmount = calcPayment.Result.WorkerAmount,
                 AllPaymentAmount = calcPayment.Result.AllPaymentAmount,
-                PayedAmount = calcPayment.Result.PayedAmount,
-                RemainAmount = calcPayment.Result.RemainAmount,
+                PayedAmount = 0,
+                RemainAmount = calcPayment.Result.AllPaymentAmount,
                 DiscountedServiceAmount = calcPayment.Result.DiscountedServiceAmount,
                 VatAmount = calcPayment.Result.VatAmount,
-                PaymentStatus = requestBody.PaymentStatus,
+                PaymentStatus = "pending",
                 PaymentDate = requestBody.PaymentDate ?? DateTime.Now.ToShamsi(),
                 PaymentLevel = requestBody.PaymentLevel,
-                PaymentFinished = requestBody.PaymentFinished,
+                PaymentFinished = false,
+                OwnerPersonID = User.GetCurrentRoleId() == 4 ? null : User.GetCurrentUserId(),
                 DiscountID = discountId,
                 Description = requestBody.Description,
                 PaymentBookings = bookingIds.Select(bookingId => new PaymentBooking
@@ -250,24 +252,6 @@ namespace NobatPlusAPI.Controllers
                 return BadRequest(result);
             }
 
-            PaymentHistory paymentHistory = new PaymentHistory()
-            {
-                CreateDate = DateTime.Now.ToShamsi(),
-                UpdateDate = DateTime.Now.ToShamsi(),
-                PaymentID = result.ID,
-                PaymentMethod = requestBody.PaymentLevel,
-                PaymentDate = requestBody.PaymentDate ?? DateTime.Now.ToShamsi(),
-                Amount = calcPayment.Result.PayedAmount,
-                PaymentStatus = requestBody.PaymentFinished,
-                GatewayName = requestBody.PaymentLevel == 1 ? "Cash" : null,
-                Description = requestBody.Description,
-            };
-            result = await _PaymentHistoryRep.AddPaymentHistoryAsync(paymentHistory);
-
-            if (!result.Status)
-            {
-                return BadRequest(result);
-            }
 
             if (result.Status)
             {
@@ -294,6 +278,7 @@ namespace NobatPlusAPI.Controllers
         [HttpPut("EditPayment_Base")]
         public async Task<ActionResult<BitResultObject>> EditPayment_Base(AddEditPaymentRequestBody requestBody)
         {
+            if (!await _billingRep.CanAccessPaymentAsync(requestBody.ID, User.GetCurrentUserId(), User.GetCurrentRoleId() == 4)) return Forbid();
             var result = new BitResultObject();
             if (!ModelState.IsValid)
             {
@@ -346,19 +331,19 @@ namespace NobatPlusAPI.Controllers
                 CreateDate = theRow.Result.CreateDate,
                 UpdateDate = DateTime.Now.ToShamsi(),
                 ID = requestBody.ID,
-                DepositAmount = calcPayment.Result.DepositAmount,
+                DepositAmount = calcPayment.Result.PayedAmount,
                 TotalServiceAmount = calcPayment.Result.TotalServiceAmount,
                 PlarformAmount = calcPayment.Result.PlatformAmount,
                 WorkerAmount = calcPayment.Result.WorkerAmount,
                 AllPaymentAmount = calcPayment.Result.AllPaymentAmount,
-                PayedAmount = calcPayment.Result.PayedAmount,
-                RemainAmount = calcPayment.Result.RemainAmount,
+                PayedAmount = 0,
+                RemainAmount = calcPayment.Result.AllPaymentAmount,
                 DiscountedServiceAmount = calcPayment.Result.DiscountedServiceAmount,
                 VatAmount = calcPayment.Result.VatAmount,
-                PaymentStatus = requestBody.PaymentStatus,
+                PaymentStatus = "pending",
                 PaymentDate = requestBody.PaymentDate ?? DateTime.Now.ToShamsi(),
                 PaymentLevel = requestBody.PaymentLevel,
-                PaymentFinished = requestBody.PaymentFinished,
+                PaymentFinished = false,
                 DiscountID = discountId,
                 Description = requestBody.Description,
                 PaymentBookings = bookingIds.Select(bookingId => new PaymentBooking
@@ -424,6 +409,7 @@ namespace NobatPlusAPI.Controllers
 
         private async Task<ActionResult<BitResultObject>> DeletePaymentInternal(GetRowRequestBody requestBody)
         {
+            if (!await _billingRep.CanAccessPaymentAsync(requestBody.ID, User.GetCurrentUserId(), User.GetCurrentRoleId() == 4)) return Forbid();
             if (!ModelState.IsValid)
             {
                 return BadRequest(requestBody);
@@ -452,148 +438,47 @@ namespace NobatPlusAPI.Controllers
         }
 
         [HttpPost("RequestPayment")]
+        [RequireRole(1, 2, 3, 4)]
         public async Task<ActionResult<RowResultObject<RequestPaymentResultBody>>> RequestPayment(RequestPaymentRequestBody requestBody)
         {
-            var result = new RowResultObject<RequestPaymentResultBody>
+            var result = new RowResultObject<RequestPaymentResultBody>();
+            long attemptId = 0;
+            try
             {
-                Result = new RequestPaymentResultBody()
-            };
-
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(requestBody);
-            }
-
-            var paymentRow = await _PaymentRep.GetPaymentByIdAsync(requestBody.PaymentID);
-            if (!paymentRow.Status || paymentRow.Result == null)
-            {
-                result.Status = false;
-                result.Result = null;
-                result.ErrorMessage = "پرداخت مورد نظر یافت نشد";
-                return BadRequest(result);
-            }
-
-            var payment = paymentRow.Result;
-            if (!await CanCurrentUserAccessPaymentAsync(payment))
-            {
-                return Forbid();
-            }
-
-            if (payment.PaymentFinished)
-            {
-                result.Status = false;
-                result.Result = null;
-                result.ErrorMessage = "این پرداخت قبلا تکمیل شده است";
-                return BadRequest(result);
-            }
-
-            var amount = GetOnlinePayableAmount(payment);
-            if (amount <= 0)
-            {
-                result.Status = false;
-                result.Result = null;
-                result.ErrorMessage = "مبلغ قابل پرداخت معتبر نیست";
-                return BadRequest(result);
-            }
-
-            if (payment.PaymentBookings == null || !payment.PaymentBookings.Any())
-            {
-                result.Status = false;
-                result.Result = null;
-                result.ErrorMessage = "رزرو مرتبط با پرداخت مشخص نیست";
-                return BadRequest(result);
-            }
-            var activePayGateway = ToolBox.GetActivePayGateway();
-
-            var paymentHistory = new PaymentHistory
-            {
-                CreateDate = DateTime.Now.ToShamsi(),
-                UpdateDate = DateTime.Now.ToShamsi(),
-                PaymentID = payment.ID,
-                PaymentDate = DateTime.Now.ToShamsi(),
-                PaymentMethod = payment.PaymentLevel,
-                Amount = amount,
-                PaymentStatus = false,
-                GatewayName = activePayGateway.GatewayName,
-                Description = $"Online payment request for payment #{payment.ID}"
-            };
-
-            var addResult = await _PaymentHistoryRep.AddPaymentHistoryAsync(paymentHistory);
-            if (!addResult.Status)
-            {
-                result.Status = false;
-                result.Result = null;
-                result.ErrorMessage = addResult.ErrorMessage;
-                return BadRequest(result);
-            }
-
-            var callbackUrl = Url.Action(nameof(VerifyPayment), "Payment", new { PayId = addResult.ID }, Request.Scheme);
-            var zarInvoice = new ZarinPalInvoice(description: $"{addResult.ID} - Payment {payment.ID}");
-            var invoice = await _onlinePayment.RequestAsync(invoice =>
-            {
-                if (activePayGateway.GatewayName.ToLower() == "zarinpal")
+                if (!ModelState.IsValid) return BadRequest(requestBody);
+                var gateway = ToolBox.GetActivePayGateway();
+                if (gateway == null || string.IsNullOrWhiteSpace(gateway.GatewayName))
+                    throw new InvalidOperationException("درگاه پرداخت فعال تنظیم نشده است");
+                var attempt = await _billingRep.CreateGatewayAttemptAsync(requestBody.PaymentID, gateway.GatewayName,
+                    User.GetCurrentUserId(), User.GetCurrentRoleId() == (long)BaseRole.Admin);
+                if (!attempt.Status) return BadRequest(new RowResultObject<RequestPaymentResultBody> { Status = false, ErrorMessage = attempt.ErrorMessage });
+                attemptId = attempt.ID;
+                var historyRow = await _PaymentHistoryRep.GetPaymentHistoryByIdAsync(attemptId);
+                if (!historyRow.Status || historyRow.Result == null) throw new InvalidOperationException(historyRow.ErrorMessage);
+                var history = historyRow.Result;
+                var callbackUrl = Url.Action(nameof(VerifyPayment), "Payment", new { PayId = history.ID }, Request.Scheme);
+                var invoice = await _onlinePayment.RequestAsync(builder =>
                 {
-                    invoice.SetCallbackUrl(callbackUrl)
-                     .SetAmount(amount)
-                     .SetZarinPalData(zarInvoice)
-                     .UseZarinPal();
-                }
-                else
-                {
-                    invoice.SetCallbackUrl(callbackUrl)
-                     .SetAmount(amount)
-                     .SetGateway(activePayGateway.GatewayName);
-                }
-
-                invoice.SetTrackingNumber(addResult.ID);
-            });
-
-            if (invoice.IsSucceed)
-            {
-                result.Result.PayGatewayUrl = invoice.GatewayTransporter.Descriptor.Url;
-                result.Result.PaymentHistoryID = addResult.ID;
-                result.Result.Amount = amount;
-                result.ErrorMessage = "";
-
-                #region AddLog
-
-                Log log = new Log()
-                {
-                    CreateDate = DateTime.Now.ToShamsi(),
-                    UpdateDate = DateTime.Now.ToShamsi(),
-                    LogTime = DateTime.Now.ToShamsi(),
-                    ActionName = this.ControllerContext.RouteData.Values["action"].ToString(),
-
-                };
-                await _logRep.AddLogAsync(log);
-
-                #endregion
-
+                    builder.SetCallbackUrl(callbackUrl).SetAmount(history.Amount).SetTrackingNumber(history.ID);
+                    if (gateway.GatewayName.Equals("zarinpal", StringComparison.OrdinalIgnoreCase))
+                        builder.SetZarinPalData(new ZarinPalInvoice(description: $"Payment {history.PaymentID}, attempt {history.ID}")).UseZarinPal();
+                    else
+                        builder.SetGateway(gateway.GatewayName);
+                });
+                var url = invoice.IsSucceed ? invoice.GatewayTransporter.Descriptor.Url : null;
+                var saved = await _billingRep.SaveGatewayAttemptAsync(history.ID, invoice.IsSucceed, url, invoice.Message);
+                if (!saved.Status) throw new InvalidOperationException(saved.ErrorMessage);
+                if (!invoice.IsSucceed) throw new InvalidOperationException(invoice.Message);
+                result.Result = new RequestPaymentResultBody { PaymentHistoryID = history.ID, Amount = history.Amount, PayGatewayUrl = url };
                 return Ok(result);
             }
-
-            var failedHistory = new PaymentHistory
+            catch (Exception ex)
             {
-                ID = addResult.ID,
-                CreateDate = paymentHistory.CreateDate,
-                UpdateDate = DateTime.Now.ToShamsi(),
-                PaymentID = payment.ID,
-                PaymentDate = paymentHistory.PaymentDate,
-                PaymentMethod = payment.PaymentLevel,
-                Amount = amount,
-                PaymentStatus = false,
-                GatewayName = activePayGateway.GatewayName,
-                GatewayMessage = invoice.Message,
-                Description = paymentHistory.Description
-            };
-            await _PaymentHistoryRep.EditPaymentHistoryAsync(failedHistory);
-
-
-
-            result.Status = false;
-            result.Result = null;
-            result.ErrorMessage = invoice.Message;
-            return BadRequest(result);
+                if (attemptId > 0) await _billingRep.SaveGatewayAttemptAsync(attemptId, false, null, ex.Message);
+                result.Status = false;
+                result.ErrorMessage = $"{ex.Message} - {ex.InnerException?.Message}";
+                return BadRequest(result);
+            }
         }
 
         [AllowAnonymous]
@@ -601,152 +486,56 @@ namespace NobatPlusAPI.Controllers
         public async Task<ActionResult<BitResultObject>> VerifyPayment(long PayId = 0, string? paymentToken = "", string? Authority = "", string? Status = "")
         {
             var result = new BitResultObject();
-
-            if (PayId <= 0)
+            try
             {
-                result.Status = false;
-                result.ErrorMessage = "شناسه پرداخت معتبر نیست";
-                return BadRequest(result);
-            }
+                if (PayId <= 0) throw new InvalidOperationException("شناسه پرداخت معتبر نیست");
+                var row = await _PaymentHistoryRep.GetPaymentHistoryByIdAsync(PayId);
+                if (!row.Status || row.Result == null) throw new InvalidOperationException("سابقه پرداخت یافت نشد");
+                var history = row.Result;
+                if (history.PaymentStatus) return Ok(new BitResultObject { ID = history.ID });
+                var invoice = await _onlinePayment.FetchAsync();
+                if (invoice.TrackingNumber != history.ID || (decimal)invoice.Amount != history.Amount ||
+                    !string.Equals(invoice.GatewayName, history.GatewayName, StringComparison.OrdinalIgnoreCase))
+                    throw new InvalidOperationException("اطلاعات تاییدشده درگاه با درخواست پرداخت تطابق ندارد");
 
-            var paymentHistoryRow = await _PaymentHistoryRep.GetPaymentHistoryByIdAsync(PayId);
-            if (!paymentHistoryRow.Status || paymentHistoryRow.Result == null)
-            {
-                result.Status = false;
-                result.ErrorMessage = "سابقه پرداخت یافت نشد";
-                return BadRequest(result);
-            }
-
-            var paymentHistory = paymentHistoryRow.Result;
-            var invoice = await _onlinePayment.FetchAsync();
-
-            if (invoice.Status != PaymentFetchResultStatus.ReadyForVerifying)
-            {
-                await SaveGatewayResultAsync(paymentHistory, false, null, PayId.ToString(), paymentToken, Authority, invoice.Message);
-                result.Status = false;
-                result.ID = paymentHistory.ID;
-                result.ErrorMessage = string.IsNullOrWhiteSpace(invoice.Message) ? "پرداخت قابل تایید نیست" : invoice.Message;
-                return Ok(result);
-            }
-
-            var verifyResult = await _onlinePayment.VerifyAsync(invoice);
-            var transactionCode = verifyResult.TransactionCode?.ToString();
-            var trackingNumber = verifyResult.TrackingNumber > 0 ? verifyResult.TrackingNumber.ToString() : PayId.ToString();
-            var token = !string.IsNullOrWhiteSpace(Authority) ? Authority : paymentToken;
-
-            if (verifyResult.Status == PaymentVerifyResultStatus.Succeed)
-            {
-                await SaveGatewayResultAsync(paymentHistory, true, transactionCode, trackingNumber, token, Authority, verifyResult.Message);
-
-                var paymentRow = await _PaymentRep.GetPaymentByIdAsync(paymentHistory.PaymentID);
-                if (paymentRow.Status && paymentRow.Result != null)
+                string? transactionCode;
+                string? message;
+                if (invoice.IsAlreadyVerified)
                 {
-                    var payment = paymentRow.Result;
-                    var paidAmount = payment.PayedAmount > 0 ? payment.PayedAmount : paymentHistory.Amount;
-                    var updatedPayment = new Payment
-                    {
-                        ID = payment.ID,
-                        CreateDate = payment.CreateDate,
-                        UpdateDate = DateTime.Now.ToShamsi(),
-                        DiscountID = payment.DiscountID,
-                        AllPaymentAmount = payment.AllPaymentAmount,
-                        DepositAmount = payment.DepositAmount,
-                        PayedAmount = payment.PayedAmount + paidAmount,
-                        RemainAmount = Math.Max(0, payment.AllPaymentAmount - paidAmount),
-                        TotalServiceAmount = payment.TotalServiceAmount,
-                        DiscountedServiceAmount = payment.DiscountedServiceAmount,
-                        WorkerAmount = payment.WorkerAmount,
-                        PlarformAmount = payment.PlarformAmount,
-                        VatAmount = payment.VatAmount,
-                        PaymentDate = DateTime.Now.ToShamsi(),
-                        PaymentStatus = "paid",
-                        PaymentLevel = payment.PaymentLevel,
-                        Description = payment.Description
-                    };
-
-                    updatedPayment.PaymentFinished = updatedPayment.AllPaymentAmount == 0;
-
-                    await _PaymentRep.EditPaymentAsync(updatedPayment);
+                    transactionCode = invoice.TransactionCode;
+                    message = invoice.Message;
                 }
-
-
-                #region AddLog
-
-                Log log = new Log()
+                else
                 {
-                    CreateDate = DateTime.Now.ToShamsi(),
-                    UpdateDate = DateTime.Now.ToShamsi(),
-                    LogTime = DateTime.Now.ToShamsi(),
-                    ActionName = this.ControllerContext.RouteData.Values["action"].ToString(),
-
-                };
-                await _logRep.AddLogAsync(log);
-
-                #endregion
-
-                result.Status = true;
-                result.ID = paymentHistory.ID;
-                result.ErrorMessage = "پرداخت موفقیت آمیز بود";
-                return Ok(result);
+                    if (invoice.Status != PaymentFetchResultStatus.ReadyForVerifying)
+                    {
+                        var failed = await _billingRep.SaveGatewayAttemptAsync(history.ID, false, null, invoice.Message);
+                        if (!failed.Status) throw new InvalidOperationException(failed.ErrorMessage);
+                        return Ok(new BitResultObject { ID = history.ID, Status = false, ErrorMessage = invoice.Message ?? "پرداخت قابل تایید نیست" });
+                    }
+                    var verified = await _onlinePayment.VerifyAsync(invoice);
+                    transactionCode = verified.TransactionCode;
+                    message = verified.Message;
+                    if (verified.Status != PaymentVerifyResultStatus.Succeed && verified.Status != PaymentVerifyResultStatus.AlreadyVerified)
+                    {
+                        var failed = await _billingRep.SaveGatewayAttemptAsync(history.ID, false, null, message);
+                        if (!failed.Status) throw new InvalidOperationException(failed.ErrorMessage);
+                        return Ok(new BitResultObject { ID = history.ID, Status = false, ErrorMessage = message ?? "پرداخت ناموفق بود" });
+                    }
+                }
+                result = await _billingRep.ConfirmGatewayPaymentAsync(history.ID, transactionCode ?? "",
+                    history.ID.ToString(), !string.IsNullOrWhiteSpace(Authority) ? Authority : paymentToken, message);
+                return result.Status ? Ok(result) : BadRequest(result);
             }
-
-            await SaveGatewayResultAsync(paymentHistory, false, transactionCode, trackingNumber, token, Authority, verifyResult.Message);
-
-
-          
-
-
-            result.Status = false;
-            result.ID = paymentHistory.ID;
-            result.ErrorMessage = string.IsNullOrWhiteSpace(verifyResult.Message) ? "پرداخت ناموفق بود" : verifyResult.Message;
-            return Ok(result);
+            catch (Exception ex)
+            {
+                result.Status = false;
+                result.ErrorMessage = $"{ex.Message} - {ex.InnerException?.Message}";
+                return BadRequest(result);
+            }
         }
 
         #region PaymentTools
-        private async Task<bool> CanCurrentUserAccessPaymentAsync(Payment payment)
-        {
-            if (User.GetCurrentRoleId() == (long) BaseRole.Admin)
-            {
-                return true;
-            }
-
-            var userId = User.GetCurrentUserId();
-            var dbcustomer = await _customerRep.ExistCustomerAsync(userId.ToString(), "personid");
-            if (!dbcustomer.Status)
-            {
-                return false;
-            }
-
-            return payment.PaymentBookings?.Any(x => x.Booking?.CustomerID == dbcustomer.ID) ?? false;
-        }
-
-        private static decimal GetOnlinePayableAmount(Payment payment)
-        {
-            return payment.PayedAmount > 0 ? payment.RemainAmount : payment.DepositAmount;
-        }
-
-        private async Task SaveGatewayResultAsync(PaymentHistory source, bool paymentStatus, string? transactionCode, string? trackingNumber, string? paymentToken, string? authority, string? message)
-        {
-            var paymentHistory = new PaymentHistory
-            {
-                ID = source.ID,
-                CreateDate = source.CreateDate,
-                UpdateDate = DateTime.Now.ToShamsi(),
-                PaymentID = source.PaymentID,
-                PaymentDate = DateTime.Now.ToShamsi(),
-                PaymentMethod = source.PaymentMethod,
-                Amount = source.Amount,
-                PaymentStatus = paymentStatus,
-                TransactionCode = transactionCode,
-                TrackingNumber = trackingNumber,
-                GatewayName = source.GatewayName ?? "ZarinPal",
-                GatewayMessage = message,
-                PaymentToken = !string.IsNullOrWhiteSpace(paymentToken) ? paymentToken : authority,
-                Description = source.Description
-            };
-
-            await _PaymentHistoryRep.EditPaymentHistoryAsync(paymentHistory);
-        }
 
       
         private static List<long> NormalizeBookingIds(AddEditPaymentRequestBody requestBody)

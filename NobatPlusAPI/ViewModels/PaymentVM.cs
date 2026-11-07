@@ -7,6 +7,9 @@ namespace NobatPlusDATA.ViewModels
 {
     public class PaymentVM :BaseEntity
     {
+        public string Purpose { get; set; } = "service";
+        public string CurrencyCode { get; set; } = "IRR";
+        public long? OwnerPersonID { get; set; }
         public long WorkerID { get; set; }
         public long CustomerID { get; set; }
         public string WorkerName { get; set; }

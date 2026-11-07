@@ -9,6 +9,9 @@ namespace NobatPlusDATA.Domain
 {
     public class Payment : BaseEntity
     {
+        public string Purpose { get; set; } = PaymentPurposes.Service;
+        public string CurrencyCode { get; set; } = "IRR";
+        public long? OwnerPersonID { get; set; }
         public long DiscountID { get; set; }
         public decimal AllPaymentAmount { get; set; }
         public decimal DepositAmount { get; set; }

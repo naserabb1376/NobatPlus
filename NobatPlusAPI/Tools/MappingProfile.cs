@@ -17,6 +17,19 @@ namespace NobatPlusAPI.Tools
     {
         public MappingProfile()
         {
+            CreateMap<SubscriptionPlan, NobatPlusAPI.ViewModels.Billing.SubscriptionPlanVM>();
+            CreateMap<BillingRefund, NobatPlusAPI.ViewModels.Billing.BillingRefundVM>();
+            CreateMap<BusinessSubscription, NobatPlusAPI.ViewModels.Billing.BusinessSubscriptionVM>();
+            CreateMap<BillingAccount, NobatPlusAPI.ViewModels.Billing.BillingAccountVM>();
+            CreateMap<BusinessBillingSetting, NobatPlusAPI.ViewModels.Billing.BusinessBillingSettingVM>();
+            CreateMap<WorkerBillingSetting, NobatPlusAPI.ViewModels.Billing.WorkerBillingSettingVM>();
+            CreateMap<BookingPlatformFee, NobatPlusAPI.ViewModels.Billing.BookingPlatformFeeVM>();
+            CreateMap<BillingTransaction, NobatPlusAPI.ViewModels.Billing.BillingTransactionVM>();
+            CreateMap<BillingInvoice, NobatPlusAPI.ViewModels.Billing.BillingInvoiceVM>();
+            CreateMap<BillingInvoiceItem, NobatPlusAPI.ViewModels.Billing.BillingInvoiceItemVM>();
+            CreateMap<BillingPayment, NobatPlusAPI.ViewModels.Billing.BillingPaymentVM>();
+            CreateMap<BillingAllocation, NobatPlusAPI.ViewModels.Billing.BillingAllocationVM>();
+            CreateMap<BillingSettingHistory, NobatPlusAPI.ViewModels.Billing.BillingSettingHistoryVM>();
             CreateMap(typeof(ListResultObject<>), typeof(ListResultObject<>));
             CreateMap(typeof(RowResultObject<>), typeof(RowResultObject<>));
             CreateMap(typeof(BitResultObject), typeof(BitResultObject));
@@ -170,6 +183,8 @@ namespace NobatPlusAPI.Tools
             ;
 
             CreateMap<PaymentHistory, PaymentHistoryVM>()
+           .ForMember(dest => dest.Purpose, opt => opt.MapFrom(src => src.Payment.Purpose))
+           .ForMember(dest => dest.CurrencyCode, opt => opt.MapFrom(src => src.Payment.CurrencyCode))
          .ForMember(dest => dest.BookingIDs, opt => opt.MapFrom(src => src.Payment.PaymentBookings.Select(x => x.BookingID).ToList()))
          .ForMember(dest => dest.WorkshopName, opt => opt.MapFrom(src => src.Payment.PaymentBookings.Select(x => x.Booking.Worker.WorkerName).FirstOrDefault()))
          .ForMember(dest => dest.WorkerID, opt => opt.MapFrom(src => src.Payment.PaymentBookings.Select(x => x.Booking.Worker.PersonID).FirstOrDefault()))

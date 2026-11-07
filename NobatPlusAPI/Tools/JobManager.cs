@@ -1,5 +1,7 @@
 ﻿using Domains;
 using Hangfire;
+using Microsoft.EntityFrameworkCore;
+using NobatPlusDATA.DataLayer;
 using NobatPlusDATA.DataLayer.Repositories;
 using NobatPlusDATA.DataLayer.Services;
 using NobatPlusDATA.Domain;
@@ -17,6 +19,8 @@ namespace NobatPlusAPI.Tools
         private readonly ILogRep _logRep;
         private readonly IWorkerServiceFollowUpSettingRep _followUpSettingRep;
         private readonly IBookingScheduledMessageRep _bookingScheduledMessageRep;
+        private readonly IBillingRep _billingRep;
+        private readonly NobatPlusContext _billingContext;
 
         public JobManager(
             IBookingRep bookingRep,
@@ -26,7 +30,9 @@ namespace NobatPlusAPI.Tools
             INotificationRep notificationRep,
             ILogRep logRep,
             IWorkerServiceFollowUpSettingRep followUpSettingRep,
-            IBookingScheduledMessageRep bookingScheduledMessageRep)
+            IBookingScheduledMessageRep bookingScheduledMessageRep,
+            IBillingRep billingRep,
+            NobatPlusContext billingContext)
         {
             _BookingRep = bookingRep;
             _personRep = personRep;
@@ -36,6 +42,83 @@ namespace NobatPlusAPI.Tools
             _logRep = logRep;
             _followUpSettingRep = followUpSettingRep;
             _bookingScheduledMessageRep = bookingScheduledMessageRep;
+            _billingRep = billingRep;
+            _billingContext = billingContext;
+        }
+
+        [DisableConcurrentExecution(600)]
+        public async Task ProcessPlatformBilling()
+        {
+            try
+            {
+                var result = await _billingRep.ProcessBillingAsync();
+                if (!result.Status) throw new InvalidOperationException(result.ErrorMessage);
+                var now = DateTime.UtcNow;
+                var invoices = await (from invoice in _billingContext.BillingInvoices.AsNoTracking()
+                                      join account in _billingContext.BillingAccounts on invoice.BillingAccountID equals account.ID
+                                      join worker in _billingContext.Workers on account.WorkerID equals worker.ID
+                                      where invoice.Status != "paid" && account.IsActive
+                                      select new { Invoice = invoice, Worker = worker }).ToListAsync();
+                foreach (var row in invoices)
+                {
+                    var feeIds = _billingContext.BillingInvoiceItems.Where(x => x.BillingInvoiceID == row.Invoice.ID).Select(x => x.BookingPlatformFeeID);
+                    var remaining = await _billingContext.BookingPlatformFees.Where(x => feeIds.Contains(x.ID) && x.Status == "accrued").SumAsync(x => x.FeeAmount)
+                        - await _billingContext.BillingAllocations.Where(x => feeIds.Contains(x.BookingPlatformFeeID) && x.ReversedAt == null).SumAsync(x => x.Amount);
+                    if (remaining <= 0) continue;
+                    await SendBillingMessageAsync("BillingInvoiceMessage", row.Worker.PersonID,
+                        $"billing-invoice:{row.Invoice.ID}:{now:yyyyMMdd}", new List<ToolBox.MessagePatternObj>
+                        {
+                            new() { Variable = "workername", Value = row.Worker.WorkerName },
+                            new() { Variable = "invoiceid", Value = row.Invoice.ID.ToString() },
+                            new() { Variable = "amount", Value = remaining.ToString("0", System.Globalization.CultureInfo.InvariantCulture) },
+                            new() { Variable = "currency", Value = row.Invoice.CurrencyCode },
+                            new() { Variable = "duedate", Value = row.Invoice.DueDate.ToShamsiString().Split(' ')[0] }
+                        });
+                }
+                var ending = await (from subscription in _billingContext.BusinessSubscriptions.AsNoTracking()
+                                    join worker in _billingContext.Workers on subscription.BusinessID equals worker.ID
+                                    where subscription.Status == "active" && subscription.EndsAt > now && subscription.EndsAt <= now.AddDays(7)
+                                    select new { Subscription = subscription, Worker = worker }).ToListAsync();
+                foreach (var row in ending)
+                    await SendBillingMessageAsync("SubscriptionExpiryMessage", row.Worker.PersonID,
+                        $"billing-subscription-expiry:{row.Subscription.ID}", new List<ToolBox.MessagePatternObj>
+                        {
+                            new() { Variable = "workername", Value = row.Worker.WorkerName },
+                            new() { Variable = "planname", Value = row.Subscription.PlanNameSnapshot },
+                            new() { Variable = "enddate", Value = row.Subscription.EndsAt!.Value.ToShamsiString().Split(' ')[0] }
+                        });
+            }
+            catch (Exception ex)
+            {
+                await _logRep.AddLogAsync(new Log { LogType = "ERROR", LogLayer = "JobManager", ActionName = nameof(ProcessPlatformBilling), Description = ex.ToString() });
+                throw;
+            }
+        }
+
+        private async Task SendBillingMessageAsync(string key, long personId, string reference, List<ToolBox.MessagePatternObj> values)
+        {
+            var template = await _settingRep.GetSettingRowAsync(0, key);
+            if (!template.Status || template.Result?.IsActive != true || string.IsNullOrWhiteSpace(template.Result.Value)) return;
+            if (await _billingContext.SMSMessages.AsNoTracking().AnyAsync(x => x.Description == reference && x.SentStatus)) return;
+            var person = await _personRep.GetPersonByIdAsync(personId);
+            if (!person.Status || person.Result == null) throw new InvalidOperationException(person.ErrorMessage);
+            var message = template.Result.Value.MakeMessageOnPattern(values);
+            var sent = await ToolBox.SendSMSMessage(person.Result.PhoneNumber, message);
+            var sms = await _sMSMessageRep.AddSMSMessageAsync(new SMSMessage
+            {
+                PersonID = personId, PhoneNumber = person.Result.PhoneNumber, Message = message, SentStatus = sent,
+                SentDate = DateTime.Now.ToShamsi(), CreateDate = DateTime.Now.ToShamsi(), Description = reference
+            });
+            if (!sms.Status) throw new InvalidOperationException(sms.ErrorMessage);
+            if (!await _billingContext.Notifications.AnyAsync(x => x.PersonID == personId && x.Description == reference))
+            {
+                var notification = await _notificationRep.AddNotificationAsync(new Notification
+                {
+                    PersonID = personId, Message = message, SentDate = DateTime.Now.ToShamsi(), CreateDate = DateTime.Now.ToShamsi(), Description = reference
+                });
+                if (!notification.Status) throw new InvalidOperationException(notification.ErrorMessage);
+            }
+            if (!sent) throw new InvalidOperationException("ارسال پیام مالی ناموفق بود و مجدداً تلاش خواهد شد");
         }
 
         public async Task SendBookingRemindMessage(long bookingId, int leadHours = 24)

@@ -46,6 +46,11 @@ namespace NobatPlusDATA.DataLayer.Services
             BitResultObject result = new BitResultObject();
             try
             {
+                var original = await _context.Payments.AsNoTracking().SingleAsync(x => x.ID == Payment.ID);
+                if (original.Purpose != PaymentPurposes.Service || original.PayedAmount > 0 ||
+                    await _context.PaymentHistories.AnyAsync(x => x.PaymentID == Payment.ID && (x.PaymentStatus || x.GatewayRequestState == "creating" || x.GatewayRequestState == "requested")))
+                    throw new InvalidOperationException("پرداخت دارای سابقه مالی یا درخواست درگاه قابل ویرایش نیست");
+                Payment.Purpose = original.Purpose; Payment.OwnerPersonID = original.OwnerPersonID; Payment.CurrencyCode = original.CurrencyCode;
                 if (Payment.PaymentDetails != null && Payment.PaymentDetails.Any())
                 {
                     var oldDetails = await _context.PaymentDetails
@@ -113,7 +118,7 @@ namespace NobatPlusDATA.DataLayer.Services
             
         }
 
-        public async Task<ListResultObject<Payment>> GetAllPaymentsAsync(long bookingId = 0, long customerId = 0, int paymentIncludes = 0, int pageIndex = 1, int pageSize = 20, string searchText = "", string sortQuery = "", string paymentStatus = "", int paymentLevel = 0, DateTime? fromDate = null, DateTime? toDate = null)
+        public async Task<ListResultObject<Payment>> GetAllPaymentsAsync(long bookingId = 0, long customerId = 0, int paymentIncludes = 0, int pageIndex = 1, int pageSize = 20, string searchText = "", string sortQuery = "", string paymentStatus = "", int paymentLevel = 0, DateTime? fromDate = null, DateTime? toDate = null, long ownerPersonId = 0)
         {
             ListResultObject<Payment> results = new ListResultObject<Payment>();
             try
@@ -128,7 +133,12 @@ namespace NobatPlusDATA.DataLayer.Services
                     .Include(x => x.PaymentBookings).ThenInclude(x => x.Booking).ThenInclude(x => x.Worker).ThenInclude(x => x.Person)
                         .AsNoTracking();
 
-                if (customerId > 0)
+                if (ownerPersonId > 0)
+                {
+                    query = query.Where(x => x.OwnerPersonID == ownerPersonId ||
+                        (x.OwnerPersonID == null && x.PaymentBookings.Any() && x.PaymentBookings.All(pb => pb.Booking.Customer.PersonID == ownerPersonId)));
+                }
+                else if (customerId > 0)
                 {
                     query = query.Where(x => x.PaymentBookings.Any(pb => pb.Booking.CustomerID == customerId));
                 }
@@ -247,6 +257,8 @@ namespace NobatPlusDATA.DataLayer.Services
             BitResultObject result = new BitResultObject();
             try
             {
+                if (Payment.Purpose != PaymentPurposes.Service || await _context.PaymentHistories.AnyAsync(x => x.PaymentID == Payment.ID))
+                    throw new InvalidOperationException("پرداخت دارای سابقه مالی قابل حذف نیست");
                 _context.Payments.Remove(Payment);
                 await _context.SaveChangesAsync();
                 result.ID = Payment.ID;
@@ -323,7 +335,8 @@ namespace NobatPlusDATA.DataLayer.Services
                 decimal total = ssService.Sum(x => x.ServicePrice);
                 decimal discounted = ssService.Sum(x => x.PriceAfterDiscount);
                 decimal deposit = ssService.Sum(x => x.PriceAfterDiscount * x.DepositPercent / 100);
-                decimal platform = decimal.Parse(_context.Settings.FirstOrDefault(x => x.Key.ToLower() == "platformamount").Value ?? "0");
+                // Platform booking fees belong to Billing, not the customer's service invoice.
+                decimal platform = 0;
                 decimal worker = discounted;
                 decimal allPay = discounted + platform;
                 decimal vatAmount = allPay * int.Parse(_context.Settings.FirstOrDefault(x => x.Key.ToLower() == "vatpercent").Value ?? "0") / 100;

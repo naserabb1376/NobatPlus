@@ -10,6 +10,9 @@ namespace NobatPlusDATA.Domain
     public class PaymentHistory : BaseEntity
     {
         public long PaymentID { get; set; }
+        public string GatewayRequestState { get; set; } = "legacy";
+        public DateTime? RequestExpiresAt { get; set; }
+        public string? GatewayUrl { get; set; }
         public DateTime PaymentDate { get; set; }
         public int PaymentMethod { get; set; }
         public decimal Amount { get; set; }
