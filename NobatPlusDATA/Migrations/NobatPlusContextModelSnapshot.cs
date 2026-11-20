@@ -2882,10 +2882,22 @@ namespace NobatPlusDATA.Migrations
                     b.Property<bool>("IsActive")
                         .HasColumnType("bit");
 
+                    b.Property<int>("MaxMemberCount")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(1);
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(200)
                         .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("PlanType")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(10)
+                        .HasColumnType("nvarchar(10)")
+                        .HasDefaultValue("Individual");
 
                     b.Property<decimal>("Price")
                         .HasPrecision(18, 2)
@@ -2898,6 +2910,8 @@ namespace NobatPlusDATA.Migrations
 
                     b.ToTable("SubscriptionPlans", null, t =>
                         {
+                            t.HasCheckConstraint("CK_SubscriptionPlans_TypeAndMembers", "[PlanType] IN ('Individual','Business') AND [MaxMemberCount] >= 1");
+
                             t.HasCheckConstraint("CK_SubscriptionPlans_Values", "[DurationMonths] IN (1,3,6,12) AND [Price] > 0 AND [BookingFeeAmount] >= 0");
                         });
                 });

@@ -39,6 +39,7 @@ public class BillingController : ControllerBase
         _billing.SavePlanAsync(new SubscriptionPlan
         {
             ID = body.ID, Name = body.Name, DurationMonths = body.DurationMonths, Price = body.Price,
+            PlanType = body.PlanType, MaxMemberCount = body.MaxMemberCount,
             BookingFeeAmount = body.BookingFeeAmount, CurrencyCode = body.CurrencyCode,
             ContractVersion = body.ContractVersion, IsActive = body.IsActive, Description = body.Description
         }, IsAdmin));

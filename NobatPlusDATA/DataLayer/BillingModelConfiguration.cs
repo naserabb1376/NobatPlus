@@ -13,8 +13,13 @@ internal static class BillingModelConfiguration
         model.Entity<GatewayTransactionRecord>().HasOne<GatewayPaymentRecord>().WithMany()
             .HasForeignKey(x => x.GatewayPaymentRecordID).OnDelete(DeleteBehavior.NoAction);
         model.Entity<SubscriptionPlan>().ToTable("SubscriptionPlans", t =>
-            t.HasCheckConstraint("CK_SubscriptionPlans_Values", "[DurationMonths] IN (1,3,6,12) AND [Price] > 0 AND [BookingFeeAmount] >= 0"));
+        {
+            t.HasCheckConstraint("CK_SubscriptionPlans_Values", "[DurationMonths] IN (1,3,6,12) AND [Price] > 0 AND [BookingFeeAmount] >= 0");
+            t.HasCheckConstraint("CK_SubscriptionPlans_TypeAndMembers", "[PlanType] IN ('Individual','Business') AND [MaxMemberCount] >= 1");
+        });
         model.Entity<SubscriptionPlan>().Property(x => x.Name).HasMaxLength(200);
+        model.Entity<SubscriptionPlan>().Property(x => x.PlanType).HasMaxLength(10).HasDefaultValue("Individual");
+        model.Entity<SubscriptionPlan>().Property(x => x.MaxMemberCount).HasDefaultValue(1);
         model.Entity<BusinessSubscription>().HasIndex(x => new { x.BusinessID, x.RequestID }).IsUnique();
         model.Entity<BusinessSubscription>().HasIndex(x => x.PaymentID).IsUnique();
         model.Entity<BusinessSubscription>().HasIndex(x => new { x.BusinessID, x.Status, x.StartsAt, x.EndsAt });

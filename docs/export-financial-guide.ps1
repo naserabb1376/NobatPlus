@@ -97,7 +97,7 @@ $html = @"
 <html lang="fa" dir="rtl">
 <head>
 <meta charset="utf-8">
-<title>Nobatix | Financial Architecture and Frontend Guide | 2026-11-05</title>
+<title>Nobatix | Financial Architecture and Frontend Guide | 2026-11-07</title>
 <style>
 @page { size: A4; margin: 17mm 16mm 20mm;
     @bottom-center { content: counter(page); font: 9pt Tahoma, sans-serif; color: #64706f; }
@@ -143,7 +143,7 @@ tr { break-inside: avoid; }
 <div class="brand">NOBATIX</div>
 <h1>راهنمای جامع سیستم مالی</h1>
 <p class="subtitle">معماری و قواعد مالی، قرارداد API، راهنمای پیاده‌سازی فرانت‌اند، استقرار و سناریوهای آزمون</p>
-<div class="meta"><p>بازسازی از روی سورس فعلی پروژه</p><p>نسخه ۲۰۲۶/۱۱/۰۵</p><p>اشتراک · کارمزد · اعتبار · صورتحساب · درگاه · بازپرداخت</p></div>
+<div class="meta"><p>بازسازی از روی سورس فعلی پروژه</p><p>نسخه ۲۰۲۶/۱۱/۰۷</p><p>اشتراک · کارمزد · اعتبار · صورتحساب · درگاه · بازپرداخت</p></div>
 </section>
 <nav class="toc"><h2>فهرست مطالب</h2><ul>$toc</ul></nav>
 <main>$body</main>

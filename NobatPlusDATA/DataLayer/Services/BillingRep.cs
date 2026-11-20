@@ -24,6 +24,7 @@ public class BillingRep : IBillingRep
 
     public Task<BitResultObject> CreateGatewayAttemptAsync(long paymentId, string gatewayName, long personId, bool isAdmin) => WriteAsync(async () =>
     {
+        int reqExpireDuration = 1;
         if (!await CanAccessPaymentAsync(paymentId, personId, isAdmin)) throw new InvalidOperationException("دسترسی به پرداخت مجاز نیست");
         var payment = await _context.Payments.SingleAsync(x => x.ID == paymentId);
         if (!payment.IsActive || payment.PaymentFinished || payment.PaymentStatus == "refunded") throw new InvalidOperationException("پرداخت قابل انجام نیست");
@@ -37,7 +38,7 @@ public class BillingRep : IBillingRep
         if (payment.CurrencyCode != "IRR") throw new InvalidOperationException("واحد پول درگاه باید IRR باشد");
         var pending = await _context.PaymentHistories.Where(x => x.PaymentID == paymentId && !x.PaymentStatus
             && (x.GatewayRequestState == "creating" || x.GatewayRequestState == "requested") && x.RequestExpiresAt > DateTime.UtcNow).AnyAsync();
-        if (pending) throw new InvalidOperationException("یک درخواست پرداخت فعال وجود دارد؛ همان لینک را ادامه دهید یا تا انقضای آن صبر کنید");
+        if (pending) throw new InvalidOperationException($"یک درخواست پرداخت فعال وجود دارد؛ همان لینک را ادامه دهید یا {reqExpireDuration} دقیقه صبر کنید");
         var remaining = Math.Max(0, payment.AllPaymentAmount - payment.PayedAmount);
         var amount = payment.Purpose == PaymentPurposes.Service && payment.PayedAmount == 0 && payment.DepositAmount > 0
             ? Math.Min(payment.DepositAmount, remaining) : remaining;
@@ -45,7 +46,7 @@ public class BillingRep : IBillingRep
         var history = new PaymentHistory
         {
             PaymentID = payment.ID, Amount = amount, PaymentMethod = payment.PaymentLevel, PaymentStatus = false,
-            GatewayName = gatewayName, GatewayRequestState = "creating", RequestExpiresAt = DateTime.UtcNow.AddMinutes(15),
+            GatewayName = gatewayName, GatewayRequestState = "creating", RequestExpiresAt = DateTime.UtcNow.AddMinutes(reqExpireDuration),
             PaymentDate = DateTime.Now, CreateDate = DateTime.Now, UpdateDate = DateTime.Now
         };
         _context.PaymentHistories.Add(history);
@@ -136,11 +137,18 @@ public class BillingRep : IBillingRep
         if (!isAdmin) throw new InvalidOperationException("فقط مدیر مجاز به تغییر پلن است");
         if (string.IsNullOrWhiteSpace(plan.Name) || plan.Name.Trim().Length > 200 || !new[] { 1, 3, 6, 12 }.Contains(plan.DurationMonths))
             throw new InvalidOperationException("نام و مدت پلن معتبر نیست");
+        var planType = new[] { "Individual", "Business" }.FirstOrDefault(x =>
+            string.Equals(x, plan.PlanType?.Trim(), StringComparison.OrdinalIgnoreCase));
+        if (planType == null)
+            throw new InvalidOperationException("نوع پلن باید Individual یا Business باشد");
+        if (plan.MaxMemberCount < 1)
+            throw new InvalidOperationException("حداکثر تعداد اعضای پلن باید حداقل یک نفر باشد");
         Money(plan.Price); Money(plan.BookingFeeAmount, true);
         if (!string.Equals(plan.CurrencyCode, "IRR", StringComparison.OrdinalIgnoreCase))
             throw new InvalidOperationException("واحد پول این نسخه ریال (IRR) است");
         var row = plan.ID > 0 ? await _context.SubscriptionPlans.SingleAsync(x => x.ID == plan.ID) : new SubscriptionPlan { CreateDate = DateTime.UtcNow };
         row.Name = plan.Name.Trim(); row.DurationMonths = plan.DurationMonths; row.Price = plan.Price;
+        row.PlanType = planType; row.MaxMemberCount = plan.MaxMemberCount;
         row.BookingFeeAmount = plan.BookingFeeAmount; row.CurrencyCode = "IRR";
         row.ContractVersion = plan.ContractVersion.Trim(); row.IsActive = plan.IsActive;
         row.Description = plan.Description; row.UpdateDate = DateTime.UtcNow;

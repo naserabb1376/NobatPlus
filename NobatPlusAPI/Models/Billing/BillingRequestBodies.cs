@@ -9,6 +9,8 @@ public class SaveSubscriptionPlanRequestBody
 {
     public long ID { get; set; }
     [Required, StringLength(200)] public string Name { get; set; } = "";
+    [Required, StringLength(10)] public string PlanType { get; set; } = "Individual";
+    [Range(1, int.MaxValue)] public int MaxMemberCount { get; set; } = 1;
     [Range(1, 12)] public int DurationMonths { get; set; }
     [Range(typeof(decimal), "1", "9999999999999999")] public decimal Price { get; set; }
     [Range(typeof(decimal), "0", "9999999999999999")] public decimal BookingFeeAmount { get; set; }

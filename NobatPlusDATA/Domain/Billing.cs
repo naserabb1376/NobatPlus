@@ -13,6 +13,8 @@ public static class PaymentPurposes
 public class SubscriptionPlan : BaseEntity
 {
     public string Name { get; set; } = "";
+    public string PlanType { get; set; } = "Individual";
+    public int MaxMemberCount { get; set; } = 1;
     public int DurationMonths { get; set; }
     public decimal Price { get; set; }
     public decimal BookingFeeAmount { get; set; }
