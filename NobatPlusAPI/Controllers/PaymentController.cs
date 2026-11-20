@@ -96,7 +96,7 @@ namespace NobatPlusAPI.Controllers
                 requestBody.PaymentLevel,
                 requestBody.FromDate,
                 requestBody.ToDate,
-                roleId == 4 ? 0 : userId);
+                roleId == (long) BaseRole.Admin ? 0 : userId);
             if (result.Status)
             {
                 var resultVM = _mapper.Map<ListResultObject<PaymentVM>>(result);
@@ -168,7 +168,7 @@ namespace NobatPlusAPI.Controllers
             }
 
             long customerId;
-            if (User.GetCurrentRoleId() == 4 && requestBody.CustomerID > 0)
+            if (User.GetCurrentRoleId() == (long) BaseRole.Admin && requestBody.CustomerID > 0)
             {
                 customerId = requestBody.CustomerID;
             }
@@ -218,7 +218,7 @@ namespace NobatPlusAPI.Controllers
                 PaymentDate = requestBody.PaymentDate ?? DateTime.Now.ToShamsi(),
                 PaymentLevel = requestBody.PaymentLevel,
                 PaymentFinished = false,
-                OwnerPersonID = User.GetCurrentRoleId() == 4 ? null : User.GetCurrentUserId(),
+                OwnerPersonID = User.GetCurrentRoleId() == (long) BaseRole.Admin ? null : User.GetCurrentUserId(),
                 DiscountID = discountId,
                 Description = requestBody.Description,
                 PaymentBookings = bookingIds.Select(bookingId => new PaymentBooking
@@ -278,7 +278,7 @@ namespace NobatPlusAPI.Controllers
         [HttpPut("EditPayment_Base")]
         public async Task<ActionResult<BitResultObject>> EditPayment_Base(AddEditPaymentRequestBody requestBody)
         {
-            if (!await _billingRep.CanAccessPaymentAsync(requestBody.ID, User.GetCurrentUserId(), User.GetCurrentRoleId() == 4)) return Forbid();
+            if (!await _billingRep.CanAccessPaymentAsync(requestBody.ID, User.GetCurrentUserId(), User.GetCurrentRoleId() == (long) BaseRole.Admin)) return Forbid();
             var result = new BitResultObject();
             if (!ModelState.IsValid)
             {
@@ -293,7 +293,7 @@ namespace NobatPlusAPI.Controllers
             }
 
             long customerId;
-            if (User.GetCurrentRoleId() == 4 && requestBody.CustomerID > 0)
+            if (User.GetCurrentRoleId() == (long) BaseRole.Admin && requestBody.CustomerID > 0)
             {
                 customerId = requestBody.CustomerID;
             }
@@ -409,7 +409,7 @@ namespace NobatPlusAPI.Controllers
 
         private async Task<ActionResult<BitResultObject>> DeletePaymentInternal(GetRowRequestBody requestBody)
         {
-            if (!await _billingRep.CanAccessPaymentAsync(requestBody.ID, User.GetCurrentUserId(), User.GetCurrentRoleId() == 4)) return Forbid();
+            if (!await _billingRep.CanAccessPaymentAsync(requestBody.ID, User.GetCurrentUserId(), User.GetCurrentRoleId() == (long) BaseRole.Admin)) return Forbid();
             if (!ModelState.IsValid)
             {
                 return BadRequest(requestBody);

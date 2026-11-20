@@ -20,6 +20,7 @@ using NobatPlusDATA.ViewModels;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
+using static NobatPlusDATA.Tools.DbTools;
 
 namespace NobatPlusAPI.Controllers
 {
@@ -48,6 +49,7 @@ namespace NobatPlusAPI.Controllers
             _mapper = mapper;
         }
 
+        [HttpPost("GetAllPaymentDetails_Base")]
         [HttpPost("GetAllPaymentHistories_Base")]
         public async Task<ActionResult<ListResultObject<PaymentDetailVM>>> GetAllPaymentDetails_Base(GetPaymentDetailListRequestBody requestBody)
         {
@@ -235,7 +237,7 @@ namespace NobatPlusAPI.Controllers
             var roleId = User.GetCurrentRoleId();
             var personId = User.GetCurrentUserId();
 
-            if (roleId == 4) return true;
+            if (roleId == (long) BaseRole.Admin) return true;
 
             if (roleId == 1)
             {
@@ -280,7 +282,7 @@ namespace NobatPlusAPI.Controllers
             var roleId = User.GetCurrentRoleId();
             var personId = User.GetCurrentUserId();
 
-            if (roleId == 4) return true;
+            if (roleId == (long) BaseRole.Admin) return true;
 
             if (roleId == 1)
             {

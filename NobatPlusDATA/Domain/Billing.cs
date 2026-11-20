@@ -29,6 +29,8 @@ public class BusinessSubscription : BaseEntity
     public long PaymentID { get; set; }
     public Guid RequestID { get; set; }
     public string PlanNameSnapshot { get; set; } = "";
+    public string PlanTypeSnapshot { get; set; } = "Individual";
+    public int MaxMemberCountSnapshot { get; set; } = 1;
     public int DurationMonthsSnapshot { get; set; }
     public decimal PriceSnapshot { get; set; }
     public decimal BookingFeeAmountSnapshot { get; set; }
@@ -52,6 +54,7 @@ public class BusinessBillingSetting : BaseEntity
     public string DefaultFeePayer { get; set; } = "Business";
     public string CollectionMode { get; set; } = "Hybrid";
     public string InvoiceCycle { get; set; } = "Monthly";
+    public string SettlementDestination { get; set; } = "Business";
     public bool IsBookingFeeEnabled { get; set; } = true;
     public decimal CreditLimit { get; set; }
     public int DueDays { get; set; } = 7;
@@ -63,6 +66,7 @@ public class WorkerBillingSetting : BaseEntity
     public long BusinessID { get; set; }
     public long WorkerID { get; set; }
     public string? FeePayerOverride { get; set; }
+    public decimal RevenueSharePercent { get; set; }
     public long? AcceptedByPersonID { get; set; }
     public DateTime? AcceptedAt { get; set; }
     public string? AcceptedContractVersion { get; set; }
@@ -205,4 +209,14 @@ public class WorkerBillingContext
     public string CollectionMode { get; set; } = "Hybrid";
     public bool RequiresWorkerConsent { get; set; }
     public bool HasWorkerConsent { get; set; }
+    public long? SubscriptionID { get; set; }
+    public long? SubscriptionPlanID { get; set; }
+    public string? PlanType { get; set; }
+    public int TotalCapacity { get; set; }
+    public int RegisteredMemberCount { get; set; }
+    public int ConsumedMemberCount { get; set; }
+    public int RemainingCapacity { get; set; }
+    public bool IsSubscriptionValid { get; set; }
+    public bool IsProfileCovered { get; set; }
+    public string? CoverageReason { get; set; }
 }

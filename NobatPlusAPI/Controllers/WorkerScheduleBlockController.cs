@@ -51,6 +51,15 @@ namespace NobatPlusAPI.Controllers
             return Ok(_mapper.Map<RowResultObject<WorkerScheduleBlockVM>>(result));
         }
 
+        [HttpPost("ExistWorkerScheduleBlock_Base")]
+        public async Task<ActionResult<BitResultObject>> ExistWorkerScheduleBlock_Base(GetRowRequestBody request)
+        {
+            var row = await _rep.GetWorkerScheduleBlockByIdAsync(request.ID);
+            if (!row.Status || row.Result == null) return Ok(new BitResultObject { ID = request.ID, Status = false });
+            if (!await CanManageWorkerAsync(row.Result.WorkerID)) return Forbid();
+            return Ok(await _rep.ExistWorkerScheduleBlockAsync(request.ID));
+        }
+
         [HttpPost("AddWorkerScheduleBlocks_Base")]
         public async Task<ActionResult<BitResultObject>> AddWorkerScheduleBlocks_Base(AddWorkerScheduleBlocksRequestBody request)
         {

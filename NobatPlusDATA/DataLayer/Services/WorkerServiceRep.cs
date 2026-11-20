@@ -4,6 +4,7 @@ using NobatPlusDATA.Domain;
 using NobatPlusDATA.ResultObjects;
 using NobatPlusDATA.Tools;
 using System;
+using System.Data;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection.Metadata;
@@ -16,9 +17,11 @@ namespace NobatPlusDATA.DataLayer.Services
     {
 
         private NobatPlusContext _context;
-        public WorkerServiceRep(NobatPlusContext context)
+        private readonly IBillingRep _billingRep;
+        public WorkerServiceRep(NobatPlusContext context, IBillingRep billingRep)
         {
             _context = context;
+            _billingRep = billingRep;
         }
 
         public async Task<BitResultObject> AddWorkerServicesAsync(List<WorkerService> workerServices)
@@ -27,6 +30,8 @@ namespace NobatPlusDATA.DataLayer.Services
 
             try
             {
+                await using var transaction = await _context.Database.BeginTransactionAsync(IsolationLevel.Serializable);
+                await _billingRep.AcquireLockAsync();
                 // گروه‌بندی بر اساس Worker
                 var groupedByWorker = workerServices
                     .GroupBy(x => x.WorkerID)
@@ -116,8 +121,13 @@ namespace NobatPlusDATA.DataLayer.Services
 
                     if (servicesToInsert.Any() || priceVariantsToInsert.Any())
                         await _context.SaveChangesAsync();
+
+                    var capacityError = await _billingRep.ValidateWorkerCapacityAsync(workerId);
+                    if (!string.IsNullOrWhiteSpace(capacityError))
+                        throw new InvalidOperationException(capacityError);
                 }
 
+                await transaction.CommitAsync();
                 result.Status = true;
             }
             catch (Exception ex)

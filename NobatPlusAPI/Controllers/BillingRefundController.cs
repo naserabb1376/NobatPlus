@@ -8,12 +8,12 @@ using NobatPlusAPI.ViewModels.Billing;
 using NobatPlusDATA.DataLayer.Repositories;
 using NobatPlusDATA.Domain;
 using NobatPlusDATA.ResultObjects;
+using static NobatPlusDATA.Tools.DbTools;
 namespace NobatPlusAPI.Controllers;
 
 [ApiController]
 [Route("BillingRefund")]
 [Authorize]
-[RequireRole(2, 3, 4)]
 [Produces("application/json")]
 public class BillingRefundController : ControllerBase
 {
@@ -25,17 +25,24 @@ public class BillingRefundController : ControllerBase
         _mapper = mapper;
     }
 
+    [HttpPost("ExistBillingRefund_Base")]
+    public async Task<ActionResult<BitResultObject>> ExistBillingRefund_Base(GetRowRequestBody requestBody)
+    {
+        var result = await _repository.ExistBillingRefundAsync(requestBody.ID, User.GetCurrentUserId(), User.GetCurrentRoleId() == (long) BaseRole.Admin);
+        return result.Status ? Ok(result) : BadRequest(result);
+    }
+
     [HttpPost("GetAllBillingRefunds_Base")]
     public async Task<ActionResult<ListResultObject<BillingRefundVM>>> GetAllBillingRefunds_Base(GetBillingListRequestBody requestBody)
     {
-        var result = await _repository.GetAllAsync(requestBody, User.GetCurrentUserId(), User.GetCurrentRoleId() == 4);
+        var result = await _repository.GetAllBillingRefundsAsync(requestBody, User.GetCurrentUserId(), User.GetCurrentRoleId() == (long) BaseRole.Admin);
         return result.Status ? Ok(_mapper.Map<ListResultObject<BillingRefundVM>>(result)) : BadRequest(result);
     }
 
     [HttpPost("GetBillingRefundById_Base")]
     public async Task<ActionResult<RowResultObject<BillingRefundVM>>> GetBillingRefundById_Base(GetRowRequestBody requestBody)
     {
-        var result = await _repository.GetByIdAsync(requestBody.ID, User.GetCurrentUserId(), User.GetCurrentRoleId() == 4);
+        var result = await _repository.GetBillingRefundByIdAsync(requestBody.ID, User.GetCurrentUserId(), User.GetCurrentRoleId() == (long) BaseRole.Admin);
         return result.Status ? Ok(_mapper.Map<RowResultObject<BillingRefundVM>>(result)) : BadRequest(result);
     }
 }

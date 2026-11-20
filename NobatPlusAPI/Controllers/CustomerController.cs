@@ -21,6 +21,7 @@ using NobatPlusDATA.ViewModels;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
+using static NobatPlusDATA.Tools.DbTools;
 
 namespace NobatPlusAPI.Controllers
 {
@@ -389,7 +390,7 @@ namespace NobatPlusAPI.Controllers
                  UpdateDate = DateTime.Now.ToShamsi(),
                  ID = requestBody.ID,
                  CreateDate = theRow.Result.CreateDate,
-                 PersonID = User.GetCurrentRoleId() == 4 ? requestBody.PersonID : theRow.Result.PersonID,
+                 PersonID = User.GetCurrentRoleId() == (long) BaseRole.Admin ? requestBody.PersonID : theRow.Result.PersonID,
                  Description = requestBody.Description,
             };
              result = await _CustomerRep.EditCustomerAsync(Customer);

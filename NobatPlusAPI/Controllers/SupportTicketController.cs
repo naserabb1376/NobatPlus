@@ -63,6 +63,16 @@ namespace NobatPlusAPI.Controllers
             return Ok(result);
         }
 
+        [HttpPost("ExistSupportTicket_Base")]
+        public async Task<ActionResult<BitResultObject>> ExistSupportTicket_Base(GetRowRequestBody requestBody)
+        {
+            if (!ModelState.IsValid) return BadRequest(requestBody);
+            var row = await _supportTicketRep.GetSupportTicketByIdAsync(requestBody.ID);
+            if (!row.Status || row.Result == null) return Ok(new BitResultObject { ID = requestBody.ID, Status = false });
+            if (User.GetCurrentRoleId() != (long)DbTools.BaseRole.Admin && row.Result.PersonID != User.GetCurrentUserId()) return Forbid();
+            return Ok(await _supportTicketRep.ExistSupportTicketAsync(requestBody.ID));
+        }
+
         [HttpPost("AddSupportTicket_Base")]
         public async Task<ActionResult<BitResultObject>> AddSupportTicket_Base(AddSupportTicketRequestBody requestBody)
         {

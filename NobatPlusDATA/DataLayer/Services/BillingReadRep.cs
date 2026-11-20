@@ -7,10 +7,26 @@ using NobatPlusDATA.Tools;
 
 namespace NobatPlusDATA.DataLayer.Services;
 
-public abstract class BillingReadRep<T> : IBillingReadRep<T> where T : BaseEntity
+public abstract class BillingReadRep<T> where T : BaseEntity
 {
     protected readonly NobatPlusContext Context;
     protected BillingReadRep(NobatPlusContext context) => Context = context;
+
+    protected async Task<BitResultObject> ExistAsync(long id, long personId, bool isAdmin)
+    {
+        var result = new BitResultObject { ID = id };
+        try
+        {
+            result.Status = id > 0 && await Scoped(personId, isAdmin).AnyAsync(x => x.ID == id);
+        }
+        catch (Exception ex)
+        {
+            result.Status = false;
+            result.ErrorMessage = $"{ex.Message} - {ex.InnerException?.Message}";
+        }
+
+        return result;
+    }
 
     private IQueryable<T> Scoped(long personId, bool admin)
     {
@@ -31,7 +47,7 @@ public abstract class BillingReadRep<T> : IBillingReadRep<T> where T : BaseEntit
         return query.Where(x => accounts.Contains(EF.Property<long>(x, "BillingAccountID")));
     }
 
-    public async Task<ListResultObject<T>> GetAllAsync(BillingListFilter filter, long personId, bool isAdmin)
+    protected async Task<ListResultObject<T>> GetAllAsync(BillingListFilter filter, long personId, bool isAdmin)
     {
         var result = new ListResultObject<T>();
         try
@@ -65,7 +81,7 @@ public abstract class BillingReadRep<T> : IBillingReadRep<T> where T : BaseEntit
         return result;
     }
 
-    public async Task<RowResultObject<T>> GetByIdAsync(long id, long personId, bool isAdmin)
+    protected async Task<RowResultObject<T>> GetByIdAsync(long id, long personId, bool isAdmin)
     {
         var result = new RowResultObject<T>();
         try

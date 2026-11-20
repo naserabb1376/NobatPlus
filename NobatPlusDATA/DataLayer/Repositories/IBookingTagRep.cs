@@ -7,6 +7,7 @@ namespace NobatPlusDATA.DataLayer.Repositories
     {
         Task<ListResultObject<BookingTag>> GetAllBookingTagsAsync(long workerId = 0, int isActive = -1, int pageIndex = 1, int pageSize = 20, string searchText = "", string sortQuery = "");
         Task<RowResultObject<BookingTag>> GetBookingTagByIdAsync(long id);
+        Task<BitResultObject> ExistBookingTagAsync(long id);
         Task<BitResultObject> AddBookingTagAsync(BookingTag tag);
         Task<BitResultObject> EditBookingTagAsync(BookingTag tag);
         Task<BitResultObject> RemoveBookingTagAsync(long id);

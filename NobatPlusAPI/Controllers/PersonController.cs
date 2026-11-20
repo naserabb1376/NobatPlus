@@ -20,6 +20,7 @@ using NobatPlusDATA.ViewModels;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
+using static NobatPlusDATA.Tools.DbTools;
 
 namespace NobatPlusAPI.Controllers
 {
@@ -247,7 +248,7 @@ namespace NobatPlusAPI.Controllers
                 result.Status = theRow.Status;
                 result.ErrorMessage = theRow.ErrorMessage;
             }
-            if (theRow.Status && theRow.Result.RoleId == 4 && theRow.Result.IsActive && (requestBody.RoleId != 4 || !requestBody.IsActive))
+            if (theRow.Status && theRow.Result.RoleId == (long) BaseRole.Admin && theRow.Result.IsActive && (requestBody.RoleId != 4 || !requestBody.IsActive))
             {
                 var activeAdmins = await _PersonRep.GetAllPersonsAsync(0, 1, 2, "", "", 4, true);
                 if (activeAdmins.Status && activeAdmins.TotalCount <= 1)
@@ -511,7 +512,7 @@ namespace NobatPlusAPI.Controllers
             }
 
             Person Person = theRow.Result;
-            if (Person.RoleId == 4 && Person.IsActive && !requestBody.IsActive)
+            if (Person.RoleId == (long) BaseRole.Admin && Person.IsActive && !requestBody.IsActive)
             {
                 var activeAdmins = await _PersonRep.GetAllPersonsAsync(0, 1, 2, "", "", 4, true);
                 if (activeAdmins.Status && activeAdmins.TotalCount <= 1)

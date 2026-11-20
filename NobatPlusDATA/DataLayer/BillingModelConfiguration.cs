@@ -23,6 +23,10 @@ internal static class BillingModelConfiguration
         model.Entity<BusinessSubscription>().HasIndex(x => new { x.BusinessID, x.RequestID }).IsUnique();
         model.Entity<BusinessSubscription>().HasIndex(x => x.PaymentID).IsUnique();
         model.Entity<BusinessSubscription>().HasIndex(x => new { x.BusinessID, x.Status, x.StartsAt, x.EndsAt });
+        model.Entity<BusinessSubscription>().Property(x => x.PlanTypeSnapshot).HasMaxLength(10).HasDefaultValue("Individual");
+        model.Entity<BusinessSubscription>().Property(x => x.MaxMemberCountSnapshot).HasDefaultValue(1);
+        model.Entity<BusinessSubscription>().ToTable("BusinessSubscriptions", t =>
+            t.HasCheckConstraint("CK_BusinessSubscriptions_Snapshot", "[PlanTypeSnapshot] IN ('Individual','Business') AND [MaxMemberCountSnapshot] >= 1"));
         model.Entity<BusinessSubscription>().HasOne<Worker>().WithMany().HasForeignKey(x => x.BusinessID).OnDelete(DeleteBehavior.NoAction);
         model.Entity<BusinessSubscription>().HasOne<SubscriptionPlan>().WithMany().HasForeignKey(x => x.SubscriptionPlanID).OnDelete(DeleteBehavior.NoAction);
         model.Entity<BusinessSubscription>().HasOne<Payment>().WithMany().HasForeignKey(x => x.PaymentID).OnDelete(DeleteBehavior.NoAction);
@@ -30,9 +34,13 @@ internal static class BillingModelConfiguration
         model.Entity<BillingAccount>().HasOne<Worker>().WithMany().HasForeignKey(x => x.WorkerID).OnDelete(DeleteBehavior.NoAction);
         model.Entity<BusinessBillingSetting>().HasIndex(x => x.BusinessID).IsUnique();
         model.Entity<BusinessBillingSetting>().HasOne<Worker>().WithMany().HasForeignKey(x => x.BusinessID).OnDelete(DeleteBehavior.NoAction);
+        model.Entity<BusinessBillingSetting>().Property(x => x.SettlementDestination).HasMaxLength(20).HasDefaultValue("Business");
         model.Entity<BusinessBillingSetting>().ToTable("BusinessBillingSettings", t =>
-            t.HasCheckConstraint("CK_BusinessBillingSettings_Values", "[DefaultFeePayer] IN ('Business','Worker') AND [CollectionMode] IN ('Prepaid','Postpaid','Hybrid') AND [InvoiceCycle] IN ('Weekly','Monthly') AND [CreditLimit] >= 0 AND [DueDays] >= 0"));
+            t.HasCheckConstraint("CK_BusinessBillingSettings_Values", "[DefaultFeePayer] IN ('Business','Worker') AND [CollectionMode] IN ('Prepaid','Postpaid','Hybrid') AND [InvoiceCycle] IN ('Weekly','Monthly') AND [SettlementDestination] IN ('Business','Separate') AND [CreditLimit] >= 0 AND [DueDays] >= 0"));
         model.Entity<WorkerBillingSetting>().HasIndex(x => new { x.BusinessID, x.WorkerID }).IsUnique();
+        model.Entity<WorkerBillingSetting>().Property(x => x.RevenueSharePercent).HasDefaultValue(0m);
+        model.Entity<WorkerBillingSetting>().ToTable("WorkerBillingSettings", t =>
+            t.HasCheckConstraint("CK_WorkerBillingSettings_RevenueSharePercent", "[RevenueSharePercent] >= 0 AND [RevenueSharePercent] <= 100"));
         model.Entity<WorkerBillingSetting>().HasOne<Worker>().WithMany().HasForeignKey(x => x.BusinessID).OnDelete(DeleteBehavior.NoAction);
         model.Entity<WorkerBillingSetting>().HasOne<Worker>().WithMany().HasForeignKey(x => x.WorkerID).OnDelete(DeleteBehavior.NoAction);
         model.Entity<WorkerBillingSetting>().HasOne<Person>().WithMany().HasForeignKey(x => x.AcceptedByPersonID).OnDelete(DeleteBehavior.NoAction);

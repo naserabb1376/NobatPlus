@@ -1211,6 +1211,13 @@ namespace NobatPlusDATA.Migrations
                     b.Property<bool>("IsBookingFeeEnabled")
                         .HasColumnType("bit");
 
+                    b.Property<string>("SettlementDestination")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)")
+                        .HasDefaultValue("Business");
+
                     b.Property<DateTime?>("UpdateDate")
                         .HasColumnType("datetime2");
 
@@ -1221,7 +1228,7 @@ namespace NobatPlusDATA.Migrations
 
                     b.ToTable("BusinessBillingSettings", null, t =>
                         {
-                            t.HasCheckConstraint("CK_BusinessBillingSettings_Values", "[DefaultFeePayer] IN ('Business','Worker') AND [CollectionMode] IN ('Prepaid','Postpaid','Hybrid') AND [InvoiceCycle] IN ('Weekly','Monthly') AND [CreditLimit] >= 0 AND [DueDays] >= 0");
+                            t.HasCheckConstraint("CK_BusinessBillingSettings_Values", "[DefaultFeePayer] IN ('Business','Worker') AND [CollectionMode] IN ('Prepaid','Postpaid','Hybrid') AND [InvoiceCycle] IN ('Weekly','Monthly') AND [SettlementDestination] IN ('Business','Separate') AND [CreditLimit] >= 0 AND [DueDays] >= 0");
                         });
                 });
 
@@ -1263,12 +1270,24 @@ namespace NobatPlusDATA.Migrations
                     b.Property<bool>("IsActive")
                         .HasColumnType("bit");
 
+                    b.Property<int>("MaxMemberCountSnapshot")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(1);
+
                     b.Property<long>("PaymentID")
                         .HasColumnType("bigint");
 
                     b.Property<string>("PlanNameSnapshot")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("PlanTypeSnapshot")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(10)
+                        .HasColumnType("nvarchar(10)")
+                        .HasDefaultValue("Individual");
 
                     b.Property<decimal>("PriceSnapshot")
                         .HasPrecision(18, 2)
@@ -1302,7 +1321,10 @@ namespace NobatPlusDATA.Migrations
 
                     b.HasIndex("BusinessID", "Status", "StartsAt", "EndsAt");
 
-                    b.ToTable("BusinessSubscriptions");
+                    b.ToTable("BusinessSubscriptions", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_BusinessSubscriptions_Snapshot", "[PlanTypeSnapshot] IN ('Individual','Business') AND [MaxMemberCountSnapshot] >= 1");
+                        });
                 });
 
             modelBuilder.Entity("NobatPlusDATA.Domain.CheckAvailability", b =>
@@ -3280,6 +3302,12 @@ namespace NobatPlusDATA.Migrations
                     b.Property<bool>("IsActive")
                         .HasColumnType("bit");
 
+                    b.Property<decimal>("RevenueSharePercent")
+                        .ValueGeneratedOnAdd()
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)")
+                        .HasDefaultValue(0m);
+
                     b.Property<DateTime?>("UpdateDate")
                         .HasColumnType("datetime2");
 
@@ -3295,7 +3323,10 @@ namespace NobatPlusDATA.Migrations
                     b.HasIndex("BusinessID", "WorkerID")
                         .IsUnique();
 
-                    b.ToTable("WorkerBillingSettings");
+                    b.ToTable("WorkerBillingSettings", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_WorkerBillingSettings_RevenueSharePercent", "[RevenueSharePercent] >= 0 AND [RevenueSharePercent] <= 100");
+                        });
                 });
 
             modelBuilder.Entity("NobatPlusDATA.Domain.WorkerPacific", b =>

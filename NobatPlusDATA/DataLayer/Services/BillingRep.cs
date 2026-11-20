@@ -111,6 +111,35 @@ public class BillingRep : IBillingRep
         return worker;
     }
 
+    private static bool HasApprovedAccount(Worker worker) => worker.AccountStatus == "1";
+
+    private async Task<bool> IsEligibleProviderAsync(long workerId, long businessId)
+    {
+        return await _context.Workers.AsNoTracking()
+            .AnyAsync(x => x.ID == workerId && (x.WorkerParentID == businessId || (x.ID == businessId && x.WorkerParentID == 0)) && !x.IsWorkShop &&
+                x.AccountStatus == "1" && x.Person.IsActive && x.WorkerServices.Any());
+    }
+
+    private Task<int> GetConsumedMemberCountAsync(long businessId, string planType)
+    {
+        var query = _context.Workers.AsNoTracking().Where(x =>
+            ((x.WorkerParentID == businessId && !x.IsWorkShop) || (x.ID == businessId && x.WorkerParentID == 0 && !x.IsWorkShop)) && x.AccountStatus == "1" &&
+            x.Person.IsActive && x.WorkerServices.Any());
+
+        if (string.Equals(planType, "Individual", StringComparison.OrdinalIgnoreCase))
+            query = query.Where(x => x.ID == businessId && x.WorkerParentID == 0);
+
+        return query.Select(x => x.ID).Distinct().CountAsync();
+    }
+
+    private Task<int> GetRegisteredMemberCountAsync(long businessId, string planType)
+    {
+        if (string.Equals(planType, "Individual", StringComparison.OrdinalIgnoreCase))
+            return _context.Workers.AsNoTracking().CountAsync(x => x.ID == businessId && !x.IsWorkShop && x.WorkerParentID == 0);
+
+        return _context.Workers.AsNoTracking().CountAsync(x => x.WorkerParentID == businessId && !x.IsWorkShop);
+    }
+
     private async Task<BillingAccount> AccountAsync(long workerId)
     {
         var account = await _context.BillingAccounts.SingleOrDefaultAsync(x => x.WorkerID == workerId);
@@ -164,6 +193,7 @@ public class BillingRep : IBillingRep
         setting.DefaultFeePayer = Choice(setting.DefaultFeePayer, "Business", "Worker");
         setting.CollectionMode = Choice(setting.CollectionMode, "Prepaid", "Postpaid", "Hybrid");
         setting.InvoiceCycle = Choice(setting.InvoiceCycle, "Weekly", "Monthly");
+        setting.SettlementDestination = Choice(setting.SettlementDestination, "Business", "Separate");
         Money(setting.CreditLimit, true);
         if (setting.DueDays < 0 || setting.DueDays > 365) throw new InvalidOperationException("مهلت صورتحساب معتبر نیست");
         var row = await _context.BusinessBillingSettings.SingleOrDefaultAsync(x => x.BusinessID == setting.BusinessID);
@@ -175,7 +205,8 @@ public class BillingRep : IBillingRep
         }
         if (!row.IsBookingFeeEnabled && setting.IsBookingFeeEnabled) row.EffectiveFrom = DateTime.UtcNow;
         row.DefaultFeePayer = setting.DefaultFeePayer; row.CollectionMode = setting.CollectionMode;
-        row.InvoiceCycle = setting.InvoiceCycle; row.IsBookingFeeEnabled = setting.IsBookingFeeEnabled;
+        row.InvoiceCycle = setting.InvoiceCycle; row.SettlementDestination = setting.SettlementDestination;
+        row.IsBookingFeeEnabled = setting.IsBookingFeeEnabled;
         row.CreditLimit = setting.CreditLimit; row.DueDays = setting.DueDays;
         row.IsActive = setting.IsActive; row.UpdateDate = DateTime.UtcNow;
         Audit(setting.BusinessID, null, personId, before, row);
@@ -191,12 +222,16 @@ public class BillingRep : IBillingRep
             BeforeJson = before, AfterJson = JsonSerializer.Serialize(after), OccurredAt = DateTime.UtcNow, CreateDate = DateTime.UtcNow
         });
 
-    public Task<BitResultObject> SaveWorkerSettingsAsync(long businessId, long workerId, string? payer, long personId, bool isAdmin) => WriteAsync(async () =>
+    public Task<BitResultObject> SaveWorkerSettingsAsync(long businessId, long workerId, string? payer, decimal? revenueSharePercent, long personId, bool isAdmin) => WriteAsync(async () =>
     {
         await RequireWorkerAsync(businessId, personId, isAdmin);
         var worker = await _context.Workers.AsNoTracking().SingleAsync(x => x.ID == workerId);
         if (worker.ID != businessId && worker.WorkerParentID != businessId)
             throw new InvalidOperationException("متخصص عضو این کسب‌وکار نیست");
+        if (worker.IsWorkShop || worker.WorkerParentID != businessId)
+            throw new InvalidOperationException("تنظیم سهم فقط برای متخصص عضو مجموعه قابل ثبت است");
+        if (revenueSharePercent.HasValue && (revenueSharePercent.Value < 0 || revenueSharePercent.Value > 100))
+            throw new InvalidOperationException("درصد سهم مجموعه باید بین صفر و صد باشد");
         var row = await _context.WorkerBillingSettings.SingleOrDefaultAsync(x => x.BusinessID == businessId && x.WorkerID == workerId);
         var before = JsonSerializer.Serialize(row);
         if (row == null)
@@ -205,6 +240,7 @@ public class BillingRep : IBillingRep
             _context.WorkerBillingSettings.Add(row);
         }
         row.FeePayerOverride = string.IsNullOrWhiteSpace(payer) ? null : Choice(payer, "Business", "Worker");
+        if (revenueSharePercent.HasValue) row.RevenueSharePercent = revenueSharePercent.Value;
         row.UpdateDate = DateTime.UtcNow;
         Audit(businessId, workerId, personId, before, row);
         await _context.SaveChangesAsync();
@@ -243,7 +279,18 @@ public class BillingRep : IBillingRep
             var businessId = worker.WorkerParentID > 0 ? worker.WorkerParentID : worker.ID;
             var setting = await _context.BusinessBillingSettings.AsNoTracking().SingleOrDefaultAsync(x => x.BusinessID == businessId && x.IsActive);
             var workerSetting = await _context.WorkerBillingSettings.AsNoTracking().SingleOrDefaultAsync(x => x.BusinessID == businessId && x.WorkerID == workerId);
-            var subscription = await _context.BusinessSubscriptions.AsNoTracking().FirstOrDefaultAsync(x => x.BusinessID == businessId && x.Status == "active" && x.StartsAt <= DateTime.UtcNow && x.EndsAt > DateTime.UtcNow);
+            var subscription = await _context.BusinessSubscriptions.AsNoTracking()
+                .Where(x => x.BusinessID == businessId && x.Status == "active" && x.StartsAt <= DateTime.UtcNow && x.EndsAt > DateTime.UtcNow)
+                .OrderByDescending(x => x.StartsAt)
+                .FirstOrDefaultAsync();
+            var planType = subscription?.PlanTypeSnapshot ?? "";
+            var registered = subscription == null ? 0 : await GetRegisteredMemberCountAsync(businessId, planType);
+            var consumed = subscription == null ? 0 : await GetConsumedMemberCountAsync(businessId, planType);
+            var validProfile = subscription != null &&
+                ((string.Equals(planType, "Individual", StringComparison.OrdinalIgnoreCase) && worker.ID == businessId && worker.WorkerParentID == 0 && !worker.IsWorkShop && await IsEligibleProviderAsync(worker.ID, worker.ID)) ||
+                 (string.Equals(planType, "Business", StringComparison.OrdinalIgnoreCase) && await IsEligibleProviderAsync(worker.ID, businessId)));
+            var coverageReason = subscription == null ? "اشتراک فعال برای این پروفایل وجود ندارد" :
+                validProfile ? null : "این پروفایل طبق نوع پلن تحت پوشش نیست یا هنوز شرایط ارائه خدمت را ندارد";
             var payer = workerSetting?.FeePayerOverride ?? setting?.DefaultFeePayer ?? "Business";
             result.Result = new WorkerBillingContext
             {
@@ -251,11 +298,44 @@ public class BillingRep : IBillingRep
                 HasActiveSubscription = subscription != null, BookingFeeAmount = subscription?.BookingFeeAmountSnapshot ?? 0,
                 ContractVersion = subscription?.ContractVersionSnapshot, FeePayer = payer, CollectionMode = setting?.CollectionMode ?? "Hybrid",
                 RequiresWorkerConsent = payer == "Worker" && worker.ID != businessId,
-                HasWorkerConsent = workerSetting?.AcceptedByPersonID == worker.PersonID && subscription != null && workerSetting.AcceptedContractVersion == subscription.ContractVersionSnapshot
+                HasWorkerConsent = workerSetting?.AcceptedByPersonID == worker.PersonID && subscription != null && workerSetting.AcceptedContractVersion == subscription.ContractVersionSnapshot,
+                SubscriptionID = subscription?.ID,
+                SubscriptionPlanID = subscription?.SubscriptionPlanID,
+                PlanType = subscription?.PlanTypeSnapshot,
+                TotalCapacity = subscription?.MaxMemberCountSnapshot ?? 0,
+                RegisteredMemberCount = registered,
+                ConsumedMemberCount = consumed,
+                RemainingCapacity = Math.Max(0, (subscription?.MaxMemberCountSnapshot ?? 0) - consumed),
+                IsSubscriptionValid = subscription != null,
+                IsProfileCovered = validProfile,
+                CoverageReason = coverageReason
             };
         }
         catch (Exception ex) { result.Status = false; result.ErrorMessage = $"{ex.Message} - {ex.InnerException?.Message}"; }
         return result;
+    }
+
+    public async Task<string?> ValidateWorkerCapacityAsync(long workerId)
+    {
+        var worker = await _context.Workers.AsNoTracking().SingleOrDefaultAsync(x => x.ID == workerId);
+        if (worker == null || worker.IsWorkShop || worker.WorkerParentID <= 0 || !HasApprovedAccount(worker) || !worker.Person.IsActive)
+            return null;
+
+        var subscription = await _context.BusinessSubscriptions.AsNoTracking()
+            .Where(x => x.BusinessID == worker.WorkerParentID && x.Status == "active" &&
+                x.StartsAt <= DateTime.UtcNow && x.EndsAt > DateTime.UtcNow)
+            .OrderByDescending(x => x.StartsAt)
+            .FirstOrDefaultAsync();
+        if (subscription == null || !string.Equals(subscription.PlanTypeSnapshot, "Business", StringComparison.OrdinalIgnoreCase))
+            return null;
+
+        if (!await _context.WorkerServices.AnyAsync(x => x.WorkerID == workerId))
+            return null;
+
+        var consumed = await GetConsumedMemberCountAsync(worker.WorkerParentID, subscription.PlanTypeSnapshot);
+        return consumed > subscription.MaxMemberCountSnapshot
+            ? "ظرفیت اشتراک سالن تکمیل است و این متخصص نمی‌تواند به‌عنوان عضو واجد شرایط فعال شود"
+            : null;
     }
 
     private Payment NewPayment(decimal amount, string purpose, long personId) => new()
@@ -279,13 +359,23 @@ public class BillingRep : IBillingRep
         }
         var plan = await _context.SubscriptionPlans.SingleOrDefaultAsync(x => x.ID == planId && x.IsActive)
             ?? throw new InvalidOperationException("پلن فعال یافت نشد");
+        var isIndependent = !worker.IsWorkShop && worker.WorkerParentID == 0;
+        var isBusiness = worker.IsWorkShop && worker.WorkerParentID == 0;
+        if (string.Equals(plan.PlanType, "Individual", StringComparison.OrdinalIgnoreCase) && !isIndependent)
+            throw new InvalidOperationException("Individual plans require an independent worker profile.");
+        if (string.Equals(plan.PlanType, "Business", StringComparison.OrdinalIgnoreCase) && !isBusiness)
+            throw new InvalidOperationException("Business plans require a workshop profile.");
+        var consumedMembers = await GetConsumedMemberCountAsync(businessId, plan.PlanType);
+        if (consumedMembers > plan.MaxMemberCount)
+            throw new InvalidOperationException("The selected plan capacity is lower than the current eligible member count.");
         var payment = NewPayment(plan.Price, PaymentPurposes.Subscription, worker.PersonID);
         _context.Payments.Add(payment);
         await _context.SaveChangesAsync();
         _context.BusinessSubscriptions.Add(new BusinessSubscription
         {
             BusinessID = businessId, SubscriptionPlanID = plan.ID, PaymentID = payment.ID, RequestID = requestId,
-            PlanNameSnapshot = plan.Name, DurationMonthsSnapshot = plan.DurationMonths, PriceSnapshot = plan.Price,
+            PlanNameSnapshot = plan.Name, PlanTypeSnapshot = plan.PlanType, MaxMemberCountSnapshot = plan.MaxMemberCount,
+            DurationMonthsSnapshot = plan.DurationMonths, PriceSnapshot = plan.Price,
             BookingFeeAmountSnapshot = plan.BookingFeeAmount, CurrencyCode = plan.CurrencyCode,
             ContractVersionSnapshot = plan.ContractVersion, CreateDate = DateTime.UtcNow
         });

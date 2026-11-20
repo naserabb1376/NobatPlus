@@ -7,9 +7,10 @@ public interface IBillingRep
 {
     Task<BitResultObject> SavePlanAsync(SubscriptionPlan plan, bool isAdmin);
     Task<BitResultObject> SaveBusinessSettingsAsync(BusinessBillingSetting setting, long personId, bool isAdmin);
-    Task<BitResultObject> SaveWorkerSettingsAsync(long businessId, long workerId, string? payer, long personId, bool isAdmin);
+    Task<BitResultObject> SaveWorkerSettingsAsync(long businessId, long workerId, string? payer, decimal? revenueSharePercent, long personId, bool isAdmin);
     Task<BitResultObject> AcceptWorkerLiabilityAsync(long businessId, long workerId, bool accept, long personId, string? contractVersion = null);
     Task<RowResultObject<WorkerBillingContext>> GetWorkerBillingContextAsync(long workerId, long personId, bool isAdmin);
+    Task<string?> ValidateWorkerCapacityAsync(long workerId);
     Task<BitResultObject> PurchaseSubscriptionAsync(long businessId, long planId, Guid requestId, long personId, bool isAdmin);
     Task<BitResultObject> CreateBillingPaymentAsync(long accountId, long? invoiceId, decimal amount, Guid requestId, long personId, bool isAdmin);
     Task<RowResultObject<BillingAccountReport>> GetAccountReportAsync(long workerId, long personId, bool isAdmin);

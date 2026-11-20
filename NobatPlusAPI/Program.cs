@@ -345,10 +345,10 @@ namespace NobatPlusAPI
             GlobalJobFilters.Filters.Add(
                 app.Services.GetRequiredService<HangfireErrorLoggingFilter>());
 
-            //using (var scope = app.Services.CreateScope())
-            //{
-            //    PermissionBootstrapper.SyncAsync(scope.ServiceProvider, app.Logger).GetAwaiter().GetResult();
-            //}
+            using (var scope = app.Services.CreateScope())
+            {
+                PermissionBootstrapper.SyncAsync(scope.ServiceProvider, app.Logger).GetAwaiter().GetResult();
+            }
 
             // Configure the HTTP request pipeline.
 

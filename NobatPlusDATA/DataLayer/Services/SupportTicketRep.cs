@@ -179,6 +179,14 @@ namespace NobatPlusDATA.DataLayer.Services
             return result;
         }
 
+        public async Task<BitResultObject> ExistSupportTicketAsync(long id)
+        {
+            var result = new BitResultObject { ID = id };
+            try { result.Status = id > 0 && await _context.SupportTickets.AsNoTracking().AnyAsync(x => x.ID == id); }
+            catch (Exception ex) { result.Status = false; result.ErrorMessage = $"{ex.Message} - {ex.InnerException?.Message}"; }
+            return result;
+        }
+
         public async Task<BitResultObject> AddSupportTicketAsync(SupportTicket ticket, string firstMessage)
         {
             var result = new BitResultObject();

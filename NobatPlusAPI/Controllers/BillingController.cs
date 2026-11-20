@@ -5,20 +5,20 @@ using NobatPlusAPI.Tools;
 using NobatPlusDATA.DataLayer.Repositories;
 using NobatPlusDATA.Domain;
 using NobatPlusDATA.ResultObjects;
+using static NobatPlusDATA.Tools.DbTools;
 
 namespace NobatPlusAPI.Controllers;
 
 [ApiController]
 [Route("Billing")]
 [Authorize]
-[RequireRole(2, 3, 4)]
 [Produces("application/json")]
 public class BillingController : ControllerBase
 {
     private readonly IBillingRep _billing;
     public BillingController(IBillingRep billing) => _billing = billing;
     private long PersonID => User.GetCurrentUserId();
-    private bool IsAdmin => User.GetCurrentRoleId() == 4;
+    private bool IsAdmin => User.GetCurrentRoleId() == (long) BaseRole.Admin;
 
     private async Task<ActionResult<BitResultObject>> ExecuteAsync(Func<Task<BitResultObject>> operation)
     {
@@ -34,7 +34,6 @@ public class BillingController : ControllerBase
     }
 
     [HttpPost("SaveSubscriptionPlan_Base")]
-    [RequireRole(4)]
     public Task<ActionResult<BitResultObject>> SaveSubscriptionPlan_Base(SaveSubscriptionPlanRequestBody body) => ExecuteAsync(() =>
         _billing.SavePlanAsync(new SubscriptionPlan
         {
@@ -49,13 +48,15 @@ public class BillingController : ControllerBase
         _billing.SaveBusinessSettingsAsync(new BusinessBillingSetting
         {
             BusinessID = body.BusinessID, DefaultFeePayer = body.DefaultFeePayer, CollectionMode = body.CollectionMode,
-            InvoiceCycle = body.InvoiceCycle, IsBookingFeeEnabled = body.IsBookingFeeEnabled,
+            InvoiceCycle = body.InvoiceCycle, SettlementDestination = body.SettlementDestination,
+            IsBookingFeeEnabled = body.IsBookingFeeEnabled,
             CreditLimit = body.CreditLimit, DueDays = body.DueDays, IsActive = body.IsActive
         }, PersonID, IsAdmin));
 
     [HttpPost("SaveWorkerBillingSettings_Base")]
     public Task<ActionResult<BitResultObject>> SaveWorkerBillingSettings_Base(SaveWorkerBillingSettingsRequestBody body) => ExecuteAsync(() =>
-        _billing.SaveWorkerSettingsAsync(body.BusinessID, body.WorkerID, body.FeePayerOverride, PersonID, IsAdmin));
+        _billing.SaveWorkerSettingsAsync(body.BusinessID, body.WorkerID, body.FeePayerOverride,
+            body.RevenueSharePercent, PersonID, IsAdmin));
 
     [HttpPost("AcceptWorkerBillingLiability_Base")]
     public Task<ActionResult<BitResultObject>> AcceptWorkerBillingLiability_Base(AcceptWorkerLiabilityRequestBody body) => ExecuteAsync(() =>
@@ -96,12 +97,10 @@ public class BillingController : ControllerBase
         _billing.IssueInvoiceAsync(body.BillingAccountID, body.PeriodStart, body.PeriodEnd, PersonID, IsAdmin));
 
     [HttpPost("ReverseBookingPlatformFee_Base")]
-    [RequireRole(4)]
     public Task<ActionResult<BitResultObject>> ReverseBookingPlatformFee_Base(ReverseBookingPlatformFeeRequestBody body) => ExecuteAsync(() =>
         _billing.ReverseFeeAsync(body.BookingPlatformFeeID, body.Reason, PersonID, IsAdmin));
 
     [HttpPost("RunBillingNow_Base")]
-    [RequireRole(4)]
     public async Task<ActionResult<BitResultObject>> RunBillingNow_Base()
     {
         if (!IsAdmin) return Forbid();
@@ -109,7 +108,6 @@ public class BillingController : ControllerBase
     }
 
     [HttpPost("GetBillingReconciliationReport_Base")]
-    [RequireRole(4)]
     public async Task<ActionResult<ListResultObject<BillingReconciliationIssue>>> GetBillingReconciliationReport_Base()
     {
         if (!IsAdmin) return Forbid();
@@ -122,7 +120,6 @@ public class BillingController : ControllerBase
         _billing.RequestRefundAsync(body.BillingPaymentID, body.Amount, body.RequestID, body.Reason, PersonID, IsAdmin));
 
     [HttpPost("ResolveBillingRefund_Base")]
-    [RequireRole(4)]
     public Task<ActionResult<BitResultObject>> ResolveBillingRefund_Base(ResolveBillingRefundRequestBody body) => ExecuteAsync(() =>
         _billing.ResolveRefundAsync(body.BillingRefundID, body.Confirm, body.BankReference, body.Reason, PersonID, IsAdmin));
 }

@@ -20,6 +20,7 @@ using NobatPlusDATA.ViewModels;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
+using static NobatPlusDATA.Tools.DbTools;
 
 namespace NobatPlusAPI.Controllers
 {
@@ -52,7 +53,7 @@ namespace NobatPlusAPI.Controllers
             {
                 return BadRequest(requestBody);
             }
-            var result = await _PaymentHistoryRep.GetAllPaymentHistoriesAsync(requestBody.BookingId,requestBody.PaymentId,requestBody.PageIndex,requestBody.PageSize,requestBody.SearchText,requestBody.SortQuery, User.GetCurrentRoleId() == 4 ? 0 : User.GetCurrentUserId());
+            var result = await _PaymentHistoryRep.GetAllPaymentHistoriesAsync(requestBody.BookingId,requestBody.PaymentId,requestBody.PageIndex,requestBody.PageSize,requestBody.SearchText,requestBody.SortQuery, User.GetCurrentRoleId() == (long) BaseRole.Admin ? 0 : User.GetCurrentUserId());
             if (result.Status)
             {
                 var resultVM = _mapper.Map<ListResultObject<PaymentHistoryVM>>(result);
@@ -70,7 +71,7 @@ namespace NobatPlusAPI.Controllers
                 return BadRequest(requestBody);
             }
             var result = await _PaymentHistoryRep.GetPaymentHistoryByIdAsync(requestBody.ID);
-            if (result.Result != null && !await _billingRep.CanAccessPaymentAsync(result.Result.PaymentID, User.GetCurrentUserId(), User.GetCurrentRoleId() == 4)) return Forbid();
+            if (result.Result != null && !await _billingRep.CanAccessPaymentAsync(result.Result.PaymentID, User.GetCurrentUserId(), User.GetCurrentRoleId() == (long) BaseRole.Admin)) return Forbid();
             if (result.Status)
             {
                 var resultVM = _mapper.Map<RowResultObject<PaymentHistoryVM>>(result);

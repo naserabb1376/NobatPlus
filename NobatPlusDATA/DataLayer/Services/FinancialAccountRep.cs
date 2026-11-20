@@ -440,31 +440,24 @@ namespace NobatPlusDATA.DataLayer.Services
                 return;
             }
 
+            var businessId = accountWorker.WorkerParentID > 0 ? accountWorker.WorkerParentID : accountWorker.ID;
+            var businessSetting = await _context.BusinessBillingSettings.AsNoTracking()
+                .FirstOrDefaultAsync(x => x.BusinessID == businessId && x.IsActive);
+            var workerSettings = await _context.WorkerBillingSettings.AsNoTracking()
+                .Where(x => x.BusinessID == businessId)
+                .ToDictionaryAsync(x => x.WorkerID);
             var workerIds = account.AccountType == "workshop"
-                ? await _context.Workers
-                    .AsNoTracking()
+                ? await _context.Workers.AsNoTracking()
                     .Where(x => x.ID == account.WorkerID || x.WorkerParentID == account.WorkerID)
-                    .Select(x => x.ID)
-                    .ToListAsync()
+                    .Select(x => x.ID).ToListAsync()
                 : new List<long> { account.WorkerID };
 
             var paidPayments = await _context.Payments
+                .Include(x => x.PaymentDetails).ThenInclude(x => x.Booking)
                 .Include(x => x.PaymentBookings).ThenInclude(x => x.Booking)
                 .AsNoTracking()
                 .Where(x => x.PaymentFinished || x.PayedAmount > 0)
-                .Where(x => x.PaymentBookings.Any(pb =>
-                    workerIds.Contains(pb.Booking.WorkerID) && !pb.Booking.IsCancelled))
-                .Select(x => new
-                {
-                    x.ID,
-                    BookingID = x.PaymentBookings
-                        .Where(pb => workerIds.Contains(pb.Booking.WorkerID))
-                        .Select(pb => pb.BookingID)
-                        .FirstOrDefault(),
-                    x.WorkerAmount,
-                    x.PayedAmount,
-                    x.PaymentDate
-                })
+                .Where(x => x.PaymentBookings.Any(pb => workerIds.Contains(pb.Booking.WorkerID) && !pb.Booking.IsCancelled))
                 .ToListAsync();
 
             var existingPaymentIds = await _context.FinancialTransactions
@@ -475,24 +468,60 @@ namespace NobatPlusDATA.DataLayer.Services
 
             var existingSet = existingPaymentIds.ToHashSet();
             var now = DateTime.Now.ToShamsi();
-            var newTransactions = paidPayments
-                .Where(x => !existingSet.Contains(x.ID))
-                .Select(x => new FinancialTransaction
+            var newTransactions = new List<FinancialTransaction>();
+            foreach (var payment in paidPayments.Where(x => !existingSet.Contains(x.ID)))
+            {
+                var details = payment.PaymentDetails?
+                    .Where(x => workerIds.Contains(x.WorkerID) && x.Booking != null && !x.Booking.IsCancelled)
+                    .ToList() ?? new List<PaymentDetail>();
+                var fallbackBookingId = payment.PaymentBookings?
+                    .FirstOrDefault(x => workerIds.Contains(x.Booking.WorkerID) && !x.Booking.IsCancelled)?.BookingID;
+                var destination = businessSetting?.SettlementDestination ?? "Business";
+                decimal earning;
+                long? bookingId = details.FirstOrDefault()?.BookingID ?? fallbackBookingId;
+
+                if (details.Count == 0)
+                {
+                    earning = account.AccountType == "workshop" || accountWorker.WorkerParentID == 0
+                        ? payment.WorkerAmount
+                        : destination == "Separate" ? payment.WorkerAmount : 0;
+                }
+                else if (account.AccountType == "workshop")
+                {
+                    earning = destination == "Separate"
+                        ? details.Sum(x => (x.WorkerServiceAmount - x.DiscountAmount) *
+                            (workerSettings.TryGetValue(x.WorkerID, out var setting) ? setting.RevenueSharePercent : 0) / 100m)
+                        : details.Sum(x => x.WorkerServiceAmount - x.DiscountAmount);
+                }
+                else if (accountWorker.WorkerParentID == 0)
+                {
+                    earning = details.Sum(x => x.WorkerServiceAmount - x.DiscountAmount);
+                }
+                else
+                {
+                    earning = destination == "Separate"
+                        ? details.Where(x => x.WorkerID == account.WorkerID)
+                            .Sum(x => (x.WorkerServiceAmount - x.DiscountAmount) *
+                                (1 - (workerSettings.TryGetValue(x.WorkerID, out var setting) ? setting.RevenueSharePercent : 0) / 100m))
+                        : 0;
+                }
+
+                if (earning <= 0) continue;
+                newTransactions.Add(new FinancialTransaction
                 {
                     FinancialAccountID = account.ID,
-                    BookingID = x.BookingID,
-                    PaymentID = x.ID,
-                    Amount = x.WorkerAmount,
+                    BookingID = bookingId,
+                    PaymentID = payment.ID,
+                    Amount = earning,
                     TransactionType = "earning",
                     Status = "success",
-                    TransactionDate = x.PaymentDate == default ? now : x.PaymentDate,
+                    TransactionDate = payment.PaymentDate == default ? now : payment.PaymentDate,
                     ReferenceNumber = Guid.NewGuid().ToString("N"),
-                    Description = "درآمد رزرو",
+                    Description = destination == "Separate" ? "shared booking earning" : "booking earning",
                     CreateDate = now,
                     UpdateDate = now
-                })
-                .Where(x => x.Amount > 0)
-                .ToList();
+                });
+            }
 
             if (!newTransactions.Any())
             {

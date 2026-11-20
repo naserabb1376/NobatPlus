@@ -1,4 +1,0 @@
-
-[console_scripts]
-pymupdf = pymupdf.__main__:main
-pymupdf-config = pymupdf.show_features:config

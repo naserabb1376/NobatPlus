@@ -56,5 +56,14 @@ namespace NobatPlusAPI.Controllers
             if (result.Status) return Ok(result);
             return BadRequest(result);
         }
+
+        [HttpPost("ExistAdminAuditLog_Base")]
+        public async Task<ActionResult<BitResultObject>> ExistAdminAuditLog_Base(GetRowRequestBody requestBody)
+        {
+            if (User.GetCurrentRoleId() != 4) return Forbid();
+            if (!ModelState.IsValid) return BadRequest(requestBody);
+            var result = await _adminAuditLogRep.ExistAdminAuditLogAsync(requestBody.ID);
+            return result.Status ? Ok(result) : BadRequest(result);
+        }
     }
 }
