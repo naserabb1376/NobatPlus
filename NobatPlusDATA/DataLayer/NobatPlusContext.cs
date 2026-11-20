@@ -41,6 +41,21 @@ namespace NobatPlusDATA.DataLayer
         public DbSet<Register> Registers { get; set; }
         public DbSet<Payment> Payments { get; set; }
         public DbSet<Wallet> Wallets { get; set; }
+        public DbSet<SubscriptionPlan> SubscriptionPlans { get; set; }
+        public DbSet<BusinessSubscription> BusinessSubscriptions { get; set; }
+        public DbSet<BillingAccount> BillingAccounts { get; set; }
+        public DbSet<BusinessBillingSetting> BusinessBillingSettings { get; set; }
+        public DbSet<WorkerBillingSetting> WorkerBillingSettings { get; set; }
+        public DbSet<BookingPlatformFee> BookingPlatformFees { get; set; }
+        public DbSet<BillingTransaction> BillingTransactions { get; set; }
+        public DbSet<BillingInvoice> BillingInvoices { get; set; }
+        public DbSet<BillingInvoiceItem> BillingInvoiceItems { get; set; }
+        public DbSet<BillingPayment> BillingPayments { get; set; }
+        public DbSet<BillingAllocation> BillingAllocations { get; set; }
+        public DbSet<BillingRefund> BillingRefunds { get; set; }
+        public DbSet<BillingSettingHistory> BillingSettingHistories { get; set; }
+        public DbSet<GatewayPaymentRecord> GatewayPaymentRecords { get; set; }
+        public DbSet<GatewayTransactionRecord> GatewayTransactionRecords { get; set; }
         public DbSet<WalletTransaction> WalletTransactions { get; set; }
         public DbSet<FinancialAccount> FinancialAccounts { get; set; }
         public DbSet<FinancialTransaction> FinancialTransactions { get; set; }
@@ -105,6 +120,7 @@ namespace NobatPlusDATA.DataLayer
         {
             // dynamic auth config
             modelBuilder.AddMTPermissionCenter();
+            modelBuilder.ConfigureBilling();
 
             foreach (var property in modelBuilder.Model.GetEntityTypes()
                          .SelectMany(entityType => entityType.GetProperties())

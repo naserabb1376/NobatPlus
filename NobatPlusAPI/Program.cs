@@ -214,6 +214,20 @@ namespace NobatPlusAPI
             builder.Services.AddScoped<IPaymentBookingRep, PaymentBookingRep>();
             builder.Services.AddScoped<IPaymentDetailOptionValueRep, PaymentDetailOptionValueRep>();
             builder.Services.AddScoped<IPaymentRep, PaymentRep>();
+            builder.Services.AddScoped<IBillingRep, BillingRep>();
+            builder.Services.AddScoped<IBillingRefundRep, BillingRefundRep>();
+            builder.Services.AddScoped<ISubscriptionPlanRep, SubscriptionPlanRep>();
+            builder.Services.AddScoped<IBusinessSubscriptionRep, BusinessSubscriptionRep>();
+            builder.Services.AddScoped<IBillingAccountRep, BillingAccountRep>();
+            builder.Services.AddScoped<IBusinessBillingSettingRep, BusinessBillingSettingRep>();
+            builder.Services.AddScoped<IWorkerBillingSettingRep, WorkerBillingSettingRep>();
+            builder.Services.AddScoped<IBookingPlatformFeeRep, BookingPlatformFeeRep>();
+            builder.Services.AddScoped<IBillingTransactionRep, BillingTransactionRep>();
+            builder.Services.AddScoped<IBillingInvoiceRep, BillingInvoiceRep>();
+            builder.Services.AddScoped<IBillingInvoiceItemRep, BillingInvoiceItemRep>();
+            builder.Services.AddScoped<IBillingPaymentRep, BillingPaymentRep>();
+            builder.Services.AddScoped<IBillingAllocationRep, BillingAllocationRep>();
+            builder.Services.AddScoped<IBillingSettingHistoryRep, BillingSettingHistoryRep>();
             builder.Services.AddScoped<IWalletRep, WalletRep>();
             builder.Services.AddScoped<IPersonRep, PersonRep>();
             builder.Services.AddScoped<IRegisterRep, RegisterRep>();
@@ -268,7 +282,7 @@ namespace NobatPlusAPI
                 .AddParbadVirtual()
                 .WithOptions(options => options.GatewayPath = "/MyVirtualGateway");
                 })
-                .ConfigureStorage(storage => storage.UseMemoryCache());
+                .ConfigureStorage(storage => storage.AddStorage<DatabaseGatewayStorage>(ServiceLifetime.Scoped));
 
             #endregion
 
@@ -392,6 +406,12 @@ namespace NobatPlusAPI
                     : new Hangfire.Dashboard.IDashboardAuthorizationFilter[] { new HangfireAdminAuthorizationFilter() }
             });
             //app.UseHangfireServer();
+
+            new RecurringJobManager().AddOrUpdate(
+                "process-platform-billing",
+                Hangfire.Common.Job.FromExpression<JobManager>(job => job.ProcessPlatformBilling()),
+                "0 8 * * *",
+                new RecurringJobOptions { TimeZone = GetIranTimeZone() });
 
             new RecurringJobManager().AddOrUpdate(
                 "process-today-birthdays",

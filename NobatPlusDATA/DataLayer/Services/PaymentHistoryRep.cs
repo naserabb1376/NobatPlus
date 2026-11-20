@@ -79,7 +79,7 @@ namespace NobatPlusDATA.DataLayer.Services
             
         }
 
-        public async Task<ListResultObject<PaymentHistory>> GetAllPaymentHistoriesAsync(long bookingId = 0, long paymentId = 0, int pageIndex = 1, int pageSize = 20, string searchText = "",string sortQuery ="")
+        public async Task<ListResultObject<PaymentHistory>> GetAllPaymentHistoriesAsync(long bookingId = 0, long paymentId = 0, int pageIndex = 1, int pageSize = 20, string searchText = "",string sortQuery ="", long ownerPersonId = 0)
         {
             ListResultObject<PaymentHistory> results = new ListResultObject<PaymentHistory>();
             try
@@ -97,6 +97,9 @@ namespace NobatPlusDATA.DataLayer.Services
                                     .ThenInclude(x => x.Person)
                          .AsNoTracking();
 
+                if (ownerPersonId > 0)
+                    query = query.Where(x => x.Payment.OwnerPersonID == ownerPersonId ||
+                        (x.Payment.OwnerPersonID == null && x.Payment.PaymentBookings.Any() && x.Payment.PaymentBookings.All(pb => pb.Booking.Customer.PersonID == ownerPersonId)));
                 if (bookingId > 0)
                 {
                     query = query.Where(x => x.Payment.PaymentBookings.Any(pb => pb.BookingID == bookingId));

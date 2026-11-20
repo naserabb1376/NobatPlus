@@ -19,9 +19,11 @@ namespace NobatPlusDATA.DataLayer.Services
     {
 
         private NobatPlusContext _context;
-        public BookingRep(NobatPlusContext context)
+        private readonly IBillingRep _billingRep;
+        public BookingRep(NobatPlusContext context, IBillingRep billingRep)
         {
             _context = context;
+            _billingRep = billingRep;
         }
 
         public async Task<BitResultObject> AddBookingAsync(Booking Booking)
@@ -30,6 +32,7 @@ namespace NobatPlusDATA.DataLayer.Services
             try
             {
                 await using var transaction = await _context.Database.BeginTransactionAsync(IsolationLevel.Serializable);
+                await _billingRep.AcquireLockAsync();
                 var bookingServiceIds = Booking.BookingServices
                     .Select(x => x.ServiceManagementID)
                     .Where(x => x > 0)
@@ -57,6 +60,8 @@ namespace NobatPlusDATA.DataLayer.Services
 
                 await _context.Bookings.AddAsync(Booking);
                 await _context.SaveChangesAsync();
+                var billingResult = await _billingRep.ApplyBookingStateAsync(Booking.ID);
+                if (!billingResult.Status) throw new InvalidOperationException(billingResult.ErrorMessage);
                 await transaction.CommitAsync();
                 result.ID = Booking.ID;
                 _context.Entry(Booking).State = EntityState.Detached;
@@ -76,6 +81,7 @@ namespace NobatPlusDATA.DataLayer.Services
             try
             {
                 await using var transaction = await _context.Database.BeginTransactionAsync(IsolationLevel.Serializable);
+                await _billingRep.AcquireLockAsync();
                 var previousBooking = await _context.Bookings
                     .AsNoTracking()
                     .Include(x => x.BookingServices)
@@ -181,6 +187,11 @@ namespace NobatPlusDATA.DataLayer.Services
                 }
 
                 await _context.SaveChangesAsync();
+                if (previousBooking.Status != Booking.Status || previousBooking.IsCancelled != Booking.IsCancelled)
+                {
+                    var billingResult = await _billingRep.ApplyBookingStateAsync(Booking.ID);
+                    if (!billingResult.Status) throw new InvalidOperationException(billingResult.ErrorMessage);
+                }
                 await transaction.CommitAsync();
                 result.ID = Booking.ID;
                 _context.Entry(Booking).State = EntityState.Detached;

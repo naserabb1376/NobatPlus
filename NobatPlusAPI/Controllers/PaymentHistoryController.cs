@@ -10,6 +10,7 @@ using NobatPlusAPI.Models;
 using NobatPlusAPI.Models.Authenticate;
 using NobatPlusAPI.Models.PaymentHistory;
 using NobatPlusAPI.Models.Public;
+using NobatPlusAPI.Tools;
 using NobatPlusDATA.DataLayer.Repositories;
 using NobatPlusDATA.DataLayer.Services;
 using NobatPlusDATA.Domain;
@@ -32,23 +33,26 @@ namespace NobatPlusAPI.Controllers
         IPaymentHistoryRep _PaymentHistoryRep;
         ILogRep _logRep;
         private readonly IMapper _mapper;
+        private readonly IBillingRep _billingRep;
 
 
-        public PaymentHistoryController(IPaymentHistoryRep PaymentHistoryRep,ILogRep logRep, IMapper mapper)
+        public PaymentHistoryController(IPaymentHistoryRep PaymentHistoryRep,ILogRep logRep, IMapper mapper, IBillingRep billingRep)
         {
            _PaymentHistoryRep = PaymentHistoryRep;
            _logRep = logRep;
             _mapper = mapper;
+            _billingRep = billingRep;
         }
 
         [HttpPost("GetAllPaymentHistories_Base")]
+        [RequireRole(1, 2, 3, 4)]
         public async Task<ActionResult<ListResultObject<PaymentHistoryVM>>> GetAllPaymentHistories_Base(GetPaymentHistoryListRequestBody requestBody)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(requestBody);
             }
-            var result = await _PaymentHistoryRep.GetAllPaymentHistoriesAsync(requestBody.BookingId,requestBody.PaymentId,requestBody.PageIndex,requestBody.PageSize,requestBody.SearchText,requestBody.SortQuery);
+            var result = await _PaymentHistoryRep.GetAllPaymentHistoriesAsync(requestBody.BookingId,requestBody.PaymentId,requestBody.PageIndex,requestBody.PageSize,requestBody.SearchText,requestBody.SortQuery, User.GetCurrentRoleId() == 4 ? 0 : User.GetCurrentUserId());
             if (result.Status)
             {
                 var resultVM = _mapper.Map<ListResultObject<PaymentHistoryVM>>(result);
@@ -58,6 +62,7 @@ namespace NobatPlusAPI.Controllers
         }
 
         [HttpPost("GetPaymentHistoryById_Base")]
+        [RequireRole(1, 2, 3, 4)]
         public async Task<ActionResult<RowResultObject<PaymentHistoryVM>>> GetPaymentHistoryById_Base(GetRowRequestBody requestBody)
         {
             if (!ModelState.IsValid)
@@ -65,6 +70,7 @@ namespace NobatPlusAPI.Controllers
                 return BadRequest(requestBody);
             }
             var result = await _PaymentHistoryRep.GetPaymentHistoryByIdAsync(requestBody.ID);
+            if (result.Result != null && !await _billingRep.CanAccessPaymentAsync(result.Result.PaymentID, User.GetCurrentUserId(), User.GetCurrentRoleId() == 4)) return Forbid();
             if (result.Status)
             {
                 var resultVM = _mapper.Map<RowResultObject<PaymentHistoryVM>>(result);
@@ -74,6 +80,7 @@ namespace NobatPlusAPI.Controllers
         }
 
         [HttpPost("ExistPaymentHistory_Base")]
+        [RequireRole(4)]
         public async Task<ActionResult<BitResultObject>> ExistPaymentHistory_Base(GetRowRequestBody requestBody)
         {
             if (!ModelState.IsValid)
@@ -89,134 +96,15 @@ namespace NobatPlusAPI.Controllers
         }
 
         [HttpPost("AddPaymentHistory_Base")]
-        public async Task<ActionResult<BitResultObject>> AddPaymentHistory_Base(AddEditPaymentHistoryRequestBody requestBody)
-        {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(requestBody);
-            }
-            PaymentHistory PaymentHistory = new PaymentHistory()
-            {
-                CreateDate = DateTime.Now.ToShamsi(),
-                UpdateDate = DateTime.Now.ToShamsi(),
-                PaymentID = requestBody.PaymentID,
-                PaymentMethod = requestBody.PaymentMethod,
-                PaymentDate = requestBody.PaymentDate ?? DateTime.Now.ToShamsi(),
-                Amount = requestBody.Amount,
-                PaymentStatus = requestBody.PaymentStatus,
-                TransactionCode = requestBody.TransactionCode,
-                TrackingNumber = requestBody.TrackingNumber,
-                GatewayName = requestBody.GatewayName,
-                GatewayMessage = requestBody.GatewayMessage,
-                PaymentToken = requestBody.PaymentToken,
-                Description = requestBody.Description,
-            };
-            var result = await _PaymentHistoryRep.AddPaymentHistoryAsync(PaymentHistory);
-            if (result.Status)
-            {
-                #region AddLog
-
-                Log log = new Log()
-                {
-                    CreateDate = DateTime.Now.ToShamsi(),
-                    UpdateDate = DateTime.Now.ToShamsi(),
-                    LogTime = DateTime.Now.ToShamsi(),
-                    ActionName = this.ControllerContext.RouteData.Values["action"].ToString(),
-
-                };
-                await _logRep.AddLogAsync(log);
-
-                #endregion
-
-
-                return Ok(result);
-            }
-            return BadRequest(result);
-        }
+        public ActionResult<BitResultObject> AddPaymentHistory_Base(AddEditPaymentHistoryRequestBody requestBody) =>
+            BadRequest(new BitResultObject { Status = false, ErrorMessage = "سوابق مالی فقط از مسیر پرداخت تاییدشده ثبت می‌شوند" });
 
         [HttpPut("EditPaymentHistory_Base")]
-        public async Task<ActionResult<BitResultObject>> EditPaymentHistory_Base(AddEditPaymentHistoryRequestBody requestBody)
-        {
-            var result = new BitResultObject();
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(requestBody);
-            }
-            var theRow = await _PaymentHistoryRep.GetPaymentHistoryByIdAsync(requestBody.ID);
-            if (!theRow.Status)
-            {
-                result.Status = theRow.Status;
-                result.ErrorMessage = theRow.ErrorMessage;
-            }
-
-            PaymentHistory PaymentHistory = new PaymentHistory()
-            {
-                CreateDate = theRow.Result.CreateDate,
-                UpdateDate = DateTime.Now.ToShamsi(),
-                ID = requestBody.ID,
-                PaymentID = requestBody.PaymentID,
-                PaymentMethod = requestBody.PaymentMethod,
-                PaymentDate = requestBody.PaymentDate ?? DateTime.Now.ToShamsi(),
-                Amount = requestBody.Amount,
-                PaymentStatus = requestBody.PaymentStatus,
-                TransactionCode = requestBody.TransactionCode,
-                TrackingNumber = requestBody.TrackingNumber,
-                GatewayName = requestBody.GatewayName,
-                GatewayMessage = requestBody.GatewayMessage,
-                PaymentToken = requestBody.PaymentToken,
-                Description = requestBody.Description,
-            };
-            result = await _PaymentHistoryRep.EditPaymentHistoryAsync(PaymentHistory);
-            if (result.Status)
-            {
-
-                #region AddLog
-
-                Log log = new Log()
-                {
-                    CreateDate = DateTime.Now.ToShamsi(),
-                    UpdateDate = DateTime.Now.ToShamsi(),
-                    LogTime = DateTime.Now.ToShamsi(),
-                    ActionName = this.ControllerContext.RouteData.Values["action"].ToString(),
-
-                };
-                await _logRep.AddLogAsync(log);
-
-                #endregion
-
-                return Ok(result);
-            }
-            return BadRequest(result);
-        }
+        public ActionResult<BitResultObject> EditPaymentHistory_Base(AddEditPaymentHistoryRequestBody requestBody) =>
+            BadRequest(new BitResultObject { Status = false, ErrorMessage = "سوابق مالی قابل ویرایش نیستند؛ از عملیات اصلاح مالی استفاده کنید" });
 
         [HttpDelete("DeletePaymentHistory_Base")]
-        public async Task<ActionResult<BitResultObject>> DeletePaymentHistory_Base(GetRowRequestBody requestBody)
-        {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(requestBody);
-            }
-            var result = await _PaymentHistoryRep.RemovePaymentHistoryAsync(requestBody.ID);
-            if (result.Status)
-            {
-
-                #region AddLog
-
-                Log log = new Log()
-                {
-                    CreateDate = DateTime.Now.ToShamsi(),
-                    UpdateDate = DateTime.Now.ToShamsi(),
-                    LogTime = DateTime.Now.ToShamsi(),
-                    ActionName = this.ControllerContext.RouteData.Values["action"].ToString(),
-
-                };
-                await _logRep.AddLogAsync(log);
-
-                #endregion
-
-                return Ok(result);
-            }
-            return BadRequest(result);
-        }
+        public ActionResult<BitResultObject> DeletePaymentHistory_Base(GetRowRequestBody requestBody) =>
+            BadRequest(new BitResultObject { Status = false, ErrorMessage = "حذف سابقه مالی مجاز نیست" });
     }
 }

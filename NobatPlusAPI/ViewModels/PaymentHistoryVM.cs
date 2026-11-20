@@ -8,6 +8,11 @@ namespace NobatPlusDATA.ViewModels
     public class PaymentHistoryVM:BaseEntity
     {
         public long PaymentID { get; set; }
+        public string Purpose { get; set; } = "service";
+        public string CurrencyCode { get; set; } = "IRR";
+        public string GatewayRequestState { get; set; } = "legacy";
+        public DateTime? RequestExpiresAt { get; set; }
+        public string? GatewayUrl { get; set; }
         public List<long> BookingIDs { get; set; } = new List<long>();
         public long WorkerID { get; set; }
         public long CustomerID { get; set; }
