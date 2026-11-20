@@ -243,6 +243,11 @@ namespace NobatPlusAPI.Tools
                 "Payment" when actionName.StartsWith("Delete", StringComparison.OrdinalIgnoreCase)
                     || actionName.StartsWith("Edit", StringComparison.OrdinalIgnoreCase)
                     || actionName.StartsWith("Exist", StringComparison.OrdinalIgnoreCase) => AdminOnly,
+                "Payment" when actionName.Equals("RequestPayment", StringComparison.OrdinalIgnoreCase) => AllPanelRoles,
+                "Payment" when actionName.Equals("GetAllPayments", StringComparison.OrdinalIgnoreCase)
+                    || actionName.Equals("GetAllPayments_Base", StringComparison.OrdinalIgnoreCase)
+                    || actionName.Equals("GetPaymentById", StringComparison.OrdinalIgnoreCase)
+                    || actionName.Equals("GetPaymentById_Base", StringComparison.OrdinalIgnoreCase) => AllPanelRoles,
                 "Payment" => CustomerOnly,
                 "PaymentDetail" when actionName.StartsWith("Add", StringComparison.OrdinalIgnoreCase)
                     || actionName.StartsWith("Edit", StringComparison.OrdinalIgnoreCase)

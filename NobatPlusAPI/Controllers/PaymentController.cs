@@ -36,13 +36,14 @@ namespace NobatPlusAPI.Controllers
         IPaymentRep _PaymentRep;
         IPaymentHistoryRep _PaymentHistoryRep;
         ICustomerRep _customerRep;
+        ISettingRep _settingRep;
         IWorkerServiceRep _workerServiceRep;
         ILogRep _logRep;
         private readonly IOnlinePayment _onlinePayment;
         private readonly IMapper _mapper;
         private readonly IBillingRep _billingRep;
 
-        public PaymentController(IPaymentRep PaymentRep,IPaymentHistoryRep paymentHistoryRep,ICustomerRep customerRep,IWorkerServiceRep workerServiceRep,ILogRep logRep, IOnlinePayment onlinePayment, IMapper mapper, IBillingRep billingRep)
+        public PaymentController(IPaymentRep PaymentRep,IPaymentHistoryRep paymentHistoryRep,ICustomerRep customerRep,IWorkerServiceRep workerServiceRep,ILogRep logRep, IOnlinePayment onlinePayment, IMapper mapper, IBillingRep billingRep,ISettingRep settingRep)
         {
            _PaymentRep = PaymentRep;
             _PaymentHistoryRep = paymentHistoryRep;
@@ -52,17 +53,16 @@ namespace NobatPlusAPI.Controllers
             _onlinePayment = onlinePayment;
             _mapper = mapper;
             _billingRep = billingRep;
+            _settingRep = settingRep;
         }
 
         [HttpPost("GetAllPayments")]
-        [RequireRole(1, 2, 3, 4)]
         public async Task<ActionResult<ListResultObject<PaymentVM>>> GetAllPayments(GetPaymentListRequestBody requestBody)
         {
             return await GetAllPaymentsInternal(requestBody);
         }
 
         [HttpPost("GetAllPayments_Base")]
-        [RequireRole(1, 2, 3, 4)]
         public async Task<ActionResult<ListResultObject<PaymentVM>>> GetAllPayments_Base(GetPaymentListRequestBody requestBody)
         {
             return await GetAllPaymentsInternal(requestBody);
@@ -106,14 +106,7 @@ namespace NobatPlusAPI.Controllers
         }
 
         [HttpPost("GetPaymentById")]
-        [RequireRole(1, 2, 3, 4)]
-        public async Task<ActionResult<RowResultObject<PaymentVM>>> GetPaymentById(GetRowRequestBody requestBody)
-        {
-            return await GetPaymentByIdInternal(requestBody);
-        }
-
         [HttpPost("GetPaymentById_Base")]
-        [RequireRole(1, 2, 3, 4)]
         public async Task<ActionResult<RowResultObject<PaymentVM>>> GetPaymentById_Base(GetRowRequestBody requestBody)
         {
             return await GetPaymentByIdInternal(requestBody);
@@ -438,7 +431,6 @@ namespace NobatPlusAPI.Controllers
         }
 
         [HttpPost("RequestPayment")]
-        [RequireRole(1, 2, 3, 4)]
         public async Task<ActionResult<RowResultObject<RequestPaymentResultBody>>> RequestPayment(RequestPaymentRequestBody requestBody)
         {
             var result = new RowResultObject<RequestPaymentResultBody>();
@@ -456,7 +448,7 @@ namespace NobatPlusAPI.Controllers
                 var historyRow = await _PaymentHistoryRep.GetPaymentHistoryByIdAsync(attemptId);
                 if (!historyRow.Status || historyRow.Result == null) throw new InvalidOperationException(historyRow.ErrorMessage);
                 var history = historyRow.Result;
-                var callbackUrl = Url.Action(nameof(VerifyPayment), "Payment", new { PayId = history.ID }, Request.Scheme);
+                var callbackUrl = Url.Action(nameof(VerifyPayment), "Payment", new { PayId = history.ID, browserCallback = true }, Request.Scheme);
                 var invoice = await _onlinePayment.RequestAsync(builder =>
                 {
                     builder.SetCallbackUrl(callbackUrl).SetAmount(history.Amount).SetTrackingNumber(history.ID);
@@ -483,16 +475,16 @@ namespace NobatPlusAPI.Controllers
 
         [AllowAnonymous]
         [HttpGet("VerifyPayment")]
-        public async Task<ActionResult<BitResultObject>> VerifyPayment(long PayId = 0, string? paymentToken = "", string? Authority = "", string? Status = "")
+        public async Task<IActionResult> VerifyPayment(long PayId = 0, string? paymentToken = "", string? Authority = "", string? Status = "", bool browserCallback = false)
         {
-            var result = new BitResultObject();
             try
             {
                 if (PayId <= 0) throw new InvalidOperationException("شناسه پرداخت معتبر نیست");
                 var row = await _PaymentHistoryRep.GetPaymentHistoryByIdAsync(PayId);
                 if (!row.Status || row.Result == null) throw new InvalidOperationException("سابقه پرداخت یافت نشد");
                 var history = row.Result;
-                if (history.PaymentStatus) return Ok(new BitResultObject { ID = history.ID });
+                if (history.PaymentStatus)
+                    return await BuildPaymentVerificationResponseAsync(history.ID, true, history.TransactionCode, null, browserCallback);
                 var invoice = await _onlinePayment.FetchAsync();
                 if (invoice.TrackingNumber != history.ID || (decimal)invoice.Amount != history.Amount ||
                     !string.Equals(invoice.GatewayName, history.GatewayName, StringComparison.OrdinalIgnoreCase))
@@ -511,7 +503,8 @@ namespace NobatPlusAPI.Controllers
                     {
                         var failed = await _billingRep.SaveGatewayAttemptAsync(history.ID, false, null, invoice.Message);
                         if (!failed.Status) throw new InvalidOperationException(failed.ErrorMessage);
-                        return Ok(new BitResultObject { ID = history.ID, Status = false, ErrorMessage = invoice.Message ?? "پرداخت قابل تایید نیست" });
+                        return await BuildPaymentVerificationResponseAsync(history.ID, false, null,
+                            invoice.Message ?? "پرداخت قابل تایید نیست", browserCallback);
                     }
                     var verified = await _onlinePayment.VerifyAsync(invoice);
                     transactionCode = verified.TransactionCode;
@@ -520,19 +513,120 @@ namespace NobatPlusAPI.Controllers
                     {
                         var failed = await _billingRep.SaveGatewayAttemptAsync(history.ID, false, null, message);
                         if (!failed.Status) throw new InvalidOperationException(failed.ErrorMessage);
-                        return Ok(new BitResultObject { ID = history.ID, Status = false, ErrorMessage = message ?? "پرداخت ناموفق بود" });
+                        return await BuildPaymentVerificationResponseAsync(history.ID, false, null,
+                            message ?? "پرداخت ناموفق بود", browserCallback);
                     }
                 }
-                result = await _billingRep.ConfirmGatewayPaymentAsync(history.ID, transactionCode ?? "",
+                var result = await _billingRep.ConfirmGatewayPaymentAsync(history.ID, transactionCode ?? "",
                     history.ID.ToString(), !string.IsNullOrWhiteSpace(Authority) ? Authority : paymentToken, message);
-                return result.Status ? Ok(result) : BadRequest(result);
+                return await BuildPaymentVerificationResponseAsync(history.ID, result.Status, transactionCode,
+                    result.Status ? null : result.ErrorMessage, browserCallback);
             }
             catch (Exception ex)
             {
-                result.Status = false;
-                result.ErrorMessage = $"{ex.Message} - {ex.InnerException?.Message}";
-                return BadRequest(result);
+                if (PayId > 0)
+                    return await BuildPaymentVerificationResponseAsync(PayId, false, null,
+                        $"{ex.Message} - {ex.InnerException?.Message}", browserCallback);
+                return BadRequest(new PaymentVerificationResultBody
+                {
+                    Status = false,
+                    Success = false,
+                    PaymentVerified = false,
+                    ErrorMessage = $"{ex.Message} - {ex.InnerException?.Message}"
+                });
             }
+        }
+
+        private async Task<IActionResult> BuildPaymentVerificationResponseAsync(
+            long paymentHistoryId,
+            bool paymentVerified,
+            string? transactionCode,
+            string? errorMessage,
+            bool browserCallback)
+        {
+            var context = await _billingRep.GetPaymentVerificationContextAsync(paymentHistoryId);
+            if (!context.Status || context.Result == null)
+            {
+                var fallback = new PaymentVerificationResultBody
+                {
+                    Status = false,
+                    Success = false,
+                    PaymentVerified = false,
+                    PaymentHistoryId = paymentHistoryId,
+                    ErrorMessage = context.ErrorMessage ?? errorMessage ?? "اطلاعات پرداخت یافت نشد"
+                };
+                if (browserCallback)
+                {
+                    try { return Redirect(await BuildPaymentCallbackUrl(fallback)); }
+                    catch { return Ok(fallback); }
+                }
+                return BadRequest(fallback);
+            }
+
+            var data = context.Result;
+            var response = new PaymentVerificationResultBody
+            {
+                Status = paymentVerified,
+                Success = paymentVerified,
+                PaymentVerified = paymentVerified,
+                PaymentHistoryId = data.PaymentHistoryID,
+                PaymentId = data.PaymentID,
+                Purpose = data.Purpose,
+                ProfileType = data.ProfileType,
+                BookingIds = data.BookingIDs,
+                TransactionCode = transactionCode,
+                ResultPath = GetPaymentResultPath(data.Purpose, data.ProfileType),
+                ErrorMessage = paymentVerified ? null : errorMessage
+            };
+
+            if (browserCallback)
+            {
+                try { return Redirect(await BuildPaymentCallbackUrl(response)); }
+                catch { return Ok(response); }
+            }
+
+            return Ok(response);
+        }
+
+        private static string? GetPaymentResultPath(string purpose, string? profileType)
+        {
+            if (!purpose.Equals(PaymentPurposes.Subscription, StringComparison.OrdinalIgnoreCase))
+                return null;
+            return profileType?.Equals("Workshop", StringComparison.OrdinalIgnoreCase) == true
+                ? "/workshop/billing/payments/result"
+                : profileType?.Equals("Worker", StringComparison.OrdinalIgnoreCase) == true
+                    ? "/worker/billing/payments/result"
+                    : null;
+        }
+
+        private async Task<string> BuildPaymentCallbackUrl(PaymentVerificationResultBody response)
+        {
+            var frontendCallbackUrlRow = await _settingRep.GetSettingRowAsync(0, "PaymentCallbackUrl");
+            var frontendCallbackUrl = frontendCallbackUrlRow.Status && frontendCallbackUrlRow.Result?.IsActive == true
+                ? frontendCallbackUrlRow.Result.Value?.Trim()
+                : null;
+            if (string.IsNullOrWhiteSpace(frontendCallbackUrl))
+                throw new InvalidOperationException("مسیر بازگشت به برنامه تنظیم نشده یا غیرفعال است");
+
+            if (!Uri.TryCreate(frontendCallbackUrl, UriKind.Absolute, out var callbackUri) ||
+                (callbackUri.Scheme != Uri.UriSchemeHttps && callbackUri.Scheme != Uri.UriSchemeHttp))
+                throw new InvalidOperationException("مسیر بازگشت به برنامه نامعتبر است");
+            var query = new List<string>
+            {
+                $"status={Uri.EscapeDataString(response.Status ? "true" : "false")}",
+                $"success={Uri.EscapeDataString(response.Status ? "true" : "false")}",
+                $"paymentVerified={Uri.EscapeDataString(response.PaymentVerified ? "true" : "false")}",
+                $"paymentHistoryId={response.PaymentHistoryId}",
+                $"paymentId={response.PaymentId}",
+                $"purpose={Uri.EscapeDataString(response.Purpose ?? "")}",
+                $"profileType={Uri.EscapeDataString(response.ProfileType ?? "")}",
+                $"bookingIds={Uri.EscapeDataString(string.Join(",", response.BookingIds))}",
+                $"resultPath={Uri.EscapeDataString(response.ResultPath ?? "")}"
+            };
+            if (!string.IsNullOrWhiteSpace(response.ErrorMessage))
+                query.Add($"errorMessage={Uri.EscapeDataString(response.ErrorMessage)}");
+            var separator = string.IsNullOrEmpty(callbackUri.Query) ? "?" : "&";
+            return $"{frontendCallbackUrl}{separator}{string.Join("&", query)}";
         }
 
         #region PaymentTools

@@ -65,6 +65,72 @@ public class BillingRep : IBillingRep
         return row.ID;
     });
 
+    public async Task<RowResultObject<PaymentVerificationContext>> GetPaymentVerificationContextAsync(long historyId)
+    {
+        var result = new RowResultObject<PaymentVerificationContext>();
+        try
+        {
+            var row = await _context.PaymentHistories
+                .AsNoTracking()
+                .Where(x => x.ID == historyId)
+                .Select(x => new
+                {
+                    HistoryID = x.ID,
+                    PaymentID = x.PaymentID,
+                    Purpose = x.Payment.Purpose,
+                    BookingIDs = x.Payment.PaymentBookings.Select(pb => pb.BookingID).ToList()
+                })
+                .SingleOrDefaultAsync();
+
+            if (row == null)
+            {
+                result.Status = false;
+                result.ErrorMessage = "سابقه پرداخت یافت نشد";
+                return result;
+            }
+
+            string? profileType = null;
+            if (row.Purpose.Equals(PaymentPurposes.Subscription, StringComparison.OrdinalIgnoreCase))
+            {
+                var businessId = await _context.BusinessSubscriptions
+                    .AsNoTracking()
+                    .Where(x => x.PaymentID == row.PaymentID)
+                    .Select(x => (long?)x.BusinessID)
+                    .SingleOrDefaultAsync();
+
+                if (businessId.HasValue)
+                {
+                    var isWorkshop = await _context.Workers
+                        .AsNoTracking()
+                        .Where(x => x.ID == businessId.Value)
+                        .Select(x => (bool?)x.IsWorkShop)
+                        .SingleOrDefaultAsync();
+                    profileType = isWorkshop == true ? "Workshop" : isWorkshop == false ? "Worker" : null;
+                }
+            }
+            else if (row.Purpose.Equals(PaymentPurposes.Service, StringComparison.OrdinalIgnoreCase))
+            {
+                profileType = "Customer";
+            }
+
+            result.Result = new PaymentVerificationContext
+            {
+                PaymentHistoryID = row.HistoryID,
+                PaymentID = row.PaymentID,
+                Purpose = row.Purpose,
+                ProfileType = profileType,
+                BookingIDs = row.BookingIDs
+            };
+        }
+        catch (Exception ex)
+        {
+            result.Status = false;
+            result.ErrorMessage = $"{ex.Message} - {ex.InnerException?.Message}";
+        }
+
+        return result;
+    }
+
     // One short database lock serializes ledger writes across API instances and Hangfire.
     // Gateway network requests are deliberately outside this transaction.
     public async Task AcquireLockAsync()

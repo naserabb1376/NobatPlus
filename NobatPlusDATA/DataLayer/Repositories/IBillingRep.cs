@@ -22,6 +22,7 @@ public interface IBillingRep
     Task AcquireLockAsync();
     Task<BitResultObject> CreateGatewayAttemptAsync(long paymentId, string gatewayName, long personId, bool isAdmin);
     Task<BitResultObject> SaveGatewayAttemptAsync(long historyId, bool success, string? url, string? message);
+    Task<RowResultObject<PaymentVerificationContext>> GetPaymentVerificationContextAsync(long historyId);
     Task<bool> CanAccessPaymentAsync(long paymentId, long personId, bool isAdmin);
     Task<ListResultObject<BillingReconciliationIssue>> GetReconciliationReportAsync(bool isAdmin);
     Task<BitResultObject> RequestRefundAsync(long billingPaymentId, decimal amount, Guid requestId, string reason, long personId, bool isAdmin);

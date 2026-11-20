@@ -10,6 +10,15 @@ public static class PaymentPurposes
     public const string BillingInvoice = "billing_invoice";
 }
 
+public class PaymentVerificationContext
+{
+    public long PaymentHistoryID { get; set; }
+    public long PaymentID { get; set; }
+    public string Purpose { get; set; } = "";
+    public string? ProfileType { get; set; }
+    public List<long> BookingIDs { get; set; } = new();
+}
+
 public class SubscriptionPlan : BaseEntity
 {
     public string Name { get; set; } = "";
