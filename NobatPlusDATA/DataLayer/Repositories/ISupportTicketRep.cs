@@ -19,6 +19,7 @@ namespace NobatPlusDATA.DataLayer.Repositories
             string sortQuery = "");
 
         Task<RowResultObject<SupportTicketVM>> GetSupportTicketByIdAsync(long id);
+        Task<BitResultObject> ExistSupportTicketAsync(long id);
         Task<BitResultObject> AddSupportTicketAsync(SupportTicket ticket, string firstMessage);
         Task<BitResultObject> AddSupportTicketMessageAsync(long ticketId, long senderPersonId, bool isAdminReply, string message, string nextStatus = "");
         Task<BitResultObject> UpdateSupportTicketStatusAsync(long ticketId, string status, long? assignedAdminPersonId = null);

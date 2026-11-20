@@ -1211,6 +1211,13 @@ namespace NobatPlusDATA.Migrations
                     b.Property<bool>("IsBookingFeeEnabled")
                         .HasColumnType("bit");
 
+                    b.Property<string>("SettlementDestination")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)")
+                        .HasDefaultValue("Business");
+
                     b.Property<DateTime?>("UpdateDate")
                         .HasColumnType("datetime2");
 
@@ -1221,7 +1228,7 @@ namespace NobatPlusDATA.Migrations
 
                     b.ToTable("BusinessBillingSettings", null, t =>
                         {
-                            t.HasCheckConstraint("CK_BusinessBillingSettings_Values", "[DefaultFeePayer] IN ('Business','Worker') AND [CollectionMode] IN ('Prepaid','Postpaid','Hybrid') AND [InvoiceCycle] IN ('Weekly','Monthly') AND [CreditLimit] >= 0 AND [DueDays] >= 0");
+                            t.HasCheckConstraint("CK_BusinessBillingSettings_Values", "[DefaultFeePayer] IN ('Business','Worker') AND [CollectionMode] IN ('Prepaid','Postpaid','Hybrid') AND [InvoiceCycle] IN ('Weekly','Monthly') AND [SettlementDestination] IN ('Business','Separate') AND [CreditLimit] >= 0 AND [DueDays] >= 0");
                         });
                 });
 
@@ -1263,12 +1270,24 @@ namespace NobatPlusDATA.Migrations
                     b.Property<bool>("IsActive")
                         .HasColumnType("bit");
 
+                    b.Property<int>("MaxMemberCountSnapshot")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(1);
+
                     b.Property<long>("PaymentID")
                         .HasColumnType("bigint");
 
                     b.Property<string>("PlanNameSnapshot")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("PlanTypeSnapshot")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(10)
+                        .HasColumnType("nvarchar(10)")
+                        .HasDefaultValue("Individual");
 
                     b.Property<decimal>("PriceSnapshot")
                         .HasPrecision(18, 2)
@@ -1302,7 +1321,10 @@ namespace NobatPlusDATA.Migrations
 
                     b.HasIndex("BusinessID", "Status", "StartsAt", "EndsAt");
 
-                    b.ToTable("BusinessSubscriptions");
+                    b.ToTable("BusinessSubscriptions", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_BusinessSubscriptions_Snapshot", "[PlanTypeSnapshot] IN ('Individual','Business') AND [MaxMemberCountSnapshot] >= 1");
+                        });
                 });
 
             modelBuilder.Entity("NobatPlusDATA.Domain.CheckAvailability", b =>
@@ -1522,6 +1544,106 @@ namespace NobatPlusDATA.Migrations
                     b.HasIndex("WorkerId");
 
                     b.ToTable("DiscountAssignments");
+                });
+
+            modelBuilder.Entity("NobatPlusDATA.Domain.Expense", b =>
+                {
+                    b.Property<long>("ID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("ID"));
+
+                    b.Property<long>("AmountIRR")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTime?>("CreateDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<long>("CreatedByPersonID")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<long>("ExpenseCategoryID")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTime>("ExpenseDate")
+                        .HasColumnType("date");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<long>("OwnerWorkerID")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<DateTime?>("UpdateDate")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("ID");
+
+                    b.HasIndex("CreatedByPersonID");
+
+                    b.HasIndex("ExpenseCategoryID");
+
+                    b.HasIndex("OwnerWorkerID");
+
+                    b.ToTable("Expenses", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_Expenses_AmountIRR", "[AmountIRR] > 0");
+                        });
+                });
+
+            modelBuilder.Entity("NobatPlusDATA.Domain.ExpenseCategory", b =>
+                {
+                    b.Property<long>("ID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("ID"));
+
+                    b.Property<DateTime?>("CreateDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<long?>("CreatedByPersonID")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("nvarchar(150)");
+
+                    b.Property<long?>("OwnerWorkerID")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTime?>("UpdateDate")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("ID");
+
+                    b.HasIndex("CreatedByPersonID");
+
+                    b.HasIndex("Name")
+                        .IsUnique()
+                        .HasFilter("[OwnerWorkerID] IS NULL");
+
+                    b.HasIndex("OwnerWorkerID", "Name")
+                        .IsUnique()
+                        .HasFilter("[OwnerWorkerID] IS NOT NULL");
+
+                    b.ToTable("ExpenseCategories");
                 });
 
             modelBuilder.Entity("NobatPlusDATA.Domain.FileUpload", b =>
@@ -3280,6 +3402,12 @@ namespace NobatPlusDATA.Migrations
                     b.Property<bool>("IsActive")
                         .HasColumnType("bit");
 
+                    b.Property<decimal>("RevenueSharePercent")
+                        .ValueGeneratedOnAdd()
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)")
+                        .HasDefaultValue(0m);
+
                     b.Property<DateTime?>("UpdateDate")
                         .HasColumnType("datetime2");
 
@@ -3295,7 +3423,10 @@ namespace NobatPlusDATA.Migrations
                     b.HasIndex("BusinessID", "WorkerID")
                         .IsUnique();
 
-                    b.ToTable("WorkerBillingSettings");
+                    b.ToTable("WorkerBillingSettings", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_WorkerBillingSettings_RevenueSharePercent", "[RevenueSharePercent] >= 0 AND [RevenueSharePercent] <= 100");
+                        });
                 });
 
             modelBuilder.Entity("NobatPlusDATA.Domain.WorkerPacific", b =>
@@ -4122,6 +4253,50 @@ namespace NobatPlusDATA.Migrations
                     b.Navigation("Worker");
                 });
 
+            modelBuilder.Entity("NobatPlusDATA.Domain.Expense", b =>
+                {
+                    b.HasOne("NobatPlusDATA.Domain.Person", "CreatedByPerson")
+                        .WithMany()
+                        .HasForeignKey("CreatedByPersonID")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.HasOne("NobatPlusDATA.Domain.ExpenseCategory", "ExpenseCategory")
+                        .WithMany("Expenses")
+                        .HasForeignKey("ExpenseCategoryID")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.HasOne("NobatPlusDATA.Domain.Worker", "OwnerWorker")
+                        .WithMany()
+                        .HasForeignKey("OwnerWorkerID")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.Navigation("CreatedByPerson");
+
+                    b.Navigation("ExpenseCategory");
+
+                    b.Navigation("OwnerWorker");
+                });
+
+            modelBuilder.Entity("NobatPlusDATA.Domain.ExpenseCategory", b =>
+                {
+                    b.HasOne("NobatPlusDATA.Domain.Person", "CreatedByPerson")
+                        .WithMany()
+                        .HasForeignKey("CreatedByPersonID")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.HasOne("NobatPlusDATA.Domain.Worker", "OwnerWorker")
+                        .WithMany()
+                        .HasForeignKey("OwnerWorkerID")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.Navigation("CreatedByPerson");
+
+                    b.Navigation("OwnerWorker");
+                });
+
             modelBuilder.Entity("NobatPlusDATA.Domain.FileUpload", b =>
                 {
                     b.HasOne("NobatPlusDATA.Domain.Person", "ReviewedByPerson")
@@ -4828,6 +5003,11 @@ namespace NobatPlusDATA.Migrations
                     b.Navigation("DiscountAssignments");
 
                     b.Navigation("ServiceDiscounts");
+                });
+
+            modelBuilder.Entity("NobatPlusDATA.Domain.ExpenseCategory", b =>
+                {
+                    b.Navigation("Expenses");
                 });
 
             modelBuilder.Entity("NobatPlusDATA.Domain.FinancialAccount", b =>

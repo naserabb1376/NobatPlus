@@ -5,6 +5,7 @@ using NobatPlusAPI.Tools;
 using NobatPlusDATA.DataLayer.Repositories;
 using NobatPlusDATA.Domain;
 using NobatPlusDATA.ResultObjects;
+using static NobatPlusDATA.Tools.DbTools;
 
 namespace NobatPlusAPI.Controllers
 {
@@ -147,7 +148,7 @@ namespace NobatPlusAPI.Controllers
         private bool RequireAdmin(out ActionResult forbidden)
         {
             forbidden = Forbid();
-            return User.GetCurrentRoleId() == 4;
+            return User.GetCurrentRoleId() == (long) BaseRole.Admin;
         }
     }
 }

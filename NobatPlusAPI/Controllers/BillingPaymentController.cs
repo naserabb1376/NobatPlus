@@ -8,12 +8,12 @@ using NobatPlusAPI.ViewModels.Billing;
 using NobatPlusDATA.DataLayer.Repositories;
 using NobatPlusDATA.Domain;
 using NobatPlusDATA.ResultObjects;
+using static NobatPlusDATA.Tools.DbTools;
 namespace NobatPlusAPI.Controllers;
 
 [ApiController]
 [Route("BillingPayment")]
 [Authorize]
-[RequireRole(2, 3, 4)]
 [Produces("application/json")]
 public class BillingPaymentController : ControllerBase
 {
@@ -25,17 +25,24 @@ public class BillingPaymentController : ControllerBase
         _mapper = mapper;
     }
 
+    [HttpPost("ExistBillingPayment_Base")]
+    public async Task<ActionResult<BitResultObject>> ExistBillingPayment_Base(GetRowRequestBody requestBody)
+    {
+        var result = await _repository.ExistBillingPaymentAsync(requestBody.ID, User.GetCurrentUserId(), User.GetCurrentRoleId() == (long) BaseRole.Admin);
+        return result.Status ? Ok(result) : BadRequest(result);
+    }
+
     [HttpPost("GetAllBillingPayments_Base")]
     public async Task<ActionResult<ListResultObject<BillingPaymentVM>>> GetAllBillingPayments_Base(GetBillingListRequestBody requestBody)
     {
-        var result = await _repository.GetAllAsync(requestBody, User.GetCurrentUserId(), User.GetCurrentRoleId() == 4);
+        var result = await _repository.GetAllBillingPaymentsAsync(requestBody, User.GetCurrentUserId(), User.GetCurrentRoleId() == (long) BaseRole.Admin);
         return result.Status ? Ok(_mapper.Map<ListResultObject<BillingPaymentVM>>(result)) : BadRequest(result);
     }
 
     [HttpPost("GetBillingPaymentById_Base")]
     public async Task<ActionResult<RowResultObject<BillingPaymentVM>>> GetBillingPaymentById_Base(GetRowRequestBody requestBody)
     {
-        var result = await _repository.GetByIdAsync(requestBody.ID, User.GetCurrentUserId(), User.GetCurrentRoleId() == 4);
+        var result = await _repository.GetBillingPaymentByIdAsync(requestBody.ID, User.GetCurrentUserId(), User.GetCurrentRoleId() == (long) BaseRole.Admin);
         return result.Status ? Ok(_mapper.Map<RowResultObject<BillingPaymentVM>>(result)) : BadRequest(result);
     }
 }

@@ -40,6 +40,15 @@ namespace NobatPlusAPI.Controllers
             return Ok(_mapper.Map<RowResultObject<BookingTagVM>>(result));
         }
 
+        [HttpPost("ExistBookingTag_Base")]
+        public async Task<ActionResult<BitResultObject>> ExistBookingTag_Base(GetRowRequestBody request)
+        {
+            var row = await _rep.GetBookingTagByIdAsync(request.ID);
+            if (!row.Status || row.Result == null) return Ok(new BitResultObject { ID = request.ID, Status = false });
+            if (!await CanManageWorkerAsync(row.Result.WorkerID)) return Forbid();
+            return Ok(await _rep.ExistBookingTagAsync(request.ID));
+        }
+
         [HttpPost("AddBookingTag_Base")]
         public async Task<ActionResult<BitResultObject>> AddBookingTag_Base(AddEditBookingTagRequestBody request)
         {

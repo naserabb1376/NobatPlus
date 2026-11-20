@@ -94,6 +94,8 @@ namespace NobatPlusDATA.DataLayer
         public DbSet<BookingScheduledMessage> BookingScheduledMessages { get; set; }
         public DbSet<BookingTag> BookingTags { get; set; }
         public DbSet<WorkerScheduleBlock> WorkerScheduleBlocks { get; set; }
+        public DbSet<ExpenseCategory> ExpenseCategories { get; set; }
+        public DbSet<Expense> Expenses { get; set; }
 
 
         // Views
@@ -121,6 +123,7 @@ namespace NobatPlusDATA.DataLayer
             // dynamic auth config
             modelBuilder.AddMTPermissionCenter();
             modelBuilder.ConfigureBilling();
+            modelBuilder.ConfigureExpenses();
 
             foreach (var property in modelBuilder.Model.GetEntityTypes()
                          .SelectMany(entityType => entityType.GetProperties())

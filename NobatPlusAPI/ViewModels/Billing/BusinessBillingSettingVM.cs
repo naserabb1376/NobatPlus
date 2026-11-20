@@ -6,6 +6,7 @@ public class BusinessBillingSettingVM : BaseEntity
     public string DefaultFeePayer { get; set; } = "Business";
     public string CollectionMode { get; set; } = "Hybrid";
     public string InvoiceCycle { get; set; } = "Monthly";
+    public string SettlementDestination { get; set; } = "Business";
     public bool IsBookingFeeEnabled { get; set; } = true;
     public decimal CreditLimit { get; set; }
     public int DueDays { get; set; } = 7;

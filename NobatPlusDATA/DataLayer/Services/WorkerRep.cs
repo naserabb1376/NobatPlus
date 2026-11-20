@@ -7,6 +7,7 @@ using NobatPlusDATA.Domain;
 using NobatPlusDATA.ResultObjects;
 using NobatPlusDATA.Tools;
 using System;
+using System.Data;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection.Metadata;
@@ -19,9 +20,11 @@ namespace NobatPlusDATA.DataLayer.Services
     {
 
         private NobatPlusContext _context;
-        public WorkerRep(NobatPlusContext context)
+        private readonly IBillingRep _billingRep;
+        public WorkerRep(NobatPlusContext context, IBillingRep billingRep)
         {
             _context = context;
+            _billingRep = billingRep;
         }
 
         public async Task<BitResultObject> AddWorkerAsync(Worker Worker)
@@ -29,6 +32,8 @@ namespace NobatPlusDATA.DataLayer.Services
             BitResultObject result = new BitResultObject();
             try
             {
+                await using var transaction = await _context.Database.BeginTransactionAsync(IsolationLevel.Serializable);
+                await _billingRep.AcquireLockAsync();
                 var duplicateProfile = await _context.Workers.AsNoTracking().AnyAsync(x =>
                     x.PersonID == Worker.PersonID &&
                     x.IsWorkShop == Worker.IsWorkShop);
@@ -43,6 +48,9 @@ namespace NobatPlusDATA.DataLayer.Services
 
                 await _context.Workers.AddAsync(Worker);
                 await _context.SaveChangesAsync();
+                var capacityError = await _billingRep.ValidateWorkerCapacityAsync(Worker.ID);
+                if (!string.IsNullOrWhiteSpace(capacityError)) throw new InvalidOperationException(capacityError);
+                await transaction.CommitAsync();
                 result.ID = Worker.ID;
                 _context.Entry(Worker).State = EntityState.Detached;
             }
@@ -60,6 +68,8 @@ namespace NobatPlusDATA.DataLayer.Services
             BitResultObject result = new BitResultObject();
             try
             {
+                await using var transaction = await _context.Database.BeginTransactionAsync(IsolationLevel.Serializable);
+                await _billingRep.AcquireLockAsync();
                 var duplicateProfile = await _context.Workers.AsNoTracking().AnyAsync(x =>
                     x.ID != Worker.ID &&
                     x.PersonID == Worker.PersonID &&
@@ -75,6 +85,9 @@ namespace NobatPlusDATA.DataLayer.Services
 
                 _context.Workers.Update(Worker);
                 await _context.SaveChangesAsync();
+                var capacityError = await _billingRep.ValidateWorkerCapacityAsync(Worker.ID);
+                if (!string.IsNullOrWhiteSpace(capacityError)) throw new InvalidOperationException(capacityError);
+                await transaction.CommitAsync();
                 result.ID = Worker.ID;
                 _context.Entry(Worker).State = EntityState.Detached;
             }

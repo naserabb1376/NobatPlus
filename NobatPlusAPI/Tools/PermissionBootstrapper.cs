@@ -243,6 +243,11 @@ namespace NobatPlusAPI.Tools
                 "Payment" when actionName.StartsWith("Delete", StringComparison.OrdinalIgnoreCase)
                     || actionName.StartsWith("Edit", StringComparison.OrdinalIgnoreCase)
                     || actionName.StartsWith("Exist", StringComparison.OrdinalIgnoreCase) => AdminOnly,
+                "Payment" when actionName.Equals("RequestPayment", StringComparison.OrdinalIgnoreCase) => AllPanelRoles,
+                "Payment" when actionName.Equals("GetAllPayments", StringComparison.OrdinalIgnoreCase)
+                    || actionName.Equals("GetAllPayments_Base", StringComparison.OrdinalIgnoreCase)
+                    || actionName.Equals("GetPaymentById", StringComparison.OrdinalIgnoreCase)
+                    || actionName.Equals("GetPaymentById_Base", StringComparison.OrdinalIgnoreCase) => AllPanelRoles,
                 "Payment" => CustomerOnly,
                 "PaymentDetail" when actionName.StartsWith("Add", StringComparison.OrdinalIgnoreCase)
                     || actionName.StartsWith("Edit", StringComparison.OrdinalIgnoreCase)
@@ -252,6 +257,15 @@ namespace NobatPlusAPI.Tools
                 "PaymentHistory" => CustomerOnly,
                 "PaymentBooking" => AdminOnly,
                 "PaymentDetailOptionValue" => AdminOnly,
+                "BillingController" when actionName.Equals("SaveSubscriptionPlan_Base", StringComparison.OrdinalIgnoreCase)
+                    || actionName.Equals("ReverseBookingPlatformFee_Base", StringComparison.OrdinalIgnoreCase)
+                    || actionName.Equals("RunBillingNow_Base", StringComparison.OrdinalIgnoreCase)
+                    || actionName.Equals("GetBillingReconciliationReport_Base", StringComparison.OrdinalIgnoreCase)
+                    || actionName.Equals("ResolveBillingRefund_Base", StringComparison.OrdinalIgnoreCase) => AdminOnly,
+                "BillingController" => ProviderOnly,
+                "BusinessSubscription" when actionName.Equals("ExistBusinessSubscription_Base", StringComparison.OrdinalIgnoreCase) => AllPanelRoles,
+                "BusinessSubscription" => ProviderOnly,
+                "SubscriptionPlan" => ProviderOnly,
                 "Person" when actionName.Equals("GetPersonById_Base", StringComparison.OrdinalIgnoreCase)
                     || actionName.Equals("EditPerson", StringComparison.OrdinalIgnoreCase)
                     || actionName.Equals("EditPerson_Base", StringComparison.OrdinalIgnoreCase) => AllPanelRoles,
@@ -356,22 +370,22 @@ namespace NobatPlusAPI.Tools
                 Menu("تقویم آرایشگر", "/worker/calendar", "CalendarClock", BaseRole.Worker),
                 Menu("حساب مالی آرایشگر", "/worker/financial", "CircleDollarSign", BaseRole.Worker),
 
-                Menu("داشبورد سالن", "/workshop/dashboard", "LayoutDashboard", BaseRole.Workshop),
-                Menu("پروفایل سالن", "/workshop/profile", "IdCard", BaseRole.Workshop),
-                Menu("اطلاعات شغلی سالن", "/workshop/workInfo", "Briefcase", BaseRole.Workshop),
-                Menu("شبکه‌های اجتماعی سالن", "/workshop/SocialNetwork", "Share2", BaseRole.Workshop),
-                Menu("ساعات کاری سالن", "/workshop/WorkshopWorkTime", "Clock", BaseRole.Workshop),
-                Menu("نوبت‌های سالن", "/workshop/worker-appointmentsWorkshop", "CalendarDays", BaseRole.Workshop),
-                Menu("لیست آرایشگران سالن", "/workshop/workers", "Users", BaseRole.Workshop),
-                Menu("برنامه کاری آرایشگران سالن", "/workshop/work-time-list", "CalendarClock", BaseRole.Workshop),
-                Menu("خدمات آرایشگران سالن", "/workshop/worker-services-list", "Scissors", BaseRole.Workshop),
-                Menu("شبکه‌های اجتماعی آرایشگران سالن", "/workshop/WorkerSocialNetwork", "Share2", BaseRole.Workshop),
-                Menu("مشتریان سالن", "/workshop/customerWorkerList", "Users", BaseRole.Workshop),
-                Menu("تقویم سالن", "/workshop/calendar", "CalendarClock", BaseRole.Workshop),
-                Menu("مرخصی‌های سالن", "/workshop/leaves", "CalendarClock", BaseRole.Workshop),
-                Menu("QR تبلیغاتی سالن", "/workshop/promotion-qr", "QrCode", BaseRole.Workshop),
-                Menu("نظرات سالن", "/workshop/reviews", "MessageCircle", BaseRole.Workshop),
-                Menu("حساب مالی سالن", "/workshop/financial", "CircleDollarSign", BaseRole.Workshop),
+                Menu("داشبورد سالن", "/workshop/dashboard", "LayoutDashboard", BaseRole.WorkShop),
+                Menu("پروفایل سالن", "/workshop/profile", "IdCard", BaseRole.WorkShop),
+                Menu("اطلاعات شغلی سالن", "/workshop/workInfo", "Briefcase", BaseRole.WorkShop),
+                Menu("شبکه‌های اجتماعی سالن", "/workshop/SocialNetwork", "Share2", BaseRole.WorkShop),
+                Menu("ساعات کاری سالن", "/workshop/WorkshopWorkTime", "Clock", BaseRole.WorkShop),
+                Menu("نوبت‌های سالن", "/workshop/worker-appointmentsWorkshop", "CalendarDays", BaseRole.WorkShop),
+                Menu("لیست آرایشگران سالن", "/workshop/workers", "Users", BaseRole.WorkShop),
+                Menu("برنامه کاری آرایشگران سالن", "/workshop/work-time-list", "CalendarClock", BaseRole.WorkShop),
+                Menu("خدمات آرایشگران سالن", "/workshop/worker-services-list", "Scissors", BaseRole.WorkShop),
+                Menu("شبکه‌های اجتماعی آرایشگران سالن", "/workshop/WorkerSocialNetwork", "Share2", BaseRole.WorkShop),
+                Menu("مشتریان سالن", "/workshop/customerWorkerList", "Users", BaseRole.WorkShop),
+                Menu("تقویم سالن", "/workshop/calendar", "CalendarClock", BaseRole.WorkShop),
+                Menu("مرخصی‌های سالن", "/workshop/leaves", "CalendarClock", BaseRole.WorkShop),
+                Menu("QR تبلیغاتی سالن", "/workshop/promotion-qr", "QrCode", BaseRole.WorkShop),
+                Menu("نظرات سالن", "/workshop/reviews", "MessageCircle", BaseRole.WorkShop),
+                Menu("حساب مالی سالن", "/workshop/financial", "CircleDollarSign", BaseRole.WorkShop),
             };
         }
 
@@ -384,9 +398,9 @@ namespace NobatPlusAPI.Tools
         private static readonly long[] NoRoles = Array.Empty<long>();
         private static readonly long[] CustomerOnly = { (long)BaseRole.Customer, (long)BaseRole.Admin };
         private static readonly long[] WorkerOnly = { (long)BaseRole.Worker, (long)BaseRole.Admin };
-        private static readonly long[] WorkshopOnly = { (long)BaseRole.Workshop, (long)BaseRole.Admin };
-        private static readonly long[] ProviderOnly = { (long)BaseRole.Worker, (long)BaseRole.Workshop, (long)BaseRole.Admin };
-        private static readonly long[] AllPanelRoles = { (long)BaseRole.Customer, (long)BaseRole.Worker, (long)BaseRole.Workshop, (long)BaseRole.Admin };
+        private static readonly long[] WorkshopOnly = { (long)BaseRole.WorkShop, (long)BaseRole.Admin };
+        private static readonly long[] ProviderOnly = { (long)BaseRole.Worker, (long)BaseRole.WorkShop, (long)BaseRole.Admin };
+        private static readonly long[] AllPanelRoles = { (long)BaseRole.Customer, (long)BaseRole.Worker, (long)BaseRole.WorkShop, (long)BaseRole.Admin };
         private static readonly HashSet<long> ManagedBaseRoleIds = new(AllPanelRoles);
 
         private static readonly HashSet<string> AdminOnlyControllers = new(StringComparer.OrdinalIgnoreCase)
@@ -415,7 +429,10 @@ namespace NobatPlusAPI.Tools
         {
             "CheckAvailability", "FinancialAccount", "SocialNetwork", "WorkerDashboard", "WorkerPacific",
             "WorkerService", "WorkerServiceFollowUpSetting", "WorkerServicePriceVariant",
-            "WorkerServicePriceVariantOptionValue", "WorkTime"
+            "WorkerServicePriceVariantOptionValue", "WorkTime", "BillingAccount", "BillingAllocation",
+            "BillingInvoice", "BillingInvoiceItem", "BillingPayment", "BillingRefund", "BillingSettingHistory",
+            "BillingTransaction", "BookingPlatformFee", "BusinessBillingSetting", "SubscriptionPlan",
+            "WorkerBillingSetting"
         };
 
         private static readonly HashSet<string> SharedPanelControllers = new(StringComparer.OrdinalIgnoreCase)

@@ -19,6 +19,7 @@ namespace NobatPlusDATA.DataLayer.Repositories
             DateTime? toDate = null);
 
         Task<RowResultObject<AdminAuditLog>> GetAdminAuditLogByIdAsync(long id);
+        Task<BitResultObject> ExistAdminAuditLogAsync(long id);
         Task<BitResultObject> AddAdminAuditLogAsync(AdminAuditLog auditLog);
     }
 }

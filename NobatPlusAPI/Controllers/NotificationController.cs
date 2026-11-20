@@ -20,6 +20,7 @@ using NobatPlusDATA.ViewModels;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
+using static NobatPlusDATA.Tools.DbTools;
 
 namespace NobatPlusAPI.Controllers
 {
@@ -49,7 +50,7 @@ namespace NobatPlusAPI.Controllers
             {
                 return BadRequest(requestBody);
             }
-            var personId = User.GetCurrentRoleId() == 4 ? requestBody.PersonId : User.GetCurrentUserId();
+            var personId = User.GetCurrentRoleId() == (long) BaseRole.Admin ? requestBody.PersonId : User.GetCurrentUserId();
             var result = await _NotificationRep.GetAllNotificationsAsync(personId,requestBody.PageIndex,requestBody.PageSize,requestBody.SearchText,requestBody.SortQuery);
             if (result.Status)
             {

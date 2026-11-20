@@ -7,6 +7,8 @@ public class BusinessSubscriptionVM : BaseEntity
     public long PaymentID { get; set; }
     public Guid RequestID { get; set; }
     public string PlanNameSnapshot { get; set; } = "";
+    public string PlanTypeSnapshot { get; set; } = "Individual";
+    public int MaxMemberCountSnapshot { get; set; } = 1;
     public int DurationMonthsSnapshot { get; set; }
     public decimal PriceSnapshot { get; set; }
     public decimal BookingFeeAmountSnapshot { get; set; }

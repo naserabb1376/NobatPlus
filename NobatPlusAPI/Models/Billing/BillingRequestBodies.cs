@@ -26,6 +26,7 @@ public class SaveBusinessBillingSettingsRequestBody
     public string DefaultFeePayer { get; set; } = "Business";
     public string CollectionMode { get; set; } = "Hybrid";
     public string InvoiceCycle { get; set; } = "Monthly";
+    public string SettlementDestination { get; set; } = "Business";
     public bool IsBookingFeeEnabled { get; set; } = true;
     [Range(typeof(decimal), "0", "9999999999999999")] public decimal CreditLimit { get; set; }
     [Range(0, 365)] public int DueDays { get; set; } = 7;
@@ -37,6 +38,7 @@ public class SaveWorkerBillingSettingsRequestBody
     [Range(1, long.MaxValue)] public long BusinessID { get; set; }
     [Range(1, long.MaxValue)] public long WorkerID { get; set; }
     public string? FeePayerOverride { get; set; }
+    [Range(typeof(decimal), "0", "100")] public decimal? RevenueSharePercent { get; set; }
 }
 
 public class AcceptWorkerLiabilityRequestBody

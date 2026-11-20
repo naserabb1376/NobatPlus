@@ -8,12 +8,12 @@ using NobatPlusAPI.ViewModels.Billing;
 using NobatPlusDATA.DataLayer.Repositories;
 using NobatPlusDATA.Domain;
 using NobatPlusDATA.ResultObjects;
+using static NobatPlusDATA.Tools.DbTools;
 namespace NobatPlusAPI.Controllers;
 
 [ApiController]
 [Route("BillingInvoice")]
 [Authorize]
-[RequireRole(2, 3, 4)]
 [Produces("application/json")]
 public class BillingInvoiceController : ControllerBase
 {
@@ -25,17 +25,24 @@ public class BillingInvoiceController : ControllerBase
         _mapper = mapper;
     }
 
+    [HttpPost("ExistBillingInvoice_Base")]
+    public async Task<ActionResult<BitResultObject>> ExistBillingInvoice_Base(GetRowRequestBody requestBody)
+    {
+        var result = await _repository.ExistBillingInvoiceAsync(requestBody.ID, User.GetCurrentUserId(), User.GetCurrentRoleId() == (long) BaseRole.Admin);
+        return result.Status ? Ok(result) : BadRequest(result);
+    }
+
     [HttpPost("GetAllBillingInvoices_Base")]
     public async Task<ActionResult<ListResultObject<BillingInvoiceVM>>> GetAllBillingInvoices_Base(GetBillingListRequestBody requestBody)
     {
-        var result = await _repository.GetAllAsync(requestBody, User.GetCurrentUserId(), User.GetCurrentRoleId() == 4);
+        var result = await _repository.GetAllBillingInvoicesAsync(requestBody, User.GetCurrentUserId(), User.GetCurrentRoleId() == (long) BaseRole.Admin);
         return result.Status ? Ok(_mapper.Map<ListResultObject<BillingInvoiceVM>>(result)) : BadRequest(result);
     }
 
     [HttpPost("GetBillingInvoiceById_Base")]
     public async Task<ActionResult<RowResultObject<BillingInvoiceVM>>> GetBillingInvoiceById_Base(GetRowRequestBody requestBody)
     {
-        var result = await _repository.GetByIdAsync(requestBody.ID, User.GetCurrentUserId(), User.GetCurrentRoleId() == 4);
+        var result = await _repository.GetBillingInvoiceByIdAsync(requestBody.ID, User.GetCurrentUserId(), User.GetCurrentRoleId() == (long) BaseRole.Admin);
         return result.Status ? Ok(_mapper.Map<RowResultObject<BillingInvoiceVM>>(result)) : BadRequest(result);
     }
 }

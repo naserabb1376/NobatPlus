@@ -305,6 +305,11 @@ namespace NobatPlusAPI.Tools
 .ForMember(dest => dest.CustomerDescription, opt => opt.MapFrom(src => src.Description))
            ;
             CreateMap<City, CityVM>();
+            CreateMap<ExpenseCategory, ExpenseCategoryVM>()
+                .ForMember(dest => dest.OwnerWorkerName, opt => opt.MapFrom(src => src.OwnerWorker != null ? src.OwnerWorker.WorkerName : ""));
+            CreateMap<Expense, ExpenseVM>()
+                .ForMember(dest => dest.OwnerWorkerName, opt => opt.MapFrom(src => src.OwnerWorker != null ? src.OwnerWorker.WorkerName : ""))
+                .ForMember(dest => dest.ExpenseCategoryName, opt => opt.MapFrom(src => src.ExpenseCategory != null ? src.ExpenseCategory.Name : ""));
             CreateMap<JobType, JobTypeVM>().ForMember(dest => dest.RoleName, opt => opt.MapFrom(src => src.Role.Name))
           ;
             CreateMap<Role, RoleVM>();

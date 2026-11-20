@@ -8,12 +8,12 @@ using NobatPlusAPI.ViewModels.Billing;
 using NobatPlusDATA.DataLayer.Repositories;
 using NobatPlusDATA.Domain;
 using NobatPlusDATA.ResultObjects;
+using static NobatPlusDATA.Tools.DbTools;
 namespace NobatPlusAPI.Controllers;
 
 [ApiController]
 [Route("BillingAllocation")]
 [Authorize]
-[RequireRole(2, 3, 4)]
 [Produces("application/json")]
 public class BillingAllocationController : ControllerBase
 {
@@ -25,17 +25,24 @@ public class BillingAllocationController : ControllerBase
         _mapper = mapper;
     }
 
+    [HttpPost("ExistBillingAllocation_Base")]
+    public async Task<ActionResult<BitResultObject>> ExistBillingAllocation_Base(GetRowRequestBody requestBody)
+    {
+        var result = await _repository.ExistBillingAllocationAsync(requestBody.ID, User.GetCurrentUserId(), User.GetCurrentRoleId() == (long) BaseRole.Admin);
+        return result.Status ? Ok(result) : BadRequest(result);
+    }
+
     [HttpPost("GetAllBillingAllocations_Base")]
     public async Task<ActionResult<ListResultObject<BillingAllocationVM>>> GetAllBillingAllocations_Base(GetBillingListRequestBody requestBody)
     {
-        var result = await _repository.GetAllAsync(requestBody, User.GetCurrentUserId(), User.GetCurrentRoleId() == 4);
+        var result = await _repository.GetAllBillingAllocationsAsync(requestBody, User.GetCurrentUserId(), User.GetCurrentRoleId() == (long) BaseRole.Admin);
         return result.Status ? Ok(_mapper.Map<ListResultObject<BillingAllocationVM>>(result)) : BadRequest(result);
     }
 
     [HttpPost("GetBillingAllocationById_Base")]
     public async Task<ActionResult<RowResultObject<BillingAllocationVM>>> GetBillingAllocationById_Base(GetRowRequestBody requestBody)
     {
-        var result = await _repository.GetByIdAsync(requestBody.ID, User.GetCurrentUserId(), User.GetCurrentRoleId() == 4);
+        var result = await _repository.GetBillingAllocationByIdAsync(requestBody.ID, User.GetCurrentUserId(), User.GetCurrentRoleId() == (long) BaseRole.Admin);
         return result.Status ? Ok(_mapper.Map<RowResultObject<BillingAllocationVM>>(result)) : BadRequest(result);
     }
 }

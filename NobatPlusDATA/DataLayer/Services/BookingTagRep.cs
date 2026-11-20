@@ -43,6 +43,14 @@ namespace NobatPlusDATA.DataLayer.Services
             return result;
         }
 
+        public async Task<BitResultObject> ExistBookingTagAsync(long id)
+        {
+            var result = new BitResultObject { ID = id };
+            try { result.Status = id > 0 && await _context.BookingTags.AsNoTracking().AnyAsync(x => x.ID == id); }
+            catch (Exception ex) { result.Status = false; result.ErrorMessage = $"{ex.Message} - {ex.InnerException?.Message}"; }
+            return result;
+        }
+
         public async Task<BitResultObject> AddBookingTagAsync(BookingTag tag)
         {
             var result = new BitResultObject();

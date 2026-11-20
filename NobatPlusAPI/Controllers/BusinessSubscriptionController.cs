@@ -8,12 +8,12 @@ using NobatPlusAPI.ViewModels.Billing;
 using NobatPlusDATA.DataLayer.Repositories;
 using NobatPlusDATA.Domain;
 using NobatPlusDATA.ResultObjects;
+using static NobatPlusDATA.Tools.DbTools;
 namespace NobatPlusAPI.Controllers;
 
 [ApiController]
 [Route("BusinessSubscription")]
 [Authorize]
-[RequireRole(2, 3, 4)]
 [Produces("application/json")]
 public class BusinessSubscriptionController : ControllerBase
 {
@@ -25,17 +25,27 @@ public class BusinessSubscriptionController : ControllerBase
         _mapper = mapper;
     }
 
+    [HttpPost("ExistBusinessSubscription_Base")]
+    public async Task<ActionResult<BitResultObject>> ExistBusinessSubscription_Base(GetRowRequestBody requestBody)
+    {
+        if (!ModelState.IsValid)
+            return BadRequest(requestBody);
+
+        var result = await _repository.ExistBusinessSubscriptionAsync(requestBody.ID);
+        return result.Status ? Ok(result) : BadRequest(result);
+    }
+
     [HttpPost("GetAllBusinessSubscriptions_Base")]
     public async Task<ActionResult<ListResultObject<BusinessSubscriptionVM>>> GetAllBusinessSubscriptions_Base(GetBillingListRequestBody requestBody)
     {
-        var result = await _repository.GetAllAsync(requestBody, User.GetCurrentUserId(), User.GetCurrentRoleId() == 4);
+        var result = await _repository.GetAllBusinessSubscriptionsAsync(requestBody, User.GetCurrentUserId(), User.GetCurrentRoleId() == (long) BaseRole.Admin);
         return result.Status ? Ok(_mapper.Map<ListResultObject<BusinessSubscriptionVM>>(result)) : BadRequest(result);
     }
 
     [HttpPost("GetBusinessSubscriptionById_Base")]
     public async Task<ActionResult<RowResultObject<BusinessSubscriptionVM>>> GetBusinessSubscriptionById_Base(GetRowRequestBody requestBody)
     {
-        var result = await _repository.GetByIdAsync(requestBody.ID, User.GetCurrentUserId(), User.GetCurrentRoleId() == 4);
+        var result = await _repository.GetBusinessSubscriptionByIdAsync(requestBody.ID, User.GetCurrentUserId(), User.GetCurrentRoleId() == (long) BaseRole.Admin);
         return result.Status ? Ok(_mapper.Map<RowResultObject<BusinessSubscriptionVM>>(result)) : BadRequest(result);
     }
 }
