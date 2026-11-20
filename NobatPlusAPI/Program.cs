@@ -253,6 +253,8 @@ namespace NobatPlusAPI
             builder.Services.AddScoped<IRateQuestionRep, RateQuestionRep>();
             builder.Services.AddScoped<IRateHistoryRep, RateHistoryRep>();
             builder.Services.AddScoped<ISettingRep, SettingRep>();
+            builder.Services.AddScoped<IExpenseCategoryRep, ExpenseCategoryRep>();
+            builder.Services.AddScoped<IExpenseRep, ExpenseRep>();
             builder.Services.AddScoped<IUserRoleProvider, ActiveProfileUserRoleProvider>();
             builder.Services.AddScoped<IPermissionRep, PermissionRep>();
             builder.Services.AddScoped<IPermissionRoleRep, PermissionRoleRep>();
@@ -345,10 +347,7 @@ namespace NobatPlusAPI
             GlobalJobFilters.Filters.Add(
                 app.Services.GetRequiredService<HangfireErrorLoggingFilter>());
 
-            using (var scope = app.Services.CreateScope())
-            {
-                PermissionBootstrapper.SyncAsync(scope.ServiceProvider, app.Logger).GetAwaiter().GetResult();
-            }
+            // Permissions are initialized explicitly through PermissionController.InitPermissions.
 
             // Configure the HTTP request pipeline.
 

@@ -1546,6 +1546,106 @@ namespace NobatPlusDATA.Migrations
                     b.ToTable("DiscountAssignments");
                 });
 
+            modelBuilder.Entity("NobatPlusDATA.Domain.Expense", b =>
+                {
+                    b.Property<long>("ID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("ID"));
+
+                    b.Property<long>("AmountIRR")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTime?>("CreateDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<long>("CreatedByPersonID")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<long>("ExpenseCategoryID")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTime>("ExpenseDate")
+                        .HasColumnType("date");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<long>("OwnerWorkerID")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<DateTime?>("UpdateDate")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("ID");
+
+                    b.HasIndex("CreatedByPersonID");
+
+                    b.HasIndex("ExpenseCategoryID");
+
+                    b.HasIndex("OwnerWorkerID");
+
+                    b.ToTable("Expenses", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_Expenses_AmountIRR", "[AmountIRR] > 0");
+                        });
+                });
+
+            modelBuilder.Entity("NobatPlusDATA.Domain.ExpenseCategory", b =>
+                {
+                    b.Property<long>("ID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("ID"));
+
+                    b.Property<DateTime?>("CreateDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<long?>("CreatedByPersonID")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("nvarchar(150)");
+
+                    b.Property<long?>("OwnerWorkerID")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTime?>("UpdateDate")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("ID");
+
+                    b.HasIndex("CreatedByPersonID");
+
+                    b.HasIndex("Name")
+                        .IsUnique()
+                        .HasFilter("[OwnerWorkerID] IS NULL");
+
+                    b.HasIndex("OwnerWorkerID", "Name")
+                        .IsUnique()
+                        .HasFilter("[OwnerWorkerID] IS NOT NULL");
+
+                    b.ToTable("ExpenseCategories");
+                });
+
             modelBuilder.Entity("NobatPlusDATA.Domain.FileUpload", b =>
                 {
                     b.Property<long>("ID")
@@ -4153,6 +4253,50 @@ namespace NobatPlusDATA.Migrations
                     b.Navigation("Worker");
                 });
 
+            modelBuilder.Entity("NobatPlusDATA.Domain.Expense", b =>
+                {
+                    b.HasOne("NobatPlusDATA.Domain.Person", "CreatedByPerson")
+                        .WithMany()
+                        .HasForeignKey("CreatedByPersonID")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.HasOne("NobatPlusDATA.Domain.ExpenseCategory", "ExpenseCategory")
+                        .WithMany("Expenses")
+                        .HasForeignKey("ExpenseCategoryID")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.HasOne("NobatPlusDATA.Domain.Worker", "OwnerWorker")
+                        .WithMany()
+                        .HasForeignKey("OwnerWorkerID")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.Navigation("CreatedByPerson");
+
+                    b.Navigation("ExpenseCategory");
+
+                    b.Navigation("OwnerWorker");
+                });
+
+            modelBuilder.Entity("NobatPlusDATA.Domain.ExpenseCategory", b =>
+                {
+                    b.HasOne("NobatPlusDATA.Domain.Person", "CreatedByPerson")
+                        .WithMany()
+                        .HasForeignKey("CreatedByPersonID")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.HasOne("NobatPlusDATA.Domain.Worker", "OwnerWorker")
+                        .WithMany()
+                        .HasForeignKey("OwnerWorkerID")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.Navigation("CreatedByPerson");
+
+                    b.Navigation("OwnerWorker");
+                });
+
             modelBuilder.Entity("NobatPlusDATA.Domain.FileUpload", b =>
                 {
                     b.HasOne("NobatPlusDATA.Domain.Person", "ReviewedByPerson")
@@ -4859,6 +5003,11 @@ namespace NobatPlusDATA.Migrations
                     b.Navigation("DiscountAssignments");
 
                     b.Navigation("ServiceDiscounts");
+                });
+
+            modelBuilder.Entity("NobatPlusDATA.Domain.ExpenseCategory", b =>
+                {
+                    b.Navigation("Expenses");
                 });
 
             modelBuilder.Entity("NobatPlusDATA.Domain.FinancialAccount", b =>
