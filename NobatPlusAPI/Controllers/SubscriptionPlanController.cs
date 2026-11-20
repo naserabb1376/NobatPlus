@@ -25,13 +25,6 @@ public class SubscriptionPlanController : ControllerBase
         _mapper = mapper;
     }
 
-    [HttpPost("ExistSubscriptionPlan_Base")]
-    public async Task<ActionResult<BitResultObject>> ExistSubscriptionPlan_Base(GetRowRequestBody requestBody)
-    {
-        var result = await _repository.ExistSubscriptionPlanAsync(requestBody.ID, User.GetCurrentUserId(), User.GetCurrentRoleId() == (long) BaseRole.Admin);
-        return result.Status ? Ok(result) : BadRequest(result);
-    }
-
     [HttpPost("GetAllSubscriptionPlans_Base")]
     public async Task<ActionResult<ListResultObject<SubscriptionPlanVM>>> GetAllSubscriptionPlans_Base(GetBillingListRequestBody requestBody)
     {
@@ -44,6 +37,13 @@ public class SubscriptionPlanController : ControllerBase
     {
         var result = await _repository.GetSubscriptionPlanByIdAsync(requestBody.ID, User.GetCurrentUserId(), User.GetCurrentRoleId() == (long) BaseRole.Admin);
         return result.Status ? Ok(_mapper.Map<RowResultObject<SubscriptionPlanVM>>(result)) : BadRequest(result);
+    }
+
+    [HttpPost("ExistSubscriptionPlan_Base")]
+    public async Task<ActionResult<BitResultObject>> ExistSubscriptionPlan_Base(GetRowRequestBody requestBody)
+    {
+        var result = await _repository.ExistSubscriptionPlanAsync(requestBody.ID, User.GetCurrentUserId(), User.GetCurrentRoleId() == (long)BaseRole.Admin);
+        return result.Status ? Ok(result) : BadRequest(result);
     }
 }
 

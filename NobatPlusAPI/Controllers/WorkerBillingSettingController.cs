@@ -25,13 +25,6 @@ public class WorkerBillingSettingController : ControllerBase
         _mapper = mapper;
     }
 
-    [HttpPost("ExistWorkerBillingSetting_Base")]
-    public async Task<ActionResult<BitResultObject>> ExistWorkerBillingSetting_Base(GetRowRequestBody requestBody)
-    {
-        var result = await _repository.ExistWorkerBillingSettingAsync(requestBody.ID, User.GetCurrentUserId(), User.GetCurrentRoleId() == (long) BaseRole.Admin);
-        return result.Status ? Ok(result) : BadRequest(result);
-    }
-
     [HttpPost("GetAllWorkerBillingSettings_Base")]
     public async Task<ActionResult<ListResultObject<WorkerBillingSettingVM>>> GetAllWorkerBillingSettings_Base(GetBillingListRequestBody requestBody)
     {
@@ -44,6 +37,13 @@ public class WorkerBillingSettingController : ControllerBase
     {
         var result = await _repository.GetWorkerBillingSettingByIdAsync(requestBody.ID, User.GetCurrentUserId(), User.GetCurrentRoleId() == (long) BaseRole.Admin);
         return result.Status ? Ok(_mapper.Map<RowResultObject<WorkerBillingSettingVM>>(result)) : BadRequest(result);
+    }
+
+    [HttpPost("ExistWorkerBillingSetting_Base")]
+    public async Task<ActionResult<BitResultObject>> ExistWorkerBillingSetting_Base(GetRowRequestBody requestBody)
+    {
+        var result = await _repository.ExistWorkerBillingSettingAsync(requestBody.ID, User.GetCurrentUserId(), User.GetCurrentRoleId() == (long)BaseRole.Admin);
+        return result.Status ? Ok(result) : BadRequest(result);
     }
 }
 
