@@ -57,81 +57,15 @@ namespace NobatPlusAPI.Controllers
         }
 
         [HttpPost("GetAllPayments")]
-        public async Task<ActionResult<ListResultObject<PaymentVM>>> GetAllPayments(GetPaymentListRequestBody requestBody)
-        {
-            return await GetAllPaymentsInternal(requestBody);
-        }
-
-        [HttpPost("GetAllPayments_Base")]
         public async Task<ActionResult<ListResultObject<PaymentVM>>> GetAllPayments_Base(GetPaymentListRequestBody requestBody)
         {
             return await GetAllPaymentsInternal(requestBody);
         }
 
-        private async Task<ActionResult<ListResultObject<PaymentVM>>> GetAllPaymentsInternal(GetPaymentListRequestBody requestBody)
-        {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(requestBody);
-            }
-
-            var userId = User.GetCurrentUserId();
-            var roleId = User.GetCurrentRoleId();
-            long customerId = requestBody.CustomerId ?? 0;
-            if (roleId != 4)
-            {
-                var dbcustomer = await _customerRep.ExistCustomerAsync(userId.ToString(), "personid");
-                customerId = dbcustomer.Status ? dbcustomer.ID : 0;
-            }
-
-            var result = await _PaymentRep.GetAllPaymentsAsync(
-                requestBody.BookingId,
-                customerId,
-                requestBody.PaymentIncludes,
-                requestBody.PageIndex,
-                requestBody.PageSize,
-                requestBody.SearchText,
-                requestBody.SortQuery,
-                requestBody.PaymentStatus ?? "",
-                requestBody.PaymentLevel,
-                requestBody.FromDate,
-                requestBody.ToDate,
-                roleId == (long) BaseRole.Admin ? 0 : userId);
-            if (result.Status)
-            {
-                var resultVM = _mapper.Map<ListResultObject<PaymentVM>>(result);
-                return Ok(resultVM);
-            }
-            return BadRequest(result);
-        }
-
-        [HttpPost("GetPaymentById")]
         [HttpPost("GetPaymentById_Base")]
         public async Task<ActionResult<RowResultObject<PaymentVM>>> GetPaymentById_Base(GetRowRequestBody requestBody)
         {
             return await GetPaymentByIdInternal(requestBody);
-        }
-
-        private async Task<ActionResult<RowResultObject<PaymentVM>>> GetPaymentByIdInternal(GetRowRequestBody requestBody)
-        {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(requestBody);
-            }
-            var result = await _PaymentRep.GetPaymentByIdAsync(requestBody.ID);
-            if (result.Status)
-            {
-                var resultVM = _mapper.Map<RowResultObject<PaymentVM>>(result);
-                if (User.GetCurrentRoleId() != 4)
-                {
-                    if (!await _billingRep.CanAccessPaymentAsync(requestBody.ID, User.GetCurrentUserId(), false))
-                    {
-                        return Forbid();
-                    }
-                }
-                return Ok(resultVM);
-            }
-            return BadRequest(result);
         }
 
         [HttpPost("ExistPayment_Base")]
@@ -150,7 +84,6 @@ namespace NobatPlusAPI.Controllers
         }
 
         [HttpPost("AddPayment")]
-        [HttpPost("AddPayment_Base")]
         public async Task<ActionResult<BitResultObject>> AddPayment(AddEditPaymentRequestBody requestBody)
         {
             var result = new BitResultObject();
@@ -394,41 +327,6 @@ namespace NobatPlusAPI.Controllers
             return await DeletePaymentInternal(requestBody);
         }
 
-        [HttpDelete("DeletePayment_Base")]
-        public async Task<ActionResult<BitResultObject>> DeletePayment_Base(GetRowRequestBody requestBody)
-        {
-            return await DeletePaymentInternal(requestBody);
-        }
-
-        private async Task<ActionResult<BitResultObject>> DeletePaymentInternal(GetRowRequestBody requestBody)
-        {
-            if (!await _billingRep.CanAccessPaymentAsync(requestBody.ID, User.GetCurrentUserId(), User.GetCurrentRoleId() == (long) BaseRole.Admin)) return Forbid();
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(requestBody);
-            }
-            var result = await _PaymentRep.RemovePaymentAsync(requestBody.ID);
-            if (result.Status)
-            {
-
-                #region AddLog
-
-                Log log = new Log()
-                {
-                    CreateDate = DateTime.Now.ToShamsi(),
-                    UpdateDate = DateTime.Now.ToShamsi(),
-                    LogTime = DateTime.Now.ToShamsi(),
-                    ActionName = this.ControllerContext.RouteData.Values["action"].ToString(),
-
-                };
-                await _logRep.AddLogAsync(log);
-
-                #endregion
-
-                return Ok(result);
-            }
-            return BadRequest(result);
-        }
 
         [HttpPost("RequestPayment")]
         public async Task<ActionResult<RowResultObject<RequestPaymentResultBody>>> RequestPayment(RequestPaymentRequestBody requestBody)
@@ -537,12 +435,119 @@ namespace NobatPlusAPI.Controllers
             }
         }
 
+       
+
+      
+
+        #region PaymentTools
+
+      
+        private static List<long> NormalizeBookingIds(AddEditPaymentRequestBody requestBody)
+        {
+            var bookingIds = requestBody.BookingIDs?
+                .Where(x => x > 0)
+                .ToList() ?? new List<long>();
+
+            return bookingIds.Distinct().ToList();
+        }
+
+
+        private async Task<ActionResult<ListResultObject<PaymentVM>>> GetAllPaymentsInternal(GetPaymentListRequestBody requestBody)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(requestBody);
+            }
+
+            var userId = User.GetCurrentUserId();
+            var roleId = User.GetCurrentRoleId();
+            long customerId = requestBody.CustomerId ?? 0;
+            if (roleId != 4)
+            {
+                var dbcustomer = await _customerRep.ExistCustomerAsync(userId.ToString(), "personid");
+                customerId = dbcustomer.Status ? dbcustomer.ID : 0;
+            }
+
+            var result = await _PaymentRep.GetAllPaymentsAsync(
+                requestBody.BookingId,
+                customerId,
+                requestBody.PaymentIncludes,
+                requestBody.PageIndex,
+                requestBody.PageSize,
+                requestBody.SearchText,
+                requestBody.SortQuery,
+                requestBody.PaymentStatus ?? "",
+                requestBody.PaymentLevel,
+                requestBody.FromDate,
+                requestBody.ToDate,
+                roleId == (long)BaseRole.Admin ? 0 : userId);
+            if (result.Status)
+            {
+                var resultVM = _mapper.Map<ListResultObject<PaymentVM>>(result);
+                return Ok(resultVM);
+            }
+            return BadRequest(result);
+        }
+
+
+        private async Task<ActionResult<RowResultObject<PaymentVM>>> GetPaymentByIdInternal(GetRowRequestBody requestBody)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(requestBody);
+            }
+            var result = await _PaymentRep.GetPaymentByIdAsync(requestBody.ID);
+            if (result.Status)
+            {
+                var resultVM = _mapper.Map<RowResultObject<PaymentVM>>(result);
+                if (User.GetCurrentRoleId() != 4)
+                {
+                    if (!await _billingRep.CanAccessPaymentAsync(requestBody.ID, User.GetCurrentUserId(), false))
+                    {
+                        return Forbid();
+                    }
+                }
+                return Ok(resultVM);
+            }
+            return BadRequest(result);
+        }
+
+        private async Task<ActionResult<BitResultObject>> DeletePaymentInternal(GetRowRequestBody requestBody)
+        {
+            if (!await _billingRep.CanAccessPaymentAsync(requestBody.ID, User.GetCurrentUserId(), User.GetCurrentRoleId() == (long)BaseRole.Admin)) return Forbid();
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(requestBody);
+            }
+            var result = await _PaymentRep.RemovePaymentAsync(requestBody.ID);
+            if (result.Status)
+            {
+
+                #region AddLog
+
+                Log log = new Log()
+                {
+                    CreateDate = DateTime.Now.ToShamsi(),
+                    UpdateDate = DateTime.Now.ToShamsi(),
+                    LogTime = DateTime.Now.ToShamsi(),
+                    ActionName = this.ControllerContext.RouteData.Values["action"].ToString(),
+
+                };
+                await _logRep.AddLogAsync(log);
+
+                #endregion
+
+                return Ok(result);
+            }
+            return BadRequest(result);
+        }
+
         private async Task<IActionResult> BuildPaymentVerificationResponseAsync(
-            long paymentHistoryId,
-            bool paymentVerified,
-            string? transactionCode,
-            string? errorMessage,
-            bool browserCallback)
+           long paymentHistoryId,
+           bool paymentVerified,
+           string? transactionCode,
+           string? errorMessage,
+           bool browserCallback)
         {
             var context = await _billingRep.GetPaymentVerificationContextAsync(paymentHistoryId);
             if (!context.Status || context.Result == null)
@@ -629,17 +634,6 @@ namespace NobatPlusAPI.Controllers
             return $"{frontendCallbackUrl}{separator}{string.Join("&", query)}";
         }
 
-        #region PaymentTools
-
-      
-        private static List<long> NormalizeBookingIds(AddEditPaymentRequestBody requestBody)
-        {
-            var bookingIds = requestBody.BookingIDs?
-                .Where(x => x > 0)
-                .ToList() ?? new List<long>();
-
-            return bookingIds.Distinct().ToList();
-        }
 
         #endregion
     }
