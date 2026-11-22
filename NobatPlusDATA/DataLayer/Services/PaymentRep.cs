@@ -339,7 +339,9 @@ namespace NobatPlusDATA.DataLayer.Services
                 decimal platform = 0;
                 decimal worker = discounted;
                 decimal allPay = discounted + platform;
-                decimal vatAmount = allPay * int.Parse(_context.Settings.FirstOrDefault(x => x.Key.ToLower() == "vatpercent").Value ?? "0") / 100;
+                var vatpercentRow = await _context.Settings.FirstOrDefaultAsync(s => s.Key.ToLower() == "vatpercent");
+                int vatPercent = vatpercentRow != null ? int.Parse(vatpercentRow.Value) : 0;
+                decimal vatAmount = allPay * vatPercent / 100;
                 allPay += vatAmount;
 
                 result.Result.WorkerAmount = worker;
