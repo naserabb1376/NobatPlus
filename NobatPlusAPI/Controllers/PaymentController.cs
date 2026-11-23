@@ -420,7 +420,7 @@ namespace NobatPlusAPI.Controllers
                 var result = await _billingRep.ConfirmGatewayPaymentAsync(history.ID, transactionCode ?? "",
                     history.ID.ToString(), !string.IsNullOrWhiteSpace(Authority) ? Authority : paymentToken, message);
 
-                result = await _bookingRep.UpdatePaymentBookingsStatus(history.ID);
+                result = await _bookingRep.UpdatePaymentBookingsStatus(history);
 
                 return await BuildPaymentVerificationResponseAsync(history.ID, result.Status, transactionCode,
                     result.Status ? null : result.ErrorMessage, browserCallback);

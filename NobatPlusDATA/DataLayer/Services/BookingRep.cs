@@ -1383,18 +1383,11 @@ namespace NobatPlusDATA.DataLayer.Services
             };
         }
 
-        public async Task<BitResultObject> UpdatePaymentBookingsStatus(long paymentHistoryId)
+        public async Task<BitResultObject> UpdatePaymentBookingsStatus(PaymentHistory paymentHistory)
         {
             BitResultObject result = new BitResultObject();
             try
             {
-                var paymentHistory = await _context.PaymentHistories
-                    .Include(x => x.Payment)
-                        .ThenInclude(x => x.PaymentBookings)
-                            .ThenInclude(x => x.Booking)
-                .AsNoTracking()
-                .SingleOrDefaultAsync(x => x.ID == paymentHistoryId);
-
                 if (paymentHistory == null)
                 {
                     result.ErrorMessage = "سابقه پرداخت یافت نشد";
@@ -1406,7 +1399,7 @@ namespace NobatPlusDATA.DataLayer.Services
                     var payBookings = paymentHistory.Payment.PaymentBookings;
                     foreach (var item in payBookings)
                     {
-                        var booking = await _context.Bookings.FirstOrDefaultAsync(x=> x.ID == item.BookingID);
+                        var booking = item.Booking;
                         booking.Status = 6.ToString(); // پرداخت نشده
                         await _context.SaveChangesAsync();
                     }
@@ -1417,7 +1410,7 @@ namespace NobatPlusDATA.DataLayer.Services
                     var payBookings = paymentHistory.Payment.PaymentBookings;
                     foreach (var item in payBookings)
                     {
-                        var booking = await _context.Bookings.FirstOrDefaultAsync(x => x.ID == item.BookingID);
+                        var booking = item.Booking;
                         booking.Status = 1.ToString(); // پرداخت شده
                         await _context.SaveChangesAsync();
                     }
