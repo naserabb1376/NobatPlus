@@ -3,6 +3,7 @@ using Domains;
 using Microsoft.EntityFrameworkCore;
 using MTPermissionCenter.EFCore;
 using MTPermissionCenter.EFCore.Entities;
+using NobatPlusDATA.DataLayer.DataConfiguration;
 using NobatPlusDATA.Domain;
 using NobatPlusDATA.Tools;
 using NobatPlusDATA.Views;

@@ -1,7 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using NobatPlusDATA.Domain;
 
-namespace NobatPlusDATA.DataLayer;
+namespace NobatPlusDATA.DataLayer.DataConfiguration;
 
 internal static class BillingModelConfiguration
 {
