@@ -1382,5 +1382,53 @@ namespace NobatPlusDATA.DataLayer.Services
                 _ => false
             };
         }
+
+        public async Task<BitResultObject> UpdatePaymentBookingsStatus(long paymentHistoryId)
+        {
+            BitResultObject result = new BitResultObject();
+            try
+            {
+                var paymentHistory = await _context.PaymentHistories
+                    .Include(x => x.Payment)
+                        .ThenInclude(x => x.PaymentBookings)
+                            .ThenInclude(x => x.Booking)
+                .AsNoTracking()
+                .SingleOrDefaultAsync(x => x.ID == paymentHistoryId);
+
+                if (paymentHistory == null)
+                {
+                    result.ErrorMessage = "سابقه پرداخت یافت نشد";
+                    result.Status = false;
+                }
+
+                else if (paymentHistory.Payment.PaymentLevel == 0 || paymentHistory.Payment.PaymentLevel == 4)
+                {
+                    var payBookings = paymentHistory.Payment.PaymentBookings;
+                    foreach (var item in payBookings)
+                    {
+                        var booking = await _context.Bookings.FirstOrDefaultAsync(x=> x.ID == item.BookingID);
+                        booking.Status = 6.ToString(); // پرداخت نشده
+                        await _context.SaveChangesAsync();
+                    }
+                }
+
+                else if (paymentHistory.Payment.PaymentLevel == 2 || paymentHistory.Payment.PaymentLevel == 3)
+                {
+                    var payBookings = paymentHistory.Payment.PaymentBookings;
+                    foreach (var item in payBookings)
+                    {
+                        var booking = await _context.Bookings.FirstOrDefaultAsync(x => x.ID == item.BookingID);
+                        booking.Status = 1.ToString(); // پرداخت شده
+                        await _context.SaveChangesAsync();
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                result.Status = false;
+                result.ErrorMessage = $"{ex.Message} - {ex.InnerException?.Message}";
+            }
+            return result;
+        }
     }
 }

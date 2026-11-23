@@ -29,5 +29,7 @@ namespace NobatPlusDATA.DataLayer.Repositories
             long workerId,
             DateTime start,
             DateTime end);
+
+        public Task<BitResultObject> UpdatePaymentBookingsStatus(long paymentHistoryId);
     }
 }

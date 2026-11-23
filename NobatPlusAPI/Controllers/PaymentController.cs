@@ -36,6 +36,7 @@ namespace NobatPlusAPI.Controllers
         IPaymentRep _PaymentRep;
         IPaymentHistoryRep _PaymentHistoryRep;
         ICustomerRep _customerRep;
+        IBookingRep _bookingRep;
         ISettingRep _settingRep;
         IWorkerServiceRep _workerServiceRep;
         ILogRep _logRep;
@@ -43,7 +44,7 @@ namespace NobatPlusAPI.Controllers
         private readonly IMapper _mapper;
         private readonly IBillingRep _billingRep;
 
-        public PaymentController(IPaymentRep PaymentRep,IPaymentHistoryRep paymentHistoryRep,ICustomerRep customerRep,IWorkerServiceRep workerServiceRep,ILogRep logRep, IOnlinePayment onlinePayment, IMapper mapper, IBillingRep billingRep,ISettingRep settingRep)
+        public PaymentController(IPaymentRep PaymentRep,IPaymentHistoryRep paymentHistoryRep,ICustomerRep customerRep,IWorkerServiceRep workerServiceRep,ILogRep logRep, IOnlinePayment onlinePayment, IMapper mapper, IBillingRep billingRep,ISettingRep settingRep,IBookingRep bookingRep)
         {
            _PaymentRep = PaymentRep;
             _PaymentHistoryRep = paymentHistoryRep;
@@ -54,6 +55,7 @@ namespace NobatPlusAPI.Controllers
             _mapper = mapper;
             _billingRep = billingRep;
             _settingRep = settingRep;
+            _bookingRep = bookingRep;
         }
 
         [HttpPost("GetAllPayments")]
@@ -417,6 +419,9 @@ namespace NobatPlusAPI.Controllers
                 }
                 var result = await _billingRep.ConfirmGatewayPaymentAsync(history.ID, transactionCode ?? "",
                     history.ID.ToString(), !string.IsNullOrWhiteSpace(Authority) ? Authority : paymentToken, message);
+
+                result = await _bookingRep.UpdatePaymentBookingsStatus(history.ID);
+
                 return await BuildPaymentVerificationResponseAsync(history.ID, result.Status, transactionCode,
                     result.Status ? null : result.ErrorMessage, browserCallback);
             }

@@ -704,6 +704,7 @@ public class BillingRep : IBillingRep
             if (billing.BillingInvoiceID.HasValue) await AllocateAsync(billing.BillingAccountID, billing.BillingInvoiceID);
             await AllocateAsync(billing.BillingAccountID);
             await UpdateInvoicesAsync(billing.BillingAccountID);
+
         }
         else if (payment.Purpose != PaymentPurposes.Service) throw new InvalidOperationException("نوع پرداخت معتبر نیست");
         return history.ID;
