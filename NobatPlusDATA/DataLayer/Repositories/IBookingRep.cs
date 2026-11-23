@@ -30,6 +30,6 @@ namespace NobatPlusDATA.DataLayer.Repositories
             DateTime start,
             DateTime end);
 
-        public Task<BitResultObject> UpdatePaymentBookingsStatus(long paymentHistoryId);
+        public Task<BitResultObject> UpdatePaymentBookingsStatus(PaymentHistory paymentHistory);
     }
 }
