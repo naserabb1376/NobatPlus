@@ -27,6 +27,11 @@ namespace NobatPlusDATA.DataLayer.Services
             BitResultObject result = new BitResultObject();
             try
             {
+                bool isUniquePayment = await IsUniquePayment(Payment);
+                if (!isUniquePayment)
+                {
+                    throw new Exception("یک یا چند رزرو انتخاب‌شده تکراری هستند یا قبلاً در پرداخت دیگری ثبت شده‌اند. لطفاً اطلاعات رزروها را بررسی کنید.");
+                }
                 await _context.Payments.AddAsync(Payment);
                 await _context.SaveChangesAsync();
                 result.ID = Payment.ID;
@@ -46,6 +51,11 @@ namespace NobatPlusDATA.DataLayer.Services
             BitResultObject result = new BitResultObject();
             try
             {
+                bool isUniquePayment = await IsUniquePayment(Payment);
+                if (!isUniquePayment)
+                {
+                    throw new Exception("یک یا چند رزرو انتخاب‌شده تکراری هستند یا قبلاً در پرداخت دیگری ثبت شده‌اند. لطفاً اطلاعات رزروها را بررسی کنید.");
+                }
                 var original = await _context.Payments.AsNoTracking().SingleAsync(x => x.ID == Payment.ID);
                 if (original.Purpose != PaymentPurposes.Service || original.PayedAmount > 0 ||
                     await _context.PaymentHistories.AnyAsync(x => x.PaymentID == Payment.ID && (x.PaymentStatus || x.GatewayRequestState == "creating" || x.GatewayRequestState == "requested")))
@@ -618,5 +628,46 @@ long discountId = 0
                 .Concat(customerDiscounts)
                 .Concat(assignmentDiscounts);
         }
+
+
+
+        private async Task<bool> IsUniquePayment(Payment payment)
+        {
+            try
+            {
+                if (payment.PaymentBookings == null ||
+                    !payment.PaymentBookings.Any())
+                    return true;
+
+                var bookingIds = payment.PaymentBookings
+                    .Select(x => x.BookingID)
+                    .ToList();
+
+                // بررسی تکراری بودن BookingID در لیست ورودی
+                if (bookingIds.Count != bookingIds.Distinct().Count())
+                    return false;
+
+                // بررسی تکراری بودن BookingID در دیتابیس
+                if (payment.ID > 0)
+                {
+                    return !await _context.PaymentBookings
+                        .AnyAsync(x =>
+                            x.PaymentID != payment.ID &&
+                            bookingIds.Contains(x.BookingID));
+                }
+                else
+                {
+                    return !await _context.PaymentBookings
+                        .AnyAsync(x =>
+                            bookingIds.Contains(x.BookingID));
+                }
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+
     }
 }
