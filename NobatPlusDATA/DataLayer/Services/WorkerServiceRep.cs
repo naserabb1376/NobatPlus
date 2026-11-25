@@ -171,7 +171,9 @@ namespace NobatPlusDATA.DataLayer.Services
 
             try
             {
-                // گروه‌بندی بر اساس Worker
+                await using var transaction = await _context.Database.BeginTransactionAsync(IsolationLevel.Serializable);
+                await _billingRep.AcquireLockAsync();
+
                 var groupedByWorker = workerServices
                     .GroupBy(x => x.WorkerID)
                     .ToList();
@@ -179,110 +181,148 @@ namespace NobatPlusDATA.DataLayer.Services
                 foreach (var workerGroup in groupedByWorker)
                 {
                     var workerId = workerGroup.Key;
-                    var servicesToReinsert = workerGroup.ToList();
 
-                    // حذف همه سرویس‌های قبلی این worker
-                    var oldItems = await _context.WorkerServices
+                    var existingItems = await _context.WorkerServices
                         .Include(x => x.PriceVariants)
                             .ThenInclude(x => x.OptionValues)
                         .Where(x => x.WorkerID == workerId)
                         .ToListAsync();
 
-                    var oldItemsByServiceId = oldItems.ToDictionary(
+                    var existingItemsByServiceId = existingItems.ToDictionary(
                         x => x.ServiceManagementID,
                         x => x);
 
                     var now = DateTime.Now.ToShamsi();
 
-                    foreach (var inputService in servicesToReinsert)
+                    foreach (var inputService in workerGroup)
                     {
-                        if (!oldItemsByServiceId.TryGetValue(inputService.ServiceManagementID, out var oldItem))
+                        if (!existingItemsByServiceId.TryGetValue(inputService.ServiceManagementID, out var currentService))
                             continue;
-
-                        if (inputService.HasDynamicPricing)
-                        {
-                            inputService.ServicePrice = oldItem.ServicePrice;
-                            inputService.DepositPercent = oldItem.DepositPercent;
-                            inputService.ServiceDuration = oldItem.ServiceDuration;
-                        }
-
-                        var requestedVariants = inputService.PriceVariants?.ToList() ??
-                            new List<WorkerServicePriceVariant>();
 
                         if (!inputService.HasDynamicPricing)
                         {
-                            requestedVariants = new List<WorkerServicePriceVariant>();
+                            currentService.ServicePrice = inputService.ServicePrice;
+                            currentService.DepositPercent = inputService.DepositPercent;
+                            currentService.ServiceDuration = inputService.ServiceDuration;
                         }
-                        else if (!requestedVariants.Any())
+
+                        currentService.HasDynamicPricing = inputService.HasDynamicPricing;
+                        currentService.Description = inputService.Description;
+
+                        var requestedVariants = inputService.PriceVariants?.ToList() ?? new List<WorkerServicePriceVariant>();
+                        if (inputService.HasDynamicPricing && requestedVariants.Any())
                         {
-                            requestedVariants = oldItem.PriceVariants
-                                .Select(variant => CloneVariantForReinsert(variant, now))
-                                .ToList();
-                        }
-                        else
-                        {
-                            requestedVariants = requestedVariants
-                                .Select(variant =>
+                            foreach (var requestedVariant in requestedVariants)
+                            {
+                                requestedVariant.WorkerID = workerId;
+                                requestedVariant.ServiceManagementID = inputService.ServiceManagementID;
+                                requestedVariant.OptionValueCombinationKey = WorkerServicePriceVariant.BuildOptionValueCombinationKey(
+                                    requestedVariant.OptionValues?.Select(x => x.ServiceOptionValueID));
+
+                                var existingVariant = currentService.PriceVariants.FirstOrDefault(x =>
+                                    (requestedVariant.ID > 0 && x.ID == requestedVariant.ID) ||
+                                    (requestedVariant.ID <= 0 &&
+                                     x.OptionValueCombinationKey == requestedVariant.OptionValueCombinationKey &&
+                                     x.BookingTagID == requestedVariant.BookingTagID));
+
+                                if (requestedVariant.ID > 0 && existingVariant == null)
                                 {
-                                    var combinationKey = WorkerServicePriceVariant.BuildOptionValueCombinationKey(
-                                        variant.OptionValues?.Select(x => x.ServiceOptionValueID));
-                                    var oldVariant = oldItem.PriceVariants.FirstOrDefault(x =>
-                                        (variant.ID > 0 && x.ID == variant.ID) ||
-                                        (x.OptionValueCombinationKey == combinationKey && x.BookingTagID == variant.BookingTagID));
+                                    result.Status = false;
+                                    result.ErrorMessage = "قیمت متغیر انتخاب‌شده متعلق به این خدمات‌دهنده و خدمت نیست";
+                                    await transaction.RollbackAsync();
+                                    return result;
+                                }
 
-                                    variant.CreateDate = oldVariant?.CreateDate ?? now;
-                                    variant.UpdateDate = now;
-                                    variant.OptionValueCombinationKey = combinationKey;
-                                    return variant;
-                                })
-                                .ToList();
+                                if (existingVariant != null)
+                                    requestedVariant.ID = existingVariant.ID;
+                            }
 
-                            var requestedVariantIds = requestedVariants
-                                .Where(x => x.ID > 0)
-                                .Select(x => x.ID)
-                                .ToHashSet();
+                            var validationError = await ValidatePriceVariantsAsync(requestedVariants);
 
-                            var requestedCombinationKeys = requestedVariants
-                                .Where(x => !string.IsNullOrWhiteSpace(x.OptionValueCombinationKey))
-                                .Select(x => $"{x.OptionValueCombinationKey}:{x.BookingTagID?.ToString() ?? "null"}")
-                                .ToHashSet();
+                            if (!string.IsNullOrWhiteSpace(validationError))
+                            {
+                                result.Status = false;
+                                result.ErrorMessage = validationError;
+                                await transaction.RollbackAsync();
+                                return result;
+                            }
 
-                            var untouchedOldVariants = oldItem.PriceVariants
-                                .Where(oldVariant =>
-                                    !requestedVariantIds.Contains(oldVariant.ID) &&
-                                    !requestedCombinationKeys.Contains($"{oldVariant.OptionValueCombinationKey}:{oldVariant.BookingTagID?.ToString() ?? "null"}"))
-                                .Select(variant => CloneVariantForReinsert(variant, now))
-                                .ToList();
+                            foreach (var requestedVariant in requestedVariants)
+                            {
+                                var combinationKey = WorkerServicePriceVariant.BuildOptionValueCombinationKey(
+                                    requestedVariant.OptionValues?.Select(x => x.ServiceOptionValueID));
 
-                            requestedVariants.AddRange(untouchedOldVariants);
+                                var currentVariant = currentService.PriceVariants.FirstOrDefault(x =>
+                                    (requestedVariant.ID > 0 && x.ID == requestedVariant.ID) ||
+                                    (requestedVariant.ID <= 0 &&
+                                     x.OptionValueCombinationKey == combinationKey &&
+                                     x.BookingTagID == requestedVariant.BookingTagID));
+
+                                if (currentVariant == null)
+                                {
+                                    currentService.PriceVariants.Add(new WorkerServicePriceVariant
+                                    {
+                                        WorkerID = workerId,
+                                        ServiceManagementID = inputService.ServiceManagementID,
+                                        Price = requestedVariant.Price,
+                                        Duration = requestedVariant.Duration,
+                                        DepositPercent = requestedVariant.DepositPercent,
+                                        IsActive = requestedVariant.IsActive,
+                                        BookingTagID = requestedVariant.BookingTagID,
+                                        OptionValueCombinationKey = combinationKey,
+                                        CreateDate = now,
+                                        UpdateDate = now,
+                                        OptionValues = requestedVariant.OptionValues?
+                                            .Select(x => new WorkerServicePriceVariantOptionValue
+                                            {
+                                                ServiceOptionValueID = x.ServiceOptionValueID
+                                            }).ToList() ?? new List<WorkerServicePriceVariantOptionValue>()
+                                    });
+                                    continue;
+                                }
+
+                                currentVariant.Price = requestedVariant.Price;
+                                currentVariant.Duration = requestedVariant.Duration;
+                                currentVariant.DepositPercent = requestedVariant.DepositPercent;
+                                currentVariant.IsActive = requestedVariant.IsActive;
+                                currentVariant.BookingTagID = requestedVariant.BookingTagID;
+                                currentVariant.OptionValueCombinationKey = combinationKey;
+                                currentVariant.UpdateDate = now;
+
+                                var oldOptionValues = currentVariant.OptionValues.ToList();
+                                if (oldOptionValues.Any())
+                                    _context.WorkerServicePriceVariantOptionValues.RemoveRange(oldOptionValues);
+
+                                currentVariant.OptionValues = requestedVariant.OptionValues?
+                                    .Select(x => new WorkerServicePriceVariantOptionValue
+                                    {
+                                        WorkerServicePriceVariantID = currentVariant.ID,
+                                        ServiceOptionValueID = x.ServiceOptionValueID
+                                    }).ToList() ?? new List<WorkerServicePriceVariantOptionValue>();
+                            }
                         }
 
-                        inputService.PriceVariants = requestedVariants;
+                        if (!inputService.HasDynamicPricing)
+                        {
+                            // Variantها حذف نمی‌شوند؛ ممکن است در PaymentDetails سابقه داشته باشند.
+                            foreach (var variant in currentService.PriceVariants)
+                            {
+                                variant.IsActive = false;
+                                variant.UpdateDate = now;
+                            }
+                        }
+
+                        currentService.ServiceManagementID = inputService.ServiceManagementID;
                     }
 
-                    var requestedServiceIds = servicesToReinsert
-                        .Select(x => x.ServiceManagementID)
-                        .ToHashSet();
+                    await _context.SaveChangesAsync();
 
-                    var itemsToReplace = oldItems
-                        .Where(x => requestedServiceIds.Contains(x.ServiceManagementID))
-                        .ToList();
-
-                    if (itemsToReplace.Any())
-                    {
-                        await DetachVariantReferencesAsync(itemsToReplace
-                            .SelectMany(x => x.PriceVariants ?? new List<WorkerServicePriceVariant>())
-                            .Select(x => x.ID));
-                        _context.WorkerServices.RemoveRange(itemsToReplace);
-                        await _context.SaveChangesAsync();
-                    }
-
-                    // افزودن مجدد فقط سرویس‌های مربوط به همین worker
-                    var addResult = await AddWorkerServicesAsync(servicesToReinsert);
-                    if (!addResult.Status)
-                        return addResult;
+                    var capacityError = await _billingRep.ValidateWorkerCapacityAsync(workerId);
+                    if (!string.IsNullOrWhiteSpace(capacityError))
+                        throw new InvalidOperationException(capacityError);
                 }
 
+                await transaction.CommitAsync();
                 result.Status = true;
             }
             catch (Exception ex)
@@ -293,53 +333,6 @@ namespace NobatPlusDATA.DataLayer.Services
 
             return result;
         }
-
-        private static WorkerServicePriceVariant CloneVariantForReinsert(
-            WorkerServicePriceVariant source,
-            DateTime updateDate)
-        {
-            return new WorkerServicePriceVariant
-            {
-                CreateDate = source.CreateDate ?? updateDate,
-                UpdateDate = updateDate,
-                Description = source.Description,
-                WorkerID = source.WorkerID,
-                ServiceManagementID = source.ServiceManagementID,
-                Price = source.Price,
-                Duration = source.Duration,
-                DepositPercent = source.DepositPercent,
-                IsActive = source.IsActive,
-                BookingTagID = source.BookingTagID,
-                OptionValueCombinationKey = source.OptionValueCombinationKey,
-                OptionValues = source.OptionValues
-                    .Select(x => new WorkerServicePriceVariantOptionValue
-                    {
-                        ServiceOptionValueID = x.ServiceOptionValueID
-                    })
-                    .ToList()
-            };
-        }
-
-        private static WorkerService CloneWorkerServiceForReinsert(
-            WorkerService source,
-            DateTime updateDate)
-        {
-            return new WorkerService
-            {
-                WorkerID = source.WorkerID,
-                ServiceManagementID = source.ServiceManagementID,
-                ServicePrice = source.ServicePrice,
-                DepositPercent = source.DepositPercent,
-                ServiceDuration = source.ServiceDuration,
-                HasDynamicPricing = source.HasDynamicPricing,
-                Description = source.Description,
-                PriceVariants = source.PriceVariants?
-                    .Select(variant => CloneVariantForReinsert(variant, updateDate))
-                    .ToList() ?? new List<WorkerServicePriceVariant>()
-            };
-        }
-
-
 
         public async Task<BitResultObject> RemoveWorkerServicesAsync(List<WorkerService> workerServices)
         {
