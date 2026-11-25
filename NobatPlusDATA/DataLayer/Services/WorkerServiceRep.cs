@@ -323,6 +323,7 @@ namespace NobatPlusDATA.DataLayer.Services
                 }
 
                 await transaction.CommitAsync();
+                result.ID = workerServices.FirstOrDefault()?.ServiceManagementID ?? 0;
                 result.Status = true;
             }
             catch (Exception ex)
